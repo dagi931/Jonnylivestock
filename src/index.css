@@ -1,0 +1,104 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /* Default: Design 7 (Dark Rustic Theme) */
+  :root {
+    --theme-bg: #1B1208;             /* Deep Espresso Brown - Locked */
+    --theme-bg-card: #2A1A0D;        /* Dark Walnut Brown */
+    --theme-bg-surface: #2A1A0D;     /* Dark Walnut Brown */
+    --theme-bg-alt: #1F150A;         /* Dark Accent Walnut */
+    --theme-border: #4A2C16;         /* Rich Walnut */
+    --theme-border-light: #3A2312;   /* Subtle Walnut border */
+    --theme-primary: #C58A3A;        /* Warm Bronze Gold */
+    --theme-primary-hover: #E0B15A;  /* Antique Gold */
+    --theme-secondary: #4A2C16;      /* Rich Walnut */
+    --theme-accent: #E0B15A;         /* Antique Gold */
+    --theme-text-main: #F4E8D0;      /* Warm Cream */
+    --theme-text-muted: #D8C5A8;     /* Soft Sand */
+    --theme-text-inv: #1B1208;       /* Deep Espresso Brown text on gold */
+    --theme-nav-bg: rgba(27, 18, 8, 0.95);
+    --theme-footer-bg: #1B1208;
+    --theme-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+    --theme-hero-overlay: rgba(27, 18, 8, 0.78);
+    --theme-input-bg: #22140A;
+    --theme-input-border: #4A2C16;
+  }
+
+  /* Design 11 (Light Premium Livestock Theme) */
+  [data-theme="design11"] {
+    --theme-bg: #FAF7F0;             /* Warm Ivory */
+    --theme-bg-card: #F1E8D8;        /* Soft Cream Card */
+    --theme-bg-surface: #F1E8D8;     /* Soft Cream */
+    --theme-bg-alt: #F1E8D8;         /* Soft Cream */
+    --theme-border: #E4D4BC;         /* Light Sand */
+    --theme-border-light: #E4D4BC;   /* Light Sand border */
+    --theme-primary: #B8792F;        /* Warm Bronze */
+    --theme-primary-hover: #9E6523;  /* Deepened Bronze */
+    --theme-secondary: #4A2C16;      /* Rich Brown */
+    --theme-accent: #B8792F;         /* Warm Bronze */
+    --theme-text-main: #241A12;      /* Deep Text */
+    --theme-text-muted: #746556;     /* Muted Brown */
+    --theme-text-inv: #FAF7F0;       /* Warm Ivory text on bronze button */
+    --theme-nav-bg: rgba(250, 247, 240, 0.96);
+    --theme-footer-bg: #2A1A0D;      /* Dark Brown footer */
+    --theme-shadow: 0 8px 30px rgba(42, 26, 13, 0.08);
+    --theme-hero-overlay: rgba(42, 26, 13, 0.5);
+    --theme-input-bg: #FAF7F0;       /* Warm Ivory input */
+    --theme-input-border: #E4D4BC;   /* Light Sand border */
+  }
+
+  body {
+    background-color: var(--theme-bg);
+    color: var(--theme-text-main);
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Playfair Display', Georgia, serif;
+    letter-spacing: -0.01em;
+  }
+}
+
+/* Custom rustic & premium scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--theme-bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--theme-border);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--theme-primary);
+}
+
+/* Accessible focus ring */
+*:focus-visible {
+  outline: 2px solid var(--theme-primary);
+  outline-offset: 2px;
+}
+
+/* Glassmorphism panel for theme card accents */
+.glass-panel {
+  background: rgba(42, 26, 13, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(74, 44, 22, 0.5);
+}
+
+[data-theme="design11"] .glass-panel {
+  background: rgba(241, 232, 216, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(228, 212, 188, 0.9);
+}
