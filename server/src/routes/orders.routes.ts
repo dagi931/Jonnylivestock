@@ -1,9 +1,9 @@
 import { Router, Response } from 'express';
-import { v4 as uuidv4 } from 'uuid';
 import { JsonDB } from '../db/jsonDb.js';
 import { authenticateToken, requireAdmin, optionalAuth, AuthRequest } from '../middleware/auth.middleware.js';
 import { uploadSlip } from '../middleware/upload.middleware.js';
-import { Order, OrderStatus } from '../types/index.js';
+import { Order } from '../types/index.js';
+import { realtimeService } from '../services/realtime.service.js';
 
 const router = Router();
 
@@ -43,8 +43,8 @@ router.post(
         return;
       }
 
-      if (animal.status === 'sold') {
-        res.status(400).json({ success: false, error: 'This animal is already sold' });
+      if (animal.status === 'sold' || (animal.quantity !== undefined && animal.quantity <= 0)) {
+        res.status(400).json({ success: false, error: 'This animal is already sold / unavailable' });
         return;
       }
 
@@ -95,15 +95,24 @@ router.post(
         updatedAt: new Date().toISOString()
       };
 
-      // Set animal to reserved so others know it's being purchased
-      JsonDB.updateAnimal(animal.id, { status: 'reserved' });
+      const { order: createdOrder, notification, animal: updatedAnimal } = JsonDB.createOrder(newOrder);
 
-      const createdOrder = JsonDB.createOrder(newOrder);
+      // 🚀 REALTIME BROADCAST: Notify Admin & Update Item Availability in real-time
+      realtimeService.broadcast('NEW_ORDER_SLIP', {
+        order: createdOrder,
+        notification,
+        animal: updatedAnimal
+      });
+
+      if (updatedAnimal) {
+        realtimeService.broadcast('ANIMAL_UPDATED', updatedAnimal);
+      }
 
       res.status(201).json({
         success: true,
         message: 'Payment slip submitted successfully! Admin has been notified for verification.',
-        order: createdOrder
+        order: createdOrder,
+        notification
       });
     } catch (error: any) {
       console.error('Order creation error:', error);
@@ -188,9 +197,20 @@ router.post('/:id/verify', authenticateToken, requireAdmin, (req: AuthRequest, r
       return;
     }
 
+    // 🚀 REALTIME BROADCAST: Broadcast that order was approved and animal was marked as SOLD / stock reduced
+    realtimeService.broadcast('ORDER_VERIFIED', {
+      order: result.order,
+      animal: result.animal,
+      notification: result.notification
+    });
+
+    if (result.animal) {
+      realtimeService.broadcast('ANIMAL_UPDATED', result.animal);
+    }
+
     res.json({
       success: true,
-      message: `Order ${result.order.id} verified successfully. ${result.animal ? result.animal.breed + ' marked as SOLD.' : ''}`,
+      message: `Order ${result.order.id} verified successfully. ${result.animal ? result.animal.breed + ' stock updated / marked as SOLD.' : ''}`,
       order: result.order,
       animal: result.animal
     });
@@ -209,16 +229,27 @@ router.post('/:id/reject', authenticateToken, requireAdmin, (req: AuthRequest, r
       return;
     }
 
-    const order = JsonDB.rejectOrder(req.params.id, reason);
-    if (!order) {
+    const result = JsonDB.rejectOrder(req.params.id, reason);
+    if (!result) {
       res.status(404).json({ success: false, error: 'Order not found' });
       return;
     }
 
+    // 🚀 REALTIME BROADCAST: Broadcast rejection and restored availability
+    realtimeService.broadcast('ORDER_REJECTED', {
+      order: result.order,
+      animal: result.animal
+    });
+
+    if (result.animal) {
+      realtimeService.broadcast('ANIMAL_UPDATED', result.animal);
+    }
+
     res.json({
       success: true,
-      message: `Order ${order.id} has been rejected.`,
-      order
+      message: `Order ${result.order.id} has been rejected.`,
+      order: result.order,
+      animal: result.animal
     });
   } catch (error: any) {
     console.error('Error rejecting order:', error);

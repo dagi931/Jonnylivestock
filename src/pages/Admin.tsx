@@ -1,19 +1,16 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useAdminAuth } from '../context/AdminAuthContext';
 import { mockAnimals as fallbackAnimals } from '../data/animals';
-import { Animal, AnimalStatus, AnimalType } from '../types/animal';
+import { Animal, AnimalType, AnimalStatus } from '../types/animal';
 import { StatusBadge } from '../components/common/StatusBadge';
 import { formatPrice, formatWeight } from '../utils/formatters';
-import { business } from '../config/business';
 import { useTheme } from '../context/ThemeContext';
 import { api, Order, AdminNotification } from '../services/api';
 import { SlipPreviewModal } from '../components/modals/SlipPreviewModal';
+import { useRealtimeEvent, useRealtime } from '../context/RealtimeContext';
 import {
-  TrendingUp,
   DollarSign,
   ShoppingBag,
-  Truck,
-  Sparkles,
   Search,
   CheckCircle2,
   ArrowUpRight,
@@ -23,9 +20,7 @@ import {
   EyeOff,
   LogOut,
   LayoutDashboard,
-  ClipboardList,
   BarChart3,
-  Settings,
   Shield,
   Layers,
   AlertCircle,
@@ -33,14 +28,9 @@ import {
   Check,
   X,
   CreditCard,
-  Image as ImageIcon,
-  ExternalLink,
   Plus,
   RefreshCw,
-  Phone,
-  Clock,
-  ShieldCheck,
-  XCircle
+  Clock
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -122,10 +112,129 @@ export const Admin: React.FC = () => {
     }
   }, [isAuthenticated]);
 
+  const { isConnected } = useRealtime();
+
+  // 🚀 REALTIME LISTENER: New Payment Slip Uploaded by Customer
+  useRealtimeEvent<{ order: Order; notification: AdminNotification; animal: Animal | null }>('NEW_ORDER_SLIP', (data) => {
+    if (!data || !data.order) return;
+    
+    // Add order to list if not already present
+    setOrdersList(prev => {
+      if (prev.some(o => o.id === data.order.id)) return prev;
+      return [data.order, ...prev];
+    });
+
+    // Add notification to list
+    if (data.notification) {
+      setNotifications(prev => [data.notification, ...prev]);
+      setUnreadNotifsCount(prev => prev + 1);
+    }
+
+    // Update animal status to reserved if provided
+    if (data.animal) {
+      setAnimalsList(prev => {
+        const idx = prev.findIndex(a => a.id.toLowerCase() === data.animal!.id.toLowerCase());
+        if (idx === -1) return prev;
+        const copy = [...prev];
+        copy[idx] = { ...copy[idx], ...data.animal };
+        return copy;
+      });
+    }
+
+    // Show instant prominent notification toast
+    showAlert('success', `🔔 New Payment Slip uploaded by ${data.order.customerName} for ${data.order.animalBreed} (${data.order.totalAmount.toLocaleString()} ETB)!`);
+  });
+
+  // 🚀 REALTIME LISTENER: Order Verified & Payment Approved
+  useRealtimeEvent<{ order: Order; animal: Animal | null; notification: AdminNotification }>('ORDER_VERIFIED', (data) => {
+    if (!data || !data.order) return;
+
+    setOrdersList(prev => {
+      const idx = prev.findIndex(o => o.id === data.order.id);
+      if (idx === -1) return [data.order, ...prev];
+      const copy = [...prev];
+      copy[idx] = { ...copy[idx], ...data.order };
+      return copy;
+    });
+
+    if (data.animal) {
+      setAnimalsList(prev => {
+        const idx = prev.findIndex(a => a.id.toLowerCase() === data.animal!.id.toLowerCase());
+        if (idx === -1) return prev;
+        const copy = [...prev];
+        copy[idx] = { ...copy[idx], ...data.animal };
+        return copy;
+      });
+    }
+
+    if (data.notification) {
+      setNotifications(prev => [data.notification, ...prev]);
+      setUnreadNotifsCount(prev => prev + 1);
+    }
+  });
+
+  // 🚀 REALTIME LISTENER: Order Rejected
+  useRealtimeEvent<{ order: Order; animal: Animal | null }>('ORDER_REJECTED', (data) => {
+    if (!data || !data.order) return;
+
+    setOrdersList(prev => {
+      const idx = prev.findIndex(o => o.id === data.order.id);
+      if (idx === -1) return [data.order, ...prev];
+      const copy = [...prev];
+      copy[idx] = { ...copy[idx], ...data.order };
+      return copy;
+    });
+
+    if (data.animal) {
+      setAnimalsList(prev => {
+        const idx = prev.findIndex(a => a.id.toLowerCase() === data.animal!.id.toLowerCase());
+        if (idx === -1) return prev;
+        const copy = [...prev];
+        copy[idx] = { ...copy[idx], ...data.animal };
+        return copy;
+      });
+    }
+  });
+
+  // 🚀 REALTIME LISTENER: Live Animal Inventory Changes
+  useRealtimeEvent<Animal>('ANIMAL_CREATED', (created) => {
+    if (!created) return;
+    setAnimalsList(prev => {
+      if (prev.some(a => a.id === created.id)) return prev;
+      return [created, ...prev];
+    });
+  });
+
+  useRealtimeEvent<Animal>('ANIMAL_UPDATED', (updated) => {
+    if (!updated) return;
+    setAnimalsList(prev => {
+      const idx = prev.findIndex(a => a.id.toLowerCase() === updated.id.toLowerCase());
+      if (idx === -1) return prev;
+      const copy = [...prev];
+      copy[idx] = { ...copy[idx], ...updated };
+      return copy;
+    });
+  });
+
+  useRealtimeEvent<{ id: string }>('ANIMAL_DELETED', ({ id }) => {
+    if (!id) return;
+    setAnimalsList(prev => prev.filter(a => a.id.toLowerCase() !== id.toLowerCase()));
+  });
+
+  useRealtimeEvent<{ id?: string; all?: boolean }>('NOTIFICATIONS_READ', (payload) => {
+    if (payload?.all) {
+      setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+      setUnreadNotifsCount(0);
+    } else if (payload?.id) {
+      setNotifications(prev => prev.map(n => n.id === payload.id ? { ...n, read: true } : n));
+      setUnreadNotifsCount(prev => Math.max(0, prev - 1));
+    }
+  });
+
   // Flash alert helper
   const showAlert = (type: 'success' | 'error', message: string) => {
     setActionAlert({ type, message });
-    setTimeout(() => setActionAlert(null), 5000);
+    setTimeout(() => setActionAlert(null), 6000);
   };
 
   // Calculations
@@ -276,18 +385,21 @@ export const Admin: React.FC = () => {
   };
 
   // Handle Login Submit
-  const handleLoginSubmit = (e: React.FormEvent) => {
+  const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoginError('');
     setIsLoggingIn(true);
 
-    setTimeout(() => {
-      const res = login(emailInput, passwordInput);
-      setIsLoggingIn(false);
+    try {
+      const res = await login(emailInput, passwordInput);
       if (!res.success) {
         setLoginError(res.error || 'Login failed');
       }
-    }, 400);
+    } catch {
+      setLoginError('Authentication failed');
+    } finally {
+      setIsLoggingIn(false);
+    }
   };
 
   const handleUseDemoCredentials = () => {
@@ -438,6 +550,19 @@ export const Admin: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-2">
+            {/* Realtime Stream Badge */}
+            <div
+              className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[11px] font-semibold border"
+              style={{
+                backgroundColor: isConnected ? (isDark ? 'rgba(16, 185, 129, 0.1)' : '#E8F5E9') : (isDark ? 'rgba(239, 68, 68, 0.1)' : '#FFEBEE'),
+                borderColor: isConnected ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.3)',
+                color: isConnected ? '#10B981' : '#EF4444'
+              }}
+            >
+              <span className={`w-2 h-2 rounded-full ${isConnected ? 'bg-emerald-500 animate-pulse' : 'bg-red-500'}`} />
+              <span>{isConnected ? 'Live Stream Active' : 'Connecting Stream...'}</span>
+            </div>
+
             {/* Refresh Button */}
             <button
               onClick={loadDashboardData}

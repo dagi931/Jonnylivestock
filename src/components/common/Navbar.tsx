@@ -4,7 +4,7 @@ import { business } from '../../config/business';
 import { ThemeToggle } from './ThemeToggle';
 import { LanguageToggle } from './LanguageToggle';
 import { useUserAuth } from '../../context/UserAuthContext';
-import { Menu, X, ChevronRight, BarChart3, User, LogOut, LogIn, ShoppingBag } from 'lucide-react';
+import { Menu, X, ChevronRight, BarChart3, User, LogOut, LogIn } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 import { useLanguage } from '../../context/LanguageContext';
 

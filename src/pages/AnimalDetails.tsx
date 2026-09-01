@@ -16,6 +16,7 @@ import { business } from '../config/business';
 import { formatPrice, formatWeight, getPhoneCallLink, getWhatsAppLink } from '../utils/formatters';
 import { useTheme } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
+import { useRealtimeEvent } from '../context/RealtimeContext';
 import {
   Phone,
   MessageCircle,
@@ -31,8 +32,7 @@ import {
   AlertTriangle,
   Truck,
   Sparkles,
-  CreditCard,
-  ShoppingBag
+  CreditCard
 } from 'lucide-react';
 
 export const AnimalDetails: React.FC = () => {
@@ -70,6 +70,19 @@ export const AnimalDetails: React.FC = () => {
       });
     }
   };
+
+  // 🚀 Realtime listener: If this animal is marked as sold or updated, update state immediately
+  useRealtimeEvent<Animal>('ANIMAL_UPDATED', (updated) => {
+    if (updated && id && updated.id.toLowerCase() === id.toLowerCase()) {
+      setAnimalData(updated);
+    }
+  });
+
+  useRealtimeEvent<{ order: any; animal: Animal | null }>('ORDER_VERIFIED', (data) => {
+    if (data?.animal && id && data.animal.id.toLowerCase() === id.toLowerCase()) {
+      setAnimalData(data.animal);
+    }
+  });
 
   const animal = animalData || (id ? getAnimalById(id) : undefined);
 

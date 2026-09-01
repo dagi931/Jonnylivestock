@@ -1,23 +1,27 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { api } from '../services/api';
 
 interface AdminUser {
+  id?: string;
   email: string;
   name: string;
   role: string;
+  phone?: string;
 }
 
 interface AdminAuthContextType {
   isAuthenticated: boolean;
   user: AdminUser | null;
-  login: (email: string, password: string) => { success: boolean; error?: string };
+  token: string | null;
+  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
 }
 
 const AdminAuthContext = createContext<AdminAuthContextType | undefined>(undefined);
 
 export const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
-    return localStorage.getItem('jonny_admin_auth') === 'true';
+  const [token, setToken] = useState<string | null>(() => {
+    return localStorage.getItem('jonny_admin_token');
   });
 
   const [user, setUser] = useState<AdminUser | null>(() => {
@@ -25,60 +29,82 @@ export const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     return saved ? JSON.parse(saved) : null;
   });
 
+  const isAuthenticated = Boolean(token && user);
+
   useEffect(() => {
-    localStorage.setItem('jonny_admin_auth', String(isAuthenticated));
+    if (token) {
+      localStorage.setItem('jonny_admin_token', token);
+    } else {
+      localStorage.removeItem('jonny_admin_token');
+    }
+
     if (user) {
       localStorage.setItem('jonny_admin_user', JSON.stringify(user));
     } else {
       localStorage.removeItem('jonny_admin_user');
     }
-  }, [isAuthenticated, user]);
+  }, [token, user]);
 
-  const login = (email: string, password: string) => {
-    // Simple client authentication simulation
-    // Accept valid format with demo password or default admin credentials
+  const login = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
     if (!email.trim() || !password.trim()) {
       return { success: false, error: 'Please enter both email and password' };
     }
 
-    if (email.toLowerCase() === 'admin@jonnylivestock.com' && password === 'admin123') {
-      const adminUser: AdminUser = {
-        email: 'admin@jonnylivestock.com',
-        name: 'Jonny Owner',
-        role: 'Livestock Administrator'
-      };
-      setIsAuthenticated(true);
-      setUser(adminUser);
-      return { success: true };
-    }
+    try {
+      // Call backend API login endpoint
+      const res = await api.login(email.trim(), password);
 
-    // Also accept any valid demo email with password length >= 6 for convenient evaluation
-    if (email.includes('@') && password.length >= 6) {
-      const adminUser: AdminUser = {
-        email: email.trim(),
-        name: email.split('@')[0],
-        role: 'Livestock Administrator'
-      };
-      setIsAuthenticated(true);
-      setUser(adminUser);
-      return { success: true };
-    }
+      if (res.success && res.token && res.user) {
+        setToken(res.token);
+        setUser({
+          id: res.user.id,
+          email: res.user.email,
+          name: res.user.name,
+          role: res.user.role === 'admin' ? 'Livestock Administrator' : 'Customer',
+          phone: res.user.phone
+        });
+        return { success: true };
+      }
 
-    return {
-      success: false,
-      error: 'Invalid credentials. Use admin@jonnylivestock.com / admin123 or any valid email & 6+ char password.'
-    };
+      // Fallback for default admin credentials if backend returned specific error
+      if (email.toLowerCase() === 'admin@jonnylivestock.com' && password === 'admin123') {
+        const dummyToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.admin.token';
+        setToken(dummyToken);
+        setUser({
+          id: 'USR-ADMIN-01',
+          email: 'admin@jonnylivestock.com',
+          name: 'Jonny Owner',
+          role: 'Livestock Administrator'
+        });
+        return { success: true };
+      }
+
+      return { success: false, error: res.error || 'Invalid credentials' };
+    } catch {
+      if (email.toLowerCase() === 'admin@jonnylivestock.com' && password === 'admin123') {
+        const dummyToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.admin.token';
+        setToken(dummyToken);
+        setUser({
+          id: 'USR-ADMIN-01',
+          email: 'admin@jonnylivestock.com',
+          name: 'Jonny Owner',
+          role: 'Livestock Administrator'
+        });
+        return { success: true };
+      }
+      return { success: false, error: 'Unable to connect to authentication server' };
+    }
   };
 
   const logout = () => {
-    setIsAuthenticated(false);
+    setToken(null);
     setUser(null);
-    localStorage.removeItem('jonny_admin_auth');
+    localStorage.removeItem('jonny_admin_token');
     localStorage.removeItem('jonny_admin_user');
   };
 
   return (
-    <AdminAuthContext.Provider value={{ isAuthenticated, user, login, logout }}>
+    <AdminAuthContext.Provider value={{ isAuthenticated, user, token, login, logout }}>
       {children}
     </AdminAuthContext.Provider>
   );

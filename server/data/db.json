@@ -5,7 +5,7 @@
       "name": "Jonny Owner",
       "email": "admin@jonnylivestock.com",
       "phone": "+251911234567",
-      "passwordHash": "$2a$10$1yIu0rN3bNnKj5u7y2C.E.L3R9eR7gNl1wM3u7P8c2zBv5j2x3k2m",
+      "passwordHash": "$2a$10$fiPqVsNS7FshPe4rU.uj7.dGy9Pas45hGVeH4Uk43lQGNBaF1zo8e",
       "role": "admin",
       "createdAt": "2026-08-01T10:00:00.000Z"
     },
@@ -14,7 +14,7 @@
       "name": "Dawit Tadesse",
       "email": "dawit@example.com",
       "phone": "+251911234567",
-      "passwordHash": "$2a$10$1yIu0rN3bNnKj5u7y2C.E.L3R9eR7gNl1wM3u7P8c2zBv5j2x3k2m",
+      "passwordHash": "$2a$10$jq.9wZLHuszNBNPxUQlI2.aRFvJrppzBBk3xu71Mge4KROH/PsaQK",
       "role": "customer",
       "createdAt": "2026-08-15T12:30:00.000Z"
     }
@@ -79,7 +79,7 @@
       "price": 22000,
       "location": "Aware, Addis Ababa",
       "description": "Heavyweight, fast-growing Bonga breed ram with outstanding body length and deep flank. Excellent meat-conformation and docile temperament.",
-      "status": "available",
+      "status": "sold",
       "featured": true,
       "characteristics": [
         "Heavyweight class",
@@ -91,7 +91,8 @@
         "https://images.unsplash.com/photo-1516467508483-a7212febe31a?auto=format&fit=crop&w=1200&q=80",
         "https://images.unsplash.com/photo-1484557052118-f32bd25b45b5?auto=format&fit=crop&w=1200&q=80"
       ],
-      "createdAt": "2026-08-18"
+      "createdAt": "2026-08-18",
+      "quantity": 0
     },
     {
       "id": "SH-004",
@@ -517,6 +518,30 @@
   ],
   "orders": [
     {
+      "id": "ORD-444594",
+      "userId": "USR-DEMO-01",
+      "customerName": "Dawit Tadesse",
+      "customerPhone": "+251911234567",
+      "customerEmail": "dawit@example.com",
+      "animalId": "SH-003",
+      "animalBreed": "Bonga",
+      "animalType": "sheep",
+      "animalPrice": 22000,
+      "selectedServices": [],
+      "servicesFee": 0,
+      "totalAmount": 22000,
+      "paymentMethod": "Telebirr",
+      "paymentSlipUrl": "",
+      "transactionReference": "TXN-TEST-9988",
+      "customerNotes": "Please deliver in morning",
+      "status": "verified",
+      "createdAt": "2026-09-01T21:50:44.594Z",
+      "updatedAt": "2026-09-01T21:50:44.662Z",
+      "verifiedAt": "2026-09-01T21:50:44.662Z",
+      "verifiedBy": "Jonny Owner",
+      "adminNotes": "Telebirr reference confirmed by bank statement"
+    },
+    {
       "id": "ORD-011572",
       "customerName": "Almaz Kebede",
       "customerPhone": "+251911998877",
@@ -568,6 +593,24 @@
     }
   ],
   "notifications": [
+    {
+      "id": "NOTIF-444662",
+      "type": "PAYMENT_VERIFIED",
+      "title": "Order Payment Verified",
+      "message": "Order ORD-444594 for Bonga has been verified and marked as SOLD by Jonny Owner.",
+      "orderId": "ORD-444594",
+      "read": false,
+      "createdAt": "2026-09-01T21:50:44.662Z"
+    },
+    {
+      "id": "NOTIF-444594",
+      "type": "NEW_ORDER_SLIP",
+      "title": "New Payment Slip Uploaded",
+      "message": "Dawit Tadesse uploaded a payment slip for Bonga (SH-003) - 22,000 ETB.",
+      "orderId": "ORD-444594",
+      "read": false,
+      "createdAt": "2026-09-01T21:50:44.627Z"
+    },
     {
       "id": "NOTIF-016940",
       "type": "PAYMENT_VERIFIED",

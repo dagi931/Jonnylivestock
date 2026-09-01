@@ -11,6 +11,7 @@ export interface Animal {
   weight: number; // in kg
   color: string;
   price: number; // in ETB
+  quantity?: number; // Stock count
   location: string;
   description: string;
   status: AnimalStatus;

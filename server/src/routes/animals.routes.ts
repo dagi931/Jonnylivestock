@@ -1,7 +1,8 @@
 import { Router, Request, Response } from 'express';
 import { JsonDB } from '../db/jsonDb.js';
 import { authenticateToken, requireAdmin, AuthRequest } from '../middleware/auth.middleware.js';
-import { Animal, AnimalType, AnimalStatus } from '../types/index.js';
+import { Animal, AnimalType } from '../types/index.js';
+import { realtimeService } from '../services/realtime.service.js';
 
 const router = Router();
 
@@ -84,7 +85,7 @@ router.get('/:id', (req: Request, res: Response): void => {
 // ==================== CREATE ANIMAL (Admin only) ====================
 router.post('/', authenticateToken, requireAdmin, (req: AuthRequest, res: Response): void => {
   try {
-    const { type, breed, gender, weight, color, price, location, description, images, video, featured, characteristics } = req.body;
+    const { type, breed, gender, weight, color, price, quantity, location, description, images, video, featured, characteristics } = req.body;
 
     if (!type || !breed || !price) {
       res.status(400).json({ success: false, error: 'Type, breed, and price are required' });
@@ -103,6 +104,7 @@ router.post('/', authenticateToken, requireAdmin, (req: AuthRequest, res: Respon
       weight: Number(weight) || 30,
       color: color || 'Natural',
       price: Number(price),
+      quantity: quantity !== undefined ? Number(quantity) : 1,
       location: location || 'Aware, Addis Ababa',
       description: description || '',
       status: 'available',
@@ -114,6 +116,10 @@ router.post('/', authenticateToken, requireAdmin, (req: AuthRequest, res: Respon
     };
 
     const created = JsonDB.createAnimal(newAnimal);
+
+    // 🚀 REALTIME BROADCAST
+    realtimeService.broadcast('ANIMAL_CREATED', created);
+
     res.status(201).json({ success: true, message: 'Animal created successfully', data: created });
   } catch (error: any) {
     console.error('Error creating animal:', error);
@@ -129,6 +135,10 @@ router.put('/:id', authenticateToken, requireAdmin, (req: AuthRequest, res: Resp
       res.status(404).json({ success: false, error: 'Animal not found' });
       return;
     }
+
+    // 🚀 REALTIME BROADCAST
+    realtimeService.broadcast('ANIMAL_UPDATED', updated);
+
     res.json({ success: true, message: 'Animal updated successfully', data: updated });
   } catch (error: any) {
     console.error('Error updating animal:', error);
@@ -139,11 +149,16 @@ router.put('/:id', authenticateToken, requireAdmin, (req: AuthRequest, res: Resp
 // ==================== DELETE ANIMAL (Admin only) ====================
 router.delete('/:id', authenticateToken, requireAdmin, (req: AuthRequest, res: Response): void => {
   try {
-    const deleted = JsonDB.deleteAnimal(req.params.id);
+    const animalId = req.params.id;
+    const deleted = JsonDB.deleteAnimal(animalId);
     if (!deleted) {
       res.status(404).json({ success: false, error: 'Animal not found' });
       return;
     }
+
+    // 🚀 REALTIME BROADCAST
+    realtimeService.broadcast('ANIMAL_DELETED', { id: animalId });
+
     res.json({ success: true, message: 'Animal removed successfully' });
   } catch (error: any) {
     console.error('Error deleting animal:', error);

@@ -49,6 +49,9 @@ export class JsonDB {
 
   public static createAnimal(animalData: Animal): Animal {
     const db = this.readDB();
+    if (animalData.quantity === undefined) {
+      animalData.quantity = 1;
+    }
     db.animals.unshift(animalData);
     this.writeDB(db);
     return animalData;
@@ -114,7 +117,7 @@ export class JsonDB {
     return orders.find(o => o.id.toLowerCase() === id.toLowerCase());
   }
 
-  public static createOrder(order: Order): Order {
+  public static createOrder(order: Order): { order: Order; notification: AdminNotification; animal: Animal | null } {
     const db = this.readDB();
     db.orders.unshift(order);
 
@@ -130,11 +133,23 @@ export class JsonDB {
     };
     db.notifications.unshift(notif);
 
+    // Reserve animal
+    let updatedAnimal: Animal | null = null;
+    const animalIndex = db.animals.findIndex(a => a.id.toLowerCase() === order.animalId.toLowerCase());
+    if (animalIndex !== -1) {
+      // If quantity is 1 or undefined, mark as reserved
+      const currentQty = db.animals[animalIndex].quantity ?? 1;
+      if (currentQty <= 1) {
+        db.animals[animalIndex].status = 'reserved';
+      }
+      updatedAnimal = db.animals[animalIndex];
+    }
+
     this.writeDB(db);
-    return order;
+    return { order, notification: notif, animal: updatedAnimal };
   }
 
-  public static verifyOrder(orderId: string, adminName: string, adminNotes?: string): { order: Order; animal: Animal | null } | null {
+  public static verifyOrder(orderId: string, adminName: string, adminNotes?: string): { order: Order; animal: Animal | null; notification: AdminNotification } | null {
     const db = this.readDB();
     const orderIndex = db.orders.findIndex(o => o.id.toLowerCase() === orderId.toLowerCase());
     if (orderIndex === -1) return null;
@@ -146,16 +161,26 @@ export class JsonDB {
     if (adminNotes) order.adminNotes = adminNotes;
     order.updatedAt = new Date().toISOString();
 
-    // Automatically mark the corresponding animal as "sold" (unavailable)
+    // Automatically reduce animal quantity or mark as SOLD
     let updatedAnimal: Animal | null = null;
     const animalIndex = db.animals.findIndex(a => a.id.toLowerCase() === order.animalId.toLowerCase());
     if (animalIndex !== -1) {
-      db.animals[animalIndex].status = 'sold';
-      updatedAnimal = db.animals[animalIndex];
+      const animal = db.animals[animalIndex];
+      const currentQty = animal.quantity !== undefined ? animal.quantity : 1;
+      const newQty = Math.max(0, currentQty - 1);
+      
+      animal.quantity = newQty;
+      if (newQty === 0) {
+        animal.status = 'sold';
+      } else {
+        animal.status = 'available'; // still has stock available
+      }
+
+      updatedAnimal = animal;
     }
 
-    // Add notification
-    db.notifications.unshift({
+    // Add verification notification
+    const notif: AdminNotification = {
       id: `NOTIF-${Date.now().toString().slice(-6)}`,
       type: 'PAYMENT_VERIFIED',
       title: 'Order Payment Verified',
@@ -163,13 +188,14 @@ export class JsonDB {
       orderId: order.id,
       read: false,
       createdAt: new Date().toISOString()
-    });
+    };
+    db.notifications.unshift(notif);
 
     this.writeDB(db);
-    return { order, animal: updatedAnimal };
+    return { order, animal: updatedAnimal, notification: notif };
   }
 
-  public static rejectOrder(orderId: string, reason: string): Order | null {
+  public static rejectOrder(orderId: string, reason: string): { order: Order; animal: Animal | null } | null {
     const db = this.readDB();
     const orderIndex = db.orders.findIndex(o => o.id.toLowerCase() === orderId.toLowerCase());
     if (orderIndex === -1) return null;
@@ -180,13 +206,28 @@ export class JsonDB {
     order.updatedAt = new Date().toISOString();
 
     // If the animal was set to reserved, restore it to available
+    let updatedAnimal: Animal | null = null;
     const animalIndex = db.animals.findIndex(a => a.id.toLowerCase() === order.animalId.toLowerCase());
-    if (animalIndex !== -1 && db.animals[animalIndex].status === 'reserved') {
-      db.animals[animalIndex].status = 'available';
+    if (animalIndex !== -1) {
+      if (db.animals[animalIndex].status === 'reserved') {
+        db.animals[animalIndex].status = 'available';
+      }
+      updatedAnimal = db.animals[animalIndex];
     }
 
+    // Add rejection notification
+    db.notifications.unshift({
+      id: `NOTIF-${Date.now().toString().slice(-6)}`,
+      type: 'ORDER_REJECTED',
+      title: 'Order Slip Rejected',
+      message: `Order ${order.id} for ${order.animalBreed} was rejected. Reason: ${reason}`,
+      orderId: order.id,
+      read: false,
+      createdAt: new Date().toISOString()
+    });
+
     this.writeDB(db);
-    return order;
+    return { order, animal: updatedAnimal };
   }
 
   // ==================== NOTIFICATIONS ====================

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useUserAuth } from '../../context/UserAuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { useLanguage } from '../../context/LanguageContext';
-import { X, Mail, Lock, User, Phone, Eye, EyeOff, AlertCircle, Sparkles, LogIn, UserPlus } from 'lucide-react';
+import { X, Mail, Lock, User, Phone, Eye, EyeOff, AlertCircle, LogIn, UserPlus } from 'lucide-react';
 
 export const UserAuthModal: React.FC = () => {
   const { isAuthModalOpen, closeAuthModal, authModalMode, login, register } = useUserAuth();
@@ -67,14 +67,16 @@ export const UserAuthModal: React.FC = () => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-      <div
-        className={`relative w-full max-w-md rounded-3xl border shadow-2xl p-6 sm:p-8 animate-in fade-in zoom-in-95 duration-200 ${
-          isDark
-            ? 'bg-[#2A1A0D] border-[#4A2C16] text-[#F4E8D0]'
-            : 'bg-[#FDFBF7] border-[#E4D4BC] text-[#2A1A0D]'
-        }`}
-      >
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/80 backdrop-blur-md p-3 sm:p-4 md:p-6">
+      <div className="min-h-full flex items-center justify-center py-4 sm:py-6">
+        <div className="fixed inset-0" onClick={closeAuthModal} aria-hidden="true" />
+        <div
+          className={`relative w-full max-w-md max-h-[90vh] overflow-y-auto rounded-3xl border shadow-2xl p-6 sm:p-8 z-10 animate-in fade-in zoom-in-95 duration-200 ${
+            isDark
+              ? 'bg-[#2A1A0D] border-[#4A2C16] text-[#F4E8D0]'
+              : 'bg-[#FDFBF7] border-[#E4D4BC] text-[#2A1A0D]'
+          }`}
+        >
         {/* Close Button */}
         <button
           onClick={closeAuthModal}
@@ -278,5 +280,6 @@ export const UserAuthModal: React.FC = () => {
         </div>
       </div>
     </div>
-  );
+  </div>
+);
 };

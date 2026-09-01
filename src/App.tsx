@@ -4,6 +4,7 @@ import { ThemeProvider, useTheme } from './context/ThemeContext';
 import { LanguageProvider } from './context/LanguageContext';
 import { AdminAuthProvider } from './context/AdminAuthContext';
 import { UserAuthProvider } from './context/UserAuthContext';
+import { RealtimeProvider } from './context/RealtimeContext';
 import { UserAuthModal } from './components/modals/UserAuthModal';
 import { Navbar } from './components/common/Navbar';
 import { Footer } from './components/common/Footer';
@@ -82,9 +83,11 @@ export const App: React.FC = () => {
       <LanguageProvider>
         <AdminAuthProvider>
           <UserAuthProvider>
-            <Router>
-              <AppContent />
-            </Router>
+            <RealtimeProvider>
+              <Router>
+                <AppContent />
+              </Router>
+            </RealtimeProvider>
           </UserAuthProvider>
         </AdminAuthProvider>
       </LanguageProvider>

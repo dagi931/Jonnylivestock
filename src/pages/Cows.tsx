@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { useAnimals } from '../hooks/useAnimals';
 import { useAnimalFilters } from '../hooks/useAnimalFilters';
 import { AnimalFilters } from '../components/animals/AnimalFilters';

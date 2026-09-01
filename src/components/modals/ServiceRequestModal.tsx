@@ -137,14 +137,16 @@ export const ServiceRequestModal: React.FC<ServiceRequestModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-      <div
-        className={`relative w-full max-w-xl rounded-3xl border shadow-2xl p-6 sm:p-8 my-8 animate-in fade-in zoom-in-95 duration-200 ${
-          isDark
-            ? 'bg-[#2A1A0D] border-[#4A2C16] text-[#F4E8D0]'
-            : 'bg-[#F1E8D8] border-[#E4D4BC] text-[#2A1A0D]'
-        }`}
-      >
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/80 backdrop-blur-md p-3 sm:p-4 md:p-6">
+      <div className="min-h-full flex items-center justify-center py-4 sm:py-6">
+        <div className="fixed inset-0" onClick={handleResetAndClose} aria-hidden="true" />
+        <div
+          className={`relative w-full max-w-xl max-h-[90vh] overflow-y-auto rounded-3xl border shadow-2xl p-6 sm:p-8 z-10 animate-in fade-in zoom-in-95 duration-200 ${
+            isDark
+              ? 'bg-[#2A1A0D] border-[#4A2C16] text-[#F4E8D0]'
+              : 'bg-[#F1E8D8] border-[#E4D4BC] text-[#2A1A0D]'
+          }`}
+        >
         <button
           onClick={handleResetAndClose}
           type="button"
@@ -597,5 +599,6 @@ export const ServiceRequestModal: React.FC<ServiceRequestModalProps> = ({
         )}
       </div>
     </div>
-  );
+  </div>
+);
 };

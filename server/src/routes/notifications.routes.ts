@@ -1,6 +1,7 @@
 import { Router, Response } from 'express';
 import { JsonDB } from '../db/jsonDb.js';
 import { authenticateToken, requireAdmin, AuthRequest } from '../middleware/auth.middleware.js';
+import { realtimeService } from '../services/realtime.service.js';
 
 const router = Router();
 
@@ -29,6 +30,10 @@ router.put('/:id/read', authenticateToken, requireAdmin, (req: AuthRequest, res:
       res.status(404).json({ success: false, error: 'Notification not found' });
       return;
     }
+
+    // 🚀 REALTIME BROADCAST
+    realtimeService.broadcast('NOTIFICATIONS_READ', { id: req.params.id });
+
     res.json({ success: true, message: 'Notification marked as read' });
   } catch (error: any) {
     console.error('Error marking notification read:', error);
@@ -40,6 +45,10 @@ router.put('/:id/read', authenticateToken, requireAdmin, (req: AuthRequest, res:
 router.put('/read-all', authenticateToken, requireAdmin, (_req: AuthRequest, res: Response): void => {
   try {
     JsonDB.markAllNotificationsRead();
+
+    // 🚀 REALTIME BROADCAST
+    realtimeService.broadcast('NOTIFICATIONS_READ', { all: true });
+
     res.json({ success: true, message: 'All notifications marked as read' });
   } catch (error: any) {
     console.error('Error updating notifications:', error);

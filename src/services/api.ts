@@ -1,4 +1,4 @@
-import { Animal, AnimalType, AnimalStatus } from '../types/animal';
+import { Animal, AnimalType } from '../types/animal';
 
 const API_BASE = '/api';
 

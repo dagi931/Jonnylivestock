@@ -10,6 +10,7 @@ export interface Animal {
   weight: number; // in kg
   color: string;
   price: number; // in ETB
+  quantity?: number; // Stock count (defaults to 1 for individual head)
   location: string;
   description: string;
   status: AnimalStatus;
@@ -85,6 +86,24 @@ export interface AdminNotification {
   orderId?: string;
   read: boolean;
   createdAt: string;
+}
+
+export type RealtimeEventType =
+  | 'CONNECTED'
+  | 'HEARTBEAT'
+  | 'NEW_ORDER_SLIP'
+  | 'ORDER_VERIFIED'
+  | 'ORDER_REJECTED'
+  | 'ANIMAL_UPDATED'
+  | 'ANIMAL_CREATED'
+  | 'ANIMAL_DELETED'
+  | 'NOTIFICATION_CREATED'
+  | 'NOTIFICATIONS_READ';
+
+export interface RealtimeEvent<T = any> {
+  type: RealtimeEventType;
+  payload: T;
+  timestamp: string;
 }
 
 export interface DatabaseSchema {

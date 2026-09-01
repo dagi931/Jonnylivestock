@@ -10,6 +10,7 @@ import animalsRoutes from './routes/animals.routes.js';
 import ordersRoutes from './routes/orders.routes.js';
 import notificationsRoutes from './routes/notifications.routes.js';
 import settingsRoutes from './routes/settings.routes.js';
+import eventsRoutes from './routes/events.routes.js';
 
 dotenv.config();
 
@@ -51,6 +52,7 @@ app.use('/api/animals', animalsRoutes);
 app.use('/api/orders', ordersRoutes);
 app.use('/api/admin/notifications', notificationsRoutes);
 app.use('/api/settings', settingsRoutes);
+app.use('/api/events', eventsRoutes);
 
 // Error Handling Middleware
 app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
