@@ -1,11 +1,13 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useAdminAuth } from '../context/AdminAuthContext';
-import { mockAnimals as initialAnimals } from '../data/animals';
+import { mockAnimals as fallbackAnimals } from '../data/animals';
 import { Animal, AnimalStatus, AnimalType } from '../types/animal';
 import { StatusBadge } from '../components/common/StatusBadge';
 import { formatPrice, formatWeight } from '../utils/formatters';
 import { business } from '../config/business';
 import { useTheme } from '../context/ThemeContext';
+import { api, Order, AdminNotification } from '../services/api';
+import { SlipPreviewModal } from '../components/modals/SlipPreviewModal';
 import {
   TrendingUp,
   DollarSign,
@@ -26,94 +28,23 @@ import {
   Settings,
   Shield,
   Layers,
-  AlertCircle
+  AlertCircle,
+  Bell,
+  Check,
+  X,
+  CreditCard,
+  Image as ImageIcon,
+  ExternalLink,
+  Plus,
+  RefreshCw,
+  Phone,
+  Clock,
+  ShieldCheck,
+  XCircle
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
-// Simulated customer service requests
-interface MockRequest {
-  id: string;
-  customerName: string;
-  phone: string;
-  animalId: string;
-  animalBreed: string;
-  animalType: AnimalType;
-  price: number;
-  services: string[];
-  location: string;
-  date: string;
-  status: 'New' | 'Contacted' | 'Confirmed' | 'Completed';
-}
-
-const initialRequests: MockRequest[] = [
-  {
-    id: "REQ-1042",
-    customerName: "Dawit Tadesse",
-    phone: "+251 91 123 4567",
-    animalId: "CW-001",
-    animalBreed: "Boran Bull",
-    animalType: "cow",
-    price: 110000,
-    services: ["Livestock Delivery", "Slaughter & Meat Extraction (Single Worker)", "Ceremonial Supply (Wedding)"],
-    location: "Addis Ababa, Bole",
-    date: "2026-08-28 14:15",
-    status: "New"
-  },
-  {
-    id: "REQ-1041",
-    customerName: "Helen Gebremariam",
-    phone: "+251 92 456 7890",
-    animalId: "SH-001",
-    animalBreed: "Horro Ram",
-    animalType: "sheep",
-    price: 18000,
-    services: ["Livestock Delivery", "Slaughter & Meat Extraction (Single Worker)"],
-    location: "Addis Ababa, Aware",
-    date: "2026-08-28 11:30",
-    status: "Contacted"
-  },
-  {
-    id: "REQ-1040",
-    customerName: "Yohannes Bekele",
-    phone: "+251 93 888 1234",
-    animalId: "GT-001",
-    animalBreed: "Boer Cross",
-    animalType: "goat",
-    price: 24000,
-    services: ["Livestock Delivery", "Ceremonial Supply (Holiday)"],
-    location: "Addis Ababa, Kazanchis",
-    date: "2026-08-27 16:45",
-    status: "Confirmed"
-  },
-  {
-    id: "REQ-1039",
-    customerName: "Almaz Kebede",
-    phone: "+251 91 765 4321",
-    animalId: "SH-003",
-    animalBreed: "Bonga Ram",
-    animalType: "sheep",
-    price: 22000,
-    services: ["Slaughter & Meat Extraction (Single Worker)"],
-    location: "Aware, Farm Pickup",
-    date: "2026-08-27 09:20",
-    status: "Completed"
-  },
-  {
-    id: "REQ-1038",
-    customerName: "Berhanu Girma",
-    phone: "+251 94 333 9999",
-    animalId: "CW-003",
-    animalBreed: "Local Highland Ox",
-    animalType: "cow",
-    price: 95000,
-    services: ["Livestock Delivery", "Slaughter & Meat Extraction (Single Worker)", "Ceremonial Supply (Funeral/Memorial)"],
-    location: "Adama, Kebele 04",
-    date: "2026-08-26 15:10",
-    status: "Completed"
-  }
-];
-
-type AdminTab = 'overview' | 'inventory' | 'requests' | 'demand' | 'settings';
+type AdminTab = 'overview' | 'orders' | 'inventory' | 'demand' | 'settings';
 
 export const Admin: React.FC = () => {
   const { isAuthenticated, user, login, logout } = useAdminAuth();
@@ -127,15 +58,75 @@ export const Admin: React.FC = () => {
   const [loginError, setLoginError] = useState('');
   const [isLoggingIn, setIsLoggingIn] = useState(false);
 
-  // Dashboard Active Sidebar Tab
+  // Dashboard Active Tab
   const [activeTab, setActiveTab] = useState<AdminTab>('overview');
 
-  // Dashboard Data State
-  const [animalsList, setAnimalsList] = useState<Animal[]>(initialAnimals);
-  const [requestsList, setRequestsList] = useState<MockRequest[]>(initialRequests);
+  // Backend Live Data
+  const [animalsList, setAnimalsList] = useState<Animal[]>(fallbackAnimals);
+  const [ordersList, setOrdersList] = useState<Order[]>([]);
+  const [notifications, setNotifications] = useState<AdminNotification[]>([]);
+  const [unreadNotifsCount, setUnreadNotifsCount] = useState<number>(0);
+  const [isNotifDropdownOpen, setIsNotifDropdownOpen] = useState(false);
+  const [isLoadingData, setIsLoadingData] = useState(false);
+
+  // Slip Inspector State
+  const [selectedSlipOrder, setSelectedSlipOrder] = useState<Order | null>(null);
+
+  // Action status message
+  const [actionAlert, setActionAlert] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+
+  // Filtering & Search
+  const [orderStatusFilter, setOrderStatusFilter] = useState<string>('all');
   const [selectedTypeFilter, setSelectedTypeFilter] = useState<string>('all');
   const [selectedStatusFilter, setSelectedStatusFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
+
+  // Add Animal Modal
+  const [isAddAnimalOpen, setIsAddAnimalOpen] = useState(false);
+  const [newAnimalType, setNewAnimalType] = useState<AnimalType>('sheep');
+  const [newAnimalBreed, setNewAnimalBreed] = useState('');
+  const [newAnimalWeight, setNewAnimalWeight] = useState(30);
+  const [newAnimalPrice, setNewAnimalPrice] = useState(15000);
+  const [newAnimalColor, setNewAnimalColor] = useState('Natural');
+  const [newAnimalDesc, setNewAnimalDesc] = useState('');
+  const [newAnimalImage, setNewAnimalImage] = useState('');
+
+  // Load Data from Backend
+  const loadDashboardData = async () => {
+    setIsLoadingData(true);
+    try {
+      const [fetchedAnimals, fetchedOrders, notifRes] = await Promise.all([
+        api.getAnimals(),
+        api.getAllOrders(),
+        api.getNotifications()
+      ]);
+
+      if (fetchedAnimals && fetchedAnimals.length > 0) {
+        setAnimalsList(fetchedAnimals);
+      }
+      setOrdersList(fetchedOrders || []);
+      setNotifications(notifRes.data || []);
+      setUnreadNotifsCount(notifRes.unreadCount || 0);
+    } catch (err) {
+      console.error('Failed to load backend data:', err);
+    } finally {
+      setIsLoadingData(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      loadDashboardData();
+      const interval = setInterval(loadDashboardData, 15000); // Polling every 15s for live slip uploads
+      return () => clearInterval(interval);
+    }
+  }, [isAuthenticated]);
+
+  // Flash alert helper
+  const showAlert = (type: 'success' | 'error', message: string) => {
+    setActionAlert({ type, message });
+    setTimeout(() => setActionAlert(null), 5000);
+  };
 
   // Calculations
   const stats = useMemo(() => {
@@ -152,17 +143,11 @@ export const Admin: React.FC = () => {
     const availableValue = animalsList.filter((a) => a.status === 'available').reduce((acc, a) => acc + a.price, 0);
     const soldValue = animalsList.filter((a) => a.status === 'sold').reduce((acc, a) => acc + a.price, 0);
 
-    const sheepValue = sheep.reduce((acc, a) => acc + a.price, 0);
-    const goatValue = goats.reduce((acc, a) => acc + a.price, 0);
-    const cowValue = cows.reduce((acc, a) => acc + a.price, 0);
-
-    const avgSheepWeight = sheep.length ? Math.round(sheep.reduce((acc, a) => acc + a.weight, 0) / sheep.length) : 0;
-    const avgGoatWeight = goats.length ? Math.round(goats.reduce((acc, a) => acc + a.weight, 0) / goats.length) : 0;
-    const avgCowWeight = cows.length ? Math.round(cows.reduce((acc, a) => acc + a.weight, 0) / cows.length) : 0;
-
-    const avgSheepPrice = sheep.length ? Math.round(sheepValue / sheep.length) : 0;
-    const avgGoatPrice = goats.length ? Math.round(goatValue / goats.length) : 0;
-    const avgCowPrice = cows.length ? Math.round(cowValue / cows.length) : 0;
+    const pendingOrdersCount = ordersList.filter(o => o.status === 'pending_verification').length;
+    const verifiedOrdersCount = ordersList.filter(o => o.status === 'verified').length;
+    const verifiedRevenue = ordersList
+      .filter(o => o.status === 'verified')
+      .reduce((acc, o) => acc + o.totalAmount, 0);
 
     return {
       totalAnimals,
@@ -175,17 +160,14 @@ export const Admin: React.FC = () => {
       totalInventoryValue,
       availableValue,
       soldValue,
-      sheepValue,
-      goatValue,
-      cowValue,
-      avgSheepWeight,
-      avgGoatWeight,
-      avgCowWeight,
-      avgSheepPrice,
-      avgGoatPrice,
-      avgCowPrice
+      pendingOrdersCount,
+      verifiedOrdersCount,
+      verifiedRevenue,
+      sheepValue: sheep.reduce((acc, a) => acc + a.price, 0),
+      goatValue: goats.reduce((acc, a) => acc + a.price, 0),
+      cowValue: cows.reduce((acc, a) => acc + a.price, 0)
     };
-  }, [animalsList]);
+  }, [animalsList, ordersList]);
 
   // Filtered Animals for Table
   const filteredAnimals = useMemo(() => {
@@ -201,16 +183,96 @@ export const Admin: React.FC = () => {
     });
   }, [animalsList, selectedTypeFilter, selectedStatusFilter, searchQuery]);
 
-  const handleToggleStatus = (animalId: string, newStatus: AnimalStatus) => {
-    setAnimalsList((prev) =>
-      prev.map((a) => (a.id === animalId ? { ...a, status: newStatus } : a))
-    );
+  // Filtered Orders for Table
+  const filteredOrders = useMemo(() => {
+    return ordersList.filter((order) => {
+      const matchesStatus = orderStatusFilter === 'all' || order.status === orderStatusFilter;
+      const matchesSearch =
+        searchQuery === '' ||
+        order.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        order.customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        order.customerPhone.includes(searchQuery) ||
+        order.animalBreed.toLowerCase().includes(searchQuery.toLowerCase());
+      return matchesStatus && matchesSearch;
+    });
+  }, [ordersList, orderStatusFilter, searchQuery]);
+
+  // Handle Verify Order & Mark Sold
+  const handleVerifyOrder = async (orderId: string) => {
+    const res = await api.verifyOrder(orderId, 'Verified payment slip via Admin panel');
+    if (res.success) {
+      showAlert('success', `✓ Order ${orderId} verified! Corresponding animal marked as SOLD.`);
+      loadDashboardData();
+    } else {
+      showAlert('error', res.error || 'Failed to verify order');
+    }
   };
 
-  const handleUpdateRequestStatus = (requestId: string, newStatus: MockRequest['status']) => {
-    setRequestsList((prev) =>
-      prev.map((r) => (r.id === requestId ? { ...r, status: newStatus } : r))
-    );
+  // Handle Reject Order
+  const handleRejectOrder = async (orderId: string) => {
+    const reason = window.prompt('Enter reason for rejecting order (e.g. Invalid transfer slip):');
+    if (!reason) return;
+
+    const res = await api.rejectOrder(orderId, reason);
+    if (res.success) {
+      showAlert('success', `Order ${orderId} rejected.`);
+      loadDashboardData();
+    } else {
+      showAlert('error', res.error || 'Failed to reject order');
+    }
+  };
+
+  // Handle Toggle Animal Status
+  const handleToggleStatus = async (animalId: string, newStatus: AnimalStatus) => {
+    const res = await api.updateAnimal(animalId, { status: newStatus });
+    if (res.success) {
+      setAnimalsList((prev) =>
+        prev.map((a) => (a.id === animalId ? { ...a, status: newStatus } : a))
+      );
+      showAlert('success', `Animal ${animalId} status set to ${newStatus}.`);
+    } else {
+      showAlert('error', res.error || 'Failed to update animal status');
+    }
+  };
+
+  // Handle Add Animal
+  const handleAddAnimalSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newAnimalBreed.trim()) {
+      showAlert('error', 'Breed name is required');
+      return;
+    }
+
+    const defaultImg = newAnimalType === 'sheep'
+      ? 'https://images.unsplash.com/photo-1484557052118-f32bd25b45b5?auto=format&fit=crop&w=1200&q=80'
+      : newAnimalType === 'goat'
+      ? 'https://images.unsplash.com/photo-1524024973431-2ad916746881?auto=format&fit=crop&w=1200&q=80'
+      : 'https://images.unsplash.com/photo-1546445317-29f4545e9d53?auto=format&fit=crop&w=1200&q=80';
+
+    const res = await api.createAnimal({
+      type: newAnimalType,
+      breed: newAnimalBreed.trim(),
+      weight: Number(newAnimalWeight),
+      price: Number(newAnimalPrice),
+      color: newAnimalColor || 'Natural',
+      description: newAnimalDesc || 'Prime livestock pasture-raised in organic conditions.',
+      images: [newAnimalImage.trim() || defaultImg],
+      location: 'Aware, Addis Ababa',
+      gender: 'Male',
+      featured: true,
+      characteristics: ['Healthy pedigree', 'Pasture raised', 'Vaccinated']
+    });
+
+    if (res.success && res.data) {
+      showAlert('success', `Animal ${res.data.id} (${res.data.breed}) created successfully!`);
+      setIsAddAnimalOpen(false);
+      setNewAnimalBreed('');
+      setNewAnimalDesc('');
+      setNewAnimalImage('');
+      loadDashboardData();
+    } else {
+      showAlert('error', res.error || 'Failed to create animal');
+    }
   };
 
   // Handle Login Submit
@@ -254,7 +316,7 @@ export const Admin: React.FC = () => {
               Owner Admin Portal
             </h1>
             <p className={`text-xs mt-1 ${isDark ? 'text-[#D8C5A8]' : 'text-[#746556]'}`}>
-              Sign in with your administrator email and password to access livestock intelligence.
+              Sign in with your administrator credentials to verify payment slips and manage livestock inventory.
             </p>
           </div>
 
@@ -350,678 +412,765 @@ export const Admin: React.FC = () => {
   }
 
   // ==========================================
-  // VIEW 2: AUTHENTICATED DASHBOARD (LEFT SIDEBAR LAYOUT)
+  // VIEW 2: AUTHENTICATED ADMIN DASHBOARD
   // ==========================================
-  const navTabs: { id: AdminTab; label: string; icon: React.ElementType; badge?: string }[] = [
-    { id: 'overview', label: 'Overview & Analytics', icon: LayoutDashboard },
-    { id: 'inventory', label: 'Livestock Inventory', icon: Layers, badge: `${stats.totalAnimals}` },
-    { id: 'requests', label: 'Inquiries & Orders', icon: ClipboardList, badge: `${requestsList.length}` },
-    { id: 'demand', label: 'Service Demand Analysis', icon: BarChart3 },
-    { id: 'settings', label: 'Farm Settings', icon: Settings }
-  ];
-
   return (
-    <div className="min-h-screen py-6 sm:py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className={`min-h-screen pb-16 transition-colors duration-300 ${isDark ? 'bg-[#1B1208] text-[#F4E8D0]' : 'bg-[#FAF7F0] text-[#241A12]'}`}>
+      
+      {/* Top Banner with Real-Time Notification Bell & Refresh */}
+      <div className={`border-b sticky top-16 z-40 backdrop-blur-md ${isDark ? 'bg-[#1B1208]/90 border-[#4A2C16]' : 'bg-[#FAF7F0]/90 border-[#E4D4BC]'}`}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-xl bg-[#C18A45]/20 text-[#C18A45] flex items-center justify-center font-bold font-serif text-sm">
+              JL
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-sm sm:text-base">Jonny Admin Portal</span>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-mono bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                  LIVE API
+                </span>
+              </div>
+              <p className="text-[11px] opacity-70">
+                Logged in as: <strong className="text-[#C18A45]">{user?.name}</strong> ({user?.email})
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            {/* Refresh Button */}
+            <button
+              onClick={loadDashboardData}
+              disabled={isLoadingData}
+              className={`p-2 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition-colors ${
+                isDark ? 'bg-[#2A1A0D] border-[#4A2C16] hover:bg-[#3A2412]' : 'bg-white border-[#E4D4BC] hover:bg-[#EFE8DC]'
+              }`}
+              title="Refresh Data"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${isLoadingData ? 'animate-spin text-[#C18A45]' : ''}`} />
+              <span className="hidden sm:inline">Refresh</span>
+            </button>
+
+            {/* Notifications Dropdown */}
+            <div className="relative">
+              <button
+                onClick={() => setIsNotifDropdownOpen(!isNotifDropdownOpen)}
+                className={`relative p-2 rounded-xl border transition-colors ${
+                  isDark ? 'bg-[#2A1A0D] border-[#4A2C16] hover:bg-[#3A2412]' : 'bg-white border-[#E4D4BC] hover:bg-[#EFE8DC]'
+                }`}
+                aria-label="Notifications"
+              >
+                <Bell className="w-4 h-4 text-[#C18A45]" />
+                {unreadNotifsCount > 0 && (
+                  <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center animate-pulse">
+                    {unreadNotifsCount}
+                  </span>
+                )}
+              </button>
+
+              {isNotifDropdownOpen && (
+                <div
+                  className={`absolute right-0 mt-2 w-80 sm:w-96 rounded-2xl shadow-2xl border p-3 z-50 animate-in fade-in zoom-in-95 duration-150 ${
+                    isDark ? 'bg-[#24170D] border-[#4A2C16] text-[#F4E8D0]' : 'bg-white border-[#E4D4BC] text-[#2A1A0D]'
+                  }`}
+                >
+                  <div className="flex justify-between items-center pb-2 border-b border-black/10 dark:border-white/10 mb-2">
+                    <span className="font-bold text-xs">Admin Notifications</span>
+                    <span className="text-[10px] opacity-70">{notifications.length} Total</span>
+                  </div>
+                  <div className="max-h-64 overflow-y-auto space-y-2">
+                    {notifications.length === 0 ? (
+                      <p className="text-xs opacity-60 text-center py-4">No notifications yet</p>
+                    ) : (
+                      notifications.map((n) => (
+                        <div
+                          key={n.id}
+                          className={`p-2.5 rounded-xl border text-xs ${
+                            n.read
+                              ? 'opacity-60 bg-transparent border-transparent'
+                              : isDark
+                              ? 'bg-[#1B1208] border-[#C18A45]/30'
+                              : 'bg-[#F9F6F0] border-[#C18A45]/30'
+                          }`}
+                        >
+                          <div className="font-bold text-[#C18A45]">{n.title}</div>
+                          <p className="text-[11px] mt-0.5 opacity-90">{n.message}</p>
+                          <span className="text-[9px] opacity-50 block mt-1">
+                            {new Date(n.createdAt).toLocaleTimeString()}
+                          </span>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Logout */}
+            <button
+              onClick={logout}
+              className="p-2 rounded-xl bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 transition-colors"
+              title="Sign Out"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Action Flash Alert */}
+      {actionAlert && (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4 animate-in fade-in slide-in-from-top-2">
+          <div
+            className={`p-3.5 rounded-2xl border flex items-center justify-between gap-3 text-xs font-semibold ${
+              actionAlert.type === 'success'
+                ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
+                : 'bg-red-500/10 border-red-500/30 text-red-400'
+            }`}
+          >
+            <span>{actionAlert.message}</span>
+            <button onClick={() => setActionAlert(null)}>
+              <X className="w-4 h-4 opacity-70 hover:opacity-100" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Main Dashboard Container */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
         
-        {/* Main 2-Column Sidebar Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
-          
-          {/* ========================================== */}
-          {/* LEFT SIDEBAR (Navigation Buttons) */}
-          {/* ========================================== */}
-          <aside className="lg:col-span-3 space-y-4">
-            
-            {/* Sidebar Navigation Panel */}
+        {/* Navigation Tabs */}
+        <div className="flex flex-wrap items-center gap-2 border-b pb-4 mb-6" style={{ borderColor: isDark ? '#4A2C16' : '#E4D4BC' }}>
+          <button
+            onClick={() => setActiveTab('overview')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+              activeTab === 'overview'
+                ? 'bg-[#C18A45] text-white shadow-md'
+                : isDark ? 'hover:bg-[#2A1A0D] text-[#D8C5A8]' : 'hover:bg-[#F1E8D8] text-[#746556]'
+            }`}
+          >
+            <LayoutDashboard className="w-4 h-4" />
+            <span>Overview</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('orders')}
+            className={`relative flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+              activeTab === 'orders'
+                ? 'bg-[#C18A45] text-white shadow-md'
+                : isDark ? 'hover:bg-[#2A1A0D] text-[#D8C5A8]' : 'hover:bg-[#F1E8D8] text-[#746556]'
+            }`}
+          >
+            <CreditCard className="w-4 h-4" />
+            <span>Orders & Payment Slips</span>
+            {stats.pendingOrdersCount > 0 && (
+              <span className="px-1.5 py-0.2 rounded-full bg-amber-500 text-black text-[10px] font-black">
+                {stats.pendingOrdersCount}
+              </span>
+            )}
+          </button>
+
+          <button
+            onClick={() => setActiveTab('inventory')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+              activeTab === 'inventory'
+                ? 'bg-[#C18A45] text-white shadow-md'
+                : isDark ? 'hover:bg-[#2A1A0D] text-[#D8C5A8]' : 'hover:bg-[#F1E8D8] text-[#746556]'
+            }`}
+          >
+            <Layers className="w-4 h-4" />
+            <span>Livestock Inventory ({animalsList.length})</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('demand')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+              activeTab === 'demand'
+                ? 'bg-[#C18A45] text-white shadow-md'
+                : isDark ? 'hover:bg-[#2A1A0D] text-[#D8C5A8]' : 'hover:bg-[#F1E8D8] text-[#746556]'
+            }`}
+          >
+            <BarChart3 className="w-4 h-4" />
+            <span>Demand & Metrics</span>
+          </button>
+        </div>
+
+        {/* ============================================================ */}
+        {/* TAB 1: OVERVIEW & METRICS */}
+        {/* ============================================================ */}
+        {activeTab === 'overview' && (
+          <div className="space-y-6 animate-in fade-in-50 duration-150">
+            {/* KPI Cards Grid */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className={`p-4 sm:p-5 rounded-2xl border ${isDark ? 'bg-[#2A1A0D] border-[#4A2C16]' : 'bg-[#F1E8D8] border-[#E4D4BC]'}`}>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[11px] font-semibold uppercase tracking-wider opacity-70">Verified Revenue</span>
+                  <div className="w-7 h-7 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
+                    <DollarSign className="w-3.5 h-3.5" />
+                  </div>
+                </div>
+                <div className="text-xl sm:text-2xl font-serif font-extrabold text-[#C18A45]">
+                  {formatPrice(stats.verifiedRevenue)}
+                </div>
+                <p className="text-[11px] opacity-70 mt-1">
+                  {stats.verifiedOrdersCount} Verified Payments
+                </p>
+              </div>
+
+              <div className={`p-4 sm:p-5 rounded-2xl border ${isDark ? 'bg-[#2A1A0D] border-[#4A2C16]' : 'bg-[#F1E8D8] border-[#E4D4BC]'}`}>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[11px] font-semibold uppercase tracking-wider opacity-70">Pending Slips</span>
+                  <div className="w-7 h-7 rounded-lg bg-amber-500/10 text-amber-500 flex items-center justify-center">
+                    <Clock className="w-3.5 h-3.5" />
+                  </div>
+                </div>
+                <div className="text-xl sm:text-2xl font-serif font-extrabold text-amber-400">
+                  {stats.pendingOrdersCount} Slips
+                </div>
+                <p className="text-[11px] opacity-70 mt-1">
+                  Awaiting your approval
+                </p>
+              </div>
+
+              <div className={`p-4 sm:p-5 rounded-2xl border ${isDark ? 'bg-[#2A1A0D] border-[#4A2C16]' : 'bg-[#F1E8D8] border-[#E4D4BC]'}`}>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[11px] font-semibold uppercase tracking-wider opacity-70">Total Animals</span>
+                  <div className="w-7 h-7 rounded-lg bg-blue-500/10 text-blue-500 flex items-center justify-center">
+                    <ShoppingBag className="w-3.5 h-3.5" />
+                  </div>
+                </div>
+                <div className="text-xl sm:text-2xl font-serif font-extrabold">
+                  {stats.totalAnimals} Head
+                </div>
+                <p className="text-[11px] opacity-70 mt-1">
+                  {stats.sheepCount} Sheep · {stats.goatsCount} Goats · {stats.cowsCount} Cows
+                </p>
+              </div>
+
+              <div className={`p-4 sm:p-5 rounded-2xl border ${isDark ? 'bg-[#2A1A0D] border-[#4A2C16]' : 'bg-[#F1E8D8] border-[#E4D4BC]'}`}>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[11px] font-semibold uppercase tracking-wider opacity-70">Inventory Status</span>
+                  <div className="w-7 h-7 rounded-lg bg-green-500/10 text-green-500 flex items-center justify-center">
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                  </div>
+                </div>
+                <div className="flex items-center gap-1.5 text-xs font-semibold">
+                  <span className="text-green-500 font-bold">{stats.availableCount} Avail</span>
+                  <span>·</span>
+                  <span className="text-amber-500 font-bold">{stats.reservedCount} Hold</span>
+                  <span>·</span>
+                  <span className="text-stone-400 font-bold">{stats.soldCount} Sold</span>
+                </div>
+                <div className="mt-2 w-full bg-stone-700/30 rounded-full h-1.5 overflow-hidden flex">
+                  <div style={{ width: `${(stats.availableCount / (stats.totalAnimals || 1)) * 100}%` }} className="bg-green-500 h-full" />
+                  <div style={{ width: `${(stats.reservedCount / (stats.totalAnimals || 1)) * 100}%` }} className="bg-amber-500 h-full" />
+                  <div style={{ width: `${(stats.soldCount / (stats.totalAnimals || 1)) * 100}%` }} className="bg-stone-500 h-full" />
+                </div>
+              </div>
+            </div>
+
+            {/* Quick Pending Slips Action Banner */}
+            {stats.pendingOrdersCount > 0 && (
+              <div
+                className={`p-5 rounded-3xl border flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${
+                  isDark ? 'bg-[#2A1A0D] border-amber-500/40' : 'bg-[#FFF8EC] border-amber-500/40'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-2xl bg-amber-500/20 text-amber-500 flex items-center justify-center flex-shrink-0">
+                    <Clock className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-serif font-bold text-base text-amber-400">
+                      {stats.pendingOrdersCount} Customer Payment Slips Awaiting Review
+                    </h3>
+                    <p className="text-xs opacity-75">
+                      Verify transactions to automatically deduct inventory and mark livestock items as SOLD.
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setActiveTab('orders')}
+                  className="px-5 py-2.5 rounded-xl bg-[#C18A45] hover:bg-[#A06E35] text-white font-bold text-xs shadow-md transition-all self-start sm:self-auto flex items-center gap-1.5"
+                >
+                  <span>Review Slips Now</span>
+                  <ArrowUpRight className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ============================================================ */}
+        {/* TAB 2: ORDERS & SLIP VERIFICATION */}
+        {/* ============================================================ */}
+        {activeTab === 'orders' && (
+          <div className="space-y-5 animate-in fade-in-50 duration-150">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <h2 className="font-serif font-bold text-2xl">
+                  Customer Orders & Payment Slip Verification
+                </h2>
+                <p className="text-xs opacity-70">
+                  Inspect customer-uploaded transfer receipts and verify transactions. Once approved, the animal is automatically marked as SOLD.
+                </p>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2">
+                <select
+                  value={orderStatusFilter}
+                  onChange={(e) => setOrderStatusFilter(e.target.value)}
+                  className={`px-3 py-2 rounded-xl text-xs border focus:outline-none ${
+                    isDark ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0]' : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#2A1A0D]'
+                  }`}
+                >
+                  <option value="all">All Orders</option>
+                  <option value="pending_verification">Pending Slips ({stats.pendingOrdersCount})</option>
+                  <option value="verified">Verified / Sold</option>
+                  <option value="rejected">Rejected</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Orders Table */}
             <div
-              className={`rounded-3xl border p-4 sm:p-5 transition-all shadow-md ${
+              className={`rounded-3xl border overflow-hidden shadow-sm ${
                 isDark ? 'bg-[#2A1A0D] border-[#4A2C16]' : 'bg-[#F1E8D8] border-[#E4D4BC]'
               }`}
             >
-              {/* Sidebar Header / Owner Info */}
-              <div className="flex items-center gap-3 pb-4 mb-4 border-b" style={{ borderColor: isDark ? '#4A2C16' : '#E4D4BC' }}>
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#4A2C16] to-[#2A1A0D] border border-[#C58A3A]/40 flex items-center justify-center font-serif font-bold text-base text-[#E0B15A]">
-                  JL
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h2 className={`font-serif font-bold text-sm truncate ${isDark ? 'text-[#F4E8D0]' : 'text-[#2A1A0D]'}`}>
-                    {user?.name || 'Jonny Owner'}
-                  </h2>
-                  <span className="block text-[10px] text-green-500 font-semibold uppercase tracking-wider">
-                    ● Admin Active
-                  </span>
-                </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr className={`border-b ${isDark ? 'border-[#4A2C16] text-[#D8C5A8]' : 'border-[#E4D4BC] text-[#746556]'}`}>
+                      <th className="py-3.5 px-3.5 uppercase font-semibold">Order ID</th>
+                      <th className="py-3.5 px-3.5 uppercase font-semibold">Customer</th>
+                      <th className="py-3.5 px-3.5 uppercase font-semibold">Animal & Price</th>
+                      <th className="py-3.5 px-3.5 uppercase font-semibold">Payment Slip</th>
+                      <th className="py-3.5 px-3.5 uppercase font-semibold">Payment Method</th>
+                      <th className="py-3.5 px-3.5 uppercase font-semibold">Status</th>
+                      <th className="py-3.5 px-3.5 uppercase font-semibold text-right">Verification Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y" style={{ borderColor: isDark ? '#4A2C16' : '#E4D4BC' }}>
+                    {filteredOrders.length === 0 ? (
+                      <tr>
+                        <td colSpan={7} className="text-center py-8 opacity-60">
+                          No orders found matching filter
+                        </td>
+                      </tr>
+                    ) : (
+                      filteredOrders.map((order) => (
+                        <tr key={order.id} className={`hover:bg-black/10 transition-colors ${isDark ? 'text-[#F4E8D0]' : 'text-[#2A1A0D]'}`}>
+                          {/* Order ID */}
+                          <td className="py-3.5 px-3.5 font-mono font-bold">
+                            <div>{order.id}</div>
+                            <span className="text-[10px] opacity-50">
+                              {new Date(order.createdAt).toLocaleDateString()}
+                            </span>
+                          </td>
+
+                          {/* Customer */}
+                          <td className="py-3.5 px-3.5">
+                            <strong className="block text-sm">{order.customerName}</strong>
+                            <span className="text-[11px] opacity-70 block">{order.customerPhone}</span>
+                            {order.deliveryLocation && (
+                              <span className="text-[10px] opacity-50 truncate max-w-[150px] block">
+                                📍 {order.deliveryLocation}
+                              </span>
+                            )}
+                          </td>
+
+                          {/* Animal */}
+                          <td className="py-3.5 px-3.5">
+                            <div className="font-semibold">{order.animalBreed}</div>
+                            <span className="text-[10px] font-mono opacity-60">{order.animalId}</span>
+                            <div className={`font-bold text-sm ${isDark ? 'text-[#E0B15A]' : 'text-[#B8792F]'}`}>
+                              {formatPrice(order.totalAmount)}
+                            </div>
+                          </td>
+
+                          {/* Slip Preview Thumbnail */}
+                          <td className="py-3.5 px-3.5">
+                            {order.paymentSlipUrl ? (
+                              <button
+                                type="button"
+                                onClick={() => setSelectedSlipOrder(order)}
+                                className="group relative inline-flex items-center gap-1.5 p-1 rounded-xl border border-[#C18A45]/30 hover:border-[#C18A45] transition-all bg-black/20"
+                                title="Click to inspect slip"
+                              >
+                                <img
+                                  src={order.paymentSlipUrl}
+                                  alt="Receipt"
+                                  className="w-12 h-12 object-cover rounded-lg"
+                                />
+                                <span className="text-[10px] font-bold text-[#C18A45] pr-1.5">
+                                  View Slip
+                                </span>
+                              </button>
+                            ) : (
+                              <span className="text-[10px] opacity-40">No Slip</span>
+                            )}
+                          </td>
+
+                          {/* Method */}
+                          <td className="py-3.5 px-3.5">
+                            <div className="font-semibold">{order.paymentMethod}</div>
+                            {order.transactionReference && (
+                              <span className="text-[10px] font-mono opacity-70 block">
+                                Txn: {order.transactionReference}
+                              </span>
+                            )}
+                          </td>
+
+                          {/* Status */}
+                          <td className="py-3.5 px-3.5">
+                            <span
+                              className={`inline-block px-2.5 py-1 rounded-full text-[10px] font-bold ${
+                                order.status === 'pending_verification'
+                                  ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30 animate-pulse'
+                                  : order.status === 'verified'
+                                  ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                                  : 'bg-red-500/20 text-red-400 border border-red-500/30'
+                              }`}
+                            >
+                              {order.status === 'pending_verification' ? 'Pending Slip Review' : order.status === 'verified' ? 'Verified / Sold' : 'Rejected'}
+                            </span>
+                          </td>
+
+                          {/* Actions */}
+                          <td className="py-3.5 px-3.5 text-right">
+                            <div className="inline-flex items-center gap-1.5">
+                              {order.status === 'pending_verification' ? (
+                                <>
+                                  <button
+                                    onClick={() => handleVerifyOrder(order.id)}
+                                    className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow transition-all flex items-center gap-1"
+                                    title="Verify payment and mark animal as SOLD"
+                                  >
+                                    <Check className="w-3.5 h-3.5" />
+                                    <span>Verify & Mark Sold</span>
+                                  </button>
+                                  <button
+                                    onClick={() => handleRejectOrder(order.id)}
+                                    className="p-1.5 rounded-xl bg-red-500/20 hover:bg-red-500/30 text-red-400 transition-colors"
+                                    title="Reject slip"
+                                  >
+                                    <X className="w-4 h-4" />
+                                  </button>
+                                </>
+                              ) : (
+                                <span className="text-[11px] opacity-60 italic">
+                                  {order.status === 'verified' ? `Verified by ${order.verifiedBy || 'Admin'}` : 'Processed'}
+                                </span>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ============================================================ */}
+        {/* TAB 3: LIVESTOCK INVENTORY */}
+        {/* ============================================================ */}
+        {activeTab === 'inventory' && (
+          <div className="space-y-5 animate-in fade-in-50 duration-150">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <h2 className="font-serif font-bold text-2xl">
+                  Livestock Inventory Manager
+                </h2>
+                <p className="text-xs opacity-70">
+                  Search, inspect, toggle availability, and add new livestock listings.
+                </p>
               </div>
 
-              {/* Clickable Sidebar Tab Buttons */}
-              <nav className="space-y-1.5" aria-label="Admin Navigation">
-                {navTabs.map((tab) => {
-                  const Icon = tab.icon;
-                  const isActive = activeTab === tab.id;
-
-                  return (
-                    <button
-                      key={tab.id}
-                      onClick={() => setActiveTab(tab.id)}
-                      type="button"
-                      className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-150 text-left ${
-                        isActive
-                          ? isDark
-                            ? 'bg-[#C58A3A] text-[#1B1208] shadow-sm font-bold'
-                            : 'bg-[#B8792F] text-[#FAF7F0] shadow-sm font-bold'
-                          : isDark
-                            ? 'text-[#D8C5A8] hover:bg-[#1B1208]/70 hover:text-[#F4E8D0]'
-                            : 'text-[#746556] hover:bg-[#FAF7F0] hover:text-[#2A1A0D]'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2.5">
-                        <Icon className="w-4 h-4 shrink-0" />
-                        <span>{tab.label}</span>
-                      </div>
-                      {tab.badge && (
-                        <span
-                          className={`text-[10px] font-mono px-2 py-0.5 rounded-full ${
-                            isActive
-                              ? isDark ? 'bg-[#1B1208] text-[#E0B15A]' : 'bg-[#FAF7F0] text-[#B8792F]'
-                              : isDark ? 'bg-[#1B1208] text-[#D8C5A8]' : 'bg-[#F1E8D8] text-[#746556]'
-                          }`}
-                        >
-                          {tab.badge}
-                        </span>
-                      )}
-                    </button>
-                  );
-                })}
-              </nav>
-
-              {/* Logout Button */}
-              <div className="pt-4 mt-4 border-t" style={{ borderColor: isDark ? '#4A2C16' : '#E4D4BC' }}>
+              <div className="flex flex-wrap items-center gap-2">
                 <button
-                  onClick={logout}
-                  type="button"
-                  className={`w-full flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold border transition-colors ${
-                    isDark
-                      ? 'bg-[#1B1208] border-[#4A2C16] text-[#D8C5A8] hover:text-red-400 hover:border-red-500/40'
-                      : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#746556] hover:text-red-600 hover:border-red-400'
+                  onClick={() => setIsAddAnimalOpen(true)}
+                  className="px-3.5 py-1.5 rounded-xl bg-[#C18A45] hover:bg-[#A06E35] text-white text-xs font-bold shadow transition-colors flex items-center gap-1.5"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Add Animal</span>
+                </button>
+
+                <div className="relative">
+                  <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 opacity-60" />
+                  <input
+                    type="text"
+                    placeholder="Search ID, breed..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className={`pl-8 pr-3 py-1.5 rounded-xl text-xs border focus:outline-none ${
+                      isDark ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0]' : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#2A1A0D]'
+                    }`}
+                  />
+                </div>
+
+                <select
+                  value={selectedTypeFilter}
+                  onChange={(e) => setSelectedTypeFilter(e.target.value)}
+                  className={`px-2.5 py-1.5 rounded-xl text-xs border focus:outline-none ${
+                    isDark ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0]' : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#2A1A0D]'
                   }`}
                 >
-                  <LogOut className="w-3.5 h-3.5" />
-                  <span>Log Out</span>
-                </button>
+                  <option value="all">All Types</option>
+                  <option value="sheep">Sheep</option>
+                  <option value="goat">Goat</option>
+                  <option value="cow">Cow</option>
+                </select>
+
+                <select
+                  value={selectedStatusFilter}
+                  onChange={(e) => setSelectedStatusFilter(e.target.value)}
+                  className={`px-2.5 py-1.5 rounded-xl text-xs border focus:outline-none ${
+                    isDark ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0]' : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#2A1A0D]'
+                  }`}
+                >
+                  <option value="all">All Statuses</option>
+                  <option value="available">Available</option>
+                  <option value="reserved">Reserved</option>
+                  <option value="sold">Sold</option>
+                </select>
               </div>
             </div>
 
-            {/* Farm Status Quick Pill */}
+            {/* Inventory Table */}
             <div
-              className={`p-4 rounded-2xl border text-xs space-y-1.5 ${
-                isDark ? 'bg-[#2A1A0D]/70 border-[#4A2C16] text-[#D8C5A8]' : 'bg-[#F1E8D8] border-[#E4D4BC] text-[#746556]'
+              className={`rounded-3xl border overflow-hidden shadow-sm ${
+                isDark ? 'bg-[#2A1A0D] border-[#4A2C16]' : 'bg-[#F1E8D8] border-[#E4D4BC]'
               }`}
             >
-              <div className="flex justify-between items-center font-semibold">
-                <span>Farm Location:</span>
-                <span className={isDark ? 'text-[#F4E8D0]' : 'text-[#2A1A0D]'}>{business.city}</span>
-              </div>
-              <div className="flex justify-between items-center font-semibold">
-                <span>Available Valuation:</span>
-                <span className={isDark ? 'text-[#E0B15A]' : 'text-[#B8792F]'}>{formatPrice(stats.availableValue)}</span>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr className={`border-b ${isDark ? 'border-[#4A2C16] text-[#D8C5A8]' : 'border-[#E4D4BC] text-[#746556]'}`}>
+                      <th className="py-3 px-3.5 uppercase font-semibold">Animal ID</th>
+                      <th className="py-3 px-3.5 uppercase font-semibold">Breed & Type</th>
+                      <th className="py-3 px-3.5 uppercase font-semibold">Gender</th>
+                      <th className="py-3 px-3.5 uppercase font-semibold">Weight</th>
+                      <th className="py-3 px-3.5 uppercase font-semibold">Price</th>
+                      <th className="py-3 px-3.5 uppercase font-semibold">Status</th>
+                      <th className="py-3 px-3.5 uppercase font-semibold text-right">Quick Toggle Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y" style={{ borderColor: isDark ? '#4A2C16' : '#E4D4BC' }}>
+                    {filteredAnimals.map((animal) => (
+                      <tr key={animal.id} className={`hover:bg-black/10 transition-colors ${isDark ? 'text-[#F4E8D0]' : 'text-[#2A1A0D]'}`}>
+                        <td className="py-3 px-3.5 font-mono font-bold">
+                          <Link to={`/animals/${animal.id}`} className="hover:underline inline-flex items-center gap-1">
+                            <span>{animal.id}</span>
+                            <ArrowUpRight className="w-3 h-3 opacity-60" />
+                          </Link>
+                        </td>
+                        <td className="py-3 px-3.5">
+                          <div className="capitalize font-semibold">{animal.breed}</div>
+                          <span className="text-[10px] uppercase opacity-70 tracking-wider">{animal.type}</span>
+                        </td>
+                        <td className="py-3 px-3.5">{animal.gender}</td>
+                        <td className="py-3 px-3.5 font-bold">{formatWeight(animal.weight)}</td>
+                        <td className={`py-3 px-3.5 font-bold ${isDark ? 'text-[#E0B15A]' : 'text-[#B8792F]'}`}>
+                          {formatPrice(animal.price)}
+                        </td>
+                        <td className="py-3 px-3.5">
+                          <StatusBadge status={animal.status} size="sm" />
+                        </td>
+                        <td className="py-3 px-3.5 text-right">
+                          <div className="inline-flex items-center gap-1">
+                            <button
+                              onClick={() => handleToggleStatus(animal.id, 'available')}
+                              disabled={animal.status === 'available'}
+                              className="px-2 py-0.5 rounded text-[10px] font-semibold bg-green-500/20 text-green-400 border border-green-500/30 hover:bg-green-500/30 disabled:opacity-30"
+                            >
+                              Avail
+                            </button>
+                            <button
+                              onClick={() => handleToggleStatus(animal.id, 'reserved')}
+                              disabled={animal.status === 'reserved'}
+                              className="px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-500/20 text-amber-400 border border-amber-500/30 hover:bg-amber-500/30 disabled:opacity-30"
+                            >
+                              Hold
+                            </button>
+                            <button
+                              onClick={() => handleToggleStatus(animal.id, 'sold')}
+                              disabled={animal.status === 'sold'}
+                              className="px-2 py-0.5 rounded text-[10px] font-semibold bg-stone-600/20 text-stone-400 border border-stone-600/30 hover:bg-stone-600/30 disabled:opacity-30"
+                            >
+                              Sold
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             </div>
+          </div>
+        )}
 
-          </aside>
-
-          {/* ========================================== */}
-          {/* RIGHT MAIN CONTENT AREA (Active Tab Content) */}
-          {/* ========================================== */}
-          <main className="lg:col-span-9 space-y-6">
-            
-            {/* ---------------------------------------------------- */}
-            {/* TAB 1: OVERVIEW & ANALYTICS */}
-            {/* ---------------------------------------------------- */}
-            {activeTab === 'overview' && (
-              <div className="space-y-6 animate-in fade-in-50 duration-150">
-                {/* Header Banner */}
-                <div>
-                  <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-amber-500 mb-1">
-                    <TrendingUp className="w-4 h-4" />
-                    <span>Executive Summary</span>
-                  </div>
-                  <h1 className={`font-serif font-bold text-2xl sm:text-3xl ${isDark ? 'text-[#F4E8D0]' : 'text-[#2A1A0D]'}`}>
-                    Livestock Intelligence Overview
-                  </h1>
+        {/* ============================================================ */}
+        {/* TAB 4: DEMAND & METRICS */}
+        {/* ============================================================ */}
+        {activeTab === 'demand' && (
+          <div className="space-y-6 animate-in fade-in-50 duration-150">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+              <div className={`p-5 rounded-2xl border ${isDark ? 'bg-[#2A1A0D] border-[#4A2C16]' : 'bg-[#F1E8D8] border-[#E4D4BC]'}`}>
+                <div className="flex items-center justify-between pb-2.5 border-b" style={{ borderColor: isDark ? '#4A2C16' : '#E4D4BC' }}>
+                  <strong className="font-serif text-sm">Sheep Inventory Valuation</strong>
+                  <span className="text-[11px] font-mono opacity-70">{stats.sheepCount} Head</span>
                 </div>
-
-                {/* 4 KPI Metrics Cards */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-                  {/* Card 1 */}
-                  <div className={`p-4 sm:p-5 rounded-2xl border ${isDark ? 'bg-[#2A1A0D] border-[#4A2C16]' : 'bg-[#F1E8D8] border-[#E4D4BC]'}`}>
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-[11px] font-semibold uppercase tracking-wider opacity-70">Total Valuation</span>
-                      <div className="w-7 h-7 rounded-lg bg-amber-500/10 text-amber-500 flex items-center justify-center">
-                        <DollarSign className="w-3.5 h-3.5" />
-                      </div>
-                    </div>
-                    <div className={`text-xl sm:text-2xl font-serif font-extrabold ${isDark ? 'text-[#E0B15A]' : 'text-[#B8792F]'}`}>
-                      {formatPrice(stats.totalInventoryValue)}
-                    </div>
-                    <p className="text-[11px] opacity-70 mt-1">
-                      Available: {formatPrice(stats.availableValue)}
-                    </p>
-                  </div>
-
-                  {/* Card 2 */}
-                  <div className={`p-4 sm:p-5 rounded-2xl border ${isDark ? 'bg-[#2A1A0D] border-[#4A2C16]' : 'bg-[#F1E8D8] border-[#E4D4BC]'}`}>
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-[11px] font-semibold uppercase tracking-wider opacity-70">Total Animals</span>
-                      <div className="w-7 h-7 rounded-lg bg-blue-500/10 text-blue-500 flex items-center justify-center">
-                        <ShoppingBag className="w-3.5 h-3.5" />
-                      </div>
-                    </div>
-                    <div className={`text-xl sm:text-2xl font-serif font-extrabold ${isDark ? 'text-[#F4E8D0]' : 'text-[#2A1A0D]'}`}>
-                      {stats.totalAnimals} Head
-                    </div>
-                    <p className="text-[11px] opacity-70 mt-1">
-                      {stats.sheepCount} Sheep · {stats.goatsCount} Goats · {stats.cowsCount} Cows
-                    </p>
-                  </div>
-
-                  {/* Card 3 */}
-                  <div className={`p-4 sm:p-5 rounded-2xl border ${isDark ? 'bg-[#2A1A0D] border-[#4A2C16]' : 'bg-[#F1E8D8] border-[#E4D4BC]'}`}>
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-[11px] font-semibold uppercase tracking-wider opacity-70">Inventory Status</span>
-                      <div className="w-7 h-7 rounded-lg bg-green-500/10 text-green-500 flex items-center justify-center">
-                        <CheckCircle2 className="w-3.5 h-3.5" />
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-1.5 text-xs font-semibold">
-                      <span className="text-green-500 font-bold">{stats.availableCount} Avail</span>
-                      <span>·</span>
-                      <span className="text-amber-500 font-bold">{stats.reservedCount} Hold</span>
-                      <span>·</span>
-                      <span className="text-stone-400 font-bold">{stats.soldCount} Sold</span>
-                    </div>
-                    <div className="mt-2 w-full bg-stone-700/30 rounded-full h-1.5 overflow-hidden flex">
-                      <div style={{ width: `${(stats.availableCount / stats.totalAnimals) * 100}%` }} className="bg-green-500 h-full" />
-                      <div style={{ width: `${(stats.reservedCount / stats.totalAnimals) * 100}%` }} className="bg-amber-500 h-full" />
-                      <div style={{ width: `${(stats.soldCount / stats.totalAnimals) * 100}%` }} className="bg-stone-500 h-full" />
-                    </div>
-                  </div>
-
-                  {/* Card 4 */}
-                  <div className={`p-4 sm:p-5 rounded-2xl border ${isDark ? 'bg-[#2A1A0D] border-[#4A2C16]' : 'bg-[#F1E8D8] border-[#E4D4BC]'}`}>
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-[11px] font-semibold uppercase tracking-wider opacity-70">Service Attach</span>
-                      <div className="w-7 h-7 rounded-lg bg-purple-500/10 text-purple-500 flex items-center justify-center">
-                        <Sparkles className="w-3.5 h-3.5" />
-                      </div>
-                    </div>
-                    <div className={`text-xl sm:text-2xl font-serif font-extrabold ${isDark ? 'text-[#E0B15A]' : 'text-[#B8792F]'}`}>
-                      82%
-                    </div>
-                    <p className="text-[11px] opacity-70 mt-1">
-                      Deliveries & Slaughter requested
-                    </p>
-                  </div>
-                </div>
-
-                {/* Category Breakdown Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                  <div className={`p-5 rounded-2xl border ${isDark ? 'bg-[#2A1A0D] border-[#4A2C16]' : 'bg-[#F1E8D8] border-[#E4D4BC]'}`}>
-                    <div className="flex items-center justify-between pb-2.5 border-b" style={{ borderColor: isDark ? '#4A2C16' : '#E4D4BC' }}>
-                      <div className="flex items-center gap-2">
-                        <ShoppingBag className="w-4 h-4 text-amber-500" />
-                        <strong className="font-serif text-sm">Sheep Metrics</strong>
-                      </div>
-                      <span className="text-[11px] font-mono opacity-70">{stats.sheepCount} Animals</span>
-                    </div>
-                    <div className="pt-2.5 space-y-1.5 text-xs">
-                      <div className="flex justify-between"><span className="opacity-70">Valuation:</span><strong className={isDark ? 'text-[#E0B15A]' : 'text-[#B8792F]'}>{formatPrice(stats.sheepValue)}</strong></div>
-                      <div className="flex justify-between"><span className="opacity-70">Avg Price:</span><span>{formatPrice(stats.avgSheepPrice)}</span></div>
-                      <div className="flex justify-between"><span className="opacity-70">Avg Weight:</span><span>{formatWeight(stats.avgSheepWeight)}</span></div>
-                    </div>
-                  </div>
-
-                  <div className={`p-5 rounded-2xl border ${isDark ? 'bg-[#2A1A0D] border-[#4A2C16]' : 'bg-[#F1E8D8] border-[#E4D4BC]'}`}>
-                    <div className="flex items-center justify-between pb-2.5 border-b" style={{ borderColor: isDark ? '#4A2C16' : '#E4D4BC' }}>
-                      <div className="flex items-center gap-2">
-                        <ShoppingBag className="w-4 h-4 text-amber-500" />
-                        <strong className="font-serif text-sm">Goats Metrics</strong>
-                      </div>
-                      <span className="text-[11px] font-mono opacity-70">{stats.goatsCount} Animals</span>
-                    </div>
-                    <div className="pt-2.5 space-y-1.5 text-xs">
-                      <div className="flex justify-between"><span className="opacity-70">Valuation:</span><strong className={isDark ? 'text-[#E0B15A]' : 'text-[#B8792F]'}>{formatPrice(stats.goatValue)}</strong></div>
-                      <div className="flex justify-between"><span className="opacity-70">Avg Price:</span><span>{formatPrice(stats.avgGoatPrice)}</span></div>
-                      <div className="flex justify-between"><span className="opacity-70">Avg Weight:</span><span>{formatWeight(stats.avgGoatWeight)}</span></div>
-                    </div>
-                  </div>
-
-                  <div className={`p-5 rounded-2xl border ${isDark ? 'bg-[#2A1A0D] border-[#4A2C16]' : 'bg-[#F1E8D8] border-[#E4D4BC]'}`}>
-                    <div className="flex items-center justify-between pb-2.5 border-b" style={{ borderColor: isDark ? '#4A2C16' : '#E4D4BC' }}>
-                      <div className="flex items-center gap-2">
-                        <ShoppingBag className="w-4 h-4 text-amber-500" />
-                        <strong className="font-serif text-sm">Cows Metrics</strong>
-                      </div>
-                      <span className="text-[11px] font-mono opacity-70">{stats.cowsCount} Animals</span>
-                    </div>
-                    <div className="pt-2.5 space-y-1.5 text-xs">
-                      <div className="flex justify-between"><span className="opacity-70">Valuation:</span><strong className={isDark ? 'text-[#E0B15A]' : 'text-[#B8792F]'}>{formatPrice(stats.cowValue)}</strong></div>
-                      <div className="flex justify-between"><span className="opacity-70">Avg Price:</span><span>{formatPrice(stats.avgCowPrice)}</span></div>
-                      <div className="flex justify-between"><span className="opacity-70">Avg Weight:</span><span>{formatWeight(stats.avgCowWeight)}</span></div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Quick Inquiries Preview */}
-                <div className={`p-5 rounded-2xl border ${isDark ? 'bg-[#2A1A0D] border-[#4A2C16]' : 'bg-[#F1E8D8] border-[#E4D4BC]'}`}>
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className={`font-serif font-bold text-base ${isDark ? 'text-[#F4E8D0]' : 'text-[#2A1A0D]'}`}>
-                      Recent Customer Requests Preview
-                    </h3>
-                    <button
-                      onClick={() => setActiveTab('requests')}
-                      className={`text-xs font-semibold hover:underline ${isDark ? 'text-[#E0B15A]' : 'text-[#B8792F]'}`}
-                    >
-                      View All Orders →
-                    </button>
-                  </div>
-                  <div className="space-y-2">
-                    {requestsList.slice(0, 3).map((req) => (
-                      <div
-                        key={req.id}
-                        className={`p-3 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs ${
-                          isDark ? 'bg-[#1B1208] border-[#4A2C16]' : 'bg-[#FAF7F0] border-[#E4D4BC]'
-                        }`}
-                      >
-                        <div>
-                          <strong className="font-mono">{req.id}</strong> · {req.customerName} ({req.animalBreed})
-                          <span className="block text-[11px] opacity-70">{req.services.join(', ')}</span>
-                        </div>
-                        <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-500/20 text-amber-400 border border-amber-500/30 self-start sm:self-auto">
-                          {req.status}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                <div className="pt-2.5 text-lg font-bold text-[#C18A45]">{formatPrice(stats.sheepValue)}</div>
               </div>
-            )}
 
-            {/* ---------------------------------------------------- */}
-            {/* TAB 2: LIVESTOCK INVENTORY */}
-            {/* ---------------------------------------------------- */}
-            {activeTab === 'inventory' && (
-              <div className="space-y-5 animate-in fade-in-50 duration-150">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                  <div>
-                    <h2 className={`font-serif font-bold text-2xl ${isDark ? 'text-[#F4E8D0]' : 'text-[#2A1A0D]'}`}>
-                      Livestock Inventory Manager
-                    </h2>
-                    <p className="text-xs opacity-70">
-                      Search, inspect, and toggle animal availability in real time.
-                    </p>
-                  </div>
-
-                  <div className="flex flex-wrap items-center gap-2">
-                    <div className="relative">
-                      <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 opacity-60" />
-                      <input
-                        type="text"
-                        placeholder="Search ID, breed, city..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className={`pl-8 pr-3 py-1.5 rounded-xl text-xs border focus:outline-none ${
-                          isDark ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0]' : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#2A1A0D]'
-                        }`}
-                      />
-                    </div>
-
-                    <select
-                      value={selectedTypeFilter}
-                      onChange={(e) => setSelectedTypeFilter(e.target.value)}
-                      className={`px-2.5 py-1.5 rounded-xl text-xs border focus:outline-none ${
-                        isDark ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0]' : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#2A1A0D]'
-                      }`}
-                    >
-                      <option value="all">All Types</option>
-                      <option value="sheep">Sheep</option>
-                      <option value="goat">Goat</option>
-                      <option value="cow">Cow</option>
-                    </select>
-
-                    <select
-                      value={selectedStatusFilter}
-                      onChange={(e) => setSelectedStatusFilter(e.target.value)}
-                      className={`px-2.5 py-1.5 rounded-xl text-xs border focus:outline-none ${
-                        isDark ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0]' : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#2A1A0D]'
-                      }`}
-                    >
-                      <option value="all">All Statuses</option>
-                      <option value="available">Available</option>
-                      <option value="reserved">Reserved</option>
-                      <option value="sold">Sold</option>
-                    </select>
-                  </div>
+              <div className={`p-5 rounded-2xl border ${isDark ? 'bg-[#2A1A0D] border-[#4A2C16]' : 'bg-[#F1E8D8] border-[#E4D4BC]'}`}>
+                <div className="flex items-center justify-between pb-2.5 border-b" style={{ borderColor: isDark ? '#4A2C16' : '#E4D4BC' }}>
+                  <strong className="font-serif text-sm">Goats Inventory Valuation</strong>
+                  <span className="text-[11px] font-mono opacity-70">{stats.goatsCount} Head</span>
                 </div>
-
-                {/* Table */}
-                <div
-                  className={`rounded-3xl border overflow-hidden shadow-sm ${
-                    isDark ? 'bg-[#2A1A0D] border-[#4A2C16]' : 'bg-[#F1E8D8] border-[#E4D4BC]'
-                  }`}
-                >
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left text-xs border-collapse">
-                      <thead>
-                        <tr className={`border-b ${isDark ? 'border-[#4A2C16] text-[#D8C5A8]' : 'border-[#E4D4BC] text-[#746556]'}`}>
-                          <th className="py-3 px-3.5 uppercase font-semibold">Animal ID</th>
-                          <th className="py-3 px-3.5 uppercase font-semibold">Breed & Type</th>
-                          <th className="py-3 px-3.5 uppercase font-semibold">Gender</th>
-                          <th className="py-3 px-3.5 uppercase font-semibold">Weight</th>
-                          <th className="py-3 px-3.5 uppercase font-semibold">Price</th>
-                          <th className="py-3 px-3.5 uppercase font-semibold">Location</th>
-                          <th className="py-3 px-3.5 uppercase font-semibold">Status</th>
-                          <th className="py-3 px-3.5 uppercase font-semibold text-right">Toggle Status</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y" style={{ borderColor: isDark ? '#4A2C16' : '#E4D4BC' }}>
-                        {filteredAnimals.map((animal) => (
-                          <tr key={animal.id} className={`hover:bg-black/10 transition-colors ${isDark ? 'text-[#F4E8D0]' : 'text-[#2A1A0D]'}`}>
-                            <td className="py-3 px-3.5 font-mono font-bold">
-                              <Link to={`/animals/${animal.id}`} className="hover:underline inline-flex items-center gap-1">
-                                <span>{animal.id}</span>
-                                <ArrowUpRight className="w-3 h-3 opacity-60" />
-                              </Link>
-                            </td>
-                            <td className="py-3 px-3.5">
-                              <div className="capitalize font-semibold">{animal.breed}</div>
-                              <span className="text-[10px] uppercase opacity-70 tracking-wider">{animal.type}</span>
-                            </td>
-                            <td className="py-3 px-3.5">{animal.gender}</td>
-                            <td className="py-3 px-3.5 font-bold">{formatWeight(animal.weight)}</td>
-                            <td className={`py-3 px-3.5 font-bold ${isDark ? 'text-[#E0B15A]' : 'text-[#B8792F]'}`}>
-                              {formatPrice(animal.price)}
-                            </td>
-                            <td className="py-3 px-3.5">{animal.location}</td>
-                            <td className="py-3 px-3.5">
-                              <StatusBadge status={animal.status} size="sm" />
-                            </td>
-                            <td className="py-3 px-3.5 text-right">
-                              <div className="inline-flex items-center gap-1">
-                                <button
-                                  onClick={() => handleToggleStatus(animal.id, 'available')}
-                                  disabled={animal.status === 'available'}
-                                  className="px-2 py-0.5 rounded text-[10px] font-semibold bg-green-500/20 text-green-400 border border-green-500/30 hover:bg-green-500/30 disabled:opacity-30"
-                                >
-                                  Avail
-                                </button>
-                                <button
-                                  onClick={() => handleToggleStatus(animal.id, 'reserved')}
-                                  disabled={animal.status === 'reserved'}
-                                  className="px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-500/20 text-amber-400 border border-amber-500/30 hover:bg-amber-500/30 disabled:opacity-30"
-                                >
-                                  Hold
-                                </button>
-                                <button
-                                  onClick={() => handleToggleStatus(animal.id, 'sold')}
-                                  disabled={animal.status === 'sold'}
-                                  className="px-2 py-0.5 rounded text-[10px] font-semibold bg-stone-600/20 text-stone-400 border border-stone-600/30 hover:bg-stone-600/30 disabled:opacity-30"
-                                >
-                                  Sold
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
+                <div className="pt-2.5 text-lg font-bold text-[#C18A45]">{formatPrice(stats.goatValue)}</div>
               </div>
-            )}
 
-            {/* ---------------------------------------------------- */}
-            {/* TAB 3: INQUIRIES & ORDERS PIPELINE */}
-            {/* ---------------------------------------------------- */}
-            {activeTab === 'requests' && (
-              <div className="space-y-5 animate-in fade-in-50 duration-150">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <div>
-                    <h2 className={`font-serif font-bold text-2xl ${isDark ? 'text-[#F4E8D0]' : 'text-[#2A1A0D]'}`}>
-                      Customer Inquiries & Service Orders
-                    </h2>
-                    <p className="text-xs opacity-70">
-                      Manage incoming reservations, destination deliveries, slaughter, and meat prep arrangements.
-                    </p>
-                  </div>
-                  <span className="text-xs font-mono font-semibold px-2.5 py-1 rounded bg-amber-500/10 text-amber-500 border border-amber-500/20 self-start sm:self-auto">
-                    {requestsList.length} Active Orders
-                  </span>
+              <div className={`p-5 rounded-2xl border ${isDark ? 'bg-[#2A1A0D] border-[#4A2C16]' : 'bg-[#F1E8D8] border-[#E4D4BC]'}`}>
+                <div className="flex items-center justify-between pb-2.5 border-b" style={{ borderColor: isDark ? '#4A2C16' : '#E4D4BC' }}>
+                  <strong className="font-serif text-sm">Cows Inventory Valuation</strong>
+                  <span className="text-[11px] font-mono opacity-70">{stats.cowsCount} Head</span>
                 </div>
-
-                <div
-                  className={`rounded-3xl border overflow-hidden shadow-sm ${
-                    isDark ? 'bg-[#2A1A0D] border-[#4A2C16]' : 'bg-[#F1E8D8] border-[#E4D4BC]'
-                  }`}
-                >
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left text-xs border-collapse">
-                      <thead>
-                        <tr className={`border-b ${isDark ? 'border-[#4A2C16] text-[#D8C5A8]' : 'border-[#E4D4BC] text-[#746556]'}`}>
-                          <th className="py-3 px-3.5 uppercase font-semibold">Request ID</th>
-                          <th className="py-3 px-3.5 uppercase font-semibold">Customer</th>
-                          <th className="py-3 px-3.5 uppercase font-semibold">Animal</th>
-                          <th className="py-3 px-3.5 uppercase font-semibold">Selected Services</th>
-                          <th className="py-3 px-3.5 uppercase font-semibold">Destination</th>
-                          <th className="py-3 px-3.5 uppercase font-semibold">Status</th>
-                          <th className="py-3 px-3.5 uppercase font-semibold text-right">Update</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y" style={{ borderColor: isDark ? '#4A2C16' : '#E4D4BC' }}>
-                        {requestsList.map((req) => (
-                          <tr key={req.id} className={`hover:bg-black/10 transition-colors ${isDark ? 'text-[#F4E8D0]' : 'text-[#2A1A0D]'}`}>
-                            <td className="py-3 px-3.5 font-mono font-bold">{req.id}</td>
-                            <td className="py-3 px-3.5">
-                              <strong className="block">{req.customerName}</strong>
-                              <span className="text-[11px] opacity-70">{req.phone}</span>
-                            </td>
-                            <td className="py-3 px-3.5">
-                              <div className="flex items-center gap-1">
-                                <span className="font-mono font-semibold">{req.animalId}</span>
-                                <span>·</span>
-                                <span>{req.animalBreed}</span>
-                              </div>
-                              <span className={`text-[11px] font-semibold ${isDark ? 'text-[#E0B15A]' : 'text-[#B8792F]'}`}>
-                                {formatPrice(req.price)}
-                              </span>
-                            </td>
-                            <td className="py-3 px-3.5">
-                              <div className="flex flex-wrap gap-1 max-w-xs">
-                                {req.services.map((s, idx) => (
-                                  <span
-                                    key={idx}
-                                    className={`text-[10px] px-1.5 py-0.5 rounded border ${
-                                      isDark ? 'bg-[#1B1208] border-[#4A2C16]' : 'bg-[#FAF7F0] border-[#E4D4BC]'
-                                    }`}
-                                  >
-                                    {s}
-                                  </span>
-                                ))}
-                              </div>
-                            </td>
-                            <td className="py-3 px-3.5">{req.location}</td>
-                            <td className="py-3 px-3.5">
-                              <span
-                                className={`inline-block px-2 py-0.5 rounded text-[10px] font-semibold ${
-                                  req.status === 'New'
-                                    ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
-                                    : req.status === 'Contacted'
-                                      ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-                                      : req.status === 'Confirmed'
-                                        ? 'bg-green-500/20 text-green-400 border border-green-500/30'
-                                        : 'bg-stone-600/20 text-stone-400 border border-stone-600/30'
-                                }`}
-                              >
-                                {req.status}
-                              </span>
-                            </td>
-                            <td className="py-3 px-3.5 text-right">
-                              <select
-                                value={req.status}
-                                onChange={(e) => handleUpdateRequestStatus(req.id, e.target.value as MockRequest['status'])}
-                                className={`px-2 py-1 rounded text-xs border focus:outline-none ${
-                                  isDark ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0]' : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#2A1A0D]'
-                                }`}
-                              >
-                                <option value="New">New</option>
-                                <option value="Contacted">Contacted</option>
-                                <option value="Confirmed">Confirmed</option>
-                                <option value="Completed">Completed</option>
-                              </select>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
+                <div className="pt-2.5 text-lg font-bold text-[#C18A45]">{formatPrice(stats.cowValue)}</div>
               </div>
-            )}
-
-            {/* ---------------------------------------------------- */}
-            {/* TAB 4: SERVICE DEMAND ANALYSIS */}
-            {/* ---------------------------------------------------- */}
-            {activeTab === 'demand' && (
-              <div className="space-y-6 animate-in fade-in-50 duration-150">
-                <div>
-                  <h2 className={`font-serif font-bold text-2xl ${isDark ? 'text-[#F4E8D0]' : 'text-[#2A1A0D]'}`}>
-                    Services Demand & Attach Rate Analysis
-                  </h2>
-                  <p className="text-xs opacity-70">
-                    Breakdown of customer service preferences and operational volume.
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                  <div className={`p-5 rounded-2xl border ${isDark ? 'bg-[#2A1A0D] border-[#4A2C16]' : 'bg-[#F1E8D8] border-[#E4D4BC]'}`}>
-                    <div className="flex items-center gap-2 mb-2">
-                      <TrendingUp className="w-5 h-5 text-amber-500" />
-                      <strong className="font-serif text-base">Meat in KG (Hotels/Restaurants)</strong>
-                    </div>
-                    <div className="text-2xl font-extrabold font-serif text-amber-500 mb-1">72% Volume Growth</div>
-                    <p className="text-xs opacity-80 leading-relaxed mb-3">
-                      High commercial demand from Bole, Kazanchis, and Sarbet restaurants ordering sheep, goat, and beef by the kg.
-                    </p>
-                    <div className="w-full bg-stone-700/30 rounded-full h-2 overflow-hidden">
-                      <div className="bg-amber-500 h-full w-[72%]" />
-                    </div>
-                  </div>
-
-                  <div className={`p-5 rounded-2xl border ${isDark ? 'bg-[#2A1A0D] border-[#4A2C16]' : 'bg-[#F1E8D8] border-[#E4D4BC]'}`}>
-                    <div className="flex items-center gap-2 mb-2">
-                      <Sparkles className="w-5 h-5 text-amber-500" />
-                      <strong className="font-serif text-base">Fresh Slaughtered Sheep Delivery</strong>
-                    </div>
-                    <div className="text-2xl font-extrabold font-serif text-amber-500 mb-1">61% Consumer Orders</div>
-                    <p className="text-xs opacity-80 leading-relaxed mb-3">
-                      Customers prefer receiving clean, farm-slaughtered sheep ready for cooking without home holding or cleaning.
-                    </p>
-                    <div className="w-full bg-stone-700/30 rounded-full h-2 overflow-hidden">
-                      <div className="bg-amber-500 h-full w-[61%]" />
-                    </div>
-                  </div>
-
-                  <div className={`p-5 rounded-2xl border ${isDark ? 'bg-[#2A1A0D] border-[#4A2C16]' : 'bg-[#F1E8D8] border-[#E4D4BC]'}`}>
-                    <div className="flex items-center gap-2 mb-2">
-                      <Truck className="w-5 h-5 text-amber-500" />
-                      <strong className="font-serif text-base">Live Livestock Delivery</strong>
-                    </div>
-                    <div className="text-2xl font-extrabold font-serif text-amber-500 mb-1">76% of Inquiries</div>
-                    <p className="text-xs opacity-80 leading-relaxed mb-3">
-                      High volume across all sub-cities of Addis Ababa, Bishoftu, and Adama. Shipments originate directly from Aware.
-                    </p>
-                    <div className="w-full bg-stone-700/30 rounded-full h-2 overflow-hidden">
-                      <div className="bg-amber-500 h-full w-[76%]" />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* ---------------------------------------------------- */}
-            {/* TAB 5: FARM SETTINGS & PROFILE */}
-            {/* ---------------------------------------------------- */}
-            {activeTab === 'settings' && (
-              <div className="space-y-6 animate-in fade-in-50 duration-150">
-                <div>
-                  <h2 className={`font-serif font-bold text-2xl ${isDark ? 'text-[#F4E8D0]' : 'text-[#2A1A0D]'}`}>
-                    Farm Configuration & Owner Settings
-                  </h2>
-                  <p className="text-xs opacity-70">
-                    Centralized business contact information and operating guidelines.
-                  </p>
-                </div>
-
-                <div
-                  className={`p-6 rounded-3xl border space-y-4 ${
-                    isDark ? 'bg-[#2A1A0D] border-[#4A2C16]' : 'bg-[#F1E8D8] border-[#E4D4BC]'
-                  }`}
-                >
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-                    <div>
-                      <span className="block opacity-70 uppercase font-semibold mb-1">Business Name</span>
-                      <div className="p-3 rounded-xl border font-semibold" style={{ borderColor: isDark ? '#4A2C16' : '#E4D4BC' }}>
-                        {business.name}
-                      </div>
-                    </div>
-
-                    <div>
-                      <span className="block opacity-70 uppercase font-semibold mb-1">Tagline</span>
-                      <div className="p-3 rounded-xl border font-semibold" style={{ borderColor: isDark ? '#4A2C16' : '#E4D4BC' }}>
-                        {business.tagline}
-                      </div>
-                    </div>
-
-                    <div>
-                      <span className="block opacity-70 uppercase font-semibold mb-1">Direct Phone</span>
-                      <div className="p-3 rounded-xl border font-semibold" style={{ borderColor: isDark ? '#4A2C16' : '#E4D4BC' }}>
-                        {business.displayPhone}
-                      </div>
-                    </div>
-
-                    <div>
-                      <span className="block opacity-70 uppercase font-semibold mb-1">WhatsApp Number</span>
-                      <div className="p-3 rounded-xl border font-semibold" style={{ borderColor: isDark ? '#4A2C16' : '#E4D4BC' }}>
-                        {business.displayWhatsapp}
-                      </div>
-                    </div>
-
-                    <div>
-                      <span className="block opacity-70 uppercase font-semibold mb-1">Farm Location</span>
-                      <div className="p-3 rounded-xl border font-semibold" style={{ borderColor: isDark ? '#4A2C16' : '#E4D4BC' }}>
-                        {business.location}
-                      </div>
-                    </div>
-
-                    <div>
-                      <span className="block opacity-70 uppercase font-semibold mb-1">Operating Hours</span>
-                      <div className="p-3 rounded-xl border font-semibold" style={{ borderColor: isDark ? '#4A2C16' : '#E4D4BC' }}>
-                        {business.businessHours}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="pt-3 border-t text-xs opacity-75" style={{ borderColor: isDark ? '#4A2C16' : '#E4D4BC' }}>
-                    * Configuration values are synced from <code className="font-mono">src/config/business.ts</code> and ready for database connection.
-                  </div>
-                </div>
-              </div>
-            )}
-
-          </main>
-
-        </div>
-
+            </div>
+          </div>
+        )}
       </div>
+
+      {/* Slip Preview Modal */}
+      {selectedSlipOrder && (
+        <SlipPreviewModal
+          isOpen={Boolean(selectedSlipOrder)}
+          onClose={() => setSelectedSlipOrder(null)}
+          slipUrl={selectedSlipOrder.paymentSlipUrl || ''}
+          orderId={selectedSlipOrder.id}
+          customerName={selectedSlipOrder.customerName}
+        />
+      )}
+
+      {/* Add Animal Modal */}
+      {isAddAnimalOpen && (
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div
+            className={`relative w-full max-w-lg rounded-3xl border shadow-2xl p-6 sm:p-8 animate-in fade-in zoom-in-95 duration-200 ${
+              isDark ? 'bg-[#24170D] border-[#4A2C16] text-[#F4E8D0]' : 'bg-white border-[#E4D4BC] text-[#2A1A0D]'
+            }`}
+          >
+            <button
+              onClick={() => setIsAddAnimalOpen(false)}
+              className="absolute top-5 right-5 p-2 rounded-full opacity-60 hover:opacity-100"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <h3 className="font-serif font-bold text-xl mb-4 flex items-center gap-2">
+              <Plus className="w-5 h-5 text-[#C18A45]" />
+              <span>Add New Livestock Listing</span>
+            </h3>
+
+            <form onSubmit={handleAddAnimalSubmit} className="space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold uppercase mb-1 opacity-80">Type *</label>
+                  <select
+                    value={newAnimalType}
+                    onChange={(e) => setNewAnimalType(e.target.value as AnimalType)}
+                    className="w-full px-3 py-2 rounded-xl text-xs border bg-transparent"
+                  >
+                    <option value="sheep" className="text-black">Sheep</option>
+                    <option value="goat" className="text-black">Goat</option>
+                    <option value="cow" className="text-black">Cow</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold uppercase mb-1 opacity-80">Breed *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Horro, Boer, Boran"
+                    value={newAnimalBreed}
+                    onChange={(e) => setNewAnimalBreed(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl text-xs border bg-transparent"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold uppercase mb-1 opacity-80">Weight (kg) *</label>
+                  <input
+                    type="number"
+                    required
+                    value={newAnimalWeight}
+                    onChange={(e) => setNewAnimalWeight(Number(e.target.value))}
+                    className="w-full px-3 py-2 rounded-xl text-xs border bg-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold uppercase mb-1 opacity-80">Price (ETB) *</label>
+                  <input
+                    type="number"
+                    required
+                    value={newAnimalPrice}
+                    onChange={(e) => setNewAnimalPrice(Number(e.target.value))}
+                    className="w-full px-3 py-2 rounded-xl text-xs border bg-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold uppercase mb-1 opacity-80">Color</label>
+                  <input
+                    type="text"
+                    placeholder="Solid White"
+                    value={newAnimalColor}
+                    onChange={(e) => setNewAnimalColor(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl text-xs border bg-transparent"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold uppercase mb-1 opacity-80">Description</label>
+                <textarea
+                  rows={2}
+                  placeholder="Prime meat conformation, organic grazing history..."
+                  value={newAnimalDesc}
+                  onChange={(e) => setNewAnimalDesc(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl text-xs border bg-transparent"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold uppercase mb-1 opacity-80">Image URL (Optional)</label>
+                <input
+                  type="url"
+                  placeholder="https://images.unsplash.com/..."
+                  value={newAnimalImage}
+                  onChange={(e) => setNewAnimalImage(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl text-xs border bg-transparent"
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="w-full py-3 rounded-xl bg-[#C18A45] hover:bg-[#A06E35] text-white font-bold text-xs shadow transition-all"
+              >
+                Create Listing
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

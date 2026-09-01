@@ -3,16 +3,19 @@ import { Link, NavLink, useLocation } from 'react-router-dom';
 import { business } from '../../config/business';
 import { ThemeToggle } from './ThemeToggle';
 import { LanguageToggle } from './LanguageToggle';
-import { Menu, X, ChevronRight, BarChart3 } from 'lucide-react';
+import { useUserAuth } from '../../context/UserAuthContext';
+import { Menu, X, ChevronRight, BarChart3, User, LogOut, LogIn, ShoppingBag } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 import { useLanguage } from '../../context/LanguageContext';
 
 export const Navbar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const location = useLocation();
   const { theme } = useTheme();
-  const { t } = useLanguage();
+  const { t, isAmharic } = useLanguage();
+  const { user, isAuthenticated, logout, openAuthModal } = useUserAuth();
   const isDark = theme === 'design7';
 
   useEffect(() => {
@@ -25,6 +28,7 @@ export const Navbar: React.FC = () => {
 
   useEffect(() => {
     setIsOpen(false);
+    setUserDropdownOpen(false);
   }, [location.pathname]);
 
   const navLinks = [
@@ -76,8 +80,8 @@ export const Navbar: React.FC = () => {
             </span>
           </Link>
 
-          {/* Center: Desktop Navigation Links (Middle of header) */}
-          <nav className="hidden md:flex items-center justify-center gap-1 mx-auto px-4">
+          {/* Center: Desktop Navigation Links */}
+          <nav className="hidden lg:flex items-center justify-center gap-1 mx-auto px-2">
             {navLinks.map((link) => (
               <NavLink
                 key={link.path}
@@ -106,14 +110,82 @@ export const Navbar: React.FC = () => {
             ))}
           </nav>
 
-          {/* Right: Desktop Switchers (with clear spacing between Admin & Language Changer) */}
-          <div className="hidden md:flex items-center gap-2.5 shrink-0 pl-4 lg:pl-6">
+          {/* Right: User Account, Switchers */}
+          <div className="hidden sm:flex items-center gap-2.5 shrink-0 pl-2">
+            {/* User Auth Trigger */}
+            {isAuthenticated && user ? (
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setUserDropdownOpen(!userDropdownOpen)}
+                  className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all ${
+                    isDark
+                      ? 'bg-[#2A1A0D] border-[#4A2C16] text-[#E0B15A] hover:bg-[#3A2412]'
+                      : 'bg-[#F1E8D8] border-[#E4D4BC] text-[#B8792F] hover:bg-[#EFE8DC]'
+                  }`}
+                >
+                  <User className="w-3.5 h-3.5 text-[#C18A45]" />
+                  <span className="max-w-[100px] truncate">{user.name.split(' ')[0]}</span>
+                </button>
+
+                {userDropdownOpen && (
+                  <div
+                    className={`absolute right-0 mt-2 w-48 rounded-2xl shadow-xl border p-2 z-50 animate-in fade-in zoom-in-95 duration-150 ${
+                      isDark ? 'bg-[#24170D] border-[#4A2C16] text-[#F4E8D0]' : 'bg-white border-[#E4D4BC] text-[#2A1A0D]'
+                    }`}
+                  >
+                    <div className="px-3 py-2 border-b border-black/10 dark:border-white/10 mb-1">
+                      <div className="font-bold text-xs truncate">{user.name}</div>
+                      <div className="text-[10px] opacity-60 truncate">{user.email}</div>
+                    </div>
+                    {user.role === 'admin' && (
+                      <Link
+                        to="/admin"
+                        onClick={() => setUserDropdownOpen(false)}
+                        className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs hover:bg-[#C18A45]/15 hover:text-[#C18A45] transition-colors"
+                      >
+                        <BarChart3 className="w-3.5 h-3.5" />
+                        <span>Admin Panel</span>
+                      </Link>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => { logout(); setUserDropdownOpen(false); }}
+                      className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs text-red-400 hover:bg-red-500/10 transition-colors"
+                    >
+                      <LogOut className="w-3.5 h-3.5" />
+                      <span>{isAmharic ? 'ውጣ (Logout)' : 'Sign Out'}</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => openAuthModal('login')}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#C18A45]/15 hover:bg-[#C18A45]/25 text-[#C18A45] text-xs font-bold transition-colors border border-[#C18A45]/30"
+              >
+                <LogIn className="w-3.5 h-3.5" />
+                <span>{isAmharic ? 'ይግቡ' : 'Sign In'}</span>
+              </button>
+            )}
+
             <LanguageToggle />
             <ThemeToggle />
           </div>
 
           {/* Mobile View: Language Toggle + Theme Toggle + Menu Button */}
-          <div className="flex md:hidden items-center gap-2">
+          <div className="flex sm:hidden items-center gap-1.5">
+            {!isAuthenticated && (
+              <button
+                type="button"
+                onClick={() => openAuthModal('login')}
+                className="p-1.5 rounded-lg bg-[#C18A45]/15 text-[#C18A45] text-xs font-bold"
+                aria-label="Sign In"
+              >
+                <LogIn className="w-4 h-4" />
+              </button>
+            )}
             <LanguageToggle />
             <ThemeToggle />
             
@@ -138,13 +210,29 @@ export const Navbar: React.FC = () => {
       {/* Mobile Drawer */}
       {isOpen && (
         <div
-          className={`md:hidden border-b animate-in slide-in-from-top-2 duration-150 ${
+          className={`lg:hidden border-b animate-in slide-in-from-top-2 duration-150 ${
             isDark
               ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0]'
               : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#2A1A0D]'
           }`}
         >
           <div className="px-4 pt-2 pb-5 space-y-1 max-w-7xl mx-auto">
+            {isAuthenticated && user && (
+              <div className="p-3 rounded-xl bg-black/5 dark:bg-white/5 mb-2 flex justify-between items-center">
+                <div>
+                  <div className="font-bold text-xs">{user.name}</div>
+                  <div className="text-[10px] opacity-60">{user.email}</div>
+                </div>
+                <button
+                  type="button"
+                  onClick={logout}
+                  className="p-1.5 rounded-lg text-red-400 hover:bg-red-500/10"
+                >
+                  <LogOut className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+
             {navLinks.map((link) => (
               <NavLink
                 key={link.path}

@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { getAnimalById, mockAnimals } from '../data/animals';
+import { api } from '../services/api';
+import { Animal } from '../types/animal';
 import { StatusBadge } from '../components/common/StatusBadge';
 import { ImageGallery } from '../components/animals/ImageGallery';
 import { VideoPlayer } from '../components/animals/VideoPlayer';
 import { ReservationModal } from '../components/modals/ReservationModal';
 import { ServiceRequestModal } from '../components/modals/ServiceRequestModal';
 import { InquiryModal } from '../components/modals/InquiryModal';
+import { BuyPaymentModal } from '../components/modals/BuyPaymentModal';
 import { ServiceSelector } from '../components/services/ServiceSelector';
 import { AnimalCard } from '../components/common/AnimalCard';
 import { business } from '../config/business';
@@ -27,7 +30,9 @@ import {
   ArrowLeft,
   AlertTriangle,
   Truck,
-  Sparkles
+  Sparkles,
+  CreditCard,
+  ShoppingBag
 } from 'lucide-react';
 
 export const AnimalDetails: React.FC = () => {
@@ -37,16 +42,36 @@ export const AnimalDetails: React.FC = () => {
   const { t, isAmharic } = useLanguage();
   const isDark = theme === 'design7';
 
+  const [isBuyModalOpen, setIsBuyModalOpen] = useState(false);
   const [isReservationOpen, setIsReservationOpen] = useState(false);
   const [isServiceModalOpen, setIsServiceModalOpen] = useState(false);
   const [isInquiryOpen, setIsInquiryOpen] = useState(false);
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
-
-  const animal = id ? getAnimalById(id) : undefined;
+  const [animalData, setAnimalData] = useState<Animal | undefined>(id ? getAnimalById(id) : undefined);
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (id) {
+      // Fetch live animal from backend
+      api.getAnimalById(id).then((fetched) => {
+        if (fetched) {
+          setAnimalData(fetched);
+        }
+      });
+    }
   }, [id]);
+
+  const refreshAnimal = () => {
+    if (id) {
+      api.getAnimalById(id).then((fetched) => {
+        if (fetched) {
+          setAnimalData(fetched);
+        }
+      });
+    }
+  };
+
+  const animal = animalData || (id ? getAnimalById(id) : undefined);
 
   // Invalid Animal Handling
   if (!animal) {
@@ -367,12 +392,22 @@ export const AnimalDetails: React.FC = () => {
               </h3>
 
               {isSold ? (
-                <div className="p-3.5 rounded-xl bg-stone-800/40 border border-stone-700/50 text-center text-xs text-stone-400">
+                <div className="p-4 rounded-2xl bg-stone-800/40 border border-stone-700/50 text-center text-xs text-stone-400 font-semibold">
                   {t.detailsPage.soldNotice}
                 </div>
               ) : (
-                <div className="space-y-2">
-                  {/* Request Reservation & Services CTA */}
+                <div className="space-y-2.5">
+                  {/* Primary CTA: Direct Buy & Upload Payment Slip */}
+                  <button
+                    type="button"
+                    onClick={() => setIsBuyModalOpen(true)}
+                    className="w-full py-3.5 px-4 rounded-xl text-sm font-bold flex items-center justify-center gap-2 bg-gradient-to-r from-[#C18A45] to-[#A06E35] text-white shadow-lg hover:shadow-xl hover:scale-[1.01] active:scale-[0.99] transition-all"
+                  >
+                    <CreditCard className="w-4 h-4" />
+                    <span>{isAmharic ? 'በቀጥታ ይግዙና ደረሰኝ ይጫኑ (Buy Now & Upload Slip)' : 'Buy Now & Upload Payment Slip'}</span>
+                  </button>
+
+                  {/* Secondary CTA: Request Reservation & Services */}
                   <button
                     type="button"
                     onClick={() => {
@@ -382,20 +417,20 @@ export const AnimalDetails: React.FC = () => {
                         setIsReservationOpen(true);
                       }
                     }}
-                    className={`w-full py-3 px-4 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all shadow-sm transform hover:-translate-y-0.5 active:scale-[0.99] ${
+                    className={`w-full py-2.5 px-4 rounded-xl text-xs font-semibold border flex items-center justify-center gap-2 transition-all ${
                       isDark
-                        ? 'bg-[#C58A3A] hover:bg-[#E0B15A] text-[#1B1208]'
-                        : 'bg-[#B8792F] hover:bg-[#9E6523] text-[#FAF7F0]'
+                        ? 'bg-[#1B1208] border-[#4A2C16] text-[#D8C5A8] hover:border-[#C58A3A] hover:text-[#F4E8D0]'
+                        : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#746556] hover:border-[#B8792F] hover:text-[#241A12]'
                     }`}
                   >
                     {selectedServices.length > 0 ? (
                       <>
-                        <Sparkles className="w-3.5 h-3.5" />
+                        <Sparkles className="w-3.5 h-3.5 text-[#C18A45]" />
                         <span>{t.detailsPage.requestAnimalAndServices} ({selectedServices.length})</span>
                       </>
                     ) : (
                       <>
-                        <CalendarCheck className="w-3.5 h-3.5" />
+                        <CalendarCheck className="w-3.5 h-3.5 text-[#C18A45]" />
                         <span>{t.common.requestReservation}</span>
                       </>
                     )}
@@ -483,6 +518,14 @@ export const AnimalDetails: React.FC = () => {
         )}
 
       </div>
+
+      {/* Buy Now & Payment Slip Modal */}
+      <BuyPaymentModal
+        animal={animal}
+        isOpen={isBuyModalOpen}
+        onClose={() => setIsBuyModalOpen(false)}
+        onOrderComplete={refreshAnimal}
+      />
 
       {/* Reservation Modal */}
       <ReservationModal

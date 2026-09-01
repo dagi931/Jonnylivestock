@@ -3,6 +3,8 @@ import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-route
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 import { LanguageProvider } from './context/LanguageContext';
 import { AdminAuthProvider } from './context/AdminAuthContext';
+import { UserAuthProvider } from './context/UserAuthContext';
+import { UserAuthModal } from './components/modals/UserAuthModal';
 import { Navbar } from './components/common/Navbar';
 import { Footer } from './components/common/Footer';
 import { Home } from './pages/Home';
@@ -44,6 +46,7 @@ const AppContent: React.FC = () => {
     >
       <ScrollToTop />
       <Navbar />
+      <UserAuthModal />
       <main className="flex-1">
         <Routes>
           <Route path="/" element={<Home />} />
@@ -78,9 +81,11 @@ export const App: React.FC = () => {
     <ThemeProvider>
       <LanguageProvider>
         <AdminAuthProvider>
-          <Router>
-            <AppContent />
-          </Router>
+          <UserAuthProvider>
+            <Router>
+              <AppContent />
+            </Router>
+          </UserAuthProvider>
         </AdminAuthProvider>
       </LanguageProvider>
     </ThemeProvider>

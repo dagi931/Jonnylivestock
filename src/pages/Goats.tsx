@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { getGoats, getBreeds } from '../data/animals';
+import { useAnimals } from '../hooks/useAnimals';
 import { useAnimalFilters } from '../hooks/useAnimalFilters';
 import { AnimalFilters } from '../components/animals/AnimalFilters';
 import { AnimalGrid } from '../components/animals/AnimalGrid';
@@ -13,8 +13,7 @@ export const Goats: React.FC = () => {
   const { t, isAmharic } = useLanguage();
   const isDark = theme === 'design7';
 
-  const allGoats = useMemo(() => getGoats(), []);
-  const availableBreeds = useMemo(() => getBreeds('goat'), []);
+  const { animals: allGoats, breeds: availableBreeds } = useAnimals('goat');
 
   const {
     filters,
