@@ -1,0 +1,123 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id            String         @id @default(uuid())
+  name          String
+  email         String         @unique
+  phone         String
+  passwordHash  String
+  role          String         @default("customer")
+  orders        Order[]
+  savedPackages SavedPackage[]
+  createdAt     DateTime       @default(now())
+}
+
+model Animal {
+  id              String   @id
+  type            String   // 'sheep' | 'goat' | 'cow' | 'hen'
+  breed           String
+  gender          String   // 'Male' | 'Female'
+  weight          Float
+  color           String
+  price           Float
+  quantity        Int      @default(1)
+  location        String
+  description     String
+  status          String   @default("available") // 'available' | 'reserved' | 'sold'
+  images          String[]
+  video           String?
+  featured        Boolean  @default(false)
+  characteristics String[]
+  orders          Order[]
+  createdAt       DateTime @default(now())
+}
+
+model Order {
+  id                   String    @id
+  userId               String?
+  user                 User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  customerName         String
+  customerPhone        String
+  customerEmail        String?
+  deliveryLocation     String?
+  animalId             String?
+  animal               Animal?   @relation(fields: [animalId], references: [id], onDelete: SetNull)
+  animalBreed          String?
+  animalType           String?
+  animalPrice          Float?
+  
+  // Package & Reservation fields
+  isPackage            Boolean   @default(false)
+  packageName          String?
+  packageDetails       Json?     // Array/Object of items in package: meat/livestock, wine, egg, flower
+  isReservation        Boolean   @default(false)
+  depositAmount        Float?    // 50% deposit
+  remainingAmount      Float?    // 50% remaining
+  finalPaymentSlipUrl  String?   // 2nd payment receipt uploaded by customer
+  finalPaymentMethod   String?
+  finalTransactionRef  String?
+  finalVerifiedAt      DateTime?
+  finalVerifiedBy      String?
+
+  selectedServices     String[]
+  servicesFee          Float     @default(0)
+  totalAmount          Float
+  paymentMethod        String
+  bankAccountId        String?
+  paymentSlipUrl       String?
+  transactionReference String?
+  customerNotes        String?
+  status               String    @default("pending_verification") 
+  // 'pending_verification' | 'reservation_pending' | 'reserved' | 'final_payment_pending' | 'verified' | 'completed' | 'rejected'
+  
+  adminNotes           String?
+  verifiedAt           DateTime?
+  verifiedBy           String?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+}
+
+model SavedPackage {
+  id          String   @id @default(uuid())
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  items       Json     // Array of items selected
+  totalPrice  Float
+  createdAt   DateTime @default(now())
+}
+
+model BankAccount {
+  id            String   @id @default(uuid())
+  bankName      String
+  accountName   String
+  accountNumber String
+  instructions  String?
+  qrCode        String?
+  isTelebirr    Boolean  @default(false)
+  createdAt     DateTime @default(now())
+}
+
+model AdminNotification {
+  id        String   @id @default(uuid())
+  type      String
+  title     String
+  message   String
+  orderId   String?
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model Setting {
+  key   String @id
+  value String
+}

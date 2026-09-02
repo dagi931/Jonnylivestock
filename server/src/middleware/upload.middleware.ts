@@ -17,8 +17,9 @@ const storage = multer.diskStorage({
   },
   filename: (_req, file, cb) => {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+    const prefix = file.fieldname === 'image' ? 'animal' : 'slip';
     const ext = path.extname(file.originalname).toLowerCase() || '.jpg';
-    cb(null, `slip-${uniqueSuffix}${ext}`);
+    cb(null, `${prefix}-${uniqueSuffix}${ext}`);
   }
 });
 

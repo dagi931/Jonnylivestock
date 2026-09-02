@@ -1,56 +1,197 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useUserAuth } from '../../context/UserAuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { useLanguage } from '../../context/LanguageContext';
-import { X, Mail, Lock, User, Phone, Eye, EyeOff, AlertCircle, LogIn, UserPlus } from 'lucide-react';
+import {
+  X,
+  Mail,
+  Lock,
+  User,
+  Phone,
+  Eye,
+  EyeOff,
+  AlertCircle,
+  LogIn,
+  UserPlus,
+  ShieldCheck,
+  ArrowLeft,
+  RefreshCw,
+  CheckCircle2
+} from 'lucide-react';
 
 export const UserAuthModal: React.FC = () => {
-  const { isAuthModalOpen, closeAuthModal, authModalMode, login, register } = useUserAuth();
+  const {
+    isAuthModalOpen,
+    closeAuthModal,
+    authModalMode,
+    login,
+    sendRegistrationOtp,
+    verifyAndRegister
+  } = useUserAuth();
+
+  const navigate = useNavigate();
   const { theme } = useTheme();
   const { isAmharic } = useLanguage();
   const isDark = theme === 'design7';
 
   const [mode, setMode] = useState<'login' | 'register'>(authModalMode || 'login');
+  const [step, setStep] = useState<'form' | 'otp'>('form');
+
+  // Form Fields
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+
+  // OTP State
+  const [otp, setOtp] = useState('');
+  const [resendCountdown, setResendCountdown] = useState(0);
+
+  // Status & Feedback
   const [error, setError] = useState<string | null>(null);
+  const [infoMessage, setInfoMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   // Sync mode with prop when opened
-  React.useEffect(() => {
+  useEffect(() => {
     if (authModalMode) setMode(authModalMode);
+    setStep('form');
+    setOtp('');
     setError(null);
+    setInfoMessage(null);
   }, [authModalMode, isAuthModalOpen]);
+
+  // Resend Countdown Timer
+  useEffect(() => {
+    if (resendCountdown <= 0) return;
+    const timer = setInterval(() => {
+      setResendCountdown((prev) => prev - 1);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [resendCountdown]);
 
   if (!isAuthModalOpen) return null;
 
+  // Handle Initial Form Submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setInfoMessage(null);
     setIsLoading(true);
 
     try {
       if (mode === 'login') {
         const res = await login(email, password);
-        if (!res.success) {
-          setError(res.error || 'Login failed');
+        if (res.success) {
+          closeAuthModal();
+          navigate('/');
+        } else {
+          setError(res.error || (isAmharic ? 'መግባት አልተሳካም' : 'Login failed'));
         }
       } else {
+        // Register Mode: Validate Phone & Details
         if (!name.trim()) {
           setError(isAmharic ? 'እባክዎ ሙሉ ስምዎን ያስገቡ' : 'Please enter your full name');
           setIsLoading(false);
           return;
         }
-        const res = await register(name, email, phone, password);
-        if (!res.success) {
-          setError(res.error || 'Registration failed');
+
+        if (!phone.trim() || phone.trim().length < 8) {
+          setError(
+            isAmharic
+              ? 'እባክዎ ትክክለኛ ስልክ ቁጥር ያስገቡ (ቢያንስ 8 አሃዞች)'
+              : 'Please enter a valid phone number (at least 8 digits)'
+          );
+          setIsLoading(false);
+          return;
+        }
+
+        if (password.length < 6) {
+          setError(
+            isAmharic
+              ? 'የይለፍ ቃል ቢያንስ 6 ፊደላት መሆን አለበት'
+              : 'Password must be at least 6 characters'
+          );
+          setIsLoading(false);
+          return;
+        }
+
+        // Send OTP via Brevo
+        const otpRes = await sendRegistrationOtp(name.trim(), email.trim(), phone.trim());
+        if (otpRes.success) {
+          setStep('otp');
+          setResendCountdown(60);
+          setInfoMessage(
+            isAmharic
+              ? `የማረጋገጫ ኮድ ወደ ${email} ተልኳል`
+              : `A 6-digit verification code has been sent to ${email}`
+          );
+        } else {
+          setError(otpRes.error || (isAmharic ? 'የማረጋገጫ ኮድ መላክ አልተቻለም' : 'Failed to send verification code'));
         }
       }
     } catch (err: any) {
       setError(err.message || 'An unexpected error occurred');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Handle OTP Verification
+  const handleVerifyOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (otp.trim().length !== 6) {
+      setError(isAmharic ? 'እባክዎ 6 አሃዝ የማረጋገጫ ኮድ ያስገቡ' : 'Please enter the 6-digit verification code');
+      return;
+    }
+
+    setError(null);
+    setIsLoading(true);
+
+    try {
+      const res = await verifyAndRegister({
+        name: name.trim(),
+        email: email.trim(),
+        phone: phone.trim(),
+        password,
+        otp: otp.trim()
+      });
+
+      if (res.success) {
+        closeAuthModal();
+        navigate('/');
+      } else {
+        setError(res.error || (isAmharic ? 'ትክክለኛ ያልሆነ ኮድ' : 'Invalid verification code'));
+      }
+    } catch (err: any) {
+      setError(err.message || 'Failed to verify code');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Handle Resending OTP
+  const handleResendOtp = async () => {
+    if (resendCountdown > 0 || isLoading) return;
+    setError(null);
+    setIsLoading(true);
+
+    try {
+      const otpRes = await sendRegistrationOtp(name.trim(), email.trim(), phone.trim());
+      if (otpRes.success) {
+        setResendCountdown(60);
+        setInfoMessage(
+          isAmharic
+            ? `አዲስ የማረጋገጫ ኮድ ወደ ${email} ተልኳል`
+            : `A new verification code was dispatched to ${email}`
+        );
+      } else {
+        setError(otpRes.error || 'Failed to resend code');
+      }
+    } catch (err: any) {
+      setError(err.message || 'Failed to resend code');
     } finally {
       setIsLoading(false);
     }
@@ -77,209 +218,353 @@ export const UserAuthModal: React.FC = () => {
               : 'bg-[#FDFBF7] border-[#E4D4BC] text-[#2A1A0D]'
           }`}
         >
-        {/* Close Button */}
-        <button
-          onClick={closeAuthModal}
-          type="button"
-          className={`absolute top-5 right-5 p-2 rounded-full transition-colors ${
-            isDark ? 'hover:bg-[#1B1208] text-[#D8C5A8]' : 'hover:bg-[#EFE8DC] text-[#746556]'
-          }`}
-          aria-label="Close"
-        >
-          <X className="w-5 h-5" />
-        </button>
-
-        {/* Header */}
-        <div className="text-center mb-6">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-[#C18A45]/20 text-[#C18A45] mb-3">
-            {mode === 'login' ? <LogIn className="w-6 h-6" /> : <UserPlus className="w-6 h-6" />}
-          </div>
-          <h2 className="text-2xl font-bold font-serif">
-            {mode === 'login'
-              ? (isAmharic ? 'ወደ መለያዎ ይግቡ' : 'Sign In to Your Account')
-              : (isAmharic ? 'አዲስ መለያ ይክፈቱ' : 'Create Customer Account')}
-          </h2>
-          <p className={`text-sm mt-1 ${isDark ? 'text-[#D8C5A8]/70' : 'text-[#746556]'}`}>
-            {mode === 'login'
-              ? (isAmharic ? 'እንስሳትን በቀላሉ ለመግዛትና ክፍያ ለመፈጸም' : 'Manage your purchases and track payment receipts')
-              : (isAmharic ? 'የክፍያ ደረሰኝ በቀጥታ ለመጫንና ትዕዛዝ ለመከታተል' : 'Upload payment slips and manage livestock orders')}
-          </p>
-        </div>
-
-        {/* Tab Switcher */}
-        <div className="flex p-1 rounded-xl bg-black/10 dark:bg-white/5 mb-6">
+          {/* Close Button */}
           <button
+            onClick={closeAuthModal}
             type="button"
-            onClick={() => { setMode('login'); setError(null); }}
-            className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all ${
-              mode === 'login'
-                ? 'bg-[#C18A45] text-white shadow-md'
-                : isDark ? 'text-[#D8C5A8] hover:text-white' : 'text-[#746556] hover:text-black'
+            className={`absolute top-5 right-5 p-2 rounded-full transition-colors ${
+              isDark ? 'hover:bg-[#1B1208] text-[#D8C5A8]' : 'hover:bg-[#EFE8DC] text-[#746556]'
             }`}
+            aria-label="Close"
           >
-            {isAmharic ? 'ይግቡ' : 'Sign In'}
+            <X className="w-5 h-5" />
           </button>
-          <button
-            type="button"
-            onClick={() => { setMode('register'); setError(null); }}
-            className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all ${
-              mode === 'register'
-                ? 'bg-[#C18A45] text-white shadow-md'
-                : isDark ? 'text-[#D8C5A8] hover:text-white' : 'text-[#746556] hover:text-black'
-            }`}
-          >
-            {isAmharic ? 'ይመዝገቡ' : 'Register'}
-          </button>
-        </div>
 
-        {/* Error Alert */}
-        {error && (
-          <div className="mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-sm flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 flex-shrink-0" />
-            <span>{error}</span>
-          </div>
-        )}
-
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {mode === 'register' && (
+          {/* ========================================================== */}
+          {/* VIEW: STEP 2 (OTP VERIFICATION) */}
+          {/* ========================================================== */}
+          {mode === 'register' && step === 'otp' ? (
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5 opacity-80">
-                {isAmharic ? 'ሙሉ ስም' : 'Full Name'} *
-              </label>
-              <div className="relative">
-                <User className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 opacity-50" />
-                <input
-                  type="text"
-                  required
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="e.g. Abebe Bikila"
-                  className={`w-full pl-10 pr-4 py-2.5 rounded-xl border text-sm transition-all focus:outline-none focus:ring-2 focus:ring-[#C18A45] ${
-                    isDark
-                      ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0] placeholder-[#D8C5A8]/40'
-                      : 'bg-white border-[#E4D4BC] text-[#2A1A0D] placeholder-[#746556]/40'
-                  }`}
-                />
-              </div>
-            </div>
-          )}
-
-          <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5 opacity-80">
-              {isAmharic ? 'ኢሜይል' : 'Email Address'} *
-            </label>
-            <div className="relative">
-              <Mail className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 opacity-50" />
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@example.com"
-                className={`w-full pl-10 pr-4 py-2.5 rounded-xl border text-sm transition-all focus:outline-none focus:ring-2 focus:ring-[#C18A45] ${
-                  isDark
-                    ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0] placeholder-[#D8C5A8]/40'
-                    : 'bg-white border-[#E4D4BC] text-[#2A1A0D] placeholder-[#746556]/40'
-                }`}
-              />
-            </div>
-          </div>
-
-          {mode === 'register' && (
-            <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5 opacity-80">
-                {isAmharic ? 'ስልክ ቁጥር' : 'Phone Number'}
-              </label>
-              <div className="relative">
-                <Phone className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 opacity-50" />
-                <input
-                  type="tel"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="+251 911 234 567"
-                  className={`w-full pl-10 pr-4 py-2.5 rounded-xl border text-sm transition-all focus:outline-none focus:ring-2 focus:ring-[#C18A45] ${
-                    isDark
-                      ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0] placeholder-[#D8C5A8]/40'
-                      : 'bg-white border-[#E4D4BC] text-[#2A1A0D] placeholder-[#746556]/40'
-                  }`}
-                />
-              </div>
-            </div>
-          )}
-
-          <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5 opacity-80">
-              {isAmharic ? 'የይለፍ ቃል' : 'Password'} *
-            </label>
-            <div className="relative">
-              <Lock className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 opacity-50" />
-              <input
-                type={showPassword ? 'text' : 'password'}
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                className={`w-full pl-10 pr-10 py-2.5 rounded-xl border text-sm transition-all focus:outline-none focus:ring-2 focus:ring-[#C18A45] ${
-                  isDark
-                    ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0] placeholder-[#D8C5A8]/40'
-                    : 'bg-white border-[#E4D4BC] text-[#2A1A0D] placeholder-[#746556]/40'
-                }`}
-              />
               <button
                 type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3.5 top-1/2 -translate-y-1/2 opacity-50 hover:opacity-100"
+                onClick={() => {
+                  setStep('form');
+                  setError(null);
+                  setInfoMessage(null);
+                }}
+                className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#C18A45] hover:underline mb-4"
               >
-                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                <ArrowLeft className="w-3.5 h-3.5" />
+                <span>{isAmharic ? 'ወደ ኋላ ተመለስ' : 'Edit details'}</span>
               </button>
+
+              <div className="text-center mb-6">
+                <div className="w-14 h-14 rounded-2xl bg-[#C18A45]/15 border border-[#C18A45]/30 text-[#C18A45] flex items-center justify-center mx-auto mb-3 shadow-inner">
+                  <ShieldCheck className="w-7 h-7" />
+                </div>
+                <h2 className="text-xl sm:text-2xl font-bold font-serif">
+                  {isAmharic ? 'ኢሜይልዎን ያረጋግጡ' : 'Verify Your Email'}
+                </h2>
+                <p className="text-xs opacity-75 mt-1.5 max-w-xs mx-auto leading-relaxed">
+                  {isAmharic
+                    ? `የ 6 አሃዝ የማረጋገጫ ኮድ ወደ ${email} ልከናል።`
+                    : `We sent a 6-digit verification code via Brevo to:`}
+                </p>
+                <div className="mt-1 font-semibold text-xs text-[#C18A45] break-all">{email}</div>
+
+                {phone && (
+                  <div className="mt-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-[11px] font-mono">
+                    <Phone className="w-3 h-3 text-[#C18A45]" />
+                    <span>Attached Phone: <strong>{phone}</strong></span>
+                  </div>
+                )}
+              </div>
+
+              {/* Status alerts */}
+              {infoMessage && (
+                <div className="mb-4 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 shrink-0" />
+                  <span>{infoMessage}</span>
+                </div>
+              )}
+
+              {error && (
+                <div className="mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-xs flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  <span>{error}</span>
+                </div>
+              )}
+
+              <form onSubmit={handleVerifyOtp} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wider mb-2 text-center opacity-80">
+                    {isAmharic ? 'የ 6 አሃዝ ኮድ ያስገቡ' : 'Enter 6-Digit Code'}
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    maxLength={6}
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
+                    placeholder="123456"
+                    autoFocus
+                    className={`w-full py-3.5 px-4 text-center font-mono text-3xl font-extrabold tracking-[0.4em] rounded-2xl border shadow-inner transition-all focus:outline-none focus:ring-2 focus:ring-[#C18A45] ${
+                      isDark
+                        ? 'bg-[#1B1208] border-[#4A2C16] text-[#E0B15A] placeholder-[#D8C5A8]/20'
+                        : 'bg-white border-[#E4D4BC] text-[#8F6026] placeholder-[#746556]/20'
+                    }`}
+                  />
+                  <p className="text-[11px] opacity-60 text-center mt-1.5">
+                    ⏱️ {isAmharic ? 'ኮዱ ለ 10 ደቂቃዎች ያገለግላል' : 'Code expires in 10 minutes'}
+                  </p>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isLoading || otp.trim().length !== 6}
+                  className="w-full py-3 rounded-xl bg-gradient-to-r from-[#C18A45] to-[#A06E35] text-white font-bold text-sm shadow-lg hover:shadow-xl hover:scale-[1.01] active:scale-[0.99] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  {isLoading ? (
+                    <span className="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  ) : (
+                    <>
+                      <CheckCircle2 className="w-4 h-4" />
+                      <span>{isAmharic ? 'አረጋግጥና መለያ ፍጠር' : 'Verify & Complete Registration'}</span>
+                    </>
+                  )}
+                </button>
+
+                {/* Resend Section */}
+                <div className="pt-3 border-t border-black/5 dark:border-white/5 text-center">
+                  {resendCountdown > 0 ? (
+                    <p className="text-xs opacity-60">
+                      {isAmharic ? 'እንደገና ለመላክ ይጠብቁ፡' : 'Resend code available in:'}{' '}
+                      <span className="font-mono font-bold text-[#C18A45]">{resendCountdown}s</span>
+                    </p>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={handleResendOtp}
+                      disabled={isLoading}
+                      className="inline-flex items-center gap-1.5 text-xs font-bold text-[#C18A45] hover:underline disabled:opacity-50 cursor-pointer"
+                    >
+                      <RefreshCw className="w-3 h-3" />
+                      <span>{isAmharic ? 'ኮድ አልደረሰዎትም? በድጋሚ ይላኩ' : "Didn't receive code? Resend Email"}</span>
+                    </button>
+                  )}
+                </div>
+              </form>
             </div>
-          </div>
+          ) : (
+            /* ========================================================== */
+            /* VIEW: STEP 1 (LOGIN / REGISTRATION FORM) */
+            /* ========================================================== */
+            <div>
+              {/* Header */}
+              <div className="text-center mb-6">
+                <div className="w-12 h-12 rounded-2xl bg-[#C18A45]/15 border border-[#C18A45]/30 text-[#C18A45] flex items-center justify-center mx-auto mb-3 shadow-inner">
+                  {mode === 'login' ? <LogIn className="w-6 h-6" /> : <UserPlus className="w-6 h-6" />}
+                </div>
+                <h2 className="text-xl sm:text-2xl font-bold font-serif">
+                  {mode === 'login'
+                    ? isAmharic
+                      ? 'ወደ መለያዎ ይግቡ'
+                      : 'Welcome Back'
+                    : isAmharic
+                    ? 'አዲስ መለያ ይፍጠሩ'
+                    : 'Create Your Account'}
+                </h2>
+                <p className="text-xs opacity-75 mt-1">
+                  {mode === 'login'
+                    ? isAmharic
+                      ? 'የእርስዎን ትዕዛዞች እና የተያዙ ከብቶች ለማየት'
+                      : 'Sign in to access your livestock orders & reservations'
+                    : isAmharic
+                    ? 'በቀላሉ ከብቶችን ይዘዙ እና ያስይዙ'
+                    : 'Sign up to reserve livestock and manage celebration packages'}
+                </p>
+              </div>
 
-          {/* Submit Button */}
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="w-full mt-2 py-3 rounded-xl bg-gradient-to-r from-[#C18A45] to-[#A06E35] text-white font-bold text-sm shadow-lg hover:shadow-xl hover:scale-[1.01] active:scale-[0.99] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-          >
-            {isLoading ? (
-              <span className="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-            ) : mode === 'login' ? (
-              <>
-                <LogIn className="w-4 h-4" />
-                <span>{isAmharic ? 'ይግቡ' : 'Sign In'}</span>
-              </>
-            ) : (
-              <>
-                <UserPlus className="w-4 h-4" />
-                <span>{isAmharic ? 'መለያ ይፍጠሩ' : 'Create Account'}</span>
-              </>
-            )}
-          </button>
-        </form>
+              {/* Mode Toggle Tabs */}
+              <div className="flex rounded-xl p-1 bg-black/5 dark:bg-white/5 mb-6 border border-black/5 dark:border-white/5">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMode('login');
+                    setError(null);
+                  }}
+                  className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    mode === 'login'
+                      ? 'bg-[#C18A45] text-white shadow-md'
+                      : 'hover:bg-black/5 dark:hover:bg-white/5 opacity-70 hover:opacity-100'
+                  }`}
+                >
+                  {isAmharic ? 'ይግቡ' : 'Sign In'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMode('register');
+                    setError(null);
+                  }}
+                  className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    mode === 'register'
+                      ? 'bg-[#C18A45] text-white shadow-md'
+                      : 'hover:bg-black/5 dark:hover:bg-white/5 opacity-70 hover:opacity-100'
+                  }`}
+                >
+                  {isAmharic ? 'ይመዝገቡ' : 'Register'}
+                </button>
+              </div>
 
-        {/* Quick Demo Credentials for Fast Testing */}
-        <div className="mt-6 pt-4 border-t border-black/10 dark:border-white/10 text-center">
-          <p className="text-xs opacity-60 mb-2">{isAmharic ? 'ፈጣን ሙከራ (Quick Fill)' : 'Quick Demo Test Accounts:'}</p>
-          <div className="flex gap-2 justify-center">
-            <button
-              type="button"
-              onClick={() => handleDemoFill('customer')}
-              className="text-xs px-2.5 py-1 rounded-lg bg-black/5 dark:bg-white/5 hover:bg-[#C18A45]/20 hover:text-[#C18A45] transition-colors"
-            >
-              Demo Customer
-            </button>
-            <button
-              type="button"
-              onClick={() => handleDemoFill('admin')}
-              className="text-xs px-2.5 py-1 rounded-lg bg-black/5 dark:bg-white/5 hover:bg-[#C18A45]/20 hover:text-[#C18A45] transition-colors"
-            >
-              Admin (Jonny)
-            </button>
-          </div>
+              {/* Error Message */}
+              {error && (
+                <div className="mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-xs flex items-center gap-2 animate-in fade-in duration-200">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  <span>{error}</span>
+                </div>
+              )}
+
+              {/* Form */}
+              <form onSubmit={handleSubmit} className="space-y-4">
+                {mode === 'register' && (
+                  <div>
+                    <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5 opacity-80">
+                      {isAmharic ? 'ሙሉ ስም' : 'Full Name'} *
+                    </label>
+                    <div className="relative">
+                      <User className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 opacity-50" />
+                      <input
+                        type="text"
+                        required
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        placeholder="e.g. Dawit Bekele"
+                        className={`w-full pl-10 pr-4 py-2.5 rounded-xl border text-sm transition-all focus:outline-none focus:ring-2 focus:ring-[#C18A45] ${
+                          isDark
+                            ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0] placeholder-[#D8C5A8]/40'
+                            : 'bg-white border-[#E4D4BC] text-[#2A1A0D] placeholder-[#746556]/40'
+                        }`}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5 opacity-80">
+                    {isAmharic ? 'ኢሜይል' : 'Email Address'} *
+                  </label>
+                  <div className="relative">
+                    <Mail className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 opacity-50" />
+                    <input
+                      type="email"
+                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="you@example.com"
+                      className={`w-full pl-10 pr-4 py-2.5 rounded-xl border text-sm transition-all focus:outline-none focus:ring-2 focus:ring-[#C18A45] ${
+                        isDark
+                          ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0] placeholder-[#D8C5A8]/40'
+                          : 'bg-white border-[#E4D4BC] text-[#2A1A0D] placeholder-[#746556]/40'
+                      }`}
+                    />
+                  </div>
+                </div>
+
+                {mode === 'register' && (
+                  <div>
+                    <div className="flex justify-between items-center mb-1.5">
+                      <label className="block text-xs font-semibold uppercase tracking-wider opacity-80">
+                        {isAmharic ? 'ስልክ ቁጥር' : 'Phone Number'} *
+                      </label>
+                      <span className="text-[10.5px] text-[#C18A45] font-semibold">
+                        {isAmharic ? 'ለክፍያ ማረጋገጫ ያስፈልጋል' : 'Required for payment'}
+                      </span>
+                    </div>
+                    <div className="relative">
+                      <Phone className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 opacity-50" />
+                      <input
+                        type="tel"
+                        required
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        placeholder="+251 911 234 567"
+                        className={`w-full pl-10 pr-4 py-2.5 rounded-xl border text-sm transition-all focus:outline-none focus:ring-2 focus:ring-[#C18A45] ${
+                          isDark
+                            ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0] placeholder-[#D8C5A8]/40'
+                            : 'bg-white border-[#E4D4BC] text-[#2A1A0D] placeholder-[#746556]/40'
+                        }`}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5 opacity-80">
+                    {isAmharic ? 'የይለፍ ቃል' : 'Password'} *
+                  </label>
+                  <div className="relative">
+                    <Lock className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 opacity-50" />
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      required
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="••••••••"
+                      className={`w-full pl-10 pr-10 py-2.5 rounded-xl border text-sm transition-all focus:outline-none focus:ring-2 focus:ring-[#C18A45] ${
+                        isDark
+                          ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0] placeholder-[#D8C5A8]/40'
+                          : 'bg-white border-[#E4D4BC] text-[#2A1A0D] placeholder-[#746556]/40'
+                      }`}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 opacity-50 hover:opacity-100"
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Submit Button */}
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  className="w-full mt-2 py-3 rounded-xl bg-gradient-to-r from-[#C18A45] to-[#A06E35] text-white font-bold text-sm shadow-lg hover:shadow-xl hover:scale-[1.01] active:scale-[0.99] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  {isLoading ? (
+                    <span className="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  ) : mode === 'login' ? (
+                    <>
+                      <LogIn className="w-4 h-4" />
+                      <span>{isAmharic ? 'ይግቡ' : 'Sign In'}</span>
+                    </>
+                  ) : (
+                    <>
+                      <UserPlus className="w-4 h-4" />
+                      <span>{isAmharic ? 'ይቀጥሉ (ኢሜይል ያረጋግጡ)' : 'Continue to Email Verification'}</span>
+                    </>
+                  )}
+                </button>
+              </form>
+
+              {/* Quick Demo Credentials for Fast Testing */}
+              <div className="mt-6 pt-4 border-t border-black/10 dark:border-white/10 text-center">
+                <p className="text-xs opacity-60 mb-2">{isAmharic ? 'ፈጣን ሙከራ (Quick Fill)' : 'Quick Demo Test Accounts:'}</p>
+                <div className="flex gap-2 justify-center">
+                  <button
+                    type="button"
+                    onClick={() => handleDemoFill('customer')}
+                    className="text-xs px-2.5 py-1 rounded-lg bg-black/5 dark:bg-white/5 hover:bg-[#C18A45]/20 hover:text-[#C18A45] transition-colors"
+                  >
+                    Demo Customer
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDemoFill('admin')}
+                    className="text-xs px-2.5 py-1 rounded-lg bg-black/5 dark:bg-white/5 hover:bg-[#C18A45]/20 hover:text-[#C18A45] transition-colors"
+                  >
+                    Admin (Jonny)
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
-  </div>
-);
+  );
 };

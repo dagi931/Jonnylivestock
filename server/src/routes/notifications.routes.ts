@@ -1,14 +1,14 @@
 import { Router, Response } from 'express';
-import { JsonDB } from '../db/jsonDb.js';
+import { PostgresDB } from '../db/postgresDb.js';
 import { authenticateToken, requireAdmin, AuthRequest } from '../middleware/auth.middleware.js';
 import { realtimeService } from '../services/realtime.service.js';
 
 const router = Router();
 
 // ==================== GET ALL NOTIFICATIONS (Admin) ====================
-router.get('/', authenticateToken, requireAdmin, (_req: AuthRequest, res: Response): void => {
+router.get('/', authenticateToken, requireAdmin, async (_req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const notifications = JsonDB.getNotifications();
+    const notifications = await PostgresDB.getNotifications();
     const unreadCount = notifications.filter(n => !n.read).length;
     res.json({
       success: true,
@@ -23,9 +23,9 @@ router.get('/', authenticateToken, requireAdmin, (_req: AuthRequest, res: Respon
 });
 
 // ==================== MARK NOTIFICATION AS READ ====================
-router.put('/:id/read', authenticateToken, requireAdmin, (req: AuthRequest, res: Response): void => {
+router.put('/:id/read', authenticateToken, requireAdmin, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const success = JsonDB.markNotificationRead(req.params.id);
+    const success = await PostgresDB.markNotificationRead(req.params.id);
     if (!success) {
       res.status(404).json({ success: false, error: 'Notification not found' });
       return;
@@ -42,9 +42,9 @@ router.put('/:id/read', authenticateToken, requireAdmin, (req: AuthRequest, res:
 });
 
 // ==================== MARK ALL NOTIFICATIONS AS READ ====================
-router.put('/read-all', authenticateToken, requireAdmin, (_req: AuthRequest, res: Response): void => {
+router.put('/read-all', authenticateToken, requireAdmin, async (_req: AuthRequest, res: Response): Promise<void> => {
   try {
-    JsonDB.markAllNotificationsRead();
+    await PostgresDB.markAllNotificationsRead();
 
     // 🚀 REALTIME BROADCAST
     realtimeService.broadcast('NOTIFICATIONS_READ', { all: true });

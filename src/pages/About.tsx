@@ -179,35 +179,35 @@ export const About: React.FC = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-            <div className={`p-4 rounded-2xl border ${isDark ? 'bg-[#1B1208] border-[#4A2C16]' : 'bg-[#FAF7F0] border-[#E4D4BC]'}`}>
-              <ShieldCheck className="w-5 h-5 text-amber-500 mb-2" />
-              <h3 className="font-serif font-bold text-sm mb-1">{t.aboutPage.trust1Title}</h3>
-              <p className="text-xs opacity-80 leading-relaxed">
+          <div className="grid grid-cols-4 gap-1.5 sm:gap-5">
+            <div className={`p-2 sm:p-4 rounded-xl sm:rounded-2xl border flex flex-col items-center sm:items-start text-center sm:text-left ${isDark ? 'bg-[#1B1208] border-[#4A2C16]' : 'bg-[#FAF7F0] border-[#E4D4BC]'}`}>
+              <ShieldCheck className="w-4 h-4 sm:w-5 sm:h-5 text-amber-500 mb-1 sm:mb-2 shrink-0" />
+              <h3 className="font-serif font-bold text-[10.5px] sm:text-sm mb-0.5 sm:mb-1 leading-tight">{t.aboutPage.trust1Title}</h3>
+              <p className="hidden sm:block text-xs opacity-80 leading-relaxed">
                 {t.aboutPage.trust1Desc}
               </p>
             </div>
 
-            <div className={`p-4 rounded-2xl border ${isDark ? 'bg-[#1B1208] border-[#4A2C16]' : 'bg-[#FAF7F0] border-[#E4D4BC]'}`}>
-              <Award className="w-5 h-5 text-amber-500 mb-2" />
-              <h3 className="font-serif font-bold text-sm mb-1">{t.aboutPage.trust2Title}</h3>
-              <p className="text-xs opacity-80 leading-relaxed">
+            <div className={`p-2 sm:p-4 rounded-xl sm:rounded-2xl border flex flex-col items-center sm:items-start text-center sm:text-left ${isDark ? 'bg-[#1B1208] border-[#4A2C16]' : 'bg-[#FAF7F0] border-[#E4D4BC]'}`}>
+              <Award className="w-4 h-4 sm:w-5 sm:h-5 text-amber-500 mb-1 sm:mb-2 shrink-0" />
+              <h3 className="font-serif font-bold text-[10.5px] sm:text-sm mb-0.5 sm:mb-1 leading-tight">{t.aboutPage.trust2Title}</h3>
+              <p className="hidden sm:block text-xs opacity-80 leading-relaxed">
                 {t.aboutPage.trust2Desc}
               </p>
             </div>
 
-            <div className={`p-4 rounded-2xl border ${isDark ? 'bg-[#1B1208] border-[#4A2C16]' : 'bg-[#FAF7F0] border-[#E4D4BC]'}`}>
-              <Truck className="w-5 h-5 text-amber-500 mb-2" />
-              <h3 className="font-serif font-bold text-sm mb-1">{t.aboutPage.trust3Title}</h3>
-              <p className="text-xs opacity-80 leading-relaxed">
+            <div className={`p-2 sm:p-4 rounded-xl sm:rounded-2xl border flex flex-col items-center sm:items-start text-center sm:text-left ${isDark ? 'bg-[#1B1208] border-[#4A2C16]' : 'bg-[#FAF7F0] border-[#E4D4BC]'}`}>
+              <Truck className="w-4 h-4 sm:w-5 sm:h-5 text-amber-500 mb-1 sm:mb-2 shrink-0" />
+              <h3 className="font-serif font-bold text-[10.5px] sm:text-sm mb-0.5 sm:mb-1 leading-tight">{t.aboutPage.trust3Title}</h3>
+              <p className="hidden sm:block text-xs opacity-80 leading-relaxed">
                 {t.aboutPage.trust3Desc}
               </p>
             </div>
 
-            <div className={`p-4 rounded-2xl border ${isDark ? 'bg-[#1B1208] border-[#4A2C16]' : 'bg-[#FAF7F0] border-[#E4D4BC]'}`}>
-              <Sparkles className="w-5 h-5 text-amber-500 mb-2" />
-              <h3 className="font-serif font-bold text-sm mb-1">{t.aboutPage.trust4Title}</h3>
-              <p className="text-xs opacity-80 leading-relaxed">
+            <div className={`p-2 sm:p-4 rounded-xl sm:rounded-2xl border flex flex-col items-center sm:items-start text-center sm:text-left ${isDark ? 'bg-[#1B1208] border-[#4A2C16]' : 'bg-[#FAF7F0] border-[#E4D4BC]'}`}>
+              <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-amber-500 mb-1 sm:mb-2 shrink-0" />
+              <h3 className="font-serif font-bold text-[10.5px] sm:text-sm mb-0.5 sm:mb-1 leading-tight">{t.aboutPage.trust4Title}</h3>
+              <p className="hidden sm:block text-xs opacity-80 leading-relaxed">
                 {t.aboutPage.trust4Desc}
               </p>
             </div>

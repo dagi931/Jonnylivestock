@@ -4,6 +4,7 @@ import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
+import prisma from './db/prisma.js';
 
 import authRoutes from './routes/auth.routes.js';
 import animalsRoutes from './routes/animals.routes.js';
@@ -11,6 +12,7 @@ import ordersRoutes from './routes/orders.routes.js';
 import notificationsRoutes from './routes/notifications.routes.js';
 import settingsRoutes from './routes/settings.routes.js';
 import eventsRoutes from './routes/events.routes.js';
+import packagesRoutes from './routes/packages.routes.js';
 
 dotenv.config();
 
@@ -38,18 +40,28 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/uploads', express.static(UPLOADS_DIR));
 
 // Healthcheck
-app.get('/api/health', (_req, res) => {
-  res.json({
-    status: 'ok',
-    message: 'Jonny Livestock Backend API is healthy',
-    timestamp: new Date().toISOString()
-  });
+app.get('/api/health', async (_req, res) => {
+  try {
+    const animalCount = await prisma.animal.count();
+    res.json({
+      status: 'ok',
+      database: 'PostgreSQL (Supabase) via Prisma',
+      animalCount,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      status: 'database_error',
+      error: error.message
+    });
+  }
 });
 
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/animals', animalsRoutes);
 app.use('/api/orders', ordersRoutes);
+app.use('/api/packages', packagesRoutes);
 app.use('/api/admin/notifications', notificationsRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/events', eventsRoutes);
@@ -63,13 +75,20 @@ app.use((err: any, _req: express.Request, res: express.Response, _next: express.
   });
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
   console.log(`=========================================`);
-  console.log(` Jonny Livestock API Server Running `);
-  console.log(` Port: http://localhost:${PORT}`);
-  console.log(` Database: server/data/db.json (JSON-backed)`);
-  console.log(` Uploads: ${UPLOADS_DIR}`);
+  console.log(` 🚀 Jonny Livestock API Server Running `);
+  console.log(` 🌐 Port: http://localhost:${PORT}`);
+  console.log(` 🐘 Database: Supabase PostgreSQL`);
+  console.log(` 📁 Uploads: ${UPLOADS_DIR}`);
   console.log(`=========================================`);
+
+  try {
+    await prisma.$connect();
+    console.log(`✅ Connected to Supabase PostgreSQL successfully!`);
+  } catch (err) {
+    console.error(`❌ Failed to connect to PostgreSQL:`, err);
+  }
 });
 
 export default app;

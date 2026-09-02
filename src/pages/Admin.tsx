@@ -1,5 +1,6 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useAdminAuth } from '../context/AdminAuthContext';
+import { useUserAuth } from '../context/UserAuthContext';
 import { mockAnimals as fallbackAnimals } from '../data/animals';
 import { Animal, AnimalType, AnimalStatus } from '../types/animal';
 import { StatusBadge } from '../components/common/StatusBadge';
@@ -30,14 +31,19 @@ import {
   CreditCard,
   Plus,
   RefreshCw,
-  Clock
+  Clock,
+  ArrowRight,
+  UploadCloud,
+  Trash2,
+  Phone
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 
 type AdminTab = 'overview' | 'orders' | 'inventory' | 'demand' | 'settings';
 
 export const Admin: React.FC = () => {
   const { isAuthenticated, user, login, logout } = useAdminAuth();
+  const { isAuthenticated: isUserAuth, user: currentUser, logout: userLogout } = useUserAuth();
   const { theme } = useTheme();
   const isDark = theme === 'design7';
 
@@ -48,8 +54,24 @@ export const Admin: React.FC = () => {
   const [loginError, setLoginError] = useState('');
   const [isLoggingIn, setIsLoggingIn] = useState(false);
 
+  const [searchParams] = useSearchParams();
+
   // Dashboard Active Tab
   const [activeTab, setActiveTab] = useState<AdminTab>('overview');
+
+  // Read tab and filter from URL params (e.g. /admin?tab=orders&filter=active_reservation)
+  useEffect(() => {
+    const tabParam = searchParams.get('tab') as AdminTab | null;
+    const filterParam = searchParams.get('filter');
+    if (tabParam) {
+      setActiveTab(tabParam);
+    } else if (filterParam) {
+      setActiveTab('orders');
+    }
+    if (filterParam) {
+      setOrderStatusFilter(filterParam);
+    }
+  }, [searchParams]);
 
   // Backend Live Data
   const [animalsList, setAnimalsList] = useState<Animal[]>(fallbackAnimals);
@@ -57,6 +79,7 @@ export const Admin: React.FC = () => {
   const [notifications, setNotifications] = useState<AdminNotification[]>([]);
   const [unreadNotifsCount, setUnreadNotifsCount] = useState<number>(0);
   const [isNotifDropdownOpen, setIsNotifDropdownOpen] = useState(false);
+  const notifDropdownRef = useRef<HTMLDivElement>(null);
   const [isLoadingData, setIsLoadingData] = useState(false);
 
   // Slip Inspector State
@@ -80,6 +103,10 @@ export const Admin: React.FC = () => {
   const [newAnimalColor, setNewAnimalColor] = useState('Natural');
   const [newAnimalDesc, setNewAnimalDesc] = useState('');
   const [newAnimalImage, setNewAnimalImage] = useState('');
+  const [isDraggingImage, setIsDraggingImage] = useState(false);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [imageUploadMode, setImageUploadMode] = useState<'upload' | 'url'>('upload');
+  const animalImageInputRef = useRef<HTMLInputElement>(null);
 
   // Load Data from Backend
   const loadDashboardData = async () => {
@@ -112,25 +139,44 @@ export const Admin: React.FC = () => {
     }
   }, [isAuthenticated]);
 
+  // 🔔 Click Outside Handler: Close notification dropdown when clicking anywhere outside of its boundary
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent | TouchEvent) => {
+      if (
+        notifDropdownRef.current &&
+        !notifDropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsNotifDropdownOpen(false);
+      }
+    };
+
+    if (isNotifDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('touchstart', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
+  }, [isNotifDropdownOpen]);
+
   const { isConnected } = useRealtime();
 
   // 🚀 REALTIME LISTENER: New Payment Slip Uploaded by Customer
   useRealtimeEvent<{ order: Order; notification: AdminNotification; animal: Animal | null }>('NEW_ORDER_SLIP', (data) => {
     if (!data || !data.order) return;
     
-    // Add order to list if not already present
     setOrdersList(prev => {
       if (prev.some(o => o.id === data.order.id)) return prev;
       return [data.order, ...prev];
     });
 
-    // Add notification to list
     if (data.notification) {
       setNotifications(prev => [data.notification, ...prev]);
       setUnreadNotifsCount(prev => prev + 1);
     }
 
-    // Update animal status to reserved if provided
     if (data.animal) {
       setAnimalsList(prev => {
         const idx = prev.findIndex(a => a.id.toLowerCase() === data.animal!.id.toLowerCase());
@@ -141,8 +187,90 @@ export const Admin: React.FC = () => {
       });
     }
 
-    // Show instant prominent notification toast
-    showAlert('success', `🔔 New Payment Slip uploaded by ${data.order.customerName} for ${data.order.animalBreed} (${data.order.totalAmount.toLocaleString()} ETB)!`);
+    showAlert('success', `🔔 New Payment Slip uploaded by ${data.order.customerName} for ${data.order.packageName || data.order.animalBreed} (${data.order.totalAmount.toLocaleString()} ETB)!`);
+  });
+
+  // 🚀 REALTIME LISTENER: New 50% Reservation Deposit Slip
+  useRealtimeEvent<{ order: Order; notification: AdminNotification; animal: Animal | null }>('NEW_RESERVATION_DEPOSIT', (data) => {
+    if (!data || !data.order) return;
+
+    setOrdersList(prev => {
+      if (prev.some(o => o.id === data.order.id)) return prev;
+      return [data.order, ...prev];
+    });
+
+    if (data.notification) {
+      setNotifications(prev => [data.notification, ...prev]);
+      setUnreadNotifsCount(prev => prev + 1);
+    }
+
+    showAlert('success', `🔔 New 50% Reservation Deposit submitted by ${data.order.customerName} for ${data.order.packageName || data.order.animalBreed} (${(data.order.depositAmount || data.order.totalAmount * 0.5).toLocaleString()} ETB)!`);
+  });
+
+  // 🚀 REALTIME LISTENER: Final 50% Payment Slip Submitted
+  useRealtimeEvent<{ order: Order; notification: AdminNotification }>('FINAL_PAYMENT_SLIP', (data) => {
+    if (!data || !data.order) return;
+
+    setOrdersList(prev => {
+      const idx = prev.findIndex(o => o.id === data.order.id);
+      if (idx === -1) return [data.order, ...prev];
+      const copy = [...prev];
+      copy[idx] = { ...copy[idx], ...data.order };
+      return copy;
+    });
+
+    if (data.notification) {
+      setNotifications(prev => [data.notification, ...prev]);
+      setUnreadNotifsCount(prev => prev + 1);
+    }
+
+    showAlert('success', `🔔 Final 50% Balance Slip submitted by ${data.order.customerName} for ${data.order.packageName || data.order.animalBreed}!`);
+  });
+
+  // 🚀 REALTIME LISTENER: Reservation Approved
+  useRealtimeEvent<{ order: Order; animal: Animal | null; notification: AdminNotification }>('RESERVATION_APPROVED', (data) => {
+    if (!data || !data.order) return;
+
+    setOrdersList(prev => {
+      const idx = prev.findIndex(o => o.id === data.order.id);
+      if (idx === -1) return [data.order, ...prev];
+      const copy = [...prev];
+      copy[idx] = { ...copy[idx], ...data.order };
+      return copy;
+    });
+
+    if (data.animal) {
+      setAnimalsList(prev => {
+        const idx = prev.findIndex(a => a.id.toLowerCase() === data.animal!.id.toLowerCase());
+        if (idx === -1) return prev;
+        const copy = [...prev];
+        copy[idx] = { ...copy[idx], ...data.animal };
+        return copy;
+      });
+    }
+  });
+
+  // 🚀 REALTIME LISTENER: Final Payment Approved (Completed / Sold)
+  useRealtimeEvent<{ order: Order; animal: Animal | null; notification: AdminNotification }>('FINAL_PAYMENT_APPROVED', (data) => {
+    if (!data || !data.order) return;
+
+    setOrdersList(prev => {
+      const idx = prev.findIndex(o => o.id === data.order.id);
+      if (idx === -1) return [data.order, ...prev];
+      const copy = [...prev];
+      copy[idx] = { ...copy[idx], ...data.order };
+      return copy;
+    });
+
+    if (data.animal) {
+      setAnimalsList(prev => {
+        const idx = prev.findIndex(a => a.id.toLowerCase() === data.animal!.id.toLowerCase());
+        if (idx === -1) return prev;
+        const copy = [...prev];
+        copy[idx] = { ...copy[idx], ...data.animal };
+        return copy;
+      });
+    }
   });
 
   // 🚀 REALTIME LISTENER: Order Verified & Payment Approved
@@ -292,21 +420,47 @@ export const Admin: React.FC = () => {
     });
   }, [animalsList, selectedTypeFilter, selectedStatusFilter, searchQuery]);
 
-  // Filtered Orders for Table
+  // Real count of new customer payments awaiting admin slip review
+  const newPaymentsCount = useMemo(() => {
+    return ordersList.filter(
+      (o) =>
+        o.status === 'reservation_pending' ||
+        o.status === 'final_payment_pending' ||
+        o.status === 'pending_verification'
+    ).length;
+  }, [ordersList]);
+
+  // Filtered Orders for Table: Supports active_reservation, sold, delivery_pending, delivered, rejected
   const filteredOrders = useMemo(() => {
     return ordersList.filter((order) => {
-      const matchesStatus = orderStatusFilter === 'all' || order.status === orderStatusFilter;
+      let matchesStatus = true;
+      if (orderStatusFilter === 'active_reservation') {
+        matchesStatus = order.status === 'reserved' || order.status === 'reservation_pending';
+      } else if (orderStatusFilter === 'sold') {
+        matchesStatus = order.status === 'completed' || order.status === 'verified';
+      } else if (orderStatusFilter === 'delivery_pending') {
+        matchesStatus = order.status === 'delivery_pending' || ((order.status === 'completed' || order.status === 'verified') && Boolean(order.deliveryLocation));
+      } else if (orderStatusFilter === 'delivered') {
+        matchesStatus = order.status === 'delivered';
+      } else if (orderStatusFilter === 'rejected') {
+        matchesStatus = order.status === 'rejected';
+      } else if (orderStatusFilter !== 'all') {
+        matchesStatus = order.status === orderStatusFilter;
+      }
+
       const matchesSearch =
         searchQuery === '' ||
         order.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
         order.customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
         order.customerPhone.includes(searchQuery) ||
-        order.animalBreed.toLowerCase().includes(searchQuery.toLowerCase());
+        (order.animalBreed && order.animalBreed.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (order.packageName && order.packageName.toLowerCase().includes(searchQuery.toLowerCase()));
+
       return matchesStatus && matchesSearch;
     });
   }, [ordersList, orderStatusFilter, searchQuery]);
 
-  // Handle Verify Order & Mark Sold
+  // Handle Verify Order & Mark Sold (100% Full Payment)
   const handleVerifyOrder = async (orderId: string) => {
     const res = await api.verifyOrder(orderId, 'Verified payment slip via Admin panel');
     if (res.success) {
@@ -314,6 +468,28 @@ export const Admin: React.FC = () => {
       loadDashboardData();
     } else {
       showAlert('error', res.error || 'Failed to verify order');
+    }
+  };
+
+  // Handle Verify 50% Reservation Deposit
+  const handleVerifyReservation = async (orderId: string) => {
+    const res = await api.verifyReservation(orderId, '50% Reservation Deposit approved by Admin');
+    if (res.success) {
+      showAlert('success', `✓ Reservation ${orderId} approved! Animal/package is now locked & reserved.`);
+      loadDashboardData();
+    } else {
+      showAlert('error', res.error || 'Failed to approve reservation deposit');
+    }
+  };
+
+  // Handle Verify Final 50% Payment & Complete Order (Mark Sold)
+  const handleVerifyFinalPayment = async (orderId: string) => {
+    const res = await api.verifyFinalPayment(orderId, 'Final balance approved by Admin');
+    if (res.success) {
+      showAlert('success', `✓ Final payment for ${orderId} verified! Order is now COMPLETED and item marked as SOLD.`);
+      loadDashboardData();
+    } else {
+      showAlert('error', res.error || 'Failed to verify final payment');
     }
   };
 
@@ -328,6 +504,63 @@ export const Admin: React.FC = () => {
       loadDashboardData();
     } else {
       showAlert('error', res.error || 'Failed to reject order');
+    }
+  };
+
+  // Handle Update Generic Order Status (e.g. delivery_pending, delivered)
+  const handleUpdateOrderStatus = async (orderId: string, newStatus: string) => {
+    const res = await api.updateOrderStatus(orderId, newStatus);
+    if (res.success) {
+      setOrdersList((prev) =>
+        prev.map((o) => (o.id === orderId ? { ...o, status: newStatus as any } : o))
+      );
+      showAlert('success', `✓ Order ${orderId} updated to ${newStatus.replace('_', ' ')}.`);
+    } else {
+      showAlert('error', res.error || 'Failed to update order status');
+    }
+  };
+
+  // Handle Click on Notification: Mark Read on server & Open Slip Approval Modal without minimizing notification counts
+  const handleNotificationClick = async (notif: AdminNotification) => {
+    // 1. Mark as read on server & update state without losing or minimizing total notifications
+    if (!notif.read) {
+      try {
+        await api.markNotificationRead(notif.id);
+        setNotifications((prev) =>
+          prev.map((n) => (n.id === notif.id ? { ...n, read: true } : n))
+        );
+      } catch (err) {
+        console.error('Failed to mark notification read:', err);
+      }
+    }
+
+    // 2. Direct to order details and open Slip Approval Modal
+    if (notif.orderId) {
+      setActiveTab('orders');
+
+      // Check if order already in state
+      let targetOrder = ordersList.find(
+        (o) => o.id.toLowerCase() === notif.orderId!.toLowerCase()
+      );
+
+      // If not found in current state, fetch directly
+      if (!targetOrder) {
+        try {
+          const res = await api.getOrderById(notif.orderId);
+          if (res.success && res.data) {
+            targetOrder = res.data;
+            setOrdersList((prev) => [res.data!, ...prev]);
+          }
+        } catch (e) {
+          console.error('Failed to fetch order for notification:', e);
+        }
+      }
+
+      if (targetOrder) {
+        setSelectedSlipOrder(targetOrder);
+      } else {
+        setSearchQuery(notif.orderId);
+      }
     }
   };
 
@@ -378,9 +611,64 @@ export const Admin: React.FC = () => {
       setNewAnimalBreed('');
       setNewAnimalDesc('');
       setNewAnimalImage('');
+      setIsDraggingImage(false);
+      setIsUploadingImage(false);
       loadDashboardData();
     } else {
       showAlert('error', res.error || 'Failed to create animal');
+    }
+  };
+
+  // Drag & Drop Image Handlers for New Animal
+  const handleAnimalImageFile = async (file: File) => {
+    if (!file.type.startsWith('image/')) {
+      showAlert('error', 'Please drop a valid image file (JPG, PNG, WEBP, GIF)');
+      return;
+    }
+
+    // Instant local preview
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      if (e.target?.result) {
+        setNewAnimalImage(e.target.result as string);
+      }
+    };
+    reader.readAsDataURL(file);
+
+    // Upload to backend storage
+    try {
+      setIsUploadingImage(true);
+      const res = await api.uploadAnimalImage(file);
+      if (res.success && res.url) {
+        setNewAnimalImage(res.url);
+      }
+    } catch (err) {
+      console.error('Failed to upload animal image file:', err);
+    } finally {
+      setIsUploadingImage(false);
+    }
+  };
+
+  const handleAnimalDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingImage(true);
+  };
+
+  const handleAnimalDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingImage(false);
+  };
+
+  const handleAnimalDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingImage(false);
+
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      const file = e.dataTransfer.files[0];
+      handleAnimalImageFile(file);
     }
   };
 
@@ -409,7 +697,48 @@ export const Admin: React.FC = () => {
   };
 
   // ==========================================
-  // VIEW 1: ADMIN LOGIN PORTAL (if not authenticated)
+  // VIEW 1A: 403 FORBIDDEN (If logged in as customer)
+  // ==========================================
+  const isCustomerAccount = isUserAuth && currentUser && currentUser.role !== 'admin';
+  if (isCustomerAccount) {
+    return (
+      <div className="min-h-[80vh] flex items-center justify-center px-4 py-12 animate-in fade-in zoom-in-95">
+        <div
+          className={`w-full max-w-md rounded-3xl border p-8 shadow-2xl text-center space-y-4 ${
+            isDark ? 'bg-[#2A1A0D] border-[#4A2C16]' : 'bg-[#F1E8D8] border-[#E4D4BC]'
+          }`}
+        >
+          <div className="w-14 h-14 rounded-2xl bg-red-500/15 text-red-500 flex items-center justify-center mx-auto">
+            <Shield className="w-7 h-7" />
+          </div>
+          <h2 className="font-serif font-bold text-2xl text-red-500">403 - Access Denied</h2>
+          <p className="text-xs opacity-80 leading-relaxed">
+            You are currently signed in as a customer (<strong>{currentUser?.name}</strong>). Administrator credentials with verified privileges are required to view this portal.
+          </p>
+          <div className="pt-2 space-y-2">
+            <button
+              onClick={() => {
+                userLogout();
+                logout();
+              }}
+              className="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-black font-bold text-xs transition-all shadow-md"
+            >
+              Sign Out & Login as Administrator
+            </button>
+            <Link
+              to="/"
+              className="block w-full py-2.5 rounded-xl border text-xs font-semibold hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+            >
+              Return to Homepage
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ==========================================
+  // VIEW 1B: ADMIN LOGIN PORTAL (if not authenticated)
   // ==========================================
   if (!isAuthenticated) {
     return (
@@ -576,8 +905,8 @@ export const Admin: React.FC = () => {
               <span className="hidden sm:inline">Refresh</span>
             </button>
 
-            {/* Notifications Dropdown */}
-            <div className="relative">
+            {/* Notifications Dropdown Container */}
+            <div ref={notifDropdownRef} className="relative">
               <button
                 onClick={() => setIsNotifDropdownOpen(!isNotifDropdownOpen)}
                 className={`relative p-2 rounded-xl border transition-colors ${
@@ -586,48 +915,140 @@ export const Admin: React.FC = () => {
                 aria-label="Notifications"
               >
                 <Bell className="w-4 h-4 text-[#C18A45]" />
-                {unreadNotifsCount > 0 && (
-                  <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center animate-pulse">
-                    {unreadNotifsCount}
+                {newPaymentsCount > 0 ? (
+                  <span className="absolute -top-1 -right-1 min-w-4 h-4 px-1 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center animate-pulse shadow-sm">
+                    {newPaymentsCount}
                   </span>
+                ) : (
+                  unreadNotifsCount > 0 && (
+                    <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-amber-500 ring-2 ring-white dark:ring-black" />
+                  )
                 )}
               </button>
 
               {isNotifDropdownOpen && (
-                <div
-                  className={`absolute right-0 mt-2 w-80 sm:w-96 rounded-2xl shadow-2xl border p-3 z-50 animate-in fade-in zoom-in-95 duration-150 ${
-                    isDark ? 'bg-[#24170D] border-[#4A2C16] text-[#F4E8D0]' : 'bg-white border-[#E4D4BC] text-[#2A1A0D]'
-                  }`}
-                >
-                  <div className="flex justify-between items-center pb-2 border-b border-black/10 dark:border-white/10 mb-2">
-                    <span className="font-bold text-xs">Admin Notifications</span>
-                    <span className="text-[10px] opacity-70">{notifications.length} Total</span>
-                  </div>
-                  <div className="max-h-64 overflow-y-auto space-y-2">
-                    {notifications.length === 0 ? (
-                      <p className="text-xs opacity-60 text-center py-4">No notifications yet</p>
-                    ) : (
-                      notifications.map((n) => (
-                        <div
-                          key={n.id}
-                          className={`p-2.5 rounded-xl border text-xs ${
-                            n.read
-                              ? 'opacity-60 bg-transparent border-transparent'
-                              : isDark
-                              ? 'bg-[#1B1208] border-[#C18A45]/30'
-                              : 'bg-[#F9F6F0] border-[#C18A45]/30'
-                          }`}
-                        >
-                          <div className="font-bold text-[#C18A45]">{n.title}</div>
-                          <p className="text-[11px] mt-0.5 opacity-90">{n.message}</p>
-                          <span className="text-[9px] opacity-50 block mt-1">
-                            {new Date(n.createdAt).toLocaleTimeString()}
+                <>
+                  {/* Universal Backdrop to close whenever clicking anywhere outside the notification boundary */}
+                  <div
+                    className="fixed inset-0 z-40 bg-black/20 backdrop-blur-[1px]"
+                    onClick={() => setIsNotifDropdownOpen(false)}
+                    aria-hidden="true"
+                  />
+
+                  {/* Responsive Notification Dropdown: firmly bounded on mobile (inset-x-3) and absolute on desktop */}
+                  <div
+                    className={`fixed inset-x-3 top-20 sm:top-auto sm:inset-auto sm:absolute sm:right-0 sm:mt-2 w-auto sm:w-96 max-w-[calc(100vw-24px)] rounded-2xl shadow-2xl border p-3.5 z-50 animate-in fade-in zoom-in-95 duration-150 ${
+                      isDark ? 'bg-[#24170D] border-[#4A2C16] text-[#F4E8D0]' : 'bg-white border-[#E4D4BC] text-[#2A1A0D]'
+                    }`}
+                  >
+                    <div className="flex justify-between items-center pb-2 border-b border-black/10 dark:border-white/10 mb-2">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-xs">Payment Notifications</span>
+                        {newPaymentsCount > 0 ? (
+                          <span className="px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-amber-500 text-black shadow-xs">
+                            {newPaymentsCount} new payment{newPaymentsCount > 1 ? 's' : ''}
                           </span>
-                        </div>
-                      ))
-                    )}
+                        ) : (
+                          <span className="px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-emerald-500/20 text-emerald-400">
+                            All reviewed
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] opacity-70">({notifications.length} total)</span>
+                        <button
+                          type="button"
+                          onClick={() => setIsNotifDropdownOpen(false)}
+                          className="p-1 rounded-lg hover:bg-black/10 dark:hover:bg-white/10 opacity-70 sm:hidden"
+                          aria-label="Close notifications"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="max-h-72 overflow-y-auto space-y-2 pr-0.5 overscroll-contain">
+                      {notifications.length === 0 ? (
+                        <p className="text-xs opacity-60 text-center py-6">No notifications yet</p>
+                      ) : (
+                        notifications.map((n) => {
+                          const relatedOrder = ordersList.find(
+                            (o) => o.id.toLowerCase() === n.orderId?.toLowerCase()
+                          );
+                          const isPendingReview = relatedOrder
+                            ? relatedOrder.status === 'reservation_pending' ||
+                              relatedOrder.status === 'final_payment_pending' ||
+                              relatedOrder.status === 'pending_verification'
+                            : (n.type?.includes('SLIP') || n.type?.includes('DEPOSIT'));
+
+                          return (
+                            <button
+                              key={n.id}
+                              type="button"
+                              onClick={() => handleNotificationClick(n)}
+                              className={`w-full text-left p-2.5 rounded-xl border text-xs transition-all cursor-pointer group hover:scale-[1.01] active:scale-[0.99] ${
+                                n.read
+                                  ? 'opacity-75 bg-transparent border-black/5 dark:border-white/5 hover:border-[#C18A45]/40'
+                                  : isDark
+                                  ? 'bg-[#1B1208] border-[#C18A45]/40 hover:border-[#C18A45] shadow-xs'
+                                  : 'bg-[#F9F6F0] border-[#C18A45]/40 hover:border-[#C18A45] shadow-xs'
+                              }`}
+                            >
+                              <div className="flex items-start justify-between gap-1 mb-0.5">
+                                <div className="font-bold text-[#C18A45] break-words flex items-center gap-1.5">
+                                  {isPendingReview && (
+                                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0 animate-pulse" />
+                                  )}
+                                  <span>{n.title}</span>
+                                </div>
+                                <div className="flex items-center gap-1 shrink-0">
+                                  {isPendingReview ? (
+                                    <span className="px-1.5 py-0.5 rounded text-[8.5px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                                      Pending Approval
+                                    </span>
+                                  ) : relatedOrder?.status === 'completed' || relatedOrder?.status === 'verified' || relatedOrder?.status === 'delivered' ? (
+                                    <span className="px-1.5 py-0.5 rounded text-[8.5px] font-bold bg-emerald-500/20 text-emerald-400">
+                                      ✓ Settled
+                                    </span>
+                                  ) : relatedOrder?.status === 'reserved' ? (
+                                    <span className="px-1.5 py-0.5 rounded text-[8.5px] font-bold bg-emerald-500/20 text-emerald-400">
+                                      Reserved
+                                    </span>
+                                  ) : null}
+                                  {n.orderId && (
+                                    <span className="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-[#C18A45]/15 text-[#C18A45]">
+                                      #{n.orderId}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                              <p className="text-[11px] opacity-90 break-words leading-relaxed">{n.message}</p>
+                              
+                              {relatedOrder?.customerPhone && (
+                                <div className="mt-1 inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-mono text-[10px]">
+                                  <Phone className="w-2.5 h-2.5" />
+                                  <span>{relatedOrder.customerPhone}</span>
+                                </div>
+                              )}
+                              
+                              <div className="mt-1.5 flex items-center justify-between gap-2 text-[9px]">
+                                <span className="opacity-50 font-mono">
+                                  {new Date(n.createdAt).toLocaleTimeString()} • {new Date(n.createdAt).toLocaleDateString()}
+                                </span>
+                                {n.orderId && (
+                                  <span className="text-[#C18A45] font-bold inline-flex items-center gap-0.5 group-hover:underline">
+                                    <span>{isPendingReview ? 'Review & Approve Slip' : 'View Order Details'}</span>
+                                    <ArrowRight className="w-2.5 h-2.5" />
+                                  </span>
+                                )}
+                              </div>
+                            </button>
+                          );
+                        })
+                      )}
+                    </div>
                   </div>
-                </div>
+                </>
               )}
             </div>
 
@@ -643,9 +1064,9 @@ export const Admin: React.FC = () => {
         </div>
       </div>
 
-      {/* Action Flash Alert */}
+      {/* Action Flash Alert: Screen-bounded on mobile */}
       {actionAlert && (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4 animate-in fade-in slide-in-from-top-2">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 mt-4 animate-in fade-in slide-in-from-top-2">
           <div
             className={`p-3.5 rounded-2xl border flex items-center justify-between gap-3 text-xs font-semibold ${
               actionAlert.type === 'success'
@@ -653,8 +1074,8 @@ export const Admin: React.FC = () => {
                 : 'bg-red-500/10 border-red-500/30 text-red-400'
             }`}
           >
-            <span>{actionAlert.message}</span>
-            <button onClick={() => setActionAlert(null)}>
+            <span className="flex-1 min-w-0 break-words leading-relaxed">{actionAlert.message}</span>
+            <button onClick={() => setActionAlert(null)} className="shrink-0 p-1">
               <X className="w-4 h-4 opacity-70 hover:opacity-100" />
             </button>
           </div>
@@ -845,14 +1266,16 @@ export const Admin: React.FC = () => {
                 <select
                   value={orderStatusFilter}
                   onChange={(e) => setOrderStatusFilter(e.target.value)}
-                  className={`px-3 py-2 rounded-xl text-xs border focus:outline-none ${
+                  className={`px-3.5 py-2 rounded-xl text-xs font-semibold border focus:outline-none shadow-xs transition-colors ${
                     isDark ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0]' : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#2A1A0D]'
                   }`}
                 >
-                  <option value="all">All Orders</option>
-                  <option value="pending_verification">Pending Slips ({stats.pendingOrdersCount})</option>
-                  <option value="verified">Verified / Sold</option>
-                  <option value="rejected">Rejected</option>
+                  <option value="all">All Orders & Reservations ({ordersList.length})</option>
+                  <option value="active_reservation">Active Reservation ({ordersList.filter(o => o.status === 'reserved' || o.status === 'reservation_pending').length})</option>
+                  <option value="sold">Sold ({ordersList.filter(o => o.status === 'completed' || o.status === 'verified').length})</option>
+                  <option value="delivery_pending">Delivery Pending ({ordersList.filter(o => o.status === 'delivery_pending' || ((o.status === 'completed' || o.status === 'verified') && Boolean(o.deliveryLocation))).length})</option>
+                  <option value="delivered">Delivered ({ordersList.filter(o => o.status === 'delivered').length})</option>
+                  <option value="rejected">Rejected ({ordersList.filter(o => o.status === 'rejected').length})</option>
                 </select>
               </div>
             </div>
@@ -867,11 +1290,11 @@ export const Admin: React.FC = () => {
                 <table className="w-full text-left text-xs border-collapse">
                   <thead>
                     <tr className={`border-b ${isDark ? 'border-[#4A2C16] text-[#D8C5A8]' : 'border-[#E4D4BC] text-[#746556]'}`}>
-                      <th className="py-3.5 px-3.5 uppercase font-semibold">Order ID</th>
+                      <th className="py-3.5 px-3.5 uppercase font-semibold">Order / Reservation ID</th>
                       <th className="py-3.5 px-3.5 uppercase font-semibold">Customer</th>
-                      <th className="py-3.5 px-3.5 uppercase font-semibold">Animal & Price</th>
-                      <th className="py-3.5 px-3.5 uppercase font-semibold">Payment Slip</th>
-                      <th className="py-3.5 px-3.5 uppercase font-semibold">Payment Method</th>
+                      <th className="py-3.5 px-3.5 uppercase font-semibold">Item & Breakdown</th>
+                      <th className="py-3.5 px-3.5 uppercase font-semibold">Receipt Slips</th>
+                      <th className="py-3.5 px-3.5 uppercase font-semibold">Method & Txn</th>
                       <th className="py-3.5 px-3.5 uppercase font-semibold">Status</th>
                       <th className="py-3.5 px-3.5 uppercase font-semibold text-right">Verification Actions</th>
                     </tr>
@@ -884,114 +1307,286 @@ export const Admin: React.FC = () => {
                         </td>
                       </tr>
                     ) : (
-                      filteredOrders.map((order) => (
-                        <tr key={order.id} className={`hover:bg-black/10 transition-colors ${isDark ? 'text-[#F4E8D0]' : 'text-[#2A1A0D]'}`}>
-                          {/* Order ID */}
-                          <td className="py-3.5 px-3.5 font-mono font-bold">
-                            <div>{order.id}</div>
-                            <span className="text-[10px] opacity-50">
-                              {new Date(order.createdAt).toLocaleDateString()}
-                            </span>
-                          </td>
+                      filteredOrders.map((order) => {
+                        const isRes = order.isReservation || order.depositAmount != null;
+                        const deposit = order.depositAmount || (order.totalAmount * 0.5);
+                        const remaining = order.remainingAmount || (order.totalAmount * 0.5);
 
-                          {/* Customer */}
-                          <td className="py-3.5 px-3.5">
-                            <strong className="block text-sm">{order.customerName}</strong>
-                            <span className="text-[11px] opacity-70 block">{order.customerPhone}</span>
-                            {order.deliveryLocation && (
-                              <span className="text-[10px] opacity-50 truncate max-w-[150px] block">
-                                📍 {order.deliveryLocation}
+                        return (
+                          <tr key={order.id} className={`hover:bg-black/10 transition-colors ${isDark ? 'text-[#F4E8D0]' : 'text-[#2A1A0D]'}`}>
+                            {/* Order ID & Type */}
+                            <td className="py-3.5 px-3.5 font-mono font-bold">
+                              <div className="text-amber-500">{order.id}</div>
+                              <span className="text-[10px] opacity-50 block">
+                                {new Date(order.createdAt).toLocaleDateString()}
                               </span>
-                            )}
-                          </td>
-
-                          {/* Animal */}
-                          <td className="py-3.5 px-3.5">
-                            <div className="font-semibold">{order.animalBreed}</div>
-                            <span className="text-[10px] font-mono opacity-60">{order.animalId}</span>
-                            <div className={`font-bold text-sm ${isDark ? 'text-[#E0B15A]' : 'text-[#B8792F]'}`}>
-                              {formatPrice(order.totalAmount)}
-                            </div>
-                          </td>
-
-                          {/* Slip Preview Thumbnail */}
-                          <td className="py-3.5 px-3.5">
-                            {order.paymentSlipUrl ? (
-                              <button
-                                type="button"
-                                onClick={() => setSelectedSlipOrder(order)}
-                                className="group relative inline-flex items-center gap-1.5 p-1 rounded-xl border border-[#C18A45]/30 hover:border-[#C18A45] transition-all bg-black/20"
-                                title="Click to inspect slip"
-                              >
-                                <img
-                                  src={order.paymentSlipUrl}
-                                  alt="Receipt"
-                                  className="w-12 h-12 object-cover rounded-lg"
-                                />
-                                <span className="text-[10px] font-bold text-[#C18A45] pr-1.5">
-                                  View Slip
-                                </span>
-                              </button>
-                            ) : (
-                              <span className="text-[10px] opacity-40">No Slip</span>
-                            )}
-                          </td>
-
-                          {/* Method */}
-                          <td className="py-3.5 px-3.5">
-                            <div className="font-semibold">{order.paymentMethod}</div>
-                            {order.transactionReference && (
-                              <span className="text-[10px] font-mono opacity-70 block">
-                                Txn: {order.transactionReference}
-                              </span>
-                            )}
-                          </td>
-
-                          {/* Status */}
-                          <td className="py-3.5 px-3.5">
-                            <span
-                              className={`inline-block px-2.5 py-1 rounded-full text-[10px] font-bold ${
-                                order.status === 'pending_verification'
-                                  ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30 animate-pulse'
-                                  : order.status === 'verified'
-                                  ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                                  : 'bg-red-500/20 text-red-400 border border-red-500/30'
-                              }`}
-                            >
-                              {order.status === 'pending_verification' ? 'Pending Slip Review' : order.status === 'verified' ? 'Verified / Sold' : 'Rejected'}
-                            </span>
-                          </td>
-
-                          {/* Actions */}
-                          <td className="py-3.5 px-3.5 text-right">
-                            <div className="inline-flex items-center gap-1.5">
-                              {order.status === 'pending_verification' ? (
-                                <>
-                                  <button
-                                    onClick={() => handleVerifyOrder(order.id)}
-                                    className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow transition-all flex items-center gap-1"
-                                    title="Verify payment and mark animal as SOLD"
-                                  >
-                                    <Check className="w-3.5 h-3.5" />
-                                    <span>Verify & Mark Sold</span>
-                                  </button>
-                                  <button
-                                    onClick={() => handleRejectOrder(order.id)}
-                                    className="p-1.5 rounded-xl bg-red-500/20 hover:bg-red-500/30 text-red-400 transition-colors"
-                                    title="Reject slip"
-                                  >
-                                    <X className="w-4 h-4" />
-                                  </button>
-                                </>
-                              ) : (
-                                <span className="text-[11px] opacity-60 italic">
-                                  {order.status === 'verified' ? `Verified by ${order.verifiedBy || 'Admin'}` : 'Processed'}
+                              {order.isPackage && (
+                                <span className="inline-block px-1.5 py-0.5 mt-0.5 rounded text-[9px] font-bold bg-purple-500/20 text-purple-400">
+                                  Package Order
                                 </span>
                               )}
-                            </div>
-                          </td>
-                        </tr>
-                      ))
+                              {isRes && (
+                                <span className="inline-block px-1.5 py-0.5 mt-0.5 rounded text-[9px] font-bold bg-emerald-500/20 text-emerald-400 ml-1">
+                                  50% Reserve
+                                </span>
+                              )}
+                            </td>
+
+                            {/* Customer */}
+                            <td className="py-3.5 px-3.5">
+                              <strong className="block text-sm">{order.customerName}</strong>
+                              <span className="text-[11px] opacity-70 block">{order.customerPhone}</span>
+                              {order.deliveryLocation && (
+                                <span className="text-[10px] opacity-50 truncate max-w-[150px] block">
+                                  📍 {order.deliveryLocation}
+                                </span>
+                              )}
+                            </td>
+
+                            {/* Item & Price */}
+                            <td className="py-3.5 px-3.5">
+                              <div className="font-semibold">{order.packageName || order.animalBreed || 'Livestock Item'}</div>
+                              {order.animalId && (
+                                <span className="text-[10px] font-mono opacity-60 block">ID: {order.animalId}</span>
+                              )}
+                              <div className={`font-bold text-sm ${isDark ? 'text-[#E0B15A]' : 'text-[#B8792F]'}`}>
+                                Total: {formatPrice(order.totalAmount)}
+                              </div>
+                              {isRes && (
+                                <div className="text-[10px] space-y-0.5 mt-0.5">
+                                  <span className="text-emerald-500 font-semibold block">50% Deposit: {formatPrice(deposit)}</span>
+                                  <span className="text-amber-500 font-semibold block">Remaining: {formatPrice(remaining)}</span>
+                                </div>
+                              )}
+                            </td>
+
+                            {/* Slip Preview Thumbnails (Initial + Final) */}
+                            <td className="py-3.5 px-3.5">
+                              <div className="space-y-1">
+                                {order.paymentSlipUrl ? (
+                                  <button
+                                    type="button"
+                                    onClick={() => setSelectedSlipOrder(order)}
+                                    className="group relative inline-flex items-center gap-1.5 p-1 rounded-xl border border-[#C18A45]/30 hover:border-[#C18A45] transition-all bg-black/20"
+                                    title="Click to inspect initial slip"
+                                  >
+                                    <img
+                                      src={order.paymentSlipUrl}
+                                      alt="Receipt"
+                                      className="w-10 h-10 object-cover rounded-lg"
+                                    />
+                                    <span className="text-[10px] font-bold text-[#C18A45] pr-1">
+                                      {isRes ? 'Deposit Slip' : 'Full Slip'}
+                                    </span>
+                                  </button>
+                                ) : (
+                                  <span className="text-[10px] opacity-40 block">No Deposit Slip</span>
+                                )}
+
+                                {order.finalPaymentSlipUrl && (
+                                  <button
+                                    type="button"
+                                    onClick={() => setSelectedSlipOrder({
+                                      ...order,
+                                      paymentSlipUrl: order.finalPaymentSlipUrl!
+                                    })}
+                                    className="group relative inline-flex items-center gap-1.5 p-1 rounded-xl border border-emerald-500/30 hover:border-emerald-500 transition-all bg-emerald-500/10"
+                                    title="Click to inspect final 50% balance slip"
+                                  >
+                                    <img
+                                      src={order.finalPaymentSlipUrl}
+                                      alt="Final Receipt"
+                                      className="w-10 h-10 object-cover rounded-lg"
+                                    />
+                                    <span className="text-[10px] font-bold text-emerald-400 pr-1">
+                                      Final Slip
+                                    </span>
+                                  </button>
+                                )}
+                              </div>
+                            </td>
+
+                            {/* Method */}
+                            <td className="py-3.5 px-3.5">
+                              <div className="font-semibold">{order.paymentMethod}</div>
+                              {order.transactionReference && (
+                                <span className="text-[10px] font-mono opacity-70 block">
+                                  Txn: {order.transactionReference}
+                                </span>
+                              )}
+                            </td>
+
+                            {/* Status Badge */}
+                            <td className="py-3.5 px-3.5">
+                              {order.status === 'reservation_pending' && (
+                                <span className="inline-block px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30 animate-pulse">
+                                  50% Deposit Review Pending
+                                </span>
+                              )}
+                              {order.status === 'reserved' && (
+                                <span className="inline-block px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                                  Active Reservation (50% Paid)
+                                </span>
+                              )}
+                              {order.status === 'final_payment_pending' && (
+                                <span className="inline-block px-2.5 py-1 rounded-full text-[10px] font-bold bg-purple-500/20 text-purple-400 border border-purple-500/30 animate-pulse">
+                                  Final 50% Slip Review Pending
+                                </span>
+                              )}
+                              {order.status === 'pending_verification' && (
+                                <span className="inline-block px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30 animate-pulse">
+                                  Full Slip Review Pending
+                                </span>
+                              )}
+                              {order.status === 'delivery_pending' && (
+                                <span className="inline-block px-2.5 py-1 rounded-full text-[10px] font-bold bg-blue-500/20 text-blue-400 border border-blue-500/30">
+                                  🚚 Delivery Pending
+                                </span>
+                              )}
+                              {order.status === 'delivered' && (
+                                <span className="inline-block px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                                  🏡 Delivered to Customer
+                                </span>
+                              )}
+                              {(order.status === 'completed' || order.status === 'verified') && (
+                                <span className="inline-block px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                                  ✓ Sold
+                                </span>
+                              )}
+                              {order.status === 'rejected' && (
+                                <span className="inline-block px-2.5 py-1 rounded-full text-[10px] font-bold bg-red-500/20 text-red-400 border border-red-500/30">
+                                  Rejected
+                                </span>
+                              )}
+                            </td>
+
+                            {/* Actions */}
+                            <td className="py-3.5 px-3.5 text-right">
+                              <div className="inline-flex flex-wrap items-center justify-end gap-1.5">
+                                {/* 1. Deposit Review Pending Action */}
+                                {order.status === 'reservation_pending' && (
+                                  <>
+                                    <button
+                                      onClick={() => handleVerifyReservation(order.id)}
+                                      className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-black font-bold text-xs shadow transition-all flex items-center gap-1"
+                                      title="Approve 50% deposit and lock/reserve item"
+                                    >
+                                      <Check className="w-3.5 h-3.5" />
+                                      <span>Approve 50% Deposit</span>
+                                    </button>
+                                    <button
+                                      onClick={() => handleRejectOrder(order.id)}
+                                      className="p-1.5 rounded-xl bg-red-500/20 hover:bg-red-500/30 text-red-400 transition-colors"
+                                      title="Reject deposit slip"
+                                    >
+                                      <X className="w-4 h-4" />
+                                    </button>
+                                  </>
+                                )}
+
+                                {/* 2. Final 50% Balance Review Pending Action */}
+                                {order.status === 'final_payment_pending' && (
+                                  <>
+                                    <button
+                                      onClick={() => handleVerifyFinalPayment(order.id)}
+                                      className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow transition-all flex items-center gap-1"
+                                      title="Verify final balance and mark animal as SOLD"
+                                    >
+                                      <Check className="w-3.5 h-3.5" />
+                                      <span>Approve Final & Mark Sold</span>
+                                    </button>
+                                    <button
+                                      onClick={() => handleRejectOrder(order.id)}
+                                      className="p-1.5 rounded-xl bg-red-500/20 hover:bg-red-500/30 text-red-400 transition-colors"
+                                      title="Reject final slip"
+                                    >
+                                      <X className="w-4 h-4" />
+                                    </button>
+                                  </>
+                                )}
+
+                                {/* 3. Standard Full Payment Action */}
+                                {order.status === 'pending_verification' && (
+                                  <>
+                                    <button
+                                      onClick={() => handleVerifyOrder(order.id)}
+                                      className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow transition-all flex items-center gap-1"
+                                      title="Verify payment and mark animal as SOLD"
+                                    >
+                                      <Check className="w-3.5 h-3.5" />
+                                      <span>Verify & Mark Sold</span>
+                                    </button>
+                                    <button
+                                      onClick={() => handleRejectOrder(order.id)}
+                                      className="p-1.5 rounded-xl bg-red-500/20 hover:bg-red-500/30 text-red-400 transition-colors"
+                                      title="Reject slip"
+                                    >
+                                      <X className="w-4 h-4" />
+                                    </button>
+                                  </>
+                                )}
+
+                                {/* 4. Already Reserved */}
+                                {order.status === 'reserved' && (
+                                  <span className="text-[11px] text-amber-500 font-medium">
+                                    Awaiting remaining {formatPrice(remaining)} from customer
+                                  </span>
+                                )}
+
+                                {/* 5. Sold / Completed - Provide Delivery Status Transitions */}
+                                {(order.status === 'completed' || order.status === 'verified') && (
+                                  <div className="flex items-center gap-1.5">
+                                    {order.deliveryLocation ? (
+                                      <>
+                                        <button
+                                          onClick={() => handleUpdateOrderStatus(order.id, 'delivery_pending')}
+                                          className="px-2.5 py-1 rounded-xl bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 font-bold text-[11px] transition-colors"
+                                          title="Set order as Delivery Pending"
+                                        >
+                                          Dispatch Delivery
+                                        </button>
+                                        <button
+                                          onClick={() => handleUpdateOrderStatus(order.id, 'delivered')}
+                                          className="px-2.5 py-1 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 font-bold text-[11px] transition-colors"
+                                          title="Mark as Delivered"
+                                        >
+                                          Mark Delivered ✓
+                                        </button>
+                                      </>
+                                    ) : (
+                                      <span className="text-[11px] text-emerald-500 font-semibold">
+                                        ✓ Fully Paid & Sold
+                                      </span>
+                                    )}
+                                  </div>
+                                )}
+
+                                {/* 6. Delivery Pending Actions */}
+                                {order.status === 'delivery_pending' && (
+                                  <div className="flex items-center gap-1.5">
+                                    <button
+                                      onClick={() => handleUpdateOrderStatus(order.id, 'delivered')}
+                                      className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow transition-colors flex items-center gap-1"
+                                      title="Confirm delivery to customer"
+                                    >
+                                      <Check className="w-3.5 h-3.5" />
+                                      <span>Mark Delivered</span>
+                                    </button>
+                                  </div>
+                                )}
+
+                                {/* 7. Delivered Status */}
+                                {order.status === 'delivered' && (
+                                  <span className="text-[11px] text-emerald-400 font-bold inline-flex items-center gap-1">
+                                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                                    <span>Delivered & Closed</span>
+                                  </span>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })
                     )}
                   </tbody>
                 </table>
@@ -1173,14 +1768,31 @@ export const Admin: React.FC = () => {
         )}
       </div>
 
-      {/* Slip Preview Modal */}
+      {/* Slip Preview & Direct Approval Modal */}
       {selectedSlipOrder && (
         <SlipPreviewModal
           isOpen={Boolean(selectedSlipOrder)}
           onClose={() => setSelectedSlipOrder(null)}
-          slipUrl={selectedSlipOrder.paymentSlipUrl || ''}
+          slipUrl={selectedSlipOrder.paymentSlipUrl || selectedSlipOrder.finalPaymentSlipUrl || ''}
+          order={selectedSlipOrder}
           orderId={selectedSlipOrder.id}
           customerName={selectedSlipOrder.customerName}
+          onApproveReservation={async (id) => {
+            await handleVerifyReservation(id);
+            setSelectedSlipOrder(null);
+          }}
+          onApproveFinal={async (id) => {
+            await handleVerifyFinalPayment(id);
+            setSelectedSlipOrder(null);
+          }}
+          onApproveOrder={async (id) => {
+            await handleVerifyOrder(id);
+            setSelectedSlipOrder(null);
+          }}
+          onReject={async (id) => {
+            await handleRejectOrder(id);
+            setSelectedSlipOrder(null);
+          }}
         />
       )}
 
@@ -1275,15 +1887,169 @@ export const Admin: React.FC = () => {
                 />
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold uppercase mb-1 opacity-80">Image URL (Optional)</label>
-                <input
-                  type="url"
-                  placeholder="https://images.unsplash.com/..."
-                  value={newAnimalImage}
-                  onChange={(e) => setNewAnimalImage(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl text-xs border bg-transparent"
-                />
+              {/* Drag and Drop Image Uploader */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="block text-xs font-semibold uppercase opacity-80">
+                    Animal Photo (Drag & Drop or File)
+                  </label>
+                  <div className="flex items-center gap-1 text-[10px]">
+                    <button
+                      type="button"
+                      onClick={() => setImageUploadMode('upload')}
+                      className={`px-2 py-0.5 rounded-lg font-medium transition-colors ${
+                        imageUploadMode === 'upload'
+                          ? 'bg-[#C18A45] text-white shadow-xs'
+                          : 'opacity-60 hover:opacity-100'
+                      }`}
+                    >
+                      Drag & Drop
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setImageUploadMode('url')}
+                      className={`px-2 py-0.5 rounded-lg font-medium transition-colors ${
+                        imageUploadMode === 'url'
+                          ? 'bg-[#C18A45] text-white shadow-xs'
+                          : 'opacity-60 hover:opacity-100'
+                      }`}
+                    >
+                      Paste URL
+                    </button>
+                  </div>
+                </div>
+
+                {imageUploadMode === 'upload' ? (
+                  <div>
+                    <input
+                      ref={animalImageInputRef}
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp,image/gif"
+                      className="hidden"
+                      onChange={(e) => {
+                        if (e.target.files && e.target.files[0]) {
+                          handleAnimalImageFile(e.target.files[0]);
+                        }
+                      }}
+                    />
+
+                    {newAnimalImage ? (
+                      /* Preview of dropped/uploaded image */
+                      <div
+                        className={`relative rounded-2xl border p-2.5 flex items-center gap-3 ${
+                          isDark ? 'bg-[#1B1208] border-[#4A2C16]' : 'bg-[#FAF7F0] border-[#E4D4BC]'
+                        }`}
+                      >
+                        <div className="relative w-20 h-20 rounded-xl overflow-hidden shrink-0 border border-black/10 dark:border-white/10 bg-black/10">
+                          <img
+                            src={newAnimalImage}
+                            alt="Preview"
+                            className="w-full h-full object-cover"
+                          />
+                          {isUploadingImage && (
+                            <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                              <RefreshCw className="w-5 h-5 text-[#C18A45] animate-spin" />
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="flex-1 min-w-0 pr-1">
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-xs font-bold text-[#C18A45]">
+                              {isUploadingImage ? 'Uploading image...' : '✓ Image Attached'}
+                            </span>
+                          </div>
+                          <p className="text-[10px] opacity-60 truncate mt-0.5">
+                            {newAnimalImage.startsWith('data:') ? 'Local preview ready' : newAnimalImage}
+                          </p>
+                          <div className="mt-2.5 flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => animalImageInputRef.current?.click()}
+                              className="text-[11px] font-semibold text-[#C18A45] hover:underline cursor-pointer"
+                            >
+                              Choose Another
+                            </button>
+                            <span className="opacity-30">•</span>
+                            <button
+                              type="button"
+                              onClick={() => setNewAnimalImage('')}
+                              className="text-[11px] font-semibold text-red-400 hover:underline inline-flex items-center gap-0.5 cursor-pointer"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                              <span>Remove</span>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      /* Drop Zone */
+                      <div
+                        onDragOver={handleAnimalDragOver}
+                        onDragLeave={handleAnimalDragLeave}
+                        onDrop={handleAnimalDrop}
+                        onClick={() => animalImageInputRef.current?.click()}
+                        className={`relative cursor-pointer rounded-2xl border-2 border-dashed p-6 text-center transition-all group select-none ${
+                          isDraggingImage
+                            ? 'border-[#C18A45] bg-[#C18A45]/20 scale-[1.01]'
+                            : isDark
+                            ? 'border-[#4A2C16] hover:border-[#C18A45]/70 bg-[#1B1208]/60 hover:bg-[#1B1208]'
+                            : 'border-[#E4D4BC] hover:border-[#C18A45]/70 bg-[#FAF7F0]/80 hover:bg-[#FAF7F0]'
+                        }`}
+                      >
+                        <div className="flex flex-col items-center justify-center gap-2">
+                          <div
+                            className={`p-3 rounded-full transition-transform group-hover:scale-110 ${
+                              isDraggingImage
+                                ? 'bg-[#C18A45] text-white animate-bounce'
+                                : 'bg-[#C18A45]/15 text-[#C18A45]'
+                            }`}
+                          >
+                            <UploadCloud className="w-6 h-6" />
+                          </div>
+                          <div>
+                            <p className="text-xs font-bold">
+                              {isDraggingImage ? (
+                                <span className="text-[#C18A45]">Drop image here!</span>
+                              ) : (
+                                <span>
+                                  Drag and drop animal photo here, or{' '}
+                                  <span className="text-[#C18A45] underline font-bold">browse</span>
+                                </span>
+                              )}
+                            </p>
+                            <p className="text-[10px] opacity-60 mt-0.5">
+                              Supports JPG, PNG, WEBP, GIF (up to 10 MB)
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div>
+                    <input
+                      type="url"
+                      placeholder="https://images.unsplash.com/..."
+                      value={newAnimalImage}
+                      onChange={(e) => setNewAnimalImage(e.target.value)}
+                      className="w-full px-3 py-2 rounded-xl text-xs border bg-transparent"
+                    />
+                    {newAnimalImage && (
+                      <div className="mt-2 flex items-center gap-2">
+                        <img
+                          src={newAnimalImage}
+                          alt="URL Preview"
+                          className="w-12 h-12 rounded-lg object-cover border"
+                          onError={(e) => {
+                            (e.target as HTMLElement).style.display = 'none';
+                          }}
+                        />
+                        <span className="text-[10px] opacity-60">URL preview</span>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               <button

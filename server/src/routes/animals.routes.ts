@@ -1,17 +1,18 @@
 import { Router, Request, Response } from 'express';
-import { JsonDB } from '../db/jsonDb.js';
+import { PostgresDB } from '../db/postgresDb.js';
 import { authenticateToken, requireAdmin, AuthRequest } from '../middleware/auth.middleware.js';
 import { Animal, AnimalType } from '../types/index.js';
 import { realtimeService } from '../services/realtime.service.js';
+import { uploadSlip } from '../middleware/upload.middleware.js';
 
 const router = Router();
 
 // ==================== GET ALL ANIMALS (with filters) ====================
-router.get('/', (req: Request, res: Response): void => {
+router.get('/', async (req: Request, res: Response): Promise<void> => {
   try {
     const { type, breed, minPrice, maxPrice, minWeight, maxWeight, status, featured, search } = req.query;
 
-    let animals = JsonDB.getAnimals();
+    let animals = await PostgresDB.getAnimals();
 
     if (type && typeof type === 'string' && type !== 'all') {
       animals = animals.filter(a => a.type === type);
@@ -68,9 +69,9 @@ router.get('/', (req: Request, res: Response): void => {
 });
 
 // ==================== GET SINGLE ANIMAL BY ID ====================
-router.get('/:id', (req: Request, res: Response): void => {
+router.get('/:id', async (req: Request, res: Response): Promise<void> => {
   try {
-    const animal = JsonDB.getAnimalById(req.params.id);
+    const animal = await PostgresDB.getAnimalById(req.params.id);
     if (!animal) {
       res.status(404).json({ success: false, error: 'Animal not found' });
       return;
@@ -83,7 +84,7 @@ router.get('/:id', (req: Request, res: Response): void => {
 });
 
 // ==================== CREATE ANIMAL (Admin only) ====================
-router.post('/', authenticateToken, requireAdmin, (req: AuthRequest, res: Response): void => {
+router.post('/', authenticateToken, requireAdmin, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { type, breed, gender, weight, color, price, quantity, location, description, images, video, featured, characteristics } = req.body;
 
@@ -112,10 +113,10 @@ router.post('/', authenticateToken, requireAdmin, (req: AuthRequest, res: Respon
       video,
       featured: Boolean(featured),
       characteristics: Array.isArray(characteristics) ? characteristics : [],
-      createdAt: new Date().toISOString().split('T')[0]
+      createdAt: new Date().toISOString()
     };
 
-    const created = JsonDB.createAnimal(newAnimal);
+    const created = await PostgresDB.createAnimal(newAnimal);
 
     // 🚀 REALTIME BROADCAST
     realtimeService.broadcast('ANIMAL_CREATED', created);
@@ -128,9 +129,9 @@ router.post('/', authenticateToken, requireAdmin, (req: AuthRequest, res: Respon
 });
 
 // ==================== UPDATE ANIMAL (Admin only) ====================
-router.put('/:id', authenticateToken, requireAdmin, (req: AuthRequest, res: Response): void => {
+router.put('/:id', authenticateToken, requireAdmin, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const updated = JsonDB.updateAnimal(req.params.id, req.body);
+    const updated = await PostgresDB.updateAnimal(req.params.id, req.body);
     if (!updated) {
       res.status(404).json({ success: false, error: 'Animal not found' });
       return;
@@ -147,10 +148,10 @@ router.put('/:id', authenticateToken, requireAdmin, (req: AuthRequest, res: Resp
 });
 
 // ==================== DELETE ANIMAL (Admin only) ====================
-router.delete('/:id', authenticateToken, requireAdmin, (req: AuthRequest, res: Response): void => {
+router.delete('/:id', authenticateToken, requireAdmin, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const animalId = req.params.id;
-    const deleted = JsonDB.deleteAnimal(animalId);
+    const deleted = await PostgresDB.deleteAnimal(animalId);
     if (!deleted) {
       res.status(404).json({ success: false, error: 'Animal not found' });
       return;
@@ -163,6 +164,21 @@ router.delete('/:id', authenticateToken, requireAdmin, (req: AuthRequest, res: R
   } catch (error: any) {
     console.error('Error deleting animal:', error);
     res.status(500).json({ success: false, error: 'Failed to delete animal' });
+  }
+});
+
+// ==================== UPLOAD ANIMAL IMAGE ====================
+router.post('/upload-image', uploadSlip.single('image'), (req: Request, res: Response): void => {
+  try {
+    if (!req.file) {
+      res.status(400).json({ success: false, error: 'No image file uploaded' });
+      return;
+    }
+    const imageUrl = `/uploads/${req.file.filename}`;
+    res.json({ success: true, url: imageUrl });
+  } catch (error: any) {
+    console.error('Error uploading animal image:', error);
+    res.status(500).json({ success: false, error: 'Failed to process image upload' });
   }
 });
 

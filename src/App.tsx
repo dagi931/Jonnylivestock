@@ -14,6 +14,9 @@ import { Goats } from './pages/Goats';
 import { Cows } from './pages/Cows';
 import { AnimalDetails } from './pages/AnimalDetails';
 import { Services } from './pages/Services';
+import { PackageBuilder } from './pages/PackageBuilder';
+import { MyPackages } from './pages/MyPackages';
+import { MyReservations } from './pages/MyReservations';
 import { DeliveryServicePage } from './pages/services/DeliveryServicePage';
 import { SlaughterPrepServicePage } from './pages/services/SlaughterPrepServicePage';
 import { CeremonyServicePage } from './pages/services/CeremonyServicePage';
@@ -41,9 +44,8 @@ const AppContent: React.FC = () => {
 
   return (
     <div
-      className={`min-h-screen flex flex-col transition-colors duration-300 ${
-        isDark ? 'bg-[#1B1208] text-[#F4E8D0]' : 'bg-[#FAF7F0] text-[#241A12]'
-      }`}
+      className={`min-h-screen flex flex-col transition-colors duration-300 ${isDark ? 'bg-[#1B1208] text-[#F4E8D0]' : 'bg-[#FAF7F0] text-[#241A12]'
+        }`}
     >
       <ScrollToTop />
       <Navbar />
@@ -55,8 +57,13 @@ const AppContent: React.FC = () => {
           <Route path="/goats" element={<Goats />} />
           <Route path="/cows" element={<Cows />} />
           <Route path="/animals/:id" element={<AnimalDetails />} />
-          
-          {/* Main Services Overview (Editorial Layout) */}
+
+          {/* Packages & Custom Builder */}
+          <Route path="/packages" element={<PackageBuilder />} />
+          <Route path="/my-packages" element={<MyPackages />} />
+          <Route path="/my-reservations" element={<MyReservations />} />
+
+          {/* Main Services Overview */}
           <Route path="/services" element={<Services />} />
 
           {/* 5 Distinct Dedicated Service Dashboards */}

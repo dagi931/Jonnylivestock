@@ -135,7 +135,9 @@ export class JsonDB {
 
     // Reserve animal
     let updatedAnimal: Animal | null = null;
-    const animalIndex = db.animals.findIndex(a => a.id.toLowerCase() === order.animalId.toLowerCase());
+    const animalIndex = order.animalId
+      ? db.animals.findIndex(a => a.id.toLowerCase() === order.animalId!.toLowerCase())
+      : -1;
     if (animalIndex !== -1) {
       // If quantity is 1 or undefined, mark as reserved
       const currentQty = db.animals[animalIndex].quantity ?? 1;
@@ -163,7 +165,9 @@ export class JsonDB {
 
     // Automatically reduce animal quantity or mark as SOLD
     let updatedAnimal: Animal | null = null;
-    const animalIndex = db.animals.findIndex(a => a.id.toLowerCase() === order.animalId.toLowerCase());
+    const animalIndex = order.animalId
+      ? db.animals.findIndex(a => a.id.toLowerCase() === order.animalId!.toLowerCase())
+      : -1;
     if (animalIndex !== -1) {
       const animal = db.animals[animalIndex];
       const currentQty = animal.quantity !== undefined ? animal.quantity : 1;
@@ -207,7 +211,9 @@ export class JsonDB {
 
     // If the animal was set to reserved, restore it to available
     let updatedAnimal: Animal | null = null;
-    const animalIndex = db.animals.findIndex(a => a.id.toLowerCase() === order.animalId.toLowerCase());
+    const animalIndex = order.animalId
+      ? db.animals.findIndex(a => a.id.toLowerCase() === order.animalId!.toLowerCase())
+      : -1;
     if (animalIndex !== -1) {
       if (db.animals[animalIndex].status === 'reserved') {
         db.animals[animalIndex].status = 'available';

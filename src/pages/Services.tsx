@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
 import { livestockServices, serviceFlowSteps } from '../data/services';
-import { business } from '../config/business';
 import {
   Truck,
   UtensilsCrossed,
@@ -11,14 +10,12 @@ import {
   Scale,
   Sparkles,
   Check,
-  PhoneCall,
-  MessageSquare,
   ArrowRight,
   UserCheck,
   ShieldCheck,
-  Building2
+  Building2,
+  Gift
 } from 'lucide-react';
-import { getPhoneCallLink, getWhatsAppLink } from '../utils/formatters';
 
 export const Services: React.FC = () => {
   const { theme } = useTheme();
@@ -63,6 +60,14 @@ export const Services: React.FC = () => {
 
           <div className="mt-5 flex flex-wrap items-center gap-3">
             <Link
+              to="/packages"
+              className="px-4 py-2 rounded-xl font-bold text-xs sm:text-sm transition-all shadow-xs inline-flex items-center gap-1.5 bg-amber-500 hover:bg-amber-600 text-black"
+            >
+              <Gift className="w-4 h-4" />
+              <span>Holiday Packages & Hampers</span>
+            </Link>
+
+            <Link
               to="/services/meat-by-kg"
               className={`px-4 py-2 rounded-xl font-bold text-xs sm:text-sm transition-all shadow-xs inline-flex items-center gap-1.5 ${
                 isDark
@@ -84,20 +89,61 @@ export const Services: React.FC = () => {
             >
               <span>{t.servicesPage.bookLiveDelivery}</span>
             </Link>
+          </div>
+        </div>
 
-            <a
-              href={getWhatsAppLink(business.whatsapp, isAmharic ? 'ሰላም ጆኒ፣ ስለ እርሻ አገልግሎቶቻችሁ መጠየቅ ፈልጌ ነበር።' : 'Hello Jonny Livestock, I would like to inquire about your farm services.')}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={`px-4 py-2 rounded-xl font-semibold text-xs sm:text-sm border flex items-center gap-1.5 transition-colors ${
-                isDark
-                  ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0] hover:border-[#C58A3A]'
-                  : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#241A12] hover:border-[#B8792F]'
-              }`}
-            >
-              <MessageSquare className="w-4 h-4 text-green-500" />
-              <span>{t.servicesPage.discussWhatsApp}</span>
-            </a>
+        {/* Highlight Banner: Celebration & Holiday Packages Service */}
+        <div
+          className={`mb-12 p-6 sm:p-8 rounded-3xl border shadow-xl relative overflow-hidden ${
+            isDark
+              ? 'bg-gradient-to-br from-[#2A1A0D] via-[#1D130A] to-[#2A1A0D] border-[#4A2C16]'
+              : 'bg-gradient-to-br from-amber-50 via-[#FAF7F0] to-amber-50/50 border-[#E4D4BC]'
+          }`}
+        >
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+            <div className="lg:col-span-8 space-y-3">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-amber-500/15 border border-amber-500/30 text-amber-500">
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>Featured Celebration Service</span>
+              </div>
+              <h2 className="font-serif font-bold text-xl sm:text-3xl">
+                Custom Celebration Hampers & Holiday Packages
+              </h2>
+              <p className="text-xs sm:text-sm opacity-80 leading-relaxed max-w-2xl">
+                Construct your own complete feast package combining <strong>Hen, Sheep, Goat, Ox or Meat in KG</strong> + <strong>Vintage Ethiopian Wines or Honey Tej</strong> + <strong>Fresh Farm Eggs</strong> + <strong>Celebration Flower Bouquets</strong>. Includes <strong>100% Free Refrigerated Delivery</strong> and <strong>50% Deposit Reservation</strong>!
+              </p>
+
+              <div className="flex flex-wrap items-center gap-3 pt-2 text-xs">
+                <span className="flex items-center gap-1 font-semibold text-emerald-500">
+                  <Truck className="w-3.5 h-3.5" /> Free Delivery (3+ Categories)
+                </span>
+                <span className="flex items-center gap-1 font-semibold text-amber-500">
+                  <ShieldCheck className="w-3.5 h-3.5" /> 50% Deposit Reservation
+                </span>
+                <span className="flex items-center gap-1 font-semibold text-purple-400">
+                  <Gift className="w-3.5 h-3.5" /> Save to My Packages
+                </span>
+              </div>
+            </div>
+
+            <div className="lg:col-span-4 flex flex-col sm:flex-row lg:flex-col gap-2.5">
+              <Link
+                to="/packages"
+                className="w-full py-3.5 px-5 rounded-2xl bg-amber-500 hover:bg-amber-600 text-black font-bold text-xs sm:text-sm transition-all shadow-lg flex items-center justify-center gap-2"
+              >
+                <Sparkles className="w-4 h-4" />
+                <span>Open Package Builder</span>
+              </Link>
+              <Link
+                to="/my-reservations"
+                className={`w-full py-3 px-5 rounded-2xl border text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2 ${
+                  isDark ? 'border-[#4A2C16] hover:bg-[#2A1A0D]' : 'border-[#E4D4BC] hover:bg-[#FAF7F0]'
+                }`}
+              >
+                <ShieldCheck className="w-4 h-4 text-emerald-500" />
+                <span>My Active Reservations</span>
+              </Link>
+            </div>
           </div>
         </div>
 
@@ -106,7 +152,6 @@ export const Services: React.FC = () => {
           {livestockServices.map((service, index) => {
             const Icon = iconMap[service.iconName] || Truck;
 
-            // Translated title & desc based on index/id
             let localizedTitle = service.title;
             let localizedDesc = service.fullDescription;
             let localizedBadge = '';
@@ -198,25 +243,15 @@ export const Services: React.FC = () => {
                     </ul>
                   </div>
 
-                  {/* Right Column: Direct Dashboard Action Button */}
-                  <div className="lg:col-span-3 lg:text-right flex flex-col justify-between self-stretch pt-2 lg:pt-0">
-                    <div className="hidden lg:block text-xs opacity-60">
-                      {isAmharic ? 'ቋሚ ተደራሽነት' : 'Standard Availability'}
-                    </div>
-
-                    <div>
-                      <Link
-                        to={`/services/${service.id}`}
-                        className={`inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl font-semibold text-xs transition-all shadow-xs ${
-                          isDark
-                            ? 'bg-[#C58A3A] text-[#1B1208] hover:bg-[#E0B15A]'
-                            : 'bg-[#B8792F] text-[#FAF7F0] hover:bg-[#9E6523]'
-                        }`}
-                      >
-                        <span>{isAmharic ? 'ዝርዝሩን እይ' : service.ctaLabel}</span>
-                        <ArrowRight className="w-3 h-3" />
-                      </Link>
-                    </div>
+                  {/* Right Column: Key Details & Action Button */}
+                  <div className="lg:col-span-3 space-y-3">
+                    <Link
+                      to={`/services/${service.id}`}
+                      className="w-full py-3 rounded-2xl bg-amber-500/15 hover:bg-amber-500 text-amber-500 hover:text-black font-bold text-xs transition-colors flex items-center justify-center gap-1.5 border border-amber-500/30 shadow-xs"
+                    >
+                      <span>Explore Service Details</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </Link>
                   </div>
 
                 </div>
@@ -225,89 +260,26 @@ export const Services: React.FC = () => {
           })}
         </div>
 
-        {/* 6-Step Workflow - Continuous Linear Timeline */}
-        <section className="mb-14">
-          <div className="mb-6">
-            <span
-              className={`text-xs font-semibold uppercase tracking-wider ${
-                isDark ? 'text-[#C58A3A]' : 'text-[#B8792F]'
-              }`}
-            >
-              {t.servicesPage.workflowBadge}
-            </span>
-            <h2
-              className={`font-serif font-bold text-xl sm:text-2xl mt-0.5 ${
-                isDark ? 'text-[#F4E8D0]' : 'text-[#241A12]'
-              }`}
-            >
-              {t.servicesPage.workflowTitle}
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {serviceFlowSteps.map((step) => (
-              <div key={step.step} className="flex items-start gap-3.5 group">
-                <span
-                  className={`font-serif font-bold text-lg shrink-0 w-8 h-8 rounded-xl flex items-center justify-center transition-colors ${
-                    isDark
-                      ? 'bg-[#2A1A0D] text-[#C58A3A] border border-[#4A2C16]'
-                      : 'bg-[#F1E8D8] text-[#B8792F] border border-[#E4D4BC]'
-                  }`}
-                >
-                  {step.step}
-                </span>
-
-                <div className="space-y-0.5">
-                  <h3 className={`font-serif font-bold text-sm ${isDark ? 'text-[#F4E8D0]' : 'text-[#241A12]'}`}>
-                    {step.title}
-                  </h3>
-                  <p className={`text-xs leading-relaxed ${isDark ? 'text-[#D8C5A8]' : 'text-[#746556]'}`}>
-                    {step.description}
-                  </p>
+        {/* How Our Workflow Works (3 Steps) */}
+        <div className="mb-14">
+          <h2 className="font-serif font-bold text-2xl mb-6 text-center">
+            {isAmharic ? 'የአገልግሎት አሰጣጥ ሂደት' : 'How Farm-to-Door Delivery Works'}
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {serviceFlowSteps.map((step, idx) => (
+              <div
+                key={idx}
+                className={`p-6 rounded-3xl border space-y-3 ${
+                  isDark ? 'bg-[#24170D] border-[#4A2C16]' : 'bg-white border-[#E4D4BC]'
+                }`}
+              >
+                <div className="w-8 h-8 rounded-full bg-amber-500 text-black font-bold text-xs flex items-center justify-center">
+                  0{idx + 1}
                 </div>
+                <h3 className="font-serif font-bold text-base">{step.title}</h3>
+                <p className="text-xs opacity-75 leading-relaxed">{step.description}</p>
               </div>
             ))}
-          </div>
-        </section>
-
-        {/* Bottom Strip: Hotel Wholesale & Ceremony Supply Consultation */}
-        <div
-          className={`p-6 sm:p-7 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${
-            isDark ? 'bg-[#2A1A0D] border-[#4A2C16]' : 'bg-[#F1E8D8] border-[#E4D4BC]'
-          }`}
-        >
-          <div>
-            <h3 className={`font-serif font-bold text-base sm:text-lg ${isDark ? 'text-[#F4E8D0]' : 'text-[#241A12]'}`}>
-              {t.servicesPage.hotelConsultationTitle}
-            </h3>
-            <p className={`text-xs mt-0.5 ${isDark ? 'text-[#D8C5A8]' : 'text-[#746556]'}`}>
-              {t.servicesPage.hotelConsultationSubtext}
-            </p>
-          </div>
-
-          <div className="flex items-center gap-2.5 shrink-0">
-            <Link
-              to="/services/meat-by-kg"
-              className={`px-4 py-2 rounded-xl font-bold text-xs transition-all shadow-xs ${
-                isDark
-                  ? 'bg-[#C58A3A] hover:bg-[#E0B15A] text-[#1B1208]'
-                  : 'bg-[#B8792F] hover:bg-[#9E6523] text-[#FAF7F0]'
-              }`}
-            >
-              {t.servicesPage.orderMeatByKg}
-            </Link>
-
-            <a
-              href={getPhoneCallLink(business.phone)}
-              className={`px-3.5 py-2 rounded-xl font-semibold text-xs border flex items-center gap-1.5 transition-colors ${
-                isDark
-                  ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0] hover:text-[#E0B15A]'
-                  : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#241A12] hover:text-[#B8792F]'
-              }`}
-            >
-              <PhoneCall className="w-3.5 h-3.5" />
-              <span>{t.cta.callPhone} {business.displayPhone}</span>
-            </a>
           </div>
         </div>
 

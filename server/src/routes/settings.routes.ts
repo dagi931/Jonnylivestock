@@ -1,12 +1,12 @@
 import { Router, Request, Response } from 'express';
-import { JsonDB } from '../db/jsonDb.js';
+import { PostgresDB } from '../db/postgresDb.js';
 
 const router = Router();
 
 // ==================== GET BANK ACCOUNTS ====================
-router.get('/bank-accounts', (_req: Request, res: Response): void => {
+router.get('/bank-accounts', async (_req: Request, res: Response): Promise<void> => {
   try {
-    const bankAccounts = JsonDB.getBankAccounts();
+    const bankAccounts = await PostgresDB.getBankAccounts();
     res.json({ success: true, count: bankAccounts.length, data: bankAccounts });
   } catch (error: any) {
     console.error('Error fetching bank accounts:', error);
@@ -15,9 +15,9 @@ router.get('/bank-accounts', (_req: Request, res: Response): void => {
 });
 
 // ==================== GET BUSINESS SETTINGS & ADMIN CONTACTS ====================
-router.get('/business', (_req: Request, res: Response): void => {
+router.get('/business', async (_req: Request, res: Response): Promise<void> => {
   try {
-    const settings = JsonDB.getSettings();
+    const settings = await PostgresDB.getSettings();
     res.json({ success: true, data: settings });
   } catch (error: any) {
     console.error('Error fetching business settings:', error);

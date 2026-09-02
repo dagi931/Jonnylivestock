@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Hero } from '../components/home/Hero';
 import { TrustSection } from '../components/home/TrustSection';
+import { CelebrationPackagesSection } from '../components/home/CelebrationPackagesSection';
 import { ServicesOverview } from '../components/home/ServicesOverview';
 import { HowItWorks } from '../components/home/HowItWorks';
 import { CTASection } from '../components/home/CTASection';
@@ -27,6 +28,9 @@ export const Home: React.FC = () => {
 
       {/* Trust & Value Points */}
       <TrustSection />
+
+      {/* Celebration & Holiday Packages Section */}
+      <CelebrationPackagesSection />
 
       {/* Featured Sheep Section */}
       <section className="py-8 sm:py-12">
@@ -60,7 +64,7 @@ export const Home: React.FC = () => {
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-6">
             {featuredSheep.slice(0, 3).map((sheep) => (
               <AnimalCard key={sheep.id} animal={sheep} />
             ))}
@@ -104,7 +108,7 @@ export const Home: React.FC = () => {
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-6">
             {featuredGoats.slice(0, 3).map((goat) => (
               <AnimalCard key={goat.id} animal={goat} />
             ))}
@@ -144,7 +148,7 @@ export const Home: React.FC = () => {
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-6">
             {featuredCows.slice(0, 3).map((cow) => (
               <AnimalCard key={cow.id} animal={cow} />
             ))}

@@ -7,6 +7,8 @@ interface UserAuthContextType {
   token: string | null;
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   register: (name: string, email: string, phone: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  sendRegistrationOtp: (name: string, email: string, phone: string) => Promise<{ success: boolean; message?: string; error?: string }>;
+  verifyAndRegister: (data: { name: string; email: string; phone: string; password: string; otp: string }) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
   openAuthModal: (mode?: 'login' | 'register') => void;
   closeAuthModal: () => void;
@@ -52,6 +54,18 @@ export const UserAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       setUser(res.user);
       localStorage.setItem('jonny_user_token', res.token);
       localStorage.setItem('jonny_user_profile', JSON.stringify(res.user));
+
+      if (res.user.role === 'admin') {
+        localStorage.setItem('jonny_admin_token', res.token);
+        localStorage.setItem('jonny_admin_user', JSON.stringify({
+          id: res.user.id,
+          email: res.user.email,
+          name: res.user.name,
+          role: 'Livestock Administrator',
+          phone: res.user.phone
+        }));
+      }
+
       setIsAuthModalOpen(false);
       return { success: true };
     }
@@ -71,11 +85,36 @@ export const UserAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     return { success: false, error: res.error || 'Registration failed' };
   };
 
+  const sendRegistrationOtp = async (name: string, email: string, phone: string) => {
+    return await api.sendRegistrationOtp(name, email, phone);
+  };
+
+  const verifyAndRegister = async (data: {
+    name: string;
+    email: string;
+    phone: string;
+    password: string;
+    otp: string;
+  }) => {
+    const res = await api.verifyRegistrationOtp(data);
+    if (res.success && res.token && res.user) {
+      setToken(res.token);
+      setUser(res.user);
+      localStorage.setItem('jonny_user_token', res.token);
+      localStorage.setItem('jonny_user_profile', JSON.stringify(res.user));
+      setIsAuthModalOpen(false);
+      return { success: true };
+    }
+    return { success: false, error: res.error || 'Verification failed' };
+  };
+
   const logout = () => {
     setToken(null);
     setUser(null);
     localStorage.removeItem('jonny_user_token');
     localStorage.removeItem('jonny_user_profile');
+    localStorage.removeItem('jonny_admin_token');
+    localStorage.removeItem('jonny_admin_user');
   };
 
   const openAuthModal = (mode: 'login' | 'register' = 'login') => {
@@ -95,6 +134,8 @@ export const UserAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         token,
         login,
         register,
+        sendRegistrationOtp,
+        verifyAndRegister,
         logout,
         openAuthModal,
         closeAuthModal,
