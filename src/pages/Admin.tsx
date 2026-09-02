@@ -35,11 +35,13 @@ import {
   ArrowRight,
   UploadCloud,
   Trash2,
-  Phone
+  Phone,
+  Gift
 } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
+import { PreMadePackage, PackageCatalogItem } from '../types/package';
 
-type AdminTab = 'overview' | 'orders' | 'inventory' | 'demand' | 'settings';
+type AdminTab = 'overview' | 'orders' | 'inventory' | 'packages' | 'demand' | 'settings';
 
 export const Admin: React.FC = () => {
   const { isAuthenticated, user, login, logout } = useAdminAuth();
@@ -108,14 +110,37 @@ export const Admin: React.FC = () => {
   const [imageUploadMode, setImageUploadMode] = useState<'upload' | 'url'>('upload');
   const animalImageInputRef = useRef<HTMLInputElement>(null);
 
+  // Celebration Packages State
+  const [packagesList, setPackagesList] = useState<PreMadePackage[]>([]);
+  const [catalogItems, setCatalogItems] = useState<PackageCatalogItem[]>([]);
+  const [isAddPackageOpen, setIsAddPackageOpen] = useState(false);
+  const [newPkgName, setNewPkgName] = useState('');
+  const [newPkgAmharicName, setNewPkgAmharicName] = useState('');
+  const [newPkgTagline, setNewPkgTagline] = useState('');
+  const [newPkgBadge, setNewPkgBadge] = useState('⭐ Most Popular');
+  const [newPkgDescription, setNewPkgDescription] = useState('');
+  const [newPkgImage, setNewPkgImage] = useState('');
+  const [newPkgOriginalPrice, setNewPkgOriginalPrice] = useState<number>(18000);
+  const [newPkgPackagePrice, setNewPkgPackagePrice] = useState<number>(16000);
+  const [newPkgFeatured, setNewPkgFeatured] = useState<boolean>(true);
+  const [newPkgSelectedItems, setNewPkgSelectedItems] = useState<PackageCatalogItem[]>([]);
+  const [isDraggingPkgImage, setIsDraggingPkgImage] = useState(false);
+  const [isUploadingPkgImage, setIsUploadingPkgImage] = useState(false);
+  const [pkgImageUploadMode, setPkgImageUploadMode] = useState<'upload' | 'url'>('upload');
+  const pkgImageInputRef = useRef<HTMLInputElement>(null);
+  const [customItemName, setCustomItemName] = useState('');
+  const [customItemCategory, setCustomItemCategory] = useState<'meat_livestock' | 'wine' | 'eggs' | 'flowers'>('meat_livestock');
+  const [customItemPrice, setCustomItemPrice] = useState<number>(1500);
+
   // Load Data from Backend
   const loadDashboardData = async () => {
     setIsLoadingData(true);
     try {
-      const [fetchedAnimals, fetchedOrders, notifRes] = await Promise.all([
+      const [fetchedAnimals, fetchedOrders, notifRes, pkgRes] = await Promise.all([
         api.getAnimals(),
         api.getAllOrders(),
-        api.getNotifications()
+        api.getNotifications(),
+        api.getPackagesData()
       ]);
 
       if (fetchedAnimals && fetchedAnimals.length > 0) {
@@ -124,6 +149,10 @@ export const Admin: React.FC = () => {
       setOrdersList(fetchedOrders || []);
       setNotifications(notifRes.data || []);
       setUnreadNotifsCount(notifRes.unreadCount || 0);
+      if (pkgRes) {
+        setPackagesList(pkgRes.preMadePackages || []);
+        setCatalogItems(pkgRes.catalog || []);
+      }
     } catch (err) {
       console.error('Failed to load backend data:', err);
     } finally {
@@ -672,6 +701,154 @@ export const Admin: React.FC = () => {
     }
   };
 
+  // ==================== CELEBRATION PACKAGES HANDLERS ====================
+  const handleToggleCatalogItem = (item: PackageCatalogItem) => {
+    setNewPkgSelectedItems(prev => {
+      const exists = prev.some(i => i.id === item.id);
+      if (exists) {
+        return prev.filter(i => i.id !== item.id);
+      } else {
+        return [...prev, item];
+      }
+    });
+  };
+
+  const handleAddCustomItem = () => {
+    if (!customItemName.trim()) {
+      showAlert('error', 'Item name is required');
+      return;
+    }
+    const customItem: PackageCatalogItem = {
+      id: `custom-${Date.now().toString().slice(-4)}`,
+      name: customItemName.trim(),
+      category: customItemCategory,
+      description: 'Custom celebration item included in package',
+      price: Number(customItemPrice) || 1000,
+      image: 'https://images.unsplash.com/photo-1548550023-2bdb3c5beed7?auto=format&fit=crop&w=400&q=80'
+    };
+    setNewPkgSelectedItems(prev => [...prev, customItem]);
+    setCustomItemName('');
+    setCustomItemPrice(1500);
+    showAlert('success', `✓ Added "${customItem.name}" to package contents`);
+  };
+
+  const handlePackageImageFile = async (file: File) => {
+    if (!file.type.startsWith('image/')) {
+      showAlert('error', 'Please drop a valid image file (JPG, PNG, WEBP, GIF)');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      if (e.target?.result) {
+        setNewPkgImage(e.target.result as string);
+      }
+    };
+    reader.readAsDataURL(file);
+
+    setIsUploadingPkgImage(true);
+    try {
+      const res = await api.uploadPackageImage(file);
+      if (res.success && res.url) {
+        setNewPkgImage(res.url);
+        showAlert('success', '✓ Package image uploaded successfully');
+      }
+    } catch {
+      // Local preview remains
+    } finally {
+      setIsUploadingPkgImage(false);
+    }
+  };
+
+  const handlePackageDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingPkgImage(true);
+  };
+
+  const handlePackageDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingPkgImage(false);
+  };
+
+  const handlePackageDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingPkgImage(false);
+
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      const file = e.dataTransfer.files[0];
+      handlePackageImageFile(file);
+    }
+  };
+
+  const handleAddPackageSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newPkgName.trim()) {
+      showAlert('error', 'Package name is required');
+      return;
+    }
+    if (!newPkgDescription.trim()) {
+      showAlert('error', 'Package description is required');
+      return;
+    }
+    if (!newPkgImage.trim()) {
+      showAlert('error', 'Package image is required (upload or URL)');
+      return;
+    }
+    if (newPkgSelectedItems.length === 0) {
+      showAlert('error', 'Please select or add at least one item included in this package');
+      return;
+    }
+
+    const defaultOriginal = Number(newPkgOriginalPrice) || (Number(newPkgPackagePrice) + 2000);
+    const defaultPackagePrice = Number(newPkgPackagePrice) || 15000;
+
+    const res = await api.createPackage({
+      name: newPkgName.trim(),
+      amharicName: newPkgAmharicName.trim() || undefined,
+      tagline: newPkgTagline.trim() || undefined,
+      badge: newPkgBadge.trim() || 'Special Package',
+      description: newPkgDescription.trim(),
+      image: newPkgImage.trim(),
+      originalPrice: defaultOriginal,
+      packagePrice: defaultPackagePrice,
+      featured: newPkgFeatured,
+      items: newPkgSelectedItems
+    });
+
+    if (res.success && res.data) {
+      showAlert('success', `✓ Package "${res.data.name}" created and published!`);
+      setIsAddPackageOpen(false);
+      setNewPkgName('');
+      setNewPkgAmharicName('');
+      setNewPkgTagline('');
+      setNewPkgBadge('⭐ Most Popular');
+      setNewPkgDescription('');
+      setNewPkgImage('');
+      setNewPkgOriginalPrice(18000);
+      setNewPkgPackagePrice(16000);
+      setNewPkgSelectedItems([]);
+      loadDashboardData();
+    } else {
+      showAlert('error', res.error || 'Failed to create package');
+    }
+  };
+
+  const handleDeletePackage = async (pkgId: string, pkgName: string) => {
+    if (!window.confirm(`Are you sure you want to delete the package "${pkgName}"?`)) {
+      return;
+    }
+    const res = await api.deletePackage(pkgId);
+    if (res.success) {
+      showAlert('success', `✓ Package "${pkgName}" deleted successfully.`);
+      setPackagesList(prev => prev.filter(p => p.id !== pkgId));
+    } else {
+      showAlert('error', res.error || 'Failed to delete package');
+    }
+  };
+
   // Handle Login Submit
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -1126,6 +1303,18 @@ export const Admin: React.FC = () => {
           >
             <Layers className="w-4 h-4" />
             <span>Livestock Inventory ({animalsList.length})</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('packages')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+              activeTab === 'packages'
+                ? 'bg-[#C18A45] text-white shadow-md'
+                : isDark ? 'hover:bg-[#2A1A0D] text-[#D8C5A8]' : 'hover:bg-[#F1E8D8] text-[#746556]'
+            }`}
+          >
+            <Gift className="w-4 h-4 text-amber-400" />
+            <span>Celebration Packages ({packagesList.length})</span>
           </button>
 
           <button
@@ -1735,7 +1924,159 @@ export const Admin: React.FC = () => {
         )}
 
         {/* ============================================================ */}
-        {/* TAB 4: DEMAND & METRICS */}
+        {/* TAB 4: CELEBRATION PACKAGES */}
+        {/* ============================================================ */}
+        {activeTab === 'packages' && (
+          <div className="space-y-6 animate-in fade-in-50 duration-150">
+            {/* Header Banner & Add Button */}
+            <div className={`p-6 rounded-3xl border flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm ${
+              isDark ? 'bg-[#2A1A0D] border-[#4A2C16]' : 'bg-[#F1E8D8] border-[#E4D4BC]'
+            }`}>
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <Gift className="w-5 h-5 text-amber-500" />
+                  <h3 className="font-serif font-bold text-lg sm:text-xl">Holiday & Celebration Packages ({packagesList.length})</h3>
+                </div>
+                <p className="text-xs opacity-75 max-w-xl">
+                  Manage festive celebration bundles in the PostgreSQL database. Customers view these bundles on the homepage and can order or reserve them with a 50% deposit.
+                </p>
+              </div>
+
+              <button
+                onClick={() => setIsAddPackageOpen(true)}
+                className="flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-black font-extrabold text-xs shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer whitespace-nowrap"
+              >
+                <Plus className="w-4 h-4 stroke-[3]" />
+                <span>Add New Celebration Package</span>
+              </button>
+            </div>
+
+            {/* Packages Grid */}
+            {packagesList.length === 0 ? (
+              <div className={`p-12 text-center rounded-3xl border ${
+                isDark ? 'bg-[#24170D] border-[#4A2C16]' : 'bg-white border-[#E4D4BC]'
+              }`}>
+                <Gift className="w-12 h-12 text-amber-500/40 mx-auto mb-3" />
+                <h4 className="font-serif font-bold text-base mb-1">No Celebration Packages Found</h4>
+                <p className="text-xs opacity-60 mb-4">Click below to create your first holiday celebration package.</p>
+                <button
+                  onClick={() => setIsAddPackageOpen(true)}
+                  className="px-4 py-2 rounded-xl bg-amber-500 text-black font-bold text-xs"
+                >
+                  + Add Package
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                {packagesList.map((pkg) => (
+                  <div
+                    key={pkg.id}
+                    className={`rounded-3xl border overflow-hidden flex flex-col justify-between transition-all duration-200 hover:shadow-xl ${
+                      isDark ? 'bg-[#1F140A] border-[#4A2C16]' : 'bg-white border-[#E4D4BC]'
+                    }`}
+                  >
+                    <div>
+                      {/* Package Image & Badges */}
+                      <div className="relative h-48 w-full bg-black/20 overflow-hidden">
+                        <img
+                          src={pkg.image}
+                          alt={pkg.name}
+                          className="w-full h-full object-cover"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                        
+                        <div className="absolute top-3 left-3">
+                          <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-500 text-black shadow-md">
+                            {pkg.badge || 'Holiday Package'}
+                          </span>
+                        </div>
+
+                        {pkg.featured && (
+                          <div className="absolute top-3 right-3">
+                            <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500 text-white shadow-md">
+                              ★ Featured on Home
+                            </span>
+                          </div>
+                        )}
+
+                        <div className="absolute bottom-3 left-3 right-3 text-white">
+                          <h4 className="font-serif font-bold text-base line-clamp-1">{pkg.name}</h4>
+                          {pkg.amharicName && (
+                            <div className="text-xs text-amber-300 font-serif opacity-90 line-clamp-1">{pkg.amharicName}</div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Content Details */}
+                      <div className="p-4 sm:p-5 space-y-3">
+                        {pkg.tagline && (
+                          <div className="text-xs font-semibold text-amber-500 italic">
+                            "{pkg.tagline}"
+                          </div>
+                        )}
+
+                        <p className="text-xs opacity-80 line-clamp-3 leading-relaxed">
+                          {pkg.description}
+                        </p>
+
+                        {/* Included Contents */}
+                        <div className="space-y-1.5 pt-1">
+                          <div className="text-[10px] font-bold uppercase tracking-wider opacity-60 flex items-center justify-between">
+                            <span>Includes ({pkg.items?.length || 0} items):</span>
+                            <span className="text-emerald-500 font-semibold">{pkg.categoryCount} Categories</span>
+                          </div>
+                          <div className="flex flex-wrap gap-1">
+                            {pkg.items?.map((item, idx) => (
+                              <span
+                                key={idx}
+                                className="text-[10px] px-2 py-0.5 rounded-md bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 font-medium truncate max-w-[220px]"
+                              >
+                                • {item.name}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Price & Action */}
+                    <div className={`p-4 sm:p-5 border-t flex items-center justify-between gap-3 ${
+                      isDark ? 'bg-[#24170D] border-[#4A2C16]' : 'bg-[#FAF7F0] border-[#E4D4BC]'
+                    }`}>
+                      <div>
+                        {pkg.originalPrice > pkg.packagePrice && (
+                          <div className="text-[10px] line-through opacity-50 font-mono">
+                            {formatPrice(pkg.originalPrice)}
+                          </div>
+                        )}
+                        <div className="font-serif font-extrabold text-base sm:text-lg text-amber-500">
+                          {formatPrice(pkg.packagePrice)}
+                        </div>
+                        {pkg.savings > 0 && (
+                          <div className="text-[10px] text-emerald-500 font-bold">
+                            Save {formatPrice(pkg.savings)}
+                          </div>
+                        )}
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => handleDeletePackage(pkg.id, pkg.name)}
+                        className="p-2.5 rounded-xl text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer border border-red-500/20"
+                        title="Delete Package"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ============================================================ */}
+        {/* TAB 5: DEMAND & METRICS */}
         {/* ============================================================ */}
         {activeTab === 'demand' && (
           <div className="space-y-6 animate-in fade-in-50 duration-150">
@@ -2057,6 +2398,366 @@ export const Admin: React.FC = () => {
                 className="w-full py-3 rounded-xl bg-[#C18A45] hover:bg-[#A06E35] text-white font-bold text-xs shadow transition-all"
               >
                 Create Listing
+              </button>
+            </form>
+          </div>
+        </div>
+        )}
+
+      {/* Add Celebration Package Modal */}
+      {isAddPackageOpen && (
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div
+            className={`relative w-full max-w-2xl rounded-3xl border shadow-2xl p-6 sm:p-8 animate-in fade-in zoom-in-95 duration-200 my-8 ${
+              isDark ? 'bg-[#24170D] border-[#4A2C16] text-[#F4E8D0]' : 'bg-white border-[#E4D4BC] text-[#2A1A0D]'
+            }`}
+          >
+            <button
+              onClick={() => setIsAddPackageOpen(false)}
+              className="absolute top-5 right-5 p-2 rounded-full opacity-60 hover:opacity-100 cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-8 h-8 rounded-xl bg-amber-500/15 text-amber-500 flex items-center justify-center">
+                <Gift className="w-4 h-4" />
+              </div>
+              <h3 className="font-serif font-bold text-xl">Create New Celebration Package</h3>
+            </div>
+            <p className="text-xs opacity-70 mb-5">
+              Fill in all package details. It will be saved directly into PostgreSQL and featured on the celebration marketplace.
+            </p>
+
+            <form onSubmit={handleAddPackageSubmit} className="space-y-4">
+              {/* Package Title (English & Amharic) */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold uppercase mb-1 opacity-80">Package Name (English) *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Enkutatash Royal Banquet"
+                    value={newPkgName}
+                    onChange={(e) => setNewPkgName(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl text-xs border bg-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold uppercase mb-1 opacity-80">Package Name (Amharic)</label>
+                  <input
+                    type="text"
+                    placeholder="የእንቁጣጣሽ የንግሥና ድግስ ጥቅል"
+                    value={newPkgAmharicName}
+                    onChange={(e) => setNewPkgAmharicName(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl text-xs border bg-transparent"
+                  />
+                </div>
+              </div>
+
+              {/* Tagline & Badge */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold uppercase mb-1 opacity-80">Tagline / Subtitle</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. All-Inclusive Holiday Feast for 15-25 Guests"
+                    value={newPkgTagline}
+                    onChange={(e) => setNewPkgTagline(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl text-xs border bg-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold uppercase mb-1 opacity-80">Badge / Promotional Label</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. ⭐ Most Popular, 👑 VIP Luxury, 🎉 Holiday Special"
+                    value={newPkgBadge}
+                    onChange={(e) => setNewPkgBadge(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl text-xs border bg-transparent"
+                  />
+                </div>
+              </div>
+
+              {/* Detailed Description */}
+              <div>
+                <label className="block text-xs font-semibold uppercase mb-1 opacity-80">Package Description *</label>
+                <textarea
+                  rows={2}
+                  required
+                  placeholder="Describe what makes this package special, included premium meats, beverages, and service details..."
+                  value={newPkgDescription}
+                  onChange={(e) => setNewPkgDescription(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl text-xs border bg-transparent"
+                />
+              </div>
+
+              {/* Pricing & Featured */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold uppercase mb-1 opacity-80">Package Price (Selling) *</label>
+                  <input
+                    type="number"
+                    required
+                    min={1}
+                    value={newPkgPackagePrice}
+                    onChange={(e) => setNewPkgPackagePrice(Number(e.target.value))}
+                    className="w-full px-3 py-2 rounded-xl text-xs border bg-transparent font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold uppercase mb-1 opacity-80">Original / Regular Price *</label>
+                  <input
+                    type="number"
+                    required
+                    min={1}
+                    value={newPkgOriginalPrice}
+                    onChange={(e) => setNewPkgOriginalPrice(Number(e.target.value))}
+                    className="w-full px-3 py-2 rounded-xl text-xs border bg-transparent font-mono"
+                  />
+                </div>
+                <div className="flex flex-col justify-end">
+                  <label className="flex items-center gap-2 text-xs font-semibold cursor-pointer pb-2">
+                    <input
+                      type="checkbox"
+                      checked={newPkgFeatured}
+                      onChange={(e) => setNewPkgFeatured(e.target.checked)}
+                      className="w-4 h-4 rounded text-amber-500"
+                    />
+                    <span>Feature on Homepage</span>
+                  </label>
+                </div>
+              </div>
+
+              {/* Real-time Savings Pill */}
+              {newPkgOriginalPrice > newPkgPackagePrice && (
+                <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs flex items-center justify-between">
+                  <span>Customer Savings / Discount:</span>
+                  <span className="font-mono font-bold">Save {formatPrice(newPkgOriginalPrice - newPkgPackagePrice)} ({(Math.round(((newPkgOriginalPrice - newPkgPackagePrice) / newPkgOriginalPrice) * 100))}% OFF)</span>
+                </div>
+              )}
+
+              {/* Drag and Drop Image Uploader */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="block text-xs font-semibold uppercase opacity-80">
+                    Package Cover Photo (Drag & Drop, File, or URL) *
+                  </label>
+                  <div className="flex items-center gap-1 text-[10px]">
+                    <button
+                      type="button"
+                      onClick={() => setPkgImageUploadMode('upload')}
+                      className={`px-2 py-0.5 rounded-lg font-medium transition-colors cursor-pointer ${
+                        pkgImageUploadMode === 'upload'
+                          ? 'bg-amber-500 text-black font-bold'
+                          : 'opacity-60 hover:opacity-100'
+                      }`}
+                    >
+                      File Upload
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPkgImageUploadMode('url')}
+                      className={`px-2 py-0.5 rounded-lg font-medium transition-colors cursor-pointer ${
+                        pkgImageUploadMode === 'url'
+                          ? 'bg-amber-500 text-black font-bold'
+                          : 'opacity-60 hover:opacity-100'
+                      }`}
+                    >
+                      Paste URL
+                    </button>
+                  </div>
+                </div>
+
+                <input
+                  type="file"
+                  ref={pkgImageInputRef}
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    if (e.target.files && e.target.files[0]) {
+                      handlePackageImageFile(e.target.files[0]);
+                    }
+                  }}
+                />
+
+                {pkgImageUploadMode === 'upload' ? (
+                  newPkgImage ? (
+                    <div
+                      className={`flex items-center gap-3 p-3 rounded-2xl border ${
+                        isDark ? 'bg-[#1B1208] border-[#4A2C16]' : 'bg-[#FAF7F0] border-[#E4D4BC]'
+                      }`}
+                    >
+                      <div className="relative w-20 h-20 rounded-xl overflow-hidden shrink-0 border border-black/10 dark:border-white/10 bg-black/10">
+                        <img
+                          src={newPkgImage}
+                          alt="Package Preview"
+                          className="w-full h-full object-cover"
+                        />
+                        {isUploadingPkgImage && (
+                          <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                            <RefreshCw className="w-5 h-5 text-amber-500 animate-spin" />
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="flex-1 min-w-0 pr-1">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-xs font-bold text-amber-500">
+                            {isUploadingPkgImage ? 'Uploading image...' : '✓ Package Photo Attached'}
+                          </span>
+                        </div>
+                        <p className="text-[10px] opacity-60 truncate mt-0.5">
+                          {newPkgImage.startsWith('data:') ? 'Local preview ready' : newPkgImage}
+                        </p>
+                        <div className="mt-2 flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => pkgImageInputRef.current?.click()}
+                            className="text-[11px] font-semibold text-amber-500 hover:underline cursor-pointer"
+                          >
+                            Choose Another
+                          </button>
+                          <span className="opacity-30">•</span>
+                          <button
+                            type="button"
+                            onClick={() => setNewPkgImage('')}
+                            className="text-[11px] font-semibold text-red-400 hover:underline inline-flex items-center gap-0.5 cursor-pointer"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                            <span>Remove</span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div
+                      onDragOver={handlePackageDragOver}
+                      onDragLeave={handlePackageDragLeave}
+                      onDrop={handlePackageDrop}
+                      onClick={() => pkgImageInputRef.current?.click()}
+                      className={`relative cursor-pointer rounded-2xl border-2 border-dashed p-5 text-center transition-all group select-none ${
+                        isDraggingPkgImage
+                          ? 'border-amber-500 bg-amber-500/20 scale-[1.01]'
+                          : isDark
+                          ? 'border-[#4A2C16] hover:border-amber-500/70 bg-[#1B1208]/60 hover:bg-[#1B1208]'
+                          : 'border-[#E4D4BC] hover:border-amber-500/70 bg-[#FAF7F0]/80 hover:bg-[#FAF7F0]'
+                      }`}
+                    >
+                      <div className="flex flex-col items-center justify-center gap-1.5">
+                        <div className="p-2.5 rounded-full bg-amber-500/15 text-amber-500">
+                          <UploadCloud className="w-5 h-5" />
+                        </div>
+                        <p className="text-xs font-bold">
+                          Drag and drop package photo here, or <span className="text-amber-500 underline">browse</span>
+                        </p>
+                        <span className="text-[10px] opacity-50">JPG, PNG, WEBP up to 10MB</span>
+                      </div>
+                    </div>
+                  )
+                ) : (
+                  <div>
+                    <input
+                      type="url"
+                      placeholder="https://images.unsplash.com/..."
+                      value={newPkgImage}
+                      onChange={(e) => setNewPkgImage(e.target.value)}
+                      className="w-full px-3 py-2 rounded-xl text-xs border bg-transparent"
+                    />
+                    {newPkgImage && (
+                      <div className="mt-2 flex items-center gap-2">
+                        <img
+                          src={newPkgImage}
+                          alt="URL Preview"
+                          className="w-12 h-12 rounded-lg object-cover border"
+                          onError={(e) => {
+                            (e.target as HTMLElement).style.display = 'none';
+                          }}
+                        />
+                        <span className="text-[10px] opacity-60">URL preview ready</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Included Items Selector */}
+              <div className="space-y-2 pt-2 border-t border-black/10 dark:border-white/10">
+                <div className="flex items-center justify-between">
+                  <label className="block text-xs font-bold uppercase tracking-wider opacity-90">
+                    Included Items in Package ({newPkgSelectedItems.length} selected) *
+                  </label>
+                  <span className="text-[11px] text-amber-500 font-semibold">
+                    Click items below to include
+                  </span>
+                </div>
+
+                {/* Available Catalog Items */}
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-44 overflow-y-auto p-1">
+                  {catalogItems.map((item) => {
+                    const isSelected = newPkgSelectedItems.some(i => i.id === item.id);
+                    return (
+                      <button
+                        type="button"
+                        key={item.id}
+                        onClick={() => handleToggleCatalogItem(item)}
+                        className={`p-2 rounded-xl border text-left flex items-center gap-2 transition-all cursor-pointer ${
+                          isSelected
+                            ? 'bg-amber-500/20 border-amber-500 text-amber-500 shadow-sm'
+                            : 'bg-black/5 dark:bg-white/5 border-transparent opacity-70 hover:opacity-100'
+                        }`}
+                      >
+                        <div className="w-4 h-4 rounded border flex items-center justify-center shrink-0 border-current">
+                          {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
+                        </div>
+                        <div className="min-w-0">
+                          <div className="text-[11px] font-bold truncate">{item.name}</div>
+                          <div className="text-[9px] opacity-70">{formatPrice(item.price)}</div>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Quick Add Custom Item */}
+                <div className="pt-2 flex flex-col sm:flex-row gap-2 items-end">
+                  <div className="flex-1 w-full">
+                    <input
+                      type="text"
+                      placeholder="Add custom item (e.g. 5kg Extra Berbere Spices)"
+                      value={customItemName}
+                      onChange={(e) => setCustomItemName(e.target.value)}
+                      className="w-full px-3 py-1.5 rounded-xl text-xs border bg-transparent"
+                    />
+                  </div>
+                  <div className="w-full sm:w-36">
+                    <select
+                      value={customItemCategory}
+                      onChange={(e) => setCustomItemCategory(e.target.value as any)}
+                      className="w-full px-2 py-1.5 rounded-xl text-xs border bg-transparent"
+                    >
+                      <option value="meat_livestock" className="text-black">Meat / Livestock</option>
+                      <option value="wine" className="text-black">Wine & Tej</option>
+                      <option value="eggs" className="text-black">Farm Eggs</option>
+                      <option value="flowers" className="text-black">Celebration Flowers</option>
+                    </select>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleAddCustomItem}
+                    className="w-full sm:w-auto px-3 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-500 text-xs font-bold transition-colors whitespace-nowrap cursor-pointer"
+                  >
+                    + Add Item
+                  </button>
+                </div>
+              </div>
+
+              {/* Submit & Save */}
+              <button
+                type="submit"
+                className="w-full py-3.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-black font-extrabold text-xs shadow-lg hover:shadow-xl hover:scale-[1.01] active:scale-[0.99] transition-all cursor-pointer"
+              >
+                Publish Celebration Package to Database
               </button>
             </form>
           </div>

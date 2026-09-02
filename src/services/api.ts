@@ -205,6 +205,56 @@ class ApiService {
     }
   }
 
+  async createPackage(data: {
+    name: string;
+    amharicName?: string;
+    tagline?: string;
+    description: string;
+    items: PackageCatalogItem[];
+    originalPrice: number;
+    packagePrice: number;
+    badge?: string;
+    image: string;
+    featured?: boolean;
+  }, token?: string): Promise<{ success: boolean; message?: string; data?: PreMadePackage; error?: string }> {
+    try {
+      const res = await fetch(`${API_BASE}/packages`, {
+        method: 'POST',
+        headers: this.getHeaders(token),
+        body: JSON.stringify(data)
+      });
+      return await res.json();
+    } catch (error: any) {
+      return { success: false, error: error.message || 'Failed to create package' };
+    }
+  }
+
+  async deletePackage(id: string, token?: string): Promise<{ success: boolean; message?: string; error?: string }> {
+    try {
+      const res = await fetch(`${API_BASE}/packages/${id}`, {
+        method: 'DELETE',
+        headers: this.getHeaders(token)
+      });
+      return await res.json();
+    } catch (error: any) {
+      return { success: false, error: error.message || 'Failed to delete package' };
+    }
+  }
+
+  async uploadPackageImage(file: File): Promise<{ success: boolean; url?: string; error?: string }> {
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+      const res = await fetch(`${API_BASE}/packages/upload-image`, {
+        method: 'POST',
+        body: formData
+      });
+      return await res.json();
+    } catch (error: any) {
+      return { success: false, error: error.message || 'Failed to upload package image' };
+    }
+  }
+
   // ==================== AUTH ====================
   async register(name: string, email: string, phone: string, password: string): Promise<{ success: boolean; token?: string; user?: UserProfile; error?: string }> {
     try {

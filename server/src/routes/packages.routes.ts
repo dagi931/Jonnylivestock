@@ -1,22 +1,29 @@
 import { Router, Request, Response } from 'express';
-import { PACKAGE_CATALOG, PRE_MADE_PACKAGES } from '../data/packagesData.js';
+import { PACKAGE_CATALOG } from '../data/packagesData.js';
 import { PostgresDB } from '../db/postgresDb.js';
-import { authenticateToken, optionalAuth, AuthRequest } from '../middleware/auth.middleware.js';
+import { authenticateToken, requireAdmin, optionalAuth, AuthRequest } from '../middleware/auth.middleware.js';
+import { uploadSlip } from '../middleware/upload.middleware.js';
 
 const router = Router();
 
 // ==================== GET PACKAGE CATALOG & PRE-MADE BUNDLES ====================
-router.get('/', (_req: Request, res: Response): void => {
-  res.json({
-    success: true,
-    catalog: PACKAGE_CATALOG,
-    preMadePackages: PRE_MADE_PACKAGES,
-    rules: {
-      minCategoriesForFreeDelivery: 3,
-      freeDelivery: true,
-      reservationDepositPercent: 50
-    }
-  });
+router.get('/', async (_req: Request, res: Response): Promise<void> => {
+  try {
+    const preMadePackages = await PostgresDB.getPackages();
+    res.json({
+      success: true,
+      catalog: PACKAGE_CATALOG,
+      preMadePackages,
+      rules: {
+        minCategoriesForFreeDelivery: 3,
+        freeDelivery: true,
+        reservationDepositPercent: 50
+      }
+    });
+  } catch (error: any) {
+    console.error('Error fetching packages:', error);
+    res.status(500).json({ success: false, error: 'Failed to fetch packages' });
+  }
 });
 
 router.get('/catalog', (_req: Request, res: Response): void => {
@@ -26,11 +33,98 @@ router.get('/catalog', (_req: Request, res: Response): void => {
   });
 });
 
-router.get('/premade', (_req: Request, res: Response): void => {
-  res.json({
-    success: true,
-    data: PRE_MADE_PACKAGES
-  });
+router.get('/premade', async (_req: Request, res: Response): Promise<void> => {
+  try {
+    const data = await PostgresDB.getPackages();
+    res.json({
+      success: true,
+      data
+    });
+  } catch (error: any) {
+    console.error('Error fetching premade packages:', error);
+    res.status(500).json({ success: false, error: 'Failed to fetch premade packages' });
+  }
+});
+
+// ==================== ADMIN: CREATE PACKAGE ====================
+router.post('/', authenticateToken, requireAdmin, async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const {
+      name,
+      amharicName,
+      tagline,
+      description,
+      items,
+      originalPrice,
+      packagePrice,
+      badge,
+      image,
+      featured
+    } = req.body;
+
+    if (!name || !description || !image || originalPrice === undefined || packagePrice === undefined) {
+      res.status(400).json({
+        success: false,
+        error: 'Missing required package fields: name, description, image, originalPrice, packagePrice'
+      });
+      return;
+    }
+
+    const created = await PostgresDB.createPackage({
+      name,
+      amharicName,
+      tagline,
+      description,
+      items: Array.isArray(items) ? items : [],
+      originalPrice: Number(originalPrice),
+      packagePrice: Number(packagePrice),
+      badge: badge || 'Special Package',
+      image,
+      featured: Boolean(featured)
+    });
+
+    res.status(201).json({
+      success: true,
+      message: 'Celebration package created successfully!',
+      data: created
+    });
+  } catch (error: any) {
+    console.error('Error creating package:', error);
+    res.status(500).json({ success: false, error: 'Failed to create celebration package' });
+  }
+});
+
+// ==================== ADMIN: DELETE PACKAGE ====================
+router.delete('/:id', authenticateToken, requireAdmin, async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const success = await PostgresDB.deletePackage(req.params.id);
+    if (!success) {
+      res.status(404).json({ success: false, error: 'Package not found' });
+      return;
+    }
+    res.json({
+      success: true,
+      message: 'Celebration package deleted successfully!'
+    });
+  } catch (error: any) {
+    console.error('Error deleting package:', error);
+    res.status(500).json({ success: false, error: 'Failed to delete package' });
+  }
+});
+
+// ==================== ADMIN: UPLOAD PACKAGE IMAGE ====================
+router.post('/upload-image', uploadSlip.single('image'), (req: Request, res: Response): void => {
+  try {
+    if (!req.file) {
+      res.status(400).json({ success: false, error: 'No image file uploaded' });
+      return;
+    }
+    const imageUrl = `/uploads/${req.file.filename}`;
+    res.json({ success: true, url: imageUrl });
+  } catch (error: any) {
+    console.error('Error uploading package image:', error);
+    res.status(500).json({ success: false, error: 'Failed to upload image' });
+  }
 });
 
 // ==================== GET USER'S SAVED PACKAGES ====================

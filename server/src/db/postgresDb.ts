@@ -1,5 +1,6 @@
 import prisma from './prisma.js';
-import { Animal, Order, User, AdminNotification, BankAccount, SavedPackage, PackageCatalogItem } from '../types/index.js';
+import { Animal, Order, User, AdminNotification, BankAccount, SavedPackage, PackageCatalogItem, PreMadePackage } from '../types/index.js';
+import { PRE_MADE_PACKAGES } from '../data/packagesData.js';
 
 export class PostgresDB {
   // ==================== ANIMALS ====================
@@ -240,6 +241,154 @@ export class PostgresDB {
 
       await prisma.savedPackage.delete({
         where: { id }
+      });
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  // ==================== CELEBRATION PACKAGES ====================
+  public static async getPackages(): Promise<PreMadePackage[]> {
+    try {
+      const count = await prisma.package.count();
+      if (count === 0) {
+        // Seed initial packages into PostgreSQL
+        for (const p of PRE_MADE_PACKAGES) {
+          await prisma.package.create({
+            data: {
+              id: p.id,
+              name: p.name,
+              amharicName: p.amharicName || null,
+              tagline: p.tagline || null,
+              description: p.description,
+              categoryCount: p.categoryCount || (p.items ? new Set(p.items.map(i => i.category)).size : 1),
+              items: p.items as any,
+              originalPrice: Number(p.originalPrice),
+              packagePrice: Number(p.packagePrice),
+              savings: Number(p.savings || (p.originalPrice - p.packagePrice)),
+              badge: p.badge || 'Special Package',
+              image: p.image,
+              featured: Boolean(p.featured)
+            }
+          });
+        }
+      }
+
+      const packages = await prisma.package.findMany({
+        orderBy: { createdAt: 'desc' }
+      });
+
+      return packages.map(p => ({
+        id: p.id,
+        name: p.name,
+        amharicName: p.amharicName || undefined,
+        tagline: p.tagline || '',
+        description: p.description,
+        categoryCount: p.categoryCount,
+        items: (p.items as unknown) as PackageCatalogItem[],
+        originalPrice: p.originalPrice,
+        packagePrice: p.packagePrice,
+        savings: p.savings,
+        badge: p.badge,
+        image: p.image,
+        featured: p.featured
+      }));
+    } catch (e) {
+      console.error('Error fetching packages from DB:', e);
+      return PRE_MADE_PACKAGES;
+    }
+  }
+
+  public static async getPackageById(id: string): Promise<PreMadePackage | null> {
+    try {
+      const p = await prisma.package.findFirst({
+        where: { id: { equals: id, mode: 'insensitive' } }
+      });
+      if (!p) return null;
+      return {
+        id: p.id,
+        name: p.name,
+        amharicName: p.amharicName || undefined,
+        tagline: p.tagline || '',
+        description: p.description,
+        categoryCount: p.categoryCount,
+        items: (p.items as unknown) as PackageCatalogItem[],
+        originalPrice: p.originalPrice,
+        packagePrice: p.packagePrice,
+        savings: p.savings,
+        badge: p.badge,
+        image: p.image,
+        featured: p.featured
+      };
+    } catch {
+      return null;
+    }
+  }
+
+  public static async createPackage(data: {
+    name: string;
+    amharicName?: string;
+    tagline?: string;
+    description: string;
+    items: PackageCatalogItem[];
+    originalPrice: number;
+    packagePrice: number;
+    badge?: string;
+    image: string;
+    featured?: boolean;
+  }): Promise<PreMadePackage> {
+    const id = `pkg-${Date.now().toString().slice(-6)}`;
+    const originalPrice = Number(data.originalPrice);
+    const packagePrice = Number(data.packagePrice);
+    const savings = Math.max(0, originalPrice - packagePrice);
+    const categoryCount = data.items && data.items.length > 0
+      ? new Set(data.items.map(i => i.category)).size
+      : 1;
+
+    const created = await prisma.package.create({
+      data: {
+        id,
+        name: data.name.trim(),
+        amharicName: data.amharicName ? data.amharicName.trim() : null,
+        tagline: data.tagline ? data.tagline.trim() : null,
+        description: data.description.trim(),
+        categoryCount,
+        items: data.items as any,
+        originalPrice,
+        packagePrice,
+        savings,
+        badge: data.badge ? data.badge.trim() : 'Special Package',
+        image: data.image.trim(),
+        featured: Boolean(data.featured)
+      }
+    });
+
+    return {
+      id: created.id,
+      name: created.name,
+      amharicName: created.amharicName || undefined,
+      tagline: created.tagline || '',
+      description: created.description,
+      categoryCount: created.categoryCount,
+      items: (created.items as unknown) as PackageCatalogItem[],
+      originalPrice: created.originalPrice,
+      packagePrice: created.packagePrice,
+      savings: created.savings,
+      badge: created.badge,
+      image: created.image,
+      featured: created.featured
+    };
+  }
+
+  public static async deletePackage(id: string): Promise<boolean> {
+    try {
+      const existing = await prisma.package.findFirst({
+        where: { id: { equals: id, mode: 'insensitive' } }
+      });
+      if (!existing) return false;
+      await prisma.package.delete({
+        where: { id: existing.id }
       });
       return true;
     } catch {

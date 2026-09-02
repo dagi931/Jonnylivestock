@@ -121,3 +121,21 @@ model Setting {
   key   String @id
   value String
 }
+
+model Package {
+  id            String   @id @default(uuid())
+  name          String
+  amharicName   String?
+  tagline       String?
+  description   String
+  categoryCount Int      @default(1)
+  items         Json     // Array of PackageCatalogItem
+  originalPrice Float
+  packagePrice  Float
+  savings       Float    @default(0)
+  badge         String   @default("Special Package")
+  image         String
+  featured      Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
