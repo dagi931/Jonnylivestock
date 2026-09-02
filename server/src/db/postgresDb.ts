@@ -251,11 +251,12 @@ export class PostgresDB {
   // ==================== CELEBRATION PACKAGES ====================
   public static async getPackages(): Promise<PreMadePackage[]> {
     try {
-      const count = await prisma.package.count();
+      const db = prisma as any;
+      const count = await db.package.count();
       if (count === 0) {
         // Seed initial packages into PostgreSQL
         for (const p of PRE_MADE_PACKAGES) {
-          await prisma.package.create({
+          await db.package.create({
             data: {
               id: p.id,
               name: p.name,
@@ -275,11 +276,11 @@ export class PostgresDB {
         }
       }
 
-      const packages = await prisma.package.findMany({
+      const packages = await db.package.findMany({
         orderBy: { createdAt: 'desc' }
       });
 
-      return packages.map(p => ({
+      return packages.map((p: any) => ({
         id: p.id,
         name: p.name,
         amharicName: p.amharicName || undefined,
@@ -302,7 +303,8 @@ export class PostgresDB {
 
   public static async getPackageById(id: string): Promise<PreMadePackage | null> {
     try {
-      const p = await prisma.package.findFirst({
+      const db = prisma as any;
+      const p = await db.package.findFirst({
         where: { id: { equals: id, mode: 'insensitive' } }
       });
       if (!p) return null;
@@ -346,7 +348,8 @@ export class PostgresDB {
       ? new Set(data.items.map(i => i.category)).size
       : 1;
 
-    const created = await prisma.package.create({
+    const db = prisma as any;
+    const created = await db.package.create({
       data: {
         id,
         name: data.name.trim(),
@@ -383,11 +386,12 @@ export class PostgresDB {
 
   public static async deletePackage(id: string): Promise<boolean> {
     try {
-      const existing = await prisma.package.findFirst({
+      const db = prisma as any;
+      const existing = await db.package.findFirst({
         where: { id: { equals: id, mode: 'insensitive' } }
       });
       if (!existing) return false;
-      await prisma.package.delete({
+      await db.package.delete({
         where: { id: existing.id }
       });
       return true;
