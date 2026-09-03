@@ -223,15 +223,15 @@ export const PackageBuilder: React.FC = () => {
               </button>
             </div>
 
-            <div className="grid grid-cols-2 lg:grid-cols-2 gap-2.5 sm:gap-6">
+            <div className="grid grid-cols-2 lg:grid-cols-2 gap-2.5 sm:gap-6 items-start">
               {preMadePackages.map((pkg, idx) => {
                 const isExpanded = expandedPreMadeId === pkg.id;
                 return (
-                  <AnimatedReveal key={pkg.id} direction="up" delay={80 + idx * 80} className="h-full">
+                  <AnimatedReveal key={pkg.id} direction="up" delay={80 + idx * 80} className="self-start h-fit w-full">
                     <div
                       onTouchStart={() => handleTouchCard(pkg.id)}
                       onTouchEnd={() => handleTouchCard(pkg.id)}
-                      className={`h-full group rounded-2xl sm:rounded-3xl border overflow-hidden transition-all duration-300 hover:shadow-2xl flex flex-col justify-between cursor-pointer select-none ${
+                      className={`self-start h-fit w-full group rounded-2xl sm:rounded-3xl border overflow-hidden transition-all duration-300 hover:shadow-2xl flex flex-col justify-between cursor-pointer select-none ${
                         isDark ? 'bg-[#24170D] border-[#4A2C16]' : 'bg-white border-[#E4D4BC]'
                       }`}
                     >

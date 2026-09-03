@@ -153,11 +153,11 @@ export const CelebrationPackagesSection: React.FC = () => {
           {packages.slice(0, 4).map((pkg, idx) => {
             const isExpanded = expandedPkgId === pkg.id;
             return (
-              <AnimatedReveal key={pkg.id} direction="up" delay={100 + idx * 75} className="h-full">
+              <AnimatedReveal key={pkg.id} direction="up" delay={100 + idx * 75} className="self-start h-fit w-full">
                 <div
                   onTouchStart={() => handleTouchPkg(pkg.id)}
                   onTouchEnd={() => handleTouchPkg(pkg.id)}
-                  className={`h-full rounded-2xl sm:rounded-3xl border overflow-hidden flex flex-col justify-between transition-all duration-300 ease-out hover:shadow-xl group self-start cursor-pointer select-none ${
+                  className={`self-start h-fit w-full rounded-2xl sm:rounded-3xl border overflow-hidden flex flex-col justify-between transition-all duration-300 ease-out hover:shadow-xl group cursor-pointer select-none ${
                     isDark ? 'bg-[#1D130A] border-[#4A2C16]' : 'bg-white border-[#E4D4BC]'
                   } ${isExpanded ? 'ring-1 ring-amber-500/40 shadow-lg' : ''}`}
                 >

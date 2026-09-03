@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Animal } from '../../types/animal';
 import { AnimalCard } from '../common/AnimalCard';
 import { SkeletonCard } from '../common/SkeletonCard';
@@ -22,6 +22,7 @@ export const AnimalGrid: React.FC<AnimalGridProps> = ({
 }) => {
   const { theme } = useTheme();
   const isDark = theme === 'design7';
+  const [expandedAnimalId, setExpandedAnimalId] = useState<string | null>(null);
 
   if (isLoading) {
     return (
@@ -79,9 +80,15 @@ export const AnimalGrid: React.FC<AnimalGridProps> = ({
   }
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-2 xl:grid-cols-3 gap-2 sm:gap-5">
+    <div className="grid grid-cols-2 sm:grid-cols-2 xl:grid-cols-3 gap-2 sm:gap-5 items-start">
       {animals.map((animal, idx) => (
-        <AnimalCard key={animal.id} animal={animal} animationIndex={idx} />
+        <AnimalCard
+          key={animal.id}
+          animal={animal}
+          animationIndex={idx}
+          isExpanded={expandedAnimalId === animal.id}
+          onToggleExpand={() => setExpandedAnimalId((prev) => (prev === animal.id ? null : animal.id))}
+        />
       ))}
     </div>
   );

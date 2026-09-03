@@ -11,16 +11,34 @@ import { useInView } from '../../hooks/useInView';
 interface AnimalCardProps {
   animal: Animal;
   animationIndex?: number;
+  isExpanded?: boolean;
+  onToggleExpand?: () => void;
 }
 
-export const AnimalCard: React.FC<AnimalCardProps> = ({ animal, animationIndex = 0 }) => {
-  const [showMore, setShowMore] = useState(false);
+export const AnimalCard: React.FC<AnimalCardProps> = ({
+  animal,
+  animationIndex = 0,
+  isExpanded,
+  onToggleExpand
+}) => {
+  const [localShowMore, setLocalShowMore] = useState(false);
+  const showMore = isExpanded !== undefined ? isExpanded : localShowMore;
   const [isTouched, setIsTouched] = useState(false);
   const touchTimerRef = useRef<any>(null);
   const { ref: cardRef, isInView } = useInView();
   const { theme } = useTheme();
   const { t, isAmharic } = useLanguage();
   const isDark = theme === 'design7';
+
+  const handleToggleShowMore = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (onToggleExpand) {
+      onToggleExpand();
+    } else {
+      setLocalShowMore((prev) => !prev);
+    }
+  };
 
   const handleTouch = () => {
     setIsTouched(true);
@@ -51,7 +69,7 @@ export const AnimalCard: React.FC<AnimalCardProps> = ({ animal, animationIndex =
         transitionDuration: '650ms',
         transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)',
       }}
-      className={`group relative rounded-xl sm:rounded-2xl border flex flex-col overflow-hidden hover:-translate-y-1 active:-translate-y-0.5 cursor-pointer select-none transition-all ${
+      className={`group relative rounded-xl sm:rounded-2xl border flex flex-col overflow-hidden hover:-translate-y-1 active:-translate-y-0.5 cursor-pointer select-none transition-all self-start h-fit w-full ${
         isInView
           ? 'opacity-100 translate-y-0 scale-100'
           : 'opacity-0 translate-y-7 scale-[0.98]'
@@ -159,11 +177,7 @@ export const AnimalCard: React.FC<AnimalCardProps> = ({ animal, animationIndex =
           <div className="mt-1 sm:mt-1.5">
             <button
               type="button"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                setShowMore(!showMore);
-              }}
+              onClick={handleToggleShowMore}
               className="w-full text-[9.5px] sm:text-xs font-semibold flex items-center justify-between py-0.5 px-1 rounded hover:bg-black/5 dark:hover:bg-white/5 opacity-75 hover:opacity-100 transition-colors"
             >
               <span>{showMore ? (isAmharic ? 'አሳንስ' : 'Show less') : (isAmharic ? 'ተጨማሪ ዝርዝር' : 'Show more')}</span>
