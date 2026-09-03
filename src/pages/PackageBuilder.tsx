@@ -228,9 +228,6 @@ export const PackageBuilder: React.FC = () => {
                         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
                         
                         <div className="absolute top-2 left-2 sm:top-4 sm:left-4 flex flex-wrap gap-1 sm:gap-2">
-                          <span className="px-2 py-0.5 sm:px-3 sm:py-1 rounded-full text-[9px] sm:text-xs font-bold bg-amber-500 text-black shadow-md">
-                            {pkg.badge}
-                          </span>
                           <span className="px-2 py-0.5 sm:px-3 sm:py-1 rounded-full text-[9px] sm:text-xs font-bold bg-emerald-600 text-white flex items-center gap-1 shadow-md">
                             <Truck className="w-2.5 h-2.5 sm:w-3 sm:h-3" /> Free Delivery
                           </span>

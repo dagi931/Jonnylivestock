@@ -159,12 +159,6 @@ export const CelebrationPackagesSection: React.FC = () => {
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-                    
-                    <div className="absolute top-1.5 left-1.5 sm:top-3 sm:left-3">
-                      <span className="px-1.5 py-0.5 sm:px-2.5 rounded-full text-[9px] sm:text-[11px] font-bold bg-amber-500 text-black shadow-md">
-                        {pkg.badge}
-                      </span>
-                    </div>
 
                     <div className="absolute bottom-1.5 left-1.5 right-1.5 sm:bottom-3 sm:left-3 sm:right-3 text-white">
                       <h3 className="font-serif font-bold text-xs sm:text-base line-clamp-1">{pkg.name}</h3>
