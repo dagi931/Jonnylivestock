@@ -87,16 +87,15 @@ export const CelebrationPackagesSection: React.FC = () => {
           </div>
         </div>
 
-        {/* 3 Prominent Benefit Highlights: 1 Row on Mobile (grid-cols-3), Minimized & Less Content */}
-        <div className="grid grid-cols-3 gap-1.5 sm:gap-3 mb-6 sm:mb-8">
-          <div
-            className={`p-2 sm:p-3.5 rounded-xl sm:rounded-2xl border flex flex-col items-center sm:flex-row sm:items-center text-center sm:text-left gap-1 sm:gap-3 justify-center ${
-              isDark ? 'bg-[#1D130A]/80 border-[#4A2C16]' : 'bg-white border-[#E4D4BC]'
-            }`}
-          >
-            <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl bg-emerald-500/15 text-emerald-500 flex items-center justify-center shrink-0">
-              <Truck className="w-3.5 h-3.5 sm:w-5 sm:h-5" />
-            </div>
+        {/* 3 Prominent Benefit Highlights: Separated by vertical lines, without card containers */}
+        <div
+          className={`grid grid-cols-3 py-3 sm:py-4 mb-6 sm:mb-8 border-y ${
+            isDark ? 'border-[#4A2C16] divide-[#4A2C16]' : 'border-[#E4D4BC] divide-[#E4D4BC]'
+          } divide-x`}
+        >
+          {/* Benefit 1 */}
+          <div className="px-2 sm:px-6 flex flex-col items-center sm:flex-row sm:items-center text-center sm:text-left gap-1.5 sm:gap-3 justify-center">
+            <Truck className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-500 shrink-0" />
             <div>
               <div className="font-bold text-[10.5px] sm:text-xs leading-tight sm:leading-normal">
                 {isAmharic ? '100% ነፃ ማድረሻ' : '100% Free Doorstep Delivery'}
@@ -107,14 +106,9 @@ export const CelebrationPackagesSection: React.FC = () => {
             </div>
           </div>
 
-          <div
-            className={`p-2 sm:p-3.5 rounded-xl sm:rounded-2xl border flex flex-col items-center sm:flex-row sm:items-center text-center sm:text-left gap-1 sm:gap-3 justify-center ${
-              isDark ? 'bg-[#1D130A]/80 border-[#4A2C16]' : 'bg-white border-[#E4D4BC]'
-            }`}
-          >
-            <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl bg-amber-500/15 text-amber-500 flex items-center justify-center shrink-0">
-              <ShieldCheck className="w-3.5 h-3.5 sm:w-5 sm:h-5" />
-            </div>
+          {/* Benefit 2 */}
+          <div className="px-2 sm:px-6 flex flex-col items-center sm:flex-row sm:items-center text-center sm:text-left gap-1.5 sm:gap-3 justify-center">
+            <ShieldCheck className="w-4 h-4 sm:w-5 sm:h-5 text-amber-500 shrink-0" />
             <div>
               <div className="font-bold text-[10.5px] sm:text-xs leading-tight sm:leading-normal">
                 {isAmharic ? '50% ቅድመ-ክፍያ' : '50% Reservation Guarantee'}
@@ -125,14 +119,9 @@ export const CelebrationPackagesSection: React.FC = () => {
             </div>
           </div>
 
-          <div
-            className={`p-2 sm:p-3.5 rounded-xl sm:rounded-2xl border flex flex-col items-center sm:flex-row sm:items-center text-center sm:text-left gap-1 sm:gap-3 justify-center ${
-              isDark ? 'bg-[#1D130A]/80 border-[#4A2C16]' : 'bg-white border-[#E4D4BC]'
-            }`}
-          >
-            <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl bg-purple-500/15 text-purple-400 flex items-center justify-center shrink-0">
-              <Gift className="w-3.5 h-3.5 sm:w-5 sm:h-5" />
-            </div>
+          {/* Benefit 3 */}
+          <div className="px-2 sm:px-6 flex flex-col items-center sm:flex-row sm:items-center text-center sm:text-left gap-1.5 sm:gap-3 justify-center">
+            <Gift className="w-4 h-4 sm:w-5 sm:h-5 text-purple-400 shrink-0" />
             <div>
               <div className="font-bold text-[10.5px] sm:text-xs leading-tight sm:leading-normal">
                 {isAmharic ? 'የራስዎን ጥቅል ያዘጋጁ' : 'Build Your Own Combination'}
