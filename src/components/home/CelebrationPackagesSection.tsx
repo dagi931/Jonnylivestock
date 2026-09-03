@@ -140,15 +140,15 @@ export const CelebrationPackagesSection: React.FC = () => {
         </div>
 
         {/* Packages Cards Grid: 2 Cards per Row on Mobile (grid-cols-2), Compact with Show Details */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-5">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-5 items-start">
           {packages.slice(0, 4).map((pkg) => {
             const isExpanded = expandedPkgId === pkg.id;
             return (
               <div
                 key={pkg.id}
-                className={`rounded-2xl sm:rounded-3xl border overflow-hidden flex flex-col justify-between transition-all duration-300 hover:shadow-xl group ${
+                className={`rounded-2xl sm:rounded-3xl border overflow-hidden flex flex-col justify-between transition-all duration-300 ease-out hover:shadow-xl group self-start ${
                   isDark ? 'bg-[#1D130A] border-[#4A2C16]' : 'bg-white border-[#E4D4BC]'
-                }`}
+                } ${isExpanded ? 'ring-1 ring-amber-500/40 shadow-lg' : ''}`}
               >
                 <div>
                   {/* Compact Image */}
@@ -179,26 +179,38 @@ export const CelebrationPackagesSection: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => setExpandedPkgId(isExpanded ? null : pkg.id)}
-                      className="w-full text-[9.5px] sm:text-xs font-semibold flex items-center justify-between py-1 px-1 rounded-md hover:bg-black/5 dark:hover:bg-white/5 opacity-80 hover:opacity-100 transition-colors border border-black/5 dark:border-white/5"
+                      className={`w-full text-[9.5px] sm:text-xs font-semibold flex items-center justify-between py-1.5 px-2 rounded-lg transition-all duration-200 border cursor-pointer ${
+                        isExpanded
+                          ? (isDark ? 'bg-amber-500/15 border-amber-500/40 text-amber-400' : 'bg-amber-50 border-amber-300 text-amber-700')
+                          : 'hover:bg-black/5 dark:hover:bg-white/5 opacity-80 hover:opacity-100 border-black/5 dark:border-white/5'
+                      }`}
                     >
                       <span>{isExpanded ? (isAmharic ? 'ዝርዝር አሳንስ' : 'Hide details') : (isAmharic ? 'የጥቅሉ ዝርዝር' : 'Show details')}</span>
-                      <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
+                      <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-300 ease-out ${isExpanded ? 'rotate-180' : ''}`} />
                     </button>
 
-                    {/* Expandable Items List */}
-                    {isExpanded && (
-                      <div className="space-y-1 pt-1 animate-in fade-in duration-150">
-                        <div className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider opacity-60">Includes:</div>
-                        <div className="space-y-1">
-                          {pkg.items.map((item, i) => (
-                            <div key={i} className="text-[10px] sm:text-xs flex items-center gap-1 opacity-85 truncate">
-                              <Check className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-emerald-500 shrink-0" />
-                              <span className="truncate">{item.name}</span>
-                            </div>
-                          ))}
+                    {/* Smooth Animated Expandable Items List */}
+                    <div
+                      className={`grid transition-[grid-template-rows,opacity] duration-300 ease-out ${
+                        isExpanded ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0 pointer-events-none'
+                      }`}
+                    >
+                      <div className="overflow-hidden">
+                        <div className="space-y-1.5 pt-2 border-t border-black/5 dark:border-white/5">
+                          <div className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider opacity-60">
+                            {isAmharic ? 'የተካተቱ ዕቃዎች:' : 'Includes:'}
+                          </div>
+                          <div className="space-y-1">
+                            {pkg.items.map((item, i) => (
+                              <div key={i} className="text-[10px] sm:text-xs flex items-center gap-1.5 opacity-85 truncate">
+                                <Check className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-emerald-500 shrink-0" />
+                                <span className="truncate">{item.name}</span>
+                              </div>
+                            ))}
+                          </div>
                         </div>
                       </div>
-                    )}
+                    </div>
                   </div>
                 </div>
 
