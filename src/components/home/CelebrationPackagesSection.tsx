@@ -216,11 +216,11 @@ export const CelebrationPackagesSection: React.FC = () => {
 
                 {/* Price & Action */}
                 <div
-                  className={`p-2 sm:p-4 border-t space-y-1.5 sm:space-y-2.5 ${
+                  className={`border-t flex flex-col justify-between ${
                     isDark ? 'bg-[#24170D] border-[#4A2C16]' : 'bg-[#FAF7F0] border-[#E4D4BC]'
                   }`}
                 >
-                  <div className="flex justify-between items-baseline gap-1">
+                  <div className="p-2 sm:p-4 pb-2 sm:pb-3 flex justify-between items-baseline gap-1">
                     <div className="min-w-0">
                       <span className="text-[9px] line-through opacity-50 font-mono mr-1">
                         {formatPrice(pkg.originalPrice)}
@@ -242,9 +242,9 @@ export const CelebrationPackagesSection: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => handleOrder(pkg)}
-                    className="w-full py-1.5 sm:py-2.5 rounded-lg sm:rounded-xl bg-amber-500 hover:bg-amber-600 text-black font-bold text-[10px] sm:text-xs transition-all shadow-md flex items-center justify-center gap-1"
+                    className="w-full py-2.5 sm:py-3.5 rounded-t-xl sm:rounded-t-2xl bg-amber-500 hover:bg-amber-600 text-black font-bold text-[10.5px] sm:text-xs transition-all shadow-md flex items-center justify-center gap-1.5 cursor-pointer active:scale-[0.99]"
                   >
-                    <Gift className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                    <Gift className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                     <span>Order / 50% Reserve</span>
                   </button>
                 </div>
