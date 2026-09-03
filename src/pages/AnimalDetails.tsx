@@ -20,7 +20,6 @@ import { useRealtimeEvent } from '../context/RealtimeContext';
 import {
   Phone,
   MessageCircle,
-  CalendarCheck,
   HelpCircle,
   Scale,
   MapPin,
@@ -43,6 +42,7 @@ export const AnimalDetails: React.FC = () => {
   const isDark = theme === 'design7';
 
   const [isBuyModalOpen, setIsBuyModalOpen] = useState(false);
+  const [buyModalMode, setBuyModalMode] = useState<'deposit' | 'full'>('deposit');
   const [isReservationOpen, setIsReservationOpen] = useState(false);
   const [isServiceModalOpen, setIsServiceModalOpen] = useState(false);
   const [isInquiryOpen, setIsInquiryOpen] = useState(false);
@@ -245,9 +245,9 @@ export const AnimalDetails: React.FC = () => {
                 {animal.breed}
               </h1>
 
-              {/* Price Banner */}
+              {/* Price Banner with 50% Reservation Deposit */}
               <div
-                className={`mt-3.5 p-3.5 rounded-2xl border flex items-baseline justify-between ${
+                className={`mt-3.5 p-3.5 rounded-2xl border flex items-center justify-between ${
                   isDark
                     ? 'bg-[#1B1208] border-[#4A2C16]'
                     : 'bg-[#FAF7F0] border-[#E4D4BC]'
@@ -266,8 +266,13 @@ export const AnimalDetails: React.FC = () => {
                   </span>
                 </div>
 
-                <div className="text-right text-xs opacity-70">
-                  <span>{isAmharic ? 'ቀጥታ ከእርሻ' : 'Direct Farm Price'}</span>
+                <div className="text-right">
+                  <span className="block text-[10px] sm:text-[11px] uppercase tracking-wider font-bold text-amber-500">
+                    {isAmharic ? '50% ቅድመ-ክፍያ ማስያዣ' : '50% Reserve Deposit'}
+                  </span>
+                  <span className="text-base sm:text-lg font-black font-mono text-emerald-500">
+                    {formatPrice(animal.price * 0.5)}
+                  </span>
                 </div>
               </div>
 
@@ -410,44 +415,56 @@ export const AnimalDetails: React.FC = () => {
                 </div>
               ) : (
                 <div className="space-y-2.5">
-                  {/* Primary CTA: Direct Buy & Upload Payment Slip */}
-                  <button
-                    type="button"
-                    onClick={() => setIsBuyModalOpen(true)}
-                    className="w-full py-3.5 px-4 rounded-xl text-sm font-bold flex items-center justify-center gap-2 bg-gradient-to-r from-[#C18A45] to-[#A06E35] text-white shadow-lg hover:shadow-xl hover:scale-[1.01] active:scale-[0.99] transition-all"
-                  >
-                    <CreditCard className="w-4 h-4" />
-                    <span>{isAmharic ? 'በቀጥታ ይግዙና ደረሰኝ ይጫኑ (Buy Now & Upload Slip)' : 'Buy Now & Upload Payment Slip'}</span>
-                  </button>
-
-                  {/* Secondary CTA: Request Reservation & Services */}
+                  {/* Primary CTA: 50% Reservation Deposit */}
                   <button
                     type="button"
                     onClick={() => {
-                      if (selectedServices.length > 0) {
-                        setIsServiceModalOpen(true);
-                      } else {
-                        setIsReservationOpen(true);
-                      }
+                      setBuyModalMode('deposit');
+                      setIsBuyModalOpen(true);
                     }}
-                    className={`w-full py-2.5 px-4 rounded-xl text-xs font-semibold border flex items-center justify-center gap-2 transition-all ${
+                    className="w-full py-3.5 px-4 rounded-xl text-sm font-bold flex items-center justify-between bg-amber-500 hover:bg-amber-600 text-black shadow-lg hover:shadow-xl hover:scale-[1.01] active:scale-[0.99] transition-all cursor-pointer"
+                  >
+                    <span className="flex items-center gap-2">
+                      <ShieldCheck className="w-4 h-4" />
+                      <span>{isAmharic ? 'በ50% ቅድመ-ክፍያ እንስሳውን ያስይዙ' : 'Reserve Animal with 50% Deposit'}</span>
+                    </span>
+                    <span className="font-mono font-black text-sm bg-black/10 px-2.5 py-0.5 rounded-lg">
+                      {formatPrice(animal.price * 0.5)}
+                    </span>
+                  </button>
+
+                  {/* Secondary CTA: Direct Buy in Full */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setBuyModalMode('full');
+                      setIsBuyModalOpen(true);
+                    }}
+                    className={`w-full py-2.5 px-4 rounded-xl text-xs font-semibold border flex items-center justify-center gap-2 transition-all cursor-pointer ${
                       isDark
                         ? 'bg-[#1B1208] border-[#4A2C16] text-[#D8C5A8] hover:border-[#C58A3A] hover:text-[#F4E8D0]'
                         : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#746556] hover:border-[#B8792F] hover:text-[#241A12]'
                     }`}
                   >
-                    {selectedServices.length > 0 ? (
-                      <>
-                        <Sparkles className="w-3.5 h-3.5 text-[#C18A45]" />
-                        <span>{t.detailsPage.requestAnimalAndServices} ({selectedServices.length})</span>
-                      </>
-                    ) : (
-                      <>
-                        <CalendarCheck className="w-3.5 h-3.5 text-[#C18A45]" />
-                        <span>{t.common.requestReservation}</span>
-                      </>
-                    )}
+                    <CreditCard className="w-3.5 h-3.5" />
+                    <span>{isAmharic ? '100% ሙሉ ክፍያ ፈጽመው ይግዙ (Buy in Full)' : 'Buy in Full & Upload Payment Slip'}</span>
                   </button>
+
+                  {/* Tertiary CTA: Request Services if selected */}
+                  {selectedServices.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setIsServiceModalOpen(true)}
+                      className={`w-full py-2 px-3 rounded-xl text-xs font-semibold border flex items-center justify-center gap-1.5 transition-all ${
+                        isDark
+                          ? 'bg-[#1B1208] border-[#4A2C16] text-[#D8C5A8] hover:border-[#C58A3A]'
+                          : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#746556] hover:border-[#B8792F]'
+                      }`}
+                    >
+                      <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                      <span>{t.detailsPage.requestAnimalAndServices} ({selectedServices.length})</span>
+                    </button>
+                  )}
 
                   <div className="grid grid-cols-2 gap-2">
                     {/* Call Seller */}
@@ -532,19 +549,24 @@ export const AnimalDetails: React.FC = () => {
 
       </div>
 
-      {/* Buy Now & Payment Slip Modal */}
+      {/* Buy / 50% Reserve Payment Slip Modal */}
       <BuyPaymentModal
         animal={animal}
         isOpen={isBuyModalOpen}
         onClose={() => setIsBuyModalOpen(false)}
         onOrderComplete={refreshAnimal}
+        initialMode={buyModalMode}
       />
 
-      {/* Reservation Modal */}
+      {/* Reservation Inquiry Modal */}
       <ReservationModal
         animal={animal}
         isOpen={isReservationOpen}
         onClose={() => setIsReservationOpen(false)}
+        onOpenDepositSlip={() => {
+          setBuyModalMode('deposit');
+          setIsBuyModalOpen(true);
+        }}
       />
 
       {/* Service Request Modal */}

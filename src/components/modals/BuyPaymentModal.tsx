@@ -28,18 +28,29 @@ interface BuyPaymentModalProps {
   isOpen: boolean;
   onClose: () => void;
   onOrderComplete?: () => void;
+  initialMode?: 'deposit' | 'full';
 }
 
 export const BuyPaymentModal: React.FC<BuyPaymentModalProps> = ({
   animal,
   isOpen,
   onClose,
-  onOrderComplete
+  onOrderComplete,
+  initialMode = 'deposit'
 }) => {
   const { user } = useUserAuth();
   const { theme } = useTheme();
   const { isAmharic } = useLanguage();
   const isDark = theme === 'design7';
+
+  // Payment Mode: 'deposit' (50%) or 'full' (100%)
+  const [paymentMode, setPaymentMode] = useState<'deposit' | 'full'>(initialMode);
+
+  useEffect(() => {
+    if (initialMode) {
+      setPaymentMode(initialMode);
+    }
+  }, [initialMode, isOpen]);
 
   // Bank accounts from backend
   const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
@@ -97,6 +108,9 @@ export const BuyPaymentModal: React.FC<BuyPaymentModalProps> = ({
   }, 0);
 
   const grandTotal = animal.price + servicesFee;
+  const depositAmount = Math.round(grandTotal * 0.5);
+  const remainingAmount = grandTotal - depositAmount;
+  const currentPayAmount = paymentMode === 'deposit' ? depositAmount : grandTotal;
 
   const handleCopyAccount = (accNum: string, id: string) => {
     navigator.clipboard.writeText(accNum.replace(/\s+/g, ''));
@@ -181,6 +195,10 @@ export const BuyPaymentModal: React.FC<BuyPaymentModalProps> = ({
       formData.append('animalId', animal.id);
       formData.append('selectedServices', JSON.stringify(selectedServices));
       formData.append('servicesFee', String(servicesFee));
+      formData.append('totalAmount', String(grandTotal));
+      formData.append('depositAmount', String(depositAmount));
+      formData.append('remainingAmount', String(paymentMode === 'deposit' ? remainingAmount : 0));
+      formData.append('isReservation', String(paymentMode === 'deposit'));
       formData.append('paymentMethod', paymentMethodName);
       formData.append('bankAccountId', selectedBankId);
       if (transactionRef) formData.append('transactionReference', transactionRef);
@@ -235,13 +253,19 @@ export const BuyPaymentModal: React.FC<BuyPaymentModalProps> = ({
               </div>
 
               <h2 className="text-2xl sm:text-3xl font-bold font-serif mb-2">
-                {isAmharic ? 'የክፍያ ደረሰኝዎ በተሳካ ሁኔታ ደርሶናል!' : 'Payment Slip Uploaded Successfully!'}
+                {paymentMode === 'deposit'
+                  ? (isAmharic ? 'የ50% ቅድመ-ክፍያ ደረሰኝዎ በተሳካ ሁኔታ ደርሶናል!' : '50% Reservation Deposit Received!')
+                  : (isAmharic ? 'የክፍያ ደረሰኝዎ በተሳካ ሁኔታ ደርሶናል!' : 'Payment Slip Uploaded Successfully!')}
               </h2>
               
               <p className={`text-sm max-w-md mx-auto mb-6 ${isDark ? 'text-[#D8C5A8]/80' : 'text-[#746556]'}`}>
-                {isAmharic
-                  ? `የትዕዛዝ ቁጥርዎ #${completedOrder.id} ነው። አስተዳዳሪው ደረሰኝዎን በማረጋገጥ ላይ ይገኛል። እንስሳው ተይዞሎታል!`
-                  : `Your order #${completedOrder.id} has been submitted. Admin has been notified to verify your payment slip. The animal is reserved for you!`}
+                {paymentMode === 'deposit'
+                  ? (isAmharic
+                      ? `የትዕዛዝ ቁጥርዎ #${completedOrder.id} ነው። አስተዳዳሪው የ50% ቅድመ-ክፍያዎን በማረጋገጥ እንስሳውን ይይዝልዎታል። ቀሪውን ${formatPrice(remainingAmount)} ከመረከብዎ በፊት ይከፍላሉ።`
+                      : `Your reservation #${completedOrder.id} is pending verification. Admin has been notified to verify your 50% deposit and lock this animal. Settle the remaining ${formatPrice(remainingAmount)} before delivery/pickup.`)
+                  : (isAmharic
+                      ? `የትዕዛዝ ቁጥርዎ #${completedOrder.id} ነው። አስተዳዳሪው ደረሰኝዎን በማረጋገጥ ላይ ይገኛል። እንስሳው ተይዞሎታል!`
+                      : `Your order #${completedOrder.id} has been submitted. Admin has been notified to verify your payment slip. The animal is reserved for you!`)}
               </p>
 
               {/* Order Summary Card */}
@@ -260,9 +284,34 @@ export const BuyPaymentModal: React.FC<BuyPaymentModalProps> = ({
                     <span className="font-semibold">{completedOrder.animalBreed} ({completedOrder.animalId})</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="opacity-70">{isAmharic ? 'ጠቅላላ የተከፈለው' : 'Total Amount'}:</span>
-                    <span className="font-bold text-[#C18A45]">{formatPrice(completedOrder.totalAmount)}</span>
+                    <span className="opacity-70">{isAmharic ? 'የክፍያ አይነት' : 'Payment Option'}:</span>
+                    <span className="font-bold text-amber-500">
+                      {paymentMode === 'deposit'
+                        ? (isAmharic ? '50% ቅድመ-ክፍያ ማስያዣ' : '50% Reservation Deposit')
+                        : (isAmharic ? '100% ሙሉ ክፍያ' : '100% Full Payment')}
+                    </span>
                   </div>
+                  <div className="flex justify-between">
+                    <span className="opacity-70">{isAmharic ? 'ጠቅላላ ዋጋ' : 'Total Price'}:</span>
+                    <span className="font-semibold">{formatPrice(grandTotal)}</span>
+                  </div>
+                  {paymentMode === 'deposit' ? (
+                    <>
+                      <div className="flex justify-between text-emerald-500 font-bold">
+                        <span>{isAmharic ? 'የተከፈለው 50% ቅድመ-ክፍያ' : '50% Deposit Paid'}:</span>
+                        <span>{formatPrice(depositAmount)}</span>
+                      </div>
+                      <div className="flex justify-between text-amber-500 font-semibold">
+                        <span>{isAmharic ? 'ቀሪ የሚከፈል' : 'Remaining Balance'}:</span>
+                        <span>{formatPrice(remainingAmount)}</span>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="flex justify-between">
+                      <span className="opacity-70">{isAmharic ? 'ጠቅላላ የተከፈለው' : 'Total Paid'}:</span>
+                      <span className="font-bold text-[#C18A45]">{formatPrice(completedOrder.totalAmount || grandTotal)}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between">
                     <span className="opacity-70">{isAmharic ? 'የክፍያ መንገድ' : 'Payment Method'}:</span>
                     <span>{completedOrder.paymentMethod}</span>
@@ -270,7 +319,9 @@ export const BuyPaymentModal: React.FC<BuyPaymentModalProps> = ({
                   <div className="flex justify-between items-center pt-2">
                     <span className="opacity-70">{isAmharic ? 'ሁኔታ' : 'Status'}:</span>
                     <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30">
-                      Pending Admin Verification
+                      {paymentMode === 'deposit'
+                        ? (isAmharic ? 'የ50% ቅድመ-ክፍያ ማረጋገጫ በመጠባበቅ ላይ' : 'Reservation Pending (50% Deposit)')
+                        : (isAmharic ? 'ክፍያ ማረጋገጫ በመጠባበቅ ላይ' : 'Pending Admin Verification')}
                     </span>
                   </div>
                 </div>
@@ -334,7 +385,9 @@ export const BuyPaymentModal: React.FC<BuyPaymentModalProps> = ({
                   <div>
                     <div className="flex items-center gap-2">
                       <span className="text-[11px] font-bold uppercase tracking-wider text-[#C18A45]">
-                        {isAmharic ? 'የቀጥታ ግዢና ክፍያ' : 'Direct Purchase & Slip Upload'}
+                        {paymentMode === 'deposit'
+                          ? (isAmharic ? '50% ቅድመ-ክፍያ ማስያዣ' : '50% Reservation Deposit')
+                          : (isAmharic ? 'የቀጥታ ግዢና ክፍያ' : 'Direct Purchase & Slip Upload')}
                       </span>
                       <span className="font-mono text-[10px] px-2 py-0.5 rounded-md bg-black/20 font-semibold opacity-80">
                         {animal.id}
@@ -349,9 +402,11 @@ export const BuyPaymentModal: React.FC<BuyPaymentModalProps> = ({
                 <div className="flex items-center gap-3">
                   <div className="text-right hidden sm:block">
                     <span className="text-[10px] uppercase font-bold opacity-60 block">
-                      {isAmharic ? 'ጠቅላላ የሚከፈለው' : 'Total Due'}
+                      {paymentMode === 'deposit'
+                        ? (isAmharic ? '50% ቅድመ-ክፍያ የሚከፈል' : '50% Deposit Due')
+                        : (isAmharic ? 'ጠቅላላ የሚከፈለው' : 'Total Due')}
                     </span>
-                    <span className="text-sm font-black text-[#C18A45]">{formatPrice(grandTotal)}</span>
+                    <span className="text-sm font-black text-[#C18A45]">{formatPrice(currentPayAmount)}</span>
                   </div>
                   <button
                     onClick={handleResetAndClose}
@@ -416,8 +471,12 @@ export const BuyPaymentModal: React.FC<BuyPaymentModalProps> = ({
 
                 {/* Total Display for mobile view */}
                 <div className="flex sm:hidden justify-between items-center p-3 rounded-xl bg-[#C18A45]/10 border border-[#C18A45]/30">
-                  <span className="text-xs font-semibold opacity-80">{isAmharic ? 'ጠቅላላ የሚከፈለው' : 'Total Due'}:</span>
-                  <span className="text-xl font-black text-[#C18A45]">{formatPrice(grandTotal)}</span>
+                  <span className="text-xs font-semibold opacity-80">
+                    {paymentMode === 'deposit'
+                      ? (isAmharic ? '50% ቅድመ-ክፍያ የሚከፈል' : '50% Deposit Due')
+                      : (isAmharic ? 'ጠቅላላ የሚከፈለው' : 'Total Due')}:
+                  </span>
+                  <span className="text-xl font-black text-[#C18A45]">{formatPrice(currentPayAmount)}</span>
                 </div>
 
                 {/* Error Banner */}
@@ -429,11 +488,81 @@ export const BuyPaymentModal: React.FC<BuyPaymentModalProps> = ({
                 )}
 
                 <form onSubmit={handleSubmit} id="payment-form" className="space-y-6">
+                  {/* Payment Option Selector: 50% Reservation Deposit vs 100% Full Payment */}
+                  <div className="space-y-2">
+                    <label className="block text-xs font-bold uppercase tracking-wider opacity-80">
+                      {isAmharic ? 'የክፍያ አማራጭ ይምረጡ:' : 'Select Payment Option:'}
+                    </label>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {/* 50% Deposit Option */}
+                      <div
+                        onClick={() => setPaymentMode('deposit')}
+                        className={`p-3.5 rounded-2xl border cursor-pointer transition-all ${
+                          paymentMode === 'deposit'
+                            ? 'border-amber-500 bg-amber-500/10 ring-1 ring-amber-500 shadow-md'
+                            : isDark
+                              ? 'border-[#4A2C16] bg-[#1B1208] opacity-70 hover:opacity-100'
+                              : 'border-[#E4D4BC] bg-white opacity-70 hover:opacity-100'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="font-bold text-xs sm:text-sm text-amber-500 flex items-center gap-1.5">
+                            <ShieldCheck className="w-4 h-4" />
+                            {isAmharic ? '50% ቅድመ-ክፍያ ማስያዣ' : '50% Reservation Deposit'}
+                          </span>
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400">
+                            {isAmharic ? 'እንስሳውን ያስይዙ' : 'Lock & Reserve'}
+                          </span>
+                        </div>
+                        <div className="font-mono font-black text-base text-amber-500">
+                          {formatPrice(depositAmount)}
+                        </div>
+                        <p className="text-[11px] opacity-70 mt-1">
+                          {isAmharic
+                            ? `50% አሁን ከፍለው እንስሳውን ያስይዛሉ፣ ቀሪውን ${formatPrice(remainingAmount)} ከመረከብዎ በፊት ይከፍላሉ።`
+                            : `Pay half now to lock and reserve this animal. Settle remaining ${formatPrice(remainingAmount)} before delivery/pickup.`}
+                        </p>
+                      </div>
+
+                      {/* 100% Full Payment Option */}
+                      <div
+                        onClick={() => setPaymentMode('full')}
+                        className={`p-3.5 rounded-2xl border cursor-pointer transition-all ${
+                          paymentMode === 'full'
+                            ? 'border-amber-500 bg-amber-500/10 ring-1 ring-amber-500 shadow-md'
+                            : isDark
+                              ? 'border-[#4A2C16] bg-[#1B1208] opacity-70 hover:opacity-100'
+                              : 'border-[#E4D4BC] bg-white opacity-70 hover:opacity-100'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="font-bold text-xs sm:text-sm flex items-center gap-1.5">
+                            <CreditCard className="w-4 h-4" />
+                            {isAmharic ? '100% ሙሉ ክፍያ' : '100% Full Payment'}
+                          </span>
+                        </div>
+                        <div className="font-mono font-black text-base">
+                          {formatPrice(grandTotal)}
+                        </div>
+                        <p className="text-[11px] opacity-70 mt-1">
+                          {isAmharic
+                            ? 'ሙሉውን ወዲያውኑ በመክፈል ፈጣን ርክክብ ወይም ማድረስ ያከናውኑ።'
+                            : 'Pay in full now for immediate direct purchase and scheduled delivery/pickup.'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
                   {/* STEP 1: Bank Selection & Details */}
                   <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider mb-2.5 opacity-80 flex items-center gap-1.5">
-                      <CreditCard className="w-3.5 h-3.5 text-[#C18A45]" />
-                      <span>1. {isAmharic ? 'የመክፈያ ባንክ ይምረጡ' : 'Select Bank & Transfer Payment'}</span>
+                    <label className="block text-xs font-bold uppercase tracking-wider mb-2.5 opacity-80 flex items-center justify-between">
+                      <span className="flex items-center gap-1.5">
+                        <CreditCard className="w-3.5 h-3.5 text-[#C18A45]" />
+                        <span>1. {isAmharic ? 'የመክፈያ ባንክ ይምረጡ' : 'Select Bank & Transfer Payment'}</span>
+                      </span>
+                      <span className="text-[#C18A45] font-bold">
+                        {isAmharic ? 'የሚተላለፈው: ' : 'Transfer: '}{formatPrice(currentPayAmount)}
+                      </span>
                     </label>
 
                     {/* Bank Pills */}
@@ -711,7 +840,15 @@ export const BuyPaymentModal: React.FC<BuyPaymentModalProps> = ({
                   ) : (
                     <>
                       <ShieldCheck className="w-4 h-4" />
-                      <span>{isAmharic ? `ክፍያዬን አረጋግጥ (${formatPrice(grandTotal)})` : `Submit Payment Slip (${formatPrice(grandTotal)})`}</span>
+                      <span>
+                        {paymentMode === 'deposit'
+                          ? (isAmharic
+                              ? `የ50% ቅድመ-ክፍያ ደረሰኝ አረጋግጥ (${formatPrice(depositAmount)})`
+                              : `Submit 50% Deposit Slip (${formatPrice(depositAmount)})`)
+                          : (isAmharic
+                              ? `ክፍያዬን አረጋግጥ (${formatPrice(grandTotal)})`
+                              : `Submit Full Payment Slip (${formatPrice(grandTotal)})`)}
+                      </span>
                       <ArrowRight className="w-4 h-4 ml-1" />
                     </>
                   )}

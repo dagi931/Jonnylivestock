@@ -183,13 +183,20 @@ export const AnimalCard: React.FC<AnimalCardProps> = ({ animal }) => {
             <span className="block text-[8px] sm:text-[9px] uppercase tracking-wider font-semibold opacity-70 leading-tight">
               {t.common.farmPrice}
             </span>
-            <span
-              className={`text-xs sm:text-base font-bold font-serif ${
-                isDark ? 'text-[#E0B15A]' : 'text-[#B8792F]'
-              }`}
-            >
-              {formatPrice(animal.price)}
-            </span>
+            <div className="flex items-baseline gap-1.5 flex-wrap">
+              <span
+                className={`text-xs sm:text-base font-bold font-serif ${
+                  isDark ? 'text-[#E0B15A]' : 'text-[#B8792F]'
+                }`}
+              >
+                {formatPrice(animal.price)}
+              </span>
+              {animal.status === 'available' && (
+                <span className="text-[9px] sm:text-[10.5px] font-bold text-emerald-500 font-mono">
+                  (50%: {formatPrice(animal.price * 0.5)})
+                </span>
+              )}
+            </div>
           </div>
 
           <Link

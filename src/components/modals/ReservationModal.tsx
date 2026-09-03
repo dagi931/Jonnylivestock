@@ -11,12 +11,14 @@ interface ReservationModalProps {
   animal: Animal;
   isOpen: boolean;
   onClose: () => void;
+  onOpenDepositSlip?: () => void;
 }
 
 export const ReservationModal: React.FC<ReservationModalProps> = ({
   animal,
   isOpen,
-  onClose
+  onClose,
+  onOpenDepositSlip
 }) => {
   const { theme } = useTheme();
   const { isAmharic } = useLanguage();
@@ -186,6 +188,37 @@ export const ReservationModal: React.FC<ReservationModalProps> = ({
                 <span>•</span>
                 <span>{isAmharic ? 'ቦታ' : 'Location'}: {animal.location}</span>
               </div>
+            </div>
+
+            {/* 50% Reservation Deposit Guarantee Callout */}
+            <div
+              className={`p-3.5 rounded-2xl border mb-4 flex items-center justify-between gap-3 ${
+                isDark ? 'bg-[#1B1208] border-amber-500/40' : 'bg-[#FAF7F0] border-amber-500/40'
+              }`}
+            >
+              <div>
+                <div className="flex items-center gap-1.5 text-xs font-bold text-amber-500">
+                  <ShieldAlert className="w-4 h-4 shrink-0" />
+                  <span>{isAmharic ? '50% ቅድመ-ክፍያ በማስያዝ እንስሳውን አሁኑኑ ያስይዙ' : 'Lock & Reserve with 50% Deposit'}</span>
+                </div>
+                <div className="text-xs opacity-75 mt-0.5">
+                  {isAmharic
+                    ? `እንስሳው ለሌላ እንዳይሸጥ 50% (${formatPrice(animal.price * 0.5)}) በመክፈል ማስያዝ ይችላሉ።`
+                    : `Pay 50% (${formatPrice(animal.price * 0.5)}) now to immediately lock this animal.`}
+                </div>
+              </div>
+              {onOpenDepositSlip && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleResetAndClose();
+                    onOpenDepositSlip();
+                  }}
+                  className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-black text-xs font-bold shrink-0 transition-all shadow cursor-pointer"
+                >
+                  {isAmharic ? '50% ክፈል' : 'Pay 50%'}
+                </button>
+              )}
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
