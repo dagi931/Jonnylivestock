@@ -2,9 +2,11 @@
 
 A modern, full-stack Ethiopian livestock marketplace and holiday celebration packages platform built with **React (TypeScript + Vite + Tailwind CSS)** and **Node.js (Express + Prisma + Supabase PostgreSQL)**.
 
+Unified with **npm Workspaces** for 1-command installation and execution!
+
 ---
 
-## 🚀 Quick Start for Anyone Cloning This Repository
+## 🚀 Quick Start Guide
 
 ### 1. Clone the Repository
 `ash
@@ -14,51 +16,47 @@ cd Jonnylivestock
 
 ---
 
-### 2. Frontend Setup (Client)
-The frontend is built with React, Vite, and Tailwind CSS. It has built-in offline mock data fallback, so you can preview the full website UI even without running the backend!
-
+### 2. Install All Dependencies (Frontend + Backend)
+With npm Workspaces, you only need to run 
+pm install once from the root folder:
 `ash
-# 1. Install frontend dependencies
 npm install
-
-# 2. Start the Vite development server
-npm run dev
 `
-Open [http://localhost:5173](http://localhost:5173) in your browser.
 
 ---
 
-### 3. Backend Setup (API Server & PostgreSQL Database)
-The backend manages users, Brevo email OTPs, livestock inventory, orders, 50% reservation deposits, and admin slip verification.
-
+### 3. Setup Backend Environment (server/.env)
+Create server/.env using server/.env.example as a template:
 `ash
-# 1. Navigate to the server folder
-cd server
-
-# 2. Install backend dependencies
-npm install
-
-# 3. Create your environment file from the template
-cp .env.example .env
-# (Or on Windows: copy .env.example .env)
-
-# 4. Fill in your DATABASE_URL and Brevo API key in server/.env:
-# DATABASE_URL=" postgresql://...\
-# DIRECT_URL=\postgresql://...\
-# BREVO_API_KEY=\xkeysib-...\
-# BREVO_SENDER_EMAIL=\your_email@gmail.com\
-
-# 5. Generate Prisma database client
-npx prisma generate
-
-# 6. (Optional) Push schema and seed initial database animals/packages
-npx prisma db push
-npm run seed
-
-# 7. Start the backend API server
-npm run dev
+cp server/.env.example server/.env
+# On Windows: copy server\.env.example server\.env
 `
-The API server will be live at [http://localhost:5000](http://localhost:5000).
+Ensure your database connection string and Brevo credentials are in server/.env:
+`env
+PORT=5000
+JWT_SECRET=jonny_livestock_super_secret_jwt_key_2026
+DATABASE_URL= postgresql://postgres:password@aws-1-eu-west-1.pooler.supabase.com:6543/postgres?pgbouncer=true
+DIRECT_URL=postgresql://postgres:password@aws-1-eu-west-1.pooler.supabase.com:5432/postgres
+BREVO_API_KEY=your_brevo_api_key_here
+BREVO_SENDER_EMAIL=dagiderbe59@gmail.com
+BREVO_SENDER_NAME=Jonny Livestock
+`
+
+Generate the Prisma Client:
+`ash
+npm run prisma:generate
+`
+
+---
+
+### 4. Start Fullstack Application (Frontend + Backend)
+Run both the React frontend and Express backend concurrently:
+`ash
+npm run dev:all
+`
+- 🌐 **Frontend**: [http://localhost:5173](http://localhost:5173)
+- 🚀 **Backend API**: [http://localhost:5000](http://localhost:5000)
+- 🩺 **Health Check**: [http://localhost:5000/api/health](http://localhost:5000/api/health)
 
 ---
 
@@ -73,8 +71,8 @@ The API server will be live at [http://localhost:5000](http://localhost:5000).
 
 ## ✨ Features
 
-- **Live Animal Inventory**: Browse rams, sheep, goats, bulls, and hens with weights, prices, breeds, and photos.
-- **Holiday & Celebration Packages**: All-inclusive bundles combining meat/livestock, Rift Valley wines/tej, farm-fresh eggs, and celebration flowers with free delivery.
+- **Live Animal Inventory**: Browse rams, sheep, goats, bulls, and hens with live weights, prices, breeds, and photos.
+- **Holiday & Celebration Packages**: All-inclusive bundles combining meat/livestock, Rift Valley wines/tej, farm-fresh eggs, and celebration flowers.
 - **50% Reservation Deposit**: Customers reserve livestock with a 50% bank transfer deposit and complete payment prior to delivery.
 - **Brevo Email OTP**: Secure 6-digit email OTP verification for new customer registrations.
 - **Real-Time Admin Dashboard**: Live notifications with sound alerts, customer phone attachment, slip inspector with zoom, and direct approval/rejection workflows.
