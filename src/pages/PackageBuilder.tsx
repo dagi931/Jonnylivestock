@@ -168,18 +168,16 @@ export const PackageBuilder: React.FC = () => {
             {/* View Switcher Tabs */}
             <div className="pt-4 flex justify-center">
               <div
-                className={`p-1.5 rounded-2xl border flex items-center gap-1 shadow-sm ${
-                  isDark ? 'bg-[#2A1A0D] border-[#4A2C16]' : 'bg-[#FAF7F0] border-[#E4D4BC]'
-                }`}
+                className={`p-1.5 rounded-2xl border flex items-center gap-1 shadow-sm ${isDark ? 'bg-[#2A1A0D] border-[#4A2C16]' : 'bg-[#FAF7F0] border-[#E4D4BC]'
+                  }`}
               >
                 <button
                   type="button"
                   onClick={() => setActiveTab('premade')}
-                  className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all ${
-                    activeTab === 'premade'
+                  className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all ${activeTab === 'premade'
                       ? 'bg-amber-500 text-black shadow-md'
                       : 'opacity-70 hover:opacity-100'
-                  }`}
+                    }`}
                 >
                   <Gift className="w-4 h-4" />
                   <span>Curated Packages</span>
@@ -187,11 +185,10 @@ export const PackageBuilder: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setActiveTab('builder')}
-                  className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all ${
-                    activeTab === 'builder'
+                  className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all ${activeTab === 'builder'
                       ? 'bg-amber-500 text-black shadow-md'
                       : 'opacity-70 hover:opacity-100'
-                  }`}
+                    }`}
                 >
                   <Sparkles className="w-4 h-4" />
                   <span>Custom Package Builder</span>
@@ -231,122 +228,151 @@ export const PackageBuilder: React.FC = () => {
                     <div
                       onTouchStart={() => handleTouchCard(pkg.id)}
                       onTouchEnd={() => handleTouchCard(pkg.id)}
-                      className={`self-start h-fit w-full group rounded-2xl sm:rounded-3xl border overflow-hidden transition-all duration-300 hover:shadow-2xl flex flex-col justify-between cursor-pointer select-none ${
-                        isDark ? 'bg-[#24170D] border-[#4A2C16]' : 'bg-white border-[#E4D4BC]'
-                      }`}
-                    >
-                    <div>
-                      {/* Image & Badge Banner */}
-                      <div className="relative h-32 sm:h-56 w-full overflow-hidden bg-black/10">
-                        <img
-                          src={pkg.image}
-                          alt={pkg.name}
-                          className={`w-full h-full object-cover card-zoom-img transition-transform duration-500 ease-out ${
-                            touchedCardId === pkg.id ? 'scale-100' : 'scale-110'
-                          } group-hover:scale-100 group-active:scale-100 active:scale-100`}
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-                        
-                        <div className="absolute top-2 left-2 sm:top-4 sm:left-4 flex flex-wrap gap-1 sm:gap-2">
-                          <span className="px-2 py-0.5 sm:px-3 sm:py-1 rounded-full text-[9px] sm:text-xs font-bold bg-emerald-600 text-white flex items-center gap-1 shadow-md">
-                            <Truck className="w-2.5 h-2.5 sm:w-3 sm:h-3" /> Free Delivery
-                          </span>
-                        </div>
-
-                        <div className="absolute bottom-2 left-2 right-2 sm:bottom-4 sm:left-4 sm:right-4 text-white">
-                          <div className="text-[9px] sm:text-xs font-mono opacity-80 uppercase tracking-wider truncate">
-                            {isAmharic && pkg.amharicTagline ? pkg.amharicTagline : pkg.tagline}
-                          </div>
-                          <h3 className="font-serif font-bold text-xs sm:text-2xl line-clamp-1">
-                            {getPackageTitle(pkg, isAmharic)}
-                          </h3>
-                        </div>
-                      </div>
-
-                      {/* Content */}
-                      <div className="p-2.5 sm:p-6 space-y-2 sm:space-y-4">
-                        <p className="text-[10px] sm:text-sm opacity-80 leading-relaxed line-clamp-1 sm:line-clamp-2">
-                          {getPackageDescription(pkg, isAmharic)}
-                        </p>
-
-                        {/* Interactive "Show details / Show more" Toggle */}
-                        <button
-                          type="button"
-                          onClick={() => setExpandedPreMadeId(isExpanded ? null : pkg.id)}
-                          className="w-full text-[10px] sm:text-xs font-semibold flex items-center justify-between py-1 px-1.5 rounded-md hover:bg-black/5 dark:hover:bg-white/5 opacity-80 hover:opacity-100 transition-colors border border-black/5 dark:border-white/5"
-                        >
-                          <span>{isExpanded ? (isAmharic ? 'ዝርዝር አሳንስ' : 'Hide details') : (isAmharic ? 'የጥቅሉ ዝርዝር' : 'Show details')}</span>
-                          <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
-                        </button>
-
-                        {/* Items Included Breakdown (Expandable on mobile, always visible on larger) */}
-                        {isExpanded && (
-                          <div className="space-y-2 pt-1 animate-in fade-in duration-150">
-                            <div className="text-[9.5px] sm:text-xs font-bold uppercase tracking-wider opacity-60">
-                              {isAmharic ? `የተካተቱ ምድቦች (${pkg.categoryCount}):` : `Package Breakdown (${pkg.categoryCount} Categories):`}
-                            </div>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 sm:gap-2">
-                              {pkg.items.map((item, idx) => (
-                                <div
-                                  key={idx}
-                                  className={`p-1.5 sm:p-2.5 rounded-lg sm:rounded-xl border flex items-center gap-1.5 sm:gap-2.5 text-[10px] sm:text-xs ${
-                                    isDark ? 'bg-[#1D130A] border-[#4A2C16]' : 'bg-[#FAF7F0] border-[#E4D4BC]'
-                                  }`}
-                                >
-                                  <img
-                                    src={item.image}
-                                    alt={item.name}
-                                    className="w-6 h-6 sm:w-8 sm:h-8 rounded-md sm:rounded-lg object-cover shrink-0"
-                                  />
-                                  <div className="truncate">
-                                    <div className="font-semibold truncate">{getItemDisplayName(item, isAmharic)}</div>
-                                    <div className="text-[8.5px] sm:text-[10px] opacity-60 font-mono">{formatPrice(item.price)}</div>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Pricing & Actions Footer */}
-                    <div
-                      className={`p-2.5 sm:p-6 border-t flex flex-col items-stretch justify-between gap-2 sm:gap-4 ${
-                        isDark ? 'bg-[#1D130A]/60 border-[#4A2C16]' : 'bg-[#FAF7F0]/60 border-[#E4D4BC]'
-                      }`}
+                      className={`self-start h-fit w-full group rounded-2xl sm:rounded-3xl border overflow-hidden transition-all duration-300 hover:shadow-2xl flex flex-col justify-between cursor-pointer select-none ${isDark ? 'bg-[#24170D] border-[#4A2C16]' : 'bg-white border-[#E4D4BC]'
+                        }`}
                     >
                       <div>
-                        <div className="flex items-center gap-1.5 sm:gap-2">
-                          <span className="text-[9.5px] sm:text-xs line-through opacity-50 font-mono">
-                            {formatPrice(pkg.originalPrice)}
-                          </span>
-                          <span className="text-[9.5px] sm:text-xs font-bold text-emerald-500">
-                            Save {formatPrice(pkg.savings)}
-                          </span>
+                        {/* Image & Badge Banner */}
+                        <div className="relative h-32 sm:h-56 w-full overflow-hidden bg-black/10">
+                          <img
+                            src={pkg.image}
+                            alt={pkg.name}
+                            className={`w-full h-full object-cover card-zoom-img transition-transform duration-500 ease-out ${touchedCardId === pkg.id ? 'scale-100' : 'scale-110'
+                              } group-hover:scale-100 group-active:scale-100 active:scale-100`}
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+
+                          <div className="absolute top-2 left-2 sm:top-4 sm:left-4 flex flex-wrap gap-1 sm:gap-2">
+                            <span className="px-2 py-0.5 sm:px-3 sm:py-1 rounded-full text-[9px] sm:text-xs font-bold bg-emerald-600 text-white flex items-center gap-1 shadow-md">
+                              <Truck className="w-2.5 h-2.5 sm:w-3 sm:h-3" /> Free Delivery
+                            </span>
+                          </div>
+
+                          {/* Out of Stock Notice */}
+                          {(() => {
+                            const avail = pkg.availableSlots !== undefined ? pkg.availableSlots : 10;
+                            const isSoldOut = Boolean(pkg.isOutOfStock || avail <= 0);
+                            if (isSoldOut) {
+                              return (
+                                <div className="absolute top-2 right-2 sm:top-4 sm:right-4">
+                                  <span className="px-2 py-0.5 sm:px-2.5 sm:py-0.5 rounded-full text-[8.5px] sm:text-xs font-bold bg-red-600 text-white shadow-md">
+                                    {isAmharic ? 'አልቋል' : 'Sold Out'}
+                                  </span>
+                                </div>
+                              );
+                            }
+                            return null;
+                          })()}
+
+                          <div className="absolute bottom-2 left-2 right-2 sm:bottom-4 sm:left-4 sm:right-4 text-white">
+                            <div className="text-[9px] sm:text-xs font-mono opacity-80 uppercase tracking-wider truncate">
+                              {isAmharic && pkg.amharicTagline ? pkg.amharicTagline : pkg.tagline}
+                            </div>
+                            <h3 className="font-serif font-bold text-xs sm:text-2xl line-clamp-1">
+                              {getPackageTitle(pkg, isAmharic)}
+                            </h3>
+                          </div>
                         </div>
-                        <div className="font-serif font-bold text-sm sm:text-2xl text-amber-500">
-                          {formatPrice(pkg.packagePrice)}
-                        </div>
-                        <div className="text-[9px] sm:text-[11px] opacity-70 flex items-center gap-1">
-                          <ShieldCheck className="w-3 h-3 text-emerald-500 shrink-0" />
-                          <span className="truncate">50% deposit ({formatPrice(pkg.packagePrice * 0.5)})</span>
+
+                        {/* Content */}
+                        <div className="p-2.5 sm:p-6 space-y-2 sm:space-y-4">
+                          <p className="text-[10px] sm:text-sm opacity-80 leading-relaxed line-clamp-1 sm:line-clamp-2">
+                            {getPackageDescription(pkg, isAmharic)}
+                          </p>
+
+                          {/* Interactive "Show details / Show more" Toggle */}
+                          <button
+                            type="button"
+                            onClick={() => setExpandedPreMadeId(isExpanded ? null : pkg.id)}
+                            className="w-full text-[10px] sm:text-xs font-semibold flex items-center justify-between py-1 px-1.5 rounded-md hover:bg-black/5 dark:hover:bg-white/5 opacity-80 hover:opacity-100 transition-colors border border-black/5 dark:border-white/5"
+                          >
+                            <span>{isExpanded ? (isAmharic ? 'ዝርዝር አሳንስ' : 'Hide details') : (isAmharic ? 'የጥቅሉ ዝርዝር' : 'Show details')}</span>
+                            <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
+                          </button>
+
+                          {/* Items Included Breakdown (Expandable on mobile, always visible on larger) */}
+                          {isExpanded && (
+                            <div className="space-y-2 pt-1 animate-in fade-in duration-150">
+                              <div className="text-[9.5px] sm:text-xs font-bold uppercase tracking-wider opacity-60">
+                                {isAmharic ? `የተካተቱ ምድቦች (${pkg.categoryCount}):` : `Package Breakdown (${pkg.categoryCount} Categories):`}
+                              </div>
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 sm:gap-2">
+                                {pkg.items.map((item, idx) => (
+                                  <div
+                                    key={idx}
+                                    className={`p-1.5 sm:p-2.5 rounded-lg sm:rounded-xl border flex items-center gap-1.5 sm:gap-2.5 text-[10px] sm:text-xs ${isDark ? 'bg-[#1D130A] border-[#4A2C16]' : 'bg-[#FAF7F0] border-[#E4D4BC]'
+                                      }`}
+                                  >
+                                    <img
+                                      src={item.image}
+                                      alt={item.name}
+                                      className="w-6 h-6 sm:w-8 sm:h-8 rounded-md sm:rounded-lg object-cover shrink-0"
+                                    />
+                                    <div className="truncate">
+                                      <div className="font-semibold truncate">{getItemDisplayName(item, isAmharic)}</div>
+                                      <div className="text-[8.5px] sm:text-[10px] opacity-60 font-mono">{formatPrice(item.price)}</div>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-1.5 pt-1">
-                        <button
-                          type="button"
-                          onClick={() => handleOrderPreMade(pkg)}
-                          className="w-full px-2.5 py-2 sm:px-6 sm:py-3 rounded-xl sm:rounded-2xl bg-amber-500 hover:bg-amber-600 text-black font-bold text-[10px] sm:text-sm transition-all shadow-md flex items-center justify-center gap-1 sm:gap-1.5"
-                        >
-                          <Gift className="w-3 h-3 sm:w-4 sm:h-4 shrink-0" />
-                          <span className="truncate">Order / 50% Reserve</span>
-                        </button>
+                      {/* Pricing & Actions Footer */}
+                      <div
+                        className={`p-2.5 sm:p-6 border-t flex flex-col items-stretch justify-between gap-2 sm:gap-4 ${isDark ? 'bg-[#1D130A]/60 border-[#4A2C16]' : 'bg-[#FAF7F0]/60 border-[#E4D4BC]'
+                          }`}
+                      >
+                        <div>
+                          <div className="flex items-center gap-1.5 sm:gap-2">
+                            <span className="text-[9.5px] sm:text-xs line-through opacity-50 font-mono">
+                              {formatPrice(pkg.originalPrice)}
+                            </span>
+                            <span className="text-[9.5px] sm:text-xs font-bold text-emerald-500">
+                              Save {formatPrice(pkg.savings)}
+                            </span>
+                          </div>
+                          <div className="font-serif font-bold text-sm sm:text-2xl text-amber-500">
+                            {formatPrice(pkg.packagePrice)}
+                          </div>
+                          <div className="text-[9px] sm:text-[11px] opacity-70 flex items-center gap-1">
+                            <ShieldCheck className="w-3 h-3 text-emerald-500 shrink-0" />
+                            <span className="truncate">50% deposit ({formatPrice(pkg.packagePrice * 0.5)})</span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-1.5 pt-1">
+                          {(() => {
+                            const avail = pkg.availableSlots !== undefined ? pkg.availableSlots : 10;
+                            const isSoldOut = Boolean(pkg.isOutOfStock || avail <= 0);
+                            if (isSoldOut) {
+                              return (
+                                <button
+                                  type="button"
+                                  disabled
+                                  className="w-full px-2.5 py-2 sm:px-6 sm:py-3 rounded-xl sm:rounded-2xl bg-stone-700/60 text-stone-300 font-bold text-[10px] sm:text-sm cursor-not-allowed opacity-80 flex items-center justify-center gap-1 sm:gap-1.5"
+                                >
+                                  <span>{isAmharic ? '🚫 ጥቅሉ አልቋል (Out of Stock)' : '🚫 Sold Out (Out of Stock)'}</span>
+                                </button>
+                              );
+                            }
+                            return (
+                              <button
+                                type="button"
+                                onClick={() => handleOrderPreMade(pkg)}
+                                className="w-full px-2.5 py-2 sm:px-6 sm:py-3 rounded-xl sm:rounded-2xl bg-amber-500 hover:bg-amber-600 text-black font-bold text-[10px] sm:text-sm transition-all shadow-md flex items-center justify-center gap-1 sm:gap-1.5 cursor-pointer active:scale-[0.99]"
+                              >
+                                <Gift className="w-3 h-3 sm:w-4 sm:h-4 shrink-0" />
+                                <span className="truncate">{isAmharic ? 'ይዘዙ / በ50% ይያዙ' : 'Order / 50% Reserve'}</span>
+                              </button>
+                            );
+                          })()}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </AnimatedReveal>
+                  </AnimatedReveal>
                 );
               })}
             </div>
@@ -361,13 +387,12 @@ export const PackageBuilder: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setActiveCategoryFilter('all')}
-                  className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${
-                    activeCategoryFilter === 'all'
+                  className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${activeCategoryFilter === 'all'
                       ? 'bg-amber-500 text-black shadow-sm'
                       : isDark
                         ? 'bg-[#24170D] border border-[#4A2C16] text-[#F4E8D0] opacity-75 hover:opacity-100'
                         : 'bg-white border border-[#E4D4BC] text-[#241A12] opacity-75 hover:opacity-100'
-                  }`}
+                    }`}
                 >
                   All Items
                 </button>
@@ -379,13 +404,12 @@ export const PackageBuilder: React.FC = () => {
                       key={cat.id}
                       type="button"
                       onClick={() => setActiveCategoryFilter(cat.id)}
-                      className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${
-                        activeCategoryFilter === cat.id
+                      className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${activeCategoryFilter === cat.id
                           ? 'bg-amber-500 text-black shadow-sm'
                           : isDark
                             ? 'bg-[#24170D] border border-[#4A2C16] text-[#F4E8D0]'
                             : 'bg-white border border-[#E4D4BC] text-[#241A12]'
-                      }`}
+                        }`}
                     >
                       <Icon className={`w-3.5 h-3.5 ${activeCategoryFilter === cat.id ? 'text-black' : cat.color}`} />
                       <span>{cat.name}</span>
@@ -409,23 +433,21 @@ export const PackageBuilder: React.FC = () => {
                           onClick={() => toggleItem(item)}
                           onTouchStart={() => handleTouchCard(item.id)}
                           onTouchEnd={() => handleTouchCard(item.id)}
-                          className={`h-full group p-4 rounded-2xl border cursor-pointer transition-all duration-200 flex gap-3.5 select-none hover:-translate-y-0.5 ${
-                            isSelected
+                          className={`h-full group p-4 rounded-2xl border cursor-pointer transition-all duration-200 flex gap-3.5 select-none hover:-translate-y-0.5 ${isSelected
                               ? isDark
                                 ? 'bg-amber-500/10 border-amber-500 ring-1 ring-amber-500 shadow-md'
                                 : 'bg-amber-50 border-amber-600 ring-1 ring-amber-600 shadow-md'
                               : isDark
                                 ? 'bg-[#24170D] border-[#4A2C16] hover:border-amber-500/40'
                                 : 'bg-white border-[#E4D4BC] hover:border-amber-500/40'
-                          }`}
+                            }`}
                         >
                           <div className="w-20 h-20 rounded-xl overflow-hidden shrink-0 shadow-sm">
                             <img
                               src={item.image}
                               alt={item.name}
-                              className={`w-full h-full object-cover card-zoom-img transition-transform duration-500 ease-out ${
-                                touchedCardId === item.id ? 'scale-100' : 'scale-110'
-                              } group-hover:scale-100 group-active:scale-100 active:scale-100`}
+                              className={`w-full h-full object-cover card-zoom-img transition-transform duration-500 ease-out ${touchedCardId === item.id ? 'scale-100' : 'scale-110'
+                                } group-hover:scale-100 group-active:scale-100 active:scale-100`}
                             />
                           </div>
                           <div className="flex-1 flex flex-col justify-between min-w-0">
@@ -436,11 +458,10 @@ export const PackageBuilder: React.FC = () => {
                                 </h4>
                                 <button
                                   type="button"
-                                  className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
-                                    isSelected
+                                  className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 transition-colors ${isSelected
                                       ? 'bg-amber-500 text-black'
                                       : 'bg-black/10 dark:bg-white/10 opacity-60'
-                                  }`}
+                                    }`}
                                 >
                                   {isSelected ? <Check className="w-3.5 h-3.5 stroke-[3]" /> : <Plus className="w-3.5 h-3.5" />}
                                 </button>
@@ -466,9 +487,8 @@ export const PackageBuilder: React.FC = () => {
             {/* Right 4 Cols: Sticky Custom Package Summary */}
             <div className="lg:col-span-4 sticky top-24 space-y-4">
               <div
-                className={`p-5 rounded-3xl border shadow-xl space-y-5 ${
-                  isDark ? 'bg-[#24170D] border-[#4A2C16]' : 'bg-white border-[#E4D4BC]'
-                }`}
+                className={`p-5 rounded-3xl border shadow-xl space-y-5 ${isDark ? 'bg-[#24170D] border-[#4A2C16]' : 'bg-white border-[#E4D4BC]'
+                  }`}
               >
                 {/* Package Name Input */}
                 <div>
@@ -479,21 +499,19 @@ export const PackageBuilder: React.FC = () => {
                     type="text"
                     value={packageName}
                     onChange={e => setPackageName(e.target.value)}
-                    className={`w-full px-3 py-2 rounded-xl border text-sm font-bold focus:outline-none focus:ring-2 focus:ring-amber-500 ${
-                      isDark ? 'bg-[#1D130A] border-[#4A2C16] text-[#F4E8D0]' : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#241A12]'
-                    }`}
+                    className={`w-full px-3 py-2 rounded-xl border text-sm font-bold focus:outline-none focus:ring-2 focus:ring-amber-500 ${isDark ? 'bg-[#1D130A] border-[#4A2C16] text-[#F4E8D0]' : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#241A12]'
+                      }`}
                   />
                 </div>
 
                 {/* 3 Categories Validator Box */}
                 <div
-                  className={`p-3.5 rounded-2xl border space-y-2 ${
-                    isEligible
+                  className={`p-3.5 rounded-2xl border space-y-2 ${isEligible
                       ? 'bg-emerald-500/10 border-emerald-500/40 text-emerald-400'
                       : isDark
                         ? 'bg-amber-500/10 border-amber-500/30 text-amber-300'
                         : 'bg-amber-50 border-amber-200 text-amber-900'
-                  }`}
+                    }`}
                 >
                   <div className="flex items-center justify-between text-xs font-bold">
                     <div className="flex items-center gap-1.5">
@@ -524,9 +542,8 @@ export const PackageBuilder: React.FC = () => {
                       return (
                         <div
                           key={cat.id}
-                          className={`flex items-center gap-1 font-medium ${
-                            isCatActive ? 'text-emerald-500 font-bold' : 'opacity-50'
-                          }`}
+                          className={`flex items-center gap-1 font-medium ${isCatActive ? 'text-emerald-500 font-bold' : 'opacity-50'
+                            }`}
                         >
                           <span>{isCatActive ? '✓' : '○'}</span>
                           <span className="truncate">{cat.name.split(' ')[0]}</span>
@@ -559,9 +576,8 @@ export const PackageBuilder: React.FC = () => {
                     selectedItems.map(item => (
                       <div
                         key={item.id}
-                        className={`p-2 rounded-xl border flex items-center justify-between text-xs ${
-                          isDark ? 'bg-[#1D130A] border-[#4A2C16]' : 'bg-[#FAF7F0] border-[#E4D4BC]'
-                        }`}
+                        className={`p-2 rounded-xl border flex items-center justify-between text-xs ${isDark ? 'bg-[#1D130A] border-[#4A2C16]' : 'bg-[#FAF7F0] border-[#E4D4BC]'
+                          }`}
                       >
                         <div className="flex items-center gap-2 truncate pr-2">
                           <img src={item.image} alt={item.name} className="w-6 h-6 rounded object-cover shrink-0" />
@@ -627,13 +643,12 @@ export const PackageBuilder: React.FC = () => {
                     type="button"
                     disabled={!isEligible}
                     onClick={handleSaveToMyPackages}
-                    className={`w-full py-2.5 rounded-2xl border text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
-                      !isEligible
+                    className={`w-full py-2.5 rounded-2xl border text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${!isEligible
                         ? 'opacity-30 cursor-not-allowed'
                         : isDark
                           ? 'border-[#4A2C16] hover:bg-[#2A1A0D] text-amber-400'
                           : 'border-[#E4D4BC] hover:bg-[#FAF7F0] text-amber-800'
-                    }`}
+                      }`}
                   >
                     <BookmarkPlus className="w-3.5 h-3.5" />
                     <span>Save to My Packages</span>
@@ -654,11 +669,11 @@ export const PackageBuilder: React.FC = () => {
           selectedPreMade
             ? null
             : {
-                name: packageName,
-                items: selectedItems,
-                totalPrice,
-                categoriesCount: categoryCount
-              }
+              name: packageName,
+              items: selectedItems,
+              totalPrice,
+              categoriesCount: categoryCount
+            }
         }
       />
     </div>

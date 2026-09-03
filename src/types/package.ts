@@ -25,9 +25,12 @@ export interface PreMadePackage {
   originalPrice: number;
   packagePrice: number;
   savings: number;
-  badge: string;
+  badge?: string;
   image: string;
   featured?: boolean;
+  totalSlots?: number;
+  availableSlots?: number;
+  isOutOfStock?: boolean;
 }
 
 export interface SavedPackage {
@@ -58,7 +61,7 @@ export interface Order {
   customerPhone: string;
   customerEmail?: string;
   deliveryLocation?: string;
-  
+
   // Animal specific
   animalId?: string;
   animalBreed?: string;

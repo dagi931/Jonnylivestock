@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTheme } from '../../context/ThemeContext';
+import { useLanguage } from '../../context/LanguageContext';
 import { business } from '../../config/business';
 import {
   Truck,
@@ -15,6 +16,7 @@ import { getPhoneCallLink } from '../../utils/formatters';
 
 export const DeliveryServicePage: React.FC = () => {
   const { theme } = useTheme();
+  const { isAmharic } = useLanguage();
   const isDark = theme === 'design7';
 
   const [animalType, setAnimalType] = useState<'sheep' | 'goat' | 'cow' | 'multiple'>('sheep');
@@ -46,7 +48,11 @@ export const DeliveryServicePage: React.FC = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!customerName.trim() || !phone.trim() || !specificAddress.trim()) {
-      setError('Please provide your name, phone number, and specific delivery address.');
+      setError(
+        isAmharic
+          ? 'እባክዎን ስምዎን፣ ስልክ ቁጥርዎንና ዝርዝር አድራሻዎን ያስገቡ።'
+          : 'Please provide your name, phone number, and specific delivery address.'
+      );
       return;
     }
     setError('');
@@ -70,7 +76,7 @@ export const DeliveryServicePage: React.FC = () => {
             }`}
           >
             <ArrowLeft className="w-3.5 h-3.5" />
-            <span>Back to All Services</span>
+            <span>{isAmharic ? 'ወደ ሁሉም አገልግሎቶች ተመለስ' : 'Back to All Services'}</span>
           </Link>
 
           <div className="flex items-center gap-2">
@@ -81,7 +87,7 @@ export const DeliveryServicePage: React.FC = () => {
               }`}
             >
               <PhoneCall className="w-3.5 h-3.5 inline mr-1" />
-              <span>Call Dispatch</span>
+              <span>{isAmharic ? 'ላኪውን ይደውሉ' : 'Call Dispatch'}</span>
             </a>
           </div>
         </div>
@@ -99,13 +105,15 @@ export const DeliveryServicePage: React.FC = () => {
               </div>
               <div>
                 <span className="text-[11px] font-mono font-bold tracking-widest text-amber-500 uppercase">
-                  Service 01 Dashboard
+                  {isAmharic ? 'አገልግሎት 01 ዳሽቦርድ' : 'Service 01 Dashboard'}
                 </span>
                 <h1 className={`font-serif font-bold text-2xl sm:text-3xl mt-0.5 ${isDark ? 'text-[#F4E8D0]' : 'text-[#2A1A0D]'}`}>
-                  Live Livestock Delivery Dashboard
+                  {isAmharic ? 'የቀጥታ እንስሳት ማጓጓዣ አገልግሎት' : 'Live Livestock Delivery Dashboard'}
                 </h1>
                 <p className={`text-xs sm:text-sm mt-1 max-w-2xl ${isDark ? 'text-[#D8C5A8]' : 'text-[#746556]'}`}>
-                  Originating directly from our Aware farm on Queen Elizabeth Street, Addis Ababa. We coordinate safe, comfortable vehicle transit for sheep, goats, and cattle directly to your home, compound, or venue.
+                  {isAmharic
+                    ? 'በቀጥታ በአዲስ አበባ አዋሬ ከሚገኘው እርሻችን። አስተማማኝና ምቹ በሆነ ተሽከርካሪ በጎችን፣ ፍየሎችንና ከብቶችን ወደ ቤትዎ፣ ግቢዎ ወይም ዝግጅት ቦታዎ እናደርሳለን።'
+                    : 'Originating directly from our Aware farm on Queen Elizabeth Street, Addis Ababa. We coordinate safe, comfortable vehicle transit for sheep, goats, and cattle directly to your home, compound, or venue.'}
                 </p>
               </div>
             </div>
@@ -126,9 +134,15 @@ export const DeliveryServicePage: React.FC = () => {
                 <div className="w-14 h-14 rounded-full bg-green-500/20 text-green-400 border border-green-500/30 flex items-center justify-center mx-auto">
                   <CheckCircle2 className="w-8 h-8" />
                 </div>
-                <h2 className="font-serif font-bold text-xl">Delivery Booking Submitted!</h2>
+                <h2 className="font-serif font-bold text-xl">
+                  {isAmharic ? 'የማድረሻ ጥያቄዎ በተሳካ ሁኔታ ተልኳል!' : 'Delivery Booking Submitted!'}
+                </h2>
                 <p className="text-xs max-w-md mx-auto opacity-80">
-                  Thank you <strong>{customerName}</strong>. Our Aware dispatch team will contact you at <strong>{phone}</strong> to confirm your vehicle schedule to {subCity}.
+                  {isAmharic ? (
+                    <>እናመሰግናለን <strong>{customerName}</strong>። ከአዋሬ የእርሻ አስተዳዳሪዎቻችን ወደ {subCity} በሚላከው ተሽከርካሪ መርሃግብር ዙሪያ በ <strong>{phone}</strong> ያነጋግሩዎታል።</>
+                  ) : (
+                    <>Thank you <strong>{customerName}</strong>. Our Aware dispatch team will contact you at <strong>{phone}</strong> to confirm your vehicle schedule to {subCity}.</>
+                  )}
                 </p>
 
                 <div className="pt-3 flex flex-col sm:flex-row justify-center gap-2.5">
@@ -141,14 +155,14 @@ export const DeliveryServicePage: React.FC = () => {
                     }`}
                   >
                     <MessageSquare className="w-4 h-4" />
-                    <span>Instant Confirmation on WhatsApp</span>
+                    <span>{isAmharic ? 'በዋትስአፕ ፈጣን ማረጋገጫ ያግኙ' : 'Instant Confirmation on WhatsApp'}</span>
                   </a>
                   <button
                     type="button"
                     onClick={() => setSubmitted(false)}
                     className="px-4 py-2.5 rounded-xl text-xs font-semibold border opacity-75 hover:opacity-100"
                   >
-                    Modify Details
+                    {isAmharic ? 'ዝርዝሩን አስተካክል' : 'Modify Details'}
                   </button>
                 </div>
               </div>
@@ -156,9 +170,11 @@ export const DeliveryServicePage: React.FC = () => {
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="flex items-center justify-between border-b pb-2.5" style={{ borderColor: isDark ? '#4A2C16' : '#E4D4BC' }}>
                   <h2 className="font-serif font-bold text-base">
-                    Configure Live Animal Delivery
+                    {isAmharic ? 'የቀጥታ እንስሳት ማድረሻ ቅጽ ይሙሉ' : 'Configure Live Animal Delivery'}
                   </h2>
-                  <span className="text-[11px] opacity-70">Direct Aware Dispatch</span>
+                  <span className="text-[11px] opacity-70">
+                    {isAmharic ? 'ከአዋሬ ቀጥታ የሚላክ' : 'Direct Aware Dispatch'}
+                  </span>
                 </div>
 
                 {error && (
@@ -172,7 +188,7 @@ export const DeliveryServicePage: React.FC = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="block text-xs font-semibold uppercase tracking-wider mb-1 opacity-90">
-                      Animal Type
+                      {isAmharic ? 'የእንስሳ አይነት' : 'Animal Type'}
                     </label>
                     <select
                       value={animalType}
@@ -181,16 +197,16 @@ export const DeliveryServicePage: React.FC = () => {
                         isDark ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0]' : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#2A1A0D]'
                       }`}
                     >
-                      <option value="sheep">Sheep (በግ)</option>
-                      <option value="goat">Goat (ፍየል)</option>
-                      <option value="cow">Cow / Cattle (በሬ / ላም)</option>
-                      <option value="multiple">Combined Flock / Herd</option>
+                      <option value="sheep">{isAmharic ? 'በግ' : 'Sheep (በግ)'}</option>
+                      <option value="goat">{isAmharic ? 'ፍየል' : 'Goat (ፍየል)'}</option>
+                      <option value="cow">{isAmharic ? 'በሬ / ላም / ሰንጋ' : 'Cow / Cattle (በሬ / ላም)'}</option>
+                      <option value="multiple">{isAmharic ? 'የተደባለቁ እንስሳት' : 'Combined Flock / Herd'}</option>
                     </select>
                   </div>
 
                   <div>
                     <label className="block text-xs font-semibold uppercase tracking-wider mb-1 opacity-90">
-                      Quantity of Animals
+                      {isAmharic ? 'የእንስሳት ብዛት' : 'Quantity of Animals'}
                     </label>
                     <input
                       type="number"
@@ -209,7 +225,7 @@ export const DeliveryServicePage: React.FC = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="block text-xs font-semibold uppercase tracking-wider mb-1 opacity-90">
-                      Destination Sub-City / Area <span className="text-red-500">*</span>
+                      {isAmharic ? 'መዳረሻ ክፍለ ከተማ / አካባቢ' : 'Destination Sub-City / Area'} <span className="text-red-500">*</span>
                     </label>
                     <select
                       value={subCity}
@@ -226,11 +242,11 @@ export const DeliveryServicePage: React.FC = () => {
 
                   <div>
                     <label className="block text-xs font-semibold uppercase tracking-wider mb-1 opacity-90">
-                      Specific Landmark / House No. <span className="text-red-500">*</span>
+                      {isAmharic ? 'ዝርዝር አድራሻ / መለያ ቦታ' : 'Specific Landmark / House No.'} <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
-                      placeholder="e.g. Near Medhanialem Church or Kebele 02"
+                      placeholder={isAmharic ? 'ለምሳሌ፡ መድኃኔዓለም ቤተክርስቲያን አጠገብ' : 'e.g. Near Medhanialem Church or Kebele 02'}
                       value={specificAddress}
                       onChange={(e) => setSpecificAddress(e.target.value)}
                       className={`w-full px-3.5 py-2 rounded-xl text-xs border focus:outline-none ${
@@ -244,7 +260,7 @@ export const DeliveryServicePage: React.FC = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="block text-xs font-semibold uppercase tracking-wider mb-1 opacity-90">
-                      Preferred Delivery Date
+                      {isAmharic ? 'የሚፈልጉት የማድረሻ ቀን' : 'Preferred Delivery Date'}
                     </label>
                     <input
                       type="date"
@@ -258,7 +274,7 @@ export const DeliveryServicePage: React.FC = () => {
 
                   <div>
                     <label className="block text-xs font-semibold uppercase tracking-wider mb-1 opacity-90">
-                      Contact Phone Number <span className="text-red-500">*</span>
+                      {isAmharic ? 'የስልክ ቁጥር' : 'Contact Phone Number'} <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="tel"
@@ -275,11 +291,11 @@ export const DeliveryServicePage: React.FC = () => {
                 {/* 4. Name & Special Notes */}
                 <div>
                   <label className="block text-xs font-semibold uppercase tracking-wider mb-1 opacity-90">
-                    Recipient Name <span className="text-red-500">*</span>
+                    {isAmharic ? 'የተቀባይ ሙሉ ስም' : 'Recipient Name'} <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
-                    placeholder="e.g. Abebe Bekele"
+                    placeholder={isAmharic ? 'ለምሳሌ፡ አበበ በቀለ' : 'e.g. Abebe Bekele'}
                     value={customerName}
                     onChange={(e) => setCustomerName(e.target.value)}
                     className={`w-full px-3.5 py-2 rounded-xl text-xs border focus:outline-none ${
@@ -290,11 +306,11 @@ export const DeliveryServicePage: React.FC = () => {
 
                 <div>
                   <label className="block text-xs font-semibold uppercase tracking-wider mb-1 opacity-90">
-                    Special Unloading / Gate Instructions
+                    {isAmharic ? 'ልዩ የማውረጃ ወይም የበር መመሪያዎች' : 'Special Unloading / Gate Instructions'}
                   </label>
                   <textarea
                     rows={2}
-                    placeholder="e.g. Compound gate code, narrow street entrance, compound grass yard for tethering..."
+                    placeholder={isAmharic ? 'ለምሳሌ፡ የግቢ በር፣ ጠባብ መንገድ፣ ሳር ግቢ...' : 'e.g. Compound gate code, narrow street entrance, compound grass yard for tethering...'}
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
                     className={`w-full px-3.5 py-2 rounded-xl text-xs border focus:outline-none resize-none ${
@@ -310,7 +326,7 @@ export const DeliveryServicePage: React.FC = () => {
                       isDark ? 'bg-[#C58A3A] hover:bg-[#E0B15A] text-[#1B1208]' : 'bg-[#B8792F] hover:bg-[#9E6523] text-[#FAF7F0]'
                     }`}
                   >
-                    Book Live Animal Delivery
+                    {isAmharic ? 'የቀጥታ እንስሳት ማድረሻ ይዘዙ' : 'Book Live Animal Delivery'}
                   </button>
                 </div>
               </form>
@@ -326,30 +342,30 @@ export const DeliveryServicePage: React.FC = () => {
             >
               <h3 className={`font-serif font-bold text-sm sm:text-base flex items-center gap-2 ${isDark ? 'text-[#F4E8D0]' : 'text-[#2A1A0D]'}`}>
                 <ShieldCheck className="w-4 h-4 text-amber-500" />
-                <span>Livestock Transport Standards</span>
+                <span>{isAmharic ? 'የእንስሳት ማጓጓዝ የጥራት ደረጃዎች' : 'Livestock Transport Standards'}</span>
               </h3>
 
               <ul className="space-y-2 text-xs opacity-85">
                 <li className="flex items-start gap-2">
                   <CheckCircle2 className="w-3.5 h-3.5 text-green-500 shrink-0 mt-0.5" />
-                  <span>Custom secure vehicle tailored for gentle, stress-free animal transit.</span>
+                  <span>{isAmharic ? 'ለእንስሳት ምቾትና ደህንነት ተብሎ የተዘጋጀ አስተማማኝ ተሽከርካሪ።' : 'Custom secure vehicle tailored for gentle, stress-free animal transit.'}</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <CheckCircle2 className="w-3.5 h-3.5 text-green-500 shrink-0 mt-0.5" />
-                  <span>Originates directly from Queen Elizabeth Street, Aware, Addis Ababa.</span>
+                  <span>{isAmharic ? 'በቀጥታ በአዲስ አበባ አዋሬ ከሚገኘው እርሻችን ይነሳል።' : 'Originates directly from Queen Elizabeth Street, Aware, Addis Ababa.'}</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <CheckCircle2 className="w-3.5 h-3.5 text-green-500 shrink-0 mt-0.5" />
-                  <span>Experienced farm handlers assist with offloading and yard tethering.</span>
+                  <span>{isAmharic ? 'ልምድ ያላቸው የእርሻ ረዳቶች እንስሳትን የማውረድና የማሰር እገዛ ያደርጋሉ።' : 'Experienced farm handlers assist with offloading and yard tethering.'}</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <CheckCircle2 className="w-3.5 h-3.5 text-green-500 shrink-0 mt-0.5" />
-                  <span>Distance-based transparent transit fees confirmed prior to departure.</span>
+                  <span>{isAmharic ? 'የርቀት ዋጋ ከመነሳቱ በፊት በግልጽ ይረጋገጣል።' : 'Distance-based transparent transit fees confirmed prior to departure.'}</span>
                 </li>
               </ul>
 
               <div className={`pt-3 border-t text-[11px] opacity-70 ${isDark ? 'border-[#4A2C16]' : 'border-[#E4D4BC]'}`}>
-                <strong>Coverage Area:</strong> All sub-cities of Addis Ababa, Bishoftu, Dukem, and Adama.
+                <strong>{isAmharic ? 'የሽፋን ክልል፡' : 'Coverage Area:'}</strong> {isAmharic ? 'ሁሉም የአዲስ አበባ ክፍለ ከተሞች፣ ቢሾፍቱ፣ ዱከምና አዳማ።' : 'All sub-cities of Addis Ababa, Bishoftu, Dukem, and Adama.'}
               </div>
             </div>
 
@@ -360,13 +376,13 @@ export const DeliveryServicePage: React.FC = () => {
               }`}
             >
               <span className="font-bold text-amber-500 uppercase tracking-wider text-[10px]">
-                Explore Other Dashboards
+                {isAmharic ? 'ሌሎች አገልግሎቶችን ይመልከቱ' : 'Explore Other Dashboards'}
               </span>
               <div className="grid grid-cols-2 gap-2 pt-1">
-                <Link to="/services/slaughter-prep" className="hover:underline opacity-80">On-Site Slaughter</Link>
-                <Link to="/services/events-ceremonies" className="hover:underline opacity-80">Ceremony Supply</Link>
-                <Link to="/services/meat-by-kg" className="hover:underline opacity-80">Meat in KG</Link>
-                <Link to="/services/fresh-slaughtered-sheep" className="hover:underline opacity-80">Fresh Sheep</Link>
+                <Link to="/services/slaughter-prep" className="hover:underline opacity-80">{isAmharic ? 'በቦታው ላይ ዕርድ' : 'On-Site Slaughter'}</Link>
+                <Link to="/services/events-ceremonies" className="hover:underline opacity-80">{isAmharic ? 'ለበዓላትና ሰርግ' : 'Ceremony Supply'}</Link>
+                <Link to="/services/meat-by-kg" className="hover:underline opacity-80">{isAmharic ? 'ስጋ በኪሎ' : 'Meat in KG'}</Link>
+                <Link to="/services/fresh-slaughtered-sheep" className="hover:underline opacity-80">{isAmharic ? 'የታረደ ትኩስ በግ' : 'Fresh Sheep'}</Link>
               </div>
             </div>
           </div>

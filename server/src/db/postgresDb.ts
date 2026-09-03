@@ -1,5 +1,5 @@
 import prisma from './prisma.js';
-import { Animal, Order, User, AdminNotification, BankAccount, SavedPackage, PackageCatalogItem, PreMadePackage } from '../types/index.js';
+import { Animal, Order, User, AdminNotification, BankAccount, SavedPackage, PackageCatalogItem, PreMadePackage, ContactMessage } from '../types/index.js';
 import { PRE_MADE_PACKAGES } from '../data/packagesData.js';
 
 export class PostgresDB {
@@ -270,7 +270,10 @@ export class PostgresDB {
               savings: Number(p.savings || (p.originalPrice - p.packagePrice)),
               badge: p.badge || 'Special Package',
               image: p.image,
-              featured: Boolean(p.featured)
+              featured: Boolean(p.featured),
+              totalSlots: Number(p.totalSlots ?? 10),
+              availableSlots: Number(p.availableSlots ?? (p.totalSlots ?? 10)),
+              isOutOfStock: Boolean(p.isOutOfStock ?? false)
             }
           });
         }
@@ -280,21 +283,30 @@ export class PostgresDB {
         orderBy: { createdAt: 'desc' }
       });
 
-      return packages.map((p: any) => ({
-        id: p.id,
-        name: p.name,
-        amharicName: p.amharicName || undefined,
-        tagline: p.tagline || '',
-        description: p.description,
-        categoryCount: p.categoryCount,
-        items: (p.items as unknown) as PackageCatalogItem[],
-        originalPrice: p.originalPrice,
-        packagePrice: p.packagePrice,
-        savings: p.savings,
-        badge: p.badge,
-        image: p.image,
-        featured: p.featured
-      }));
+      return packages.map((p: any) => {
+        const totalSlots = p.totalSlots !== undefined && p.totalSlots !== null ? Number(p.totalSlots) : 10;
+        const availableSlots = p.availableSlots !== undefined && p.availableSlots !== null ? Number(p.availableSlots) : totalSlots;
+        const isOutOfStock = p.isOutOfStock !== undefined && p.isOutOfStock !== null ? Boolean(p.isOutOfStock) : availableSlots <= 0;
+
+        return {
+          id: p.id,
+          name: p.name,
+          amharicName: p.amharicName || undefined,
+          tagline: p.tagline || '',
+          description: p.description,
+          categoryCount: p.categoryCount,
+          items: (p.items as unknown) as PackageCatalogItem[],
+          originalPrice: p.originalPrice,
+          packagePrice: p.packagePrice,
+          savings: p.savings,
+          badge: p.badge,
+          image: p.image,
+          featured: p.featured,
+          totalSlots,
+          availableSlots,
+          isOutOfStock
+        };
+      });
     } catch (e) {
       console.error('Error fetching packages from DB:', e);
       return PRE_MADE_PACKAGES;
@@ -308,6 +320,10 @@ export class PostgresDB {
         where: { id: { equals: id, mode: 'insensitive' } }
       });
       if (!p) return null;
+      const totalSlots = p.totalSlots !== undefined && p.totalSlots !== null ? Number(p.totalSlots) : 10;
+      const availableSlots = p.availableSlots !== undefined && p.availableSlots !== null ? Number(p.availableSlots) : totalSlots;
+      const isOutOfStock = p.isOutOfStock !== undefined && p.isOutOfStock !== null ? Boolean(p.isOutOfStock) : availableSlots <= 0;
+
       return {
         id: p.id,
         name: p.name,
@@ -321,7 +337,10 @@ export class PostgresDB {
         savings: p.savings,
         badge: p.badge,
         image: p.image,
-        featured: p.featured
+        featured: p.featured,
+        totalSlots,
+        availableSlots,
+        isOutOfStock
       };
     } catch {
       return null;
@@ -339,6 +358,8 @@ export class PostgresDB {
     badge?: string;
     image: string;
     featured?: boolean;
+    totalSlots?: number;
+    availableSlots?: number;
   }): Promise<PreMadePackage> {
     const id = `pkg-${Date.now().toString().slice(-6)}`;
     const originalPrice = Number(data.originalPrice);
@@ -347,6 +368,9 @@ export class PostgresDB {
     const categoryCount = data.items && data.items.length > 0
       ? new Set(data.items.map(i => i.category)).size
       : 1;
+    const totalSlots = data.totalSlots !== undefined ? Number(data.totalSlots) : 10;
+    const availableSlots = data.availableSlots !== undefined ? Number(data.availableSlots) : totalSlots;
+    const isOutOfStock = availableSlots <= 0;
 
     const db = prisma as any;
     const created = await db.package.create({
@@ -363,7 +387,10 @@ export class PostgresDB {
         savings,
         badge: data.badge ? data.badge.trim() : 'Special Package',
         image: data.image.trim(),
-        featured: Boolean(data.featured)
+        featured: Boolean(data.featured),
+        totalSlots,
+        availableSlots,
+        isOutOfStock
       }
     });
 
@@ -380,8 +407,60 @@ export class PostgresDB {
       savings: created.savings,
       badge: created.badge,
       image: created.image,
-      featured: created.featured
+      featured: created.featured,
+      totalSlots: created.totalSlots,
+      availableSlots: created.availableSlots,
+      isOutOfStock: created.isOutOfStock
     };
+  }
+
+  public static async updatePackageSlots(
+    id: string,
+    availableSlots: number,
+    totalSlots?: number
+  ): Promise<PreMadePackage | null> {
+    try {
+      const db = prisma as any;
+      const existing = await db.package.findFirst({
+        where: { id: { equals: id, mode: 'insensitive' } }
+      });
+      if (!existing) return null;
+
+      const newAvailable = Math.max(0, Number(availableSlots));
+      const newTotal = totalSlots !== undefined ? Math.max(newAvailable, Number(totalSlots)) : (existing.totalSlots || 10);
+      const isOutOfStock = newAvailable <= 0;
+
+      const updated = await db.package.update({
+        where: { id: existing.id },
+        data: {
+          availableSlots: newAvailable,
+          totalSlots: newTotal,
+          isOutOfStock
+        }
+      });
+
+      return {
+        id: updated.id,
+        name: updated.name,
+        amharicName: updated.amharicName || undefined,
+        tagline: updated.tagline || '',
+        description: updated.description,
+        categoryCount: updated.categoryCount,
+        items: (updated.items as unknown) as PackageCatalogItem[],
+        originalPrice: updated.originalPrice,
+        packagePrice: updated.packagePrice,
+        savings: updated.savings,
+        badge: updated.badge,
+        image: updated.image,
+        featured: updated.featured,
+        totalSlots: updated.totalSlots,
+        availableSlots: updated.availableSlots,
+        isOutOfStock: updated.isOutOfStock
+      };
+    } catch (e) {
+      console.error('Error updating package slots:', e);
+      return null;
+    }
   }
 
   public static async deletePackage(id: string): Promise<boolean> {
@@ -572,6 +651,58 @@ export class PostgresDB {
       }
     }
 
+    // Minimize package available slots if package order or reservation
+    if (orderData.isPackage || orderData.packageName) {
+      try {
+        const db = prisma as any;
+        let pkgToUpdate = null;
+        const details = orderData.packageDetails as any;
+        if (details?.preMadeId) {
+          pkgToUpdate = await db.package.findFirst({
+            where: { id: { equals: details.preMadeId, mode: 'insensitive' } }
+          });
+        }
+        if (!pkgToUpdate && orderData.packageName) {
+          pkgToUpdate = await db.package.findFirst({
+            where: { name: { equals: orderData.packageName, mode: 'insensitive' } }
+          });
+        }
+
+        if (pkgToUpdate) {
+          const currentAvail = pkgToUpdate.availableSlots !== undefined && pkgToUpdate.availableSlots !== null
+            ? Number(pkgToUpdate.availableSlots)
+            : 10;
+          const newAvail = Math.max(0, currentAvail - 1);
+          const isOut = newAvail <= 0;
+
+          await db.package.update({
+            where: { id: pkgToUpdate.id },
+            data: {
+              availableSlots: newAvail,
+              isOutOfStock: isOut
+            }
+          });
+
+          // If package reached 0 slots, alert admin immediately!
+          if (isOut) {
+            await prisma.adminNotification.create({
+              data: {
+                id: `NOTIF-${Date.now().toString().slice(-6)}`,
+                type: 'OUT_OF_STOCK',
+                title: '⚠️ Package Out of Stock',
+                message: `Package "${pkgToUpdate.name}" has reached 0 available slots and is now completely SOLD OUT / Out of Stock!`,
+                orderId: createdOrder.id,
+                read: false,
+                createdAt: new Date()
+              }
+            });
+          }
+        }
+      } catch (pkgErr) {
+        console.error('Failed to update package available slots on order creation:', pkgErr);
+      }
+    }
+
     const formattedOrder = this.formatOrder(createdOrder);
     const formattedNotification: AdminNotification = {
       ...notif,
@@ -736,6 +867,21 @@ export class PostgresDB {
             status: newStatus
           }
         });
+
+        if (newQty === 0) {
+          await prisma.adminNotification.create({
+            data: {
+              id: `NOTIF-${Date.now().toString().slice(-6)}`,
+              type: 'OUT_OF_STOCK',
+              title: '⚠️ Animal Out of Stock',
+              message: `Animal "${existingAnimal.breed}" (${existingAnimal.id}) has reached 0 available stock and is now marked as SOLD OUT!`,
+              orderId: updatedOrder.id,
+              read: false,
+              createdAt: new Date()
+            }
+          });
+        }
+
         updatedAnimal = {
           ...res,
           type: res.type as Animal['type'],
@@ -809,6 +955,20 @@ export class PostgresDB {
           }
         });
 
+        if (newQty === 0) {
+          await prisma.adminNotification.create({
+            data: {
+              id: `NOTIF-${Date.now().toString().slice(-6)}`,
+              type: 'OUT_OF_STOCK',
+              title: '⚠️ Animal Out of Stock',
+              message: `Animal "${existingAnimal.breed}" (${existingAnimal.id}) has reached 0 available stock and is now marked as SOLD OUT!`,
+              orderId: updatedOrder.id,
+              read: false,
+              createdAt: new Date()
+            }
+          });
+        }
+
         updatedAnimal = {
           ...res,
           type: res.type as Animal['type'],
@@ -878,6 +1038,40 @@ export class PostgresDB {
           video: res.video || undefined,
           createdAt: res.createdAt.toISOString()
         };
+      }
+    }
+
+    // Restore package slot if package was rejected
+    if (existing.isPackage || existing.packageName) {
+      try {
+        const db = prisma as any;
+        let pkgToRestore = null;
+        const details = existing.packageDetails as any;
+        if (details?.preMadeId) {
+          pkgToRestore = await db.package.findFirst({
+            where: { id: { equals: details.preMadeId, mode: 'insensitive' } }
+          });
+        }
+        if (!pkgToRestore && existing.packageName) {
+          pkgToRestore = await db.package.findFirst({
+            where: { name: { equals: existing.packageName, mode: 'insensitive' } }
+          });
+        }
+
+        if (pkgToRestore) {
+          const curAvail = Number(pkgToRestore.availableSlots ?? 0);
+          const totalS = Number(pkgToRestore.totalSlots ?? 10);
+          const restored = Math.min(totalS, curAvail + 1);
+          await db.package.update({
+            where: { id: pkgToRestore.id },
+            data: {
+              availableSlots: restored,
+              isOutOfStock: restored <= 0
+            }
+          });
+        }
+      } catch (e) {
+        console.error('Failed to restore package slots on reject:', e);
       }
     }
 
@@ -988,5 +1182,103 @@ export class PostgresDB {
       location: map.location || 'Addis Ababa & Bishoftu, Ethiopia',
       currency: map.currency || 'ETB'
     };
+  }
+
+  // ==================== CONTACT US MESSAGES ====================
+  public static async createContactMessage(data: {
+    name: string;
+    phone: string;
+    email?: string;
+    animalId?: string;
+    serviceNeeded?: string;
+    message: string;
+  }): Promise<ContactMessage> {
+    const db = prisma as any;
+    const created = await db.contactMessage.create({
+      data: {
+        id: `MSG-${Date.now().toString().slice(-6)}`,
+        name: data.name.trim(),
+        phone: data.phone.trim(),
+        email: data.email ? data.email.trim() : null,
+        animalId: data.animalId ? data.animalId.trim() : null,
+        serviceNeeded: data.serviceNeeded ? data.serviceNeeded.trim() : null,
+        message: data.message.trim(),
+        read: false,
+        createdAt: new Date()
+      }
+    });
+
+    // Automatically alert the admin with an unread notification!
+    const summary = data.message.length > 70 ? data.message.slice(0, 70) + '...' : data.message;
+    await prisma.adminNotification.create({
+      data: {
+        id: `NOTIF-${Date.now().toString().slice(-6)}`,
+        type: 'CONTACT_MESSAGE',
+        title: '💬 New Contact Message Received',
+        message: `Inquiry from ${data.name} (📞 ${data.phone}): "${summary}"`,
+        read: false,
+        createdAt: new Date()
+      }
+    });
+
+    return {
+      id: created.id,
+      name: created.name,
+      phone: created.phone,
+      email: created.email || undefined,
+      animalId: created.animalId || undefined,
+      serviceNeeded: created.serviceNeeded || undefined,
+      message: created.message,
+      read: created.read,
+      createdAt: created.createdAt.toISOString()
+    };
+  }
+
+  public static async getContactMessages(): Promise<ContactMessage[]> {
+    try {
+      const db = prisma as any;
+      const msgs = await db.contactMessage.findMany({
+        orderBy: { createdAt: 'desc' }
+      });
+      return msgs.map((m: any) => ({
+        id: m.id,
+        name: m.name,
+        phone: m.phone,
+        email: m.email || undefined,
+        animalId: m.animalId || undefined,
+        serviceNeeded: m.serviceNeeded || undefined,
+        message: m.message,
+        read: Boolean(m.read),
+        createdAt: m.createdAt.toISOString()
+      }));
+    } catch (e) {
+      console.error('Error fetching contact messages:', e);
+      return [];
+    }
+  }
+
+  public static async markContactMessageRead(id: string): Promise<boolean> {
+    try {
+      const db = prisma as any;
+      await db.contactMessage.update({
+        where: { id },
+        data: { read: true }
+      });
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  public static async deleteContactMessage(id: string): Promise<boolean> {
+    try {
+      const db = prisma as any;
+      await db.contactMessage.delete({
+        where: { id }
+      });
+      return true;
+    } catch {
+      return false;
+    }
   }
 }

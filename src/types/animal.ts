@@ -60,3 +60,15 @@ export interface ContactFormData {
   serviceNeeded?: string;
   message: string;
 }
+
+export interface ContactMessage {
+  id: string;
+  name: string;
+  phone: string;
+  email?: string;
+  animalId?: string;
+  serviceNeeded?: string;
+  message: string;
+  read: boolean;
+  createdAt: string;
+}

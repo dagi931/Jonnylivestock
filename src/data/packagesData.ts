@@ -1,4 +1,4 @@
-import { PackageCatalogItem, PreMadePackage } from '../types/index.js';
+import { PackageCatalogItem, PreMadePackage } from '../types/package';
 
 export const PACKAGE_CATALOG: PackageCatalogItem[] = [
   // ==================== 1. MEAT & LIVESTOCK ====================
@@ -98,54 +98,44 @@ export const PACKAGE_CATALOG: PackageCatalogItem[] = [
     description: 'Full-bodied traditional dry red wine paired impeccably with spicy stews and kitfo.',
     price: 1400,
     unit: '750ml Bottle',
-    image: 'https://images.unsplash.com/photo-1553361371-9b22f78e8b1d?auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.unsplash.com/photo-1560512823-829485b8bf24?auto=format&fit=crop&w=800&q=80'
   },
   {
     id: 'pkg-wine-tej',
     category: 'wine',
-    name: 'Traditional Pure Honey Tej (2L)',
-    amharicName: 'ልዩ የሀገር ቤት ንጹህ ማር ጠጅ (2 ሊትር)',
-    description: 'Authentic fermented honey wine made with 100% natural highland honey and gesho.',
-    price: 950,
+    name: 'Pure Highland Honey Tej (2L Flagon)',
+    amharicName: 'የማር ጠጅ በብርሌ (2 ሊትር)',
+    description: 'Traditional royal Ethiopian honey wine fermented with wild gesho and aged amber honey.',
+    price: 1100,
     unit: '2 Litre Flagon',
-    image: 'https://images.unsplash.com/photo-1563227812-0ea4c22e6cc8?auto=format&fit=crop&w=800&q=80',
+    image: 'https://images.unsplash.com/photo-1569529465841-dfecdab7503b?auto=format&fit=crop&w=800&q=80',
     popular: true
   },
 
   // ==================== 3. FARM FRESH EGGS ====================
   {
-    id: 'pkg-egg-dozen',
-    category: 'eggs',
-    name: 'Country Fresh Eggs (1 Dozen / 12 pcs)',
-    amharicName: 'የሀገር ቤት ትኩስ እንቁላል (12 ፍሬ)',
-    description: 'Fresh free-range country eggs with bright golden yolks, freshly collected every morning.',
-    price: 350,
-    unit: '12 pcs Box',
-    image: 'https://images.unsplash.com/photo-1582722872445-44dc5f7e3c8f?auto=format&fit=crop&w=800&q=80'
-  },
-  {
     id: 'pkg-egg-crate',
     category: 'eggs',
-    name: 'Farm Fresh Egg Crate (30 pcs)',
-    amharicName: '1 ካርቶን ትኩስ እንቁላል (30 ፍሬ)',
-    description: 'Full protective crate of 30 clean, candled, grade-A large farm eggs for family cooking.',
-    price: 750,
-    unit: '1 Crate (30 pcs)',
-    image: 'https://images.unsplash.com/photo-1516448620398-c5f44bf9f441?auto=format&fit=crop&w=800&q=80',
+    name: 'Farm Fresh Brown Eggs (Full Crate)',
+    amharicName: 'ትኩስ የሀገር እንቁላል (ሙሉ ካርቶን - 30 ፍሬ)',
+    description: '30 large, free-range pasture-laid brown eggs with vibrant golden yolks for Doro Wat.',
+    price: 900,
+    unit: 'Crate (30 pcs)',
+    image: 'https://images.unsplash.com/photo-1582722872445-44dc5f7e3c8f?auto=format&fit=crop&w=800&q=80',
     popular: true
   },
   {
-    id: 'pkg-egg-2crates',
+    id: 'pkg-egg-half',
     category: 'eggs',
-    name: 'Celebration Double Egg Crates (60 pcs)',
-    amharicName: '2 ካርቶን ትኩስ እንቁላል (60 ፍሬ)',
-    description: 'Double crate of 60 premium eggs for large holiday feasts and Doro Wat prep.',
-    price: 1400,
-    unit: '2 Crates (60 pcs)',
-    image: 'https://images.unsplash.com/photo-1506976785307-8732e854ad03?auto=format&fit=crop&w=800&q=80'
+    name: 'Pasture Eggs (Half Crate - 15 pcs)',
+    amharicName: 'የጓሮ እንቁላል (ግማሽ ካርቶን - 15 ፍሬ)',
+    description: '15 freshly harvested organic eggs packed securely in protective eco-friendly carton.',
+    price: 480,
+    unit: 'Half Crate (15 pcs)',
+    image: 'https://images.unsplash.com/photo-1516448620398-c5f44bf9f441?auto=format&fit=crop&w=800&q=80'
   },
 
-  // ==================== 4. CELEBRATION & FESTIVE FLOWERS ====================
+  // ==================== 4. CELEBRATION FLOWERS ====================
   {
     id: 'pkg-flower-roses',
     category: 'flowers',

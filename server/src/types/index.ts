@@ -60,9 +60,12 @@ export interface PreMadePackage {
   originalPrice: number;
   packagePrice: number;
   savings: number;
-  badge: string;
+  badge?: string;
   image: string;
   featured?: boolean;
+  totalSlots?: number;
+  availableSlots?: number;
+  isOutOfStock?: boolean;
 }
 
 export interface SavedPackage {
@@ -92,7 +95,7 @@ export interface Order {
   customerPhone: string;
   customerEmail?: string;
   deliveryLocation?: string;
-  
+
   // Animal specific (optional for package orders)
   animalId?: string;
   animalBreed?: string;
@@ -148,16 +151,30 @@ export interface User {
 export interface AdminNotification {
   id: string;
   type:
-    | 'NEW_ORDER_SLIP'
-    | 'NEW_RESERVATION_DEPOSIT'
-    | 'FINAL_PAYMENT_SLIP'
-    | 'RESERVATION_APPROVED'
-    | 'PAYMENT_VERIFIED'
-    | 'ORDER_REJECTED'
-    | 'GENERAL';
+  | 'NEW_ORDER_SLIP'
+  | 'NEW_RESERVATION_DEPOSIT'
+  | 'FINAL_PAYMENT_SLIP'
+  | 'RESERVATION_APPROVED'
+  | 'PAYMENT_VERIFIED'
+  | 'ORDER_REJECTED'
+  | 'OUT_OF_STOCK'
+  | 'CONTACT_MESSAGE'
+  | 'GENERAL';
   title: string;
   message: string;
   orderId?: string;
+  read: boolean;
+  createdAt: string;
+}
+
+export interface ContactMessage {
+  id: string;
+  name: string;
+  phone: string;
+  email?: string;
+  animalId?: string;
+  serviceNeeded?: string;
+  message: string;
   read: boolean;
   createdAt: string;
 }
@@ -172,6 +189,8 @@ export type RealtimeEventType =
   | 'ORDER_VERIFIED'
   | 'ORDER_REJECTED'
   | 'ORDER_UPDATED'
+  | 'OUT_OF_STOCK'
+  | 'CONTACT_MESSAGE'
   | 'ANIMAL_UPDATED'
   | 'ANIMAL_CREATED'
   | 'ANIMAL_DELETED'

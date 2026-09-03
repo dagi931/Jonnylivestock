@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTheme } from '../../context/ThemeContext';
+import { useLanguage } from '../../context/LanguageContext';
 import { business } from '../../config/business';
 import { ethiopianMealPurposes } from '../../data/services';
 import {
@@ -17,6 +18,7 @@ import { getPhoneCallLink } from '../../utils/formatters';
 
 export const MeatByKgServicePage: React.FC = () => {
   const { theme } = useTheme();
+  const { isAmharic } = useLanguage();
   const isDark = theme === 'design7';
 
   const [animalSource, setAnimalSource] = useState<'sheep' | 'goat' | 'cow' | 'mixed'>('cow');
@@ -53,7 +55,8 @@ export const MeatByKgServicePage: React.FC = () => {
     return selectedMeals
       .map((id) => {
         const found = ethiopianMealPurposes.find((m) => m.id === id);
-        return found ? `${found.amharicName} (${found.name})` : id;
+        if (!found) return id;
+        return isAmharic ? found.amharicName : `${found.amharicName} (${found.name})`;
       })
       .join(', ');
   };
@@ -64,19 +67,37 @@ export const MeatByKgServicePage: React.FC = () => {
 
   const getQuantityDisplay = () => {
     if (animalSource === 'mixed') {
-      return `Mixed Total: ${totalMixedKg} KG (Sheep: ${sheepKg || 0}kg, Goat: ${goatKg || 0}kg, Cow: ${cowKg || 0}kg)`;
+      return isAmharic
+        ? `የተደባለቀ ድምር፡ ${totalMixedKg} ኪ.ግ (በግ፡ ${sheepKg || 0} ኪ.ግ፣ ፍየል፡ ${goatKg || 0} ኪ.ግ፣ በሬ፡ ${cowKg || 0} ኪ.ግ)`
+        : `Mixed Total: ${totalMixedKg} KG (Sheep: ${sheepKg || 0}kg, Goat: ${goatKg || 0}kg, Cow: ${cowKg || 0}kg)`;
     }
-    return `${quantityKg} KG of ${animalSource.toUpperCase()} meat`;
+    const sourceLabel =
+      animalSource === 'sheep'
+        ? (isAmharic ? 'የበግ' : 'SHEEP')
+        : animalSource === 'goat'
+        ? (isAmharic ? 'የፍየል' : 'GOAT')
+        : (isAmharic ? 'የበሬ' : 'COW');
+    return isAmharic
+      ? `${quantityKg} ኪ.ግ ${sourceLabel} ስጋ`
+      : `${quantityKg} KG of ${sourceLabel} meat`;
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!contactPerson.trim() || !phone.trim() || !kitchenAddress.trim()) {
-      setError('Please provide your name/business name, phone number, and kitchen delivery address.');
+      setError(
+        isAmharic
+          ? 'እባክዎን ስምዎን ወይም የድርጅትዎን ስም፣ ስልክ ቁጥርዎንና የስጋ ማድረሻ አድራሻዎን ያስገቡ።'
+          : 'Please provide your name/business name, phone number, and kitchen delivery address.'
+      );
       return;
     }
     if (animalSource === 'mixed' && totalMixedKg <= 0) {
-      setError('Please enter at least one kilogram amount for the mixed meats.');
+      setError(
+        isAmharic
+          ? 'እባክዎን ቢያንስ ለአንዱ የስጋ አይነት የኪሎ መጠን ያስገቡ።'
+          : 'Please enter at least one kilogram amount for the mixed meats.'
+      );
       return;
     }
     setError('');
@@ -100,7 +121,7 @@ export const MeatByKgServicePage: React.FC = () => {
             }`}
           >
             <ArrowLeft className="w-3.5 h-3.5" />
-            <span>Back to All Services</span>
+            <span>{isAmharic ? 'ወደ ሁሉም አገልግሎቶች ተመለስ' : 'Back to All Services'}</span>
           </Link>
 
           <div className="flex items-center gap-2">
@@ -111,7 +132,7 @@ export const MeatByKgServicePage: React.FC = () => {
               }`}
             >
               <PhoneCall className="w-3.5 h-3.5 inline mr-1" />
-              <span>Call Wholesale Desk</span>
+              <span>{isAmharic ? 'የጅምላ ስጋ አስተባባሪውን ይደውሉ' : 'Call Wholesale Desk'}</span>
             </a>
           </div>
         </div>
@@ -129,13 +150,17 @@ export const MeatByKgServicePage: React.FC = () => {
               </div>
               <div>
                 <span className="text-[11px] font-mono font-bold tracking-widest text-amber-500 uppercase">
-                  Service 04 Dashboard
+                  {isAmharic ? 'አገልግሎት 04 ዳሽቦርድ' : 'Service 04 Dashboard'}
                 </span>
                 <h1 className={`font-serif font-bold text-2xl sm:text-3xl mt-0.5 ${isDark ? 'text-[#F4E8D0]' : 'text-[#2A1A0D]'}`}>
-                  Meat Supply in KG Dashboard (for Hotels, Restaurants & Catering)
+                  {isAmharic
+                    ? 'ስጋ በኪሎ አቅርቦት ዳሽቦርድ (ለሆቴሎች፣ ሬስቶራንቶችና ካተሪንጎች)'
+                    : 'Meat Supply in KG Dashboard (for Hotels, Restaurants & Catering)'}
                 </h1>
                 <p className={`text-xs sm:text-sm mt-1 max-w-2xl ${isDark ? 'text-[#D8C5A8]' : 'text-[#746556]'}`}>
-                  Fresh, clean meat extracted in kilograms from sheep, goats, or cows — customized for Ethiopian dishes like <strong>Kitfo (ክትፎ)</strong>, <strong>Tre Kurt (ጥሬ ቁርጥ)</strong>, <strong>Wot (ወጥ)</strong>, <strong>Tibs (ጥብስ)</strong>, and <strong>Dulet (ዱለት)</strong>.
+                  {isAmharic
+                    ? 'ከበግ፣ ፍየል ወይም ሰንጋ በኪሎ ግራም በትክክለኛ ሚዛን ተመዝኖ የተዘጋጀ ትኩስ ስጋ — ለባህላዊ ምግቦች ለምሳሌ ክትፎ፣ ጥሬ ቁርጥ፣ ወጥ፣ ጥብስና ዱለት እንደፍላጎትዎ ተቆራርጦ ይቀርባል።'
+                    : 'Fresh, clean meat extracted in kilograms from sheep, goats, or cows — customized for Ethiopian dishes like Kitfo (ክትፎ), Tre Kurt (ጥሬ ቁርጥ), Wot (ወጥ), Tibs (ጥብስ), and Dulet (ዱለት).'}
                 </p>
               </div>
             </div>
@@ -156,17 +181,23 @@ export const MeatByKgServicePage: React.FC = () => {
                 <div className="w-14 h-14 rounded-full bg-green-500/20 text-green-400 border border-green-500/30 flex items-center justify-center mx-auto">
                   <CheckCircle2 className="w-8 h-8" />
                 </div>
-                <h2 className="font-serif font-bold text-xl">Meat in KG Order Received!</h2>
+                <h2 className="font-serif font-bold text-xl">
+                  {isAmharic ? 'የስጋ በኪሎ ትዕዛዝዎ ደርሶናል!' : 'Meat in KG Order Received!'}
+                </h2>
                 <p className="text-xs max-w-md mx-auto opacity-80">
-                  Thank you <strong>{contactPerson}</strong>. Our butchery dispatch in Aware will contact you at <strong>{phone}</strong> to confirm wholesale pricing, kg weighing, and kitchen delivery.
+                  {isAmharic ? (
+                    <>እናመሰግናለን <strong>{contactPerson}</strong>። በአዋሬ የሚገኘው የስጋ አቅርቦት ክፍላችን የጅምላ ዋጋውን፣ የኪሎ ምዘናውንና ማድረሻውን ለማረጋገጥ በ <strong>{phone}</strong> ያነጋግሩዎታል።</>
+                  ) : (
+                    <>Thank you <strong>{contactPerson}</strong>. Our butchery dispatch in Aware will contact you at <strong>{phone}</strong> to confirm wholesale pricing, kg weighing, and kitchen delivery.</>
+                  )}
                 </p>
 
                 <div className={`p-4 rounded-2xl border text-left text-xs space-y-1.5 ${
                   isDark ? 'bg-[#1B1208] border-[#4A2C16]' : 'bg-[#FAF7F0] border-[#E4D4BC]'
                 }`}>
-                  <div><strong>Quantity:</strong> {getQuantityDisplay()}</div>
-                  <div><strong>Meal Purpose:</strong> {getMealLabels() || 'General Cuts'}</div>
-                  <div><strong>Delivery Address:</strong> {kitchenAddress}</div>
+                  <div><strong>{isAmharic ? 'መጠን፡' : 'Quantity:'}</strong> {getQuantityDisplay()}</div>
+                  <div><strong>{isAmharic ? 'የምግብ አይነት፡' : 'Meal Purpose:'}</strong> {getMealLabels() || (isAmharic ? 'መደበኛ አቆራረጥ' : 'General Cuts')}</div>
+                  <div><strong>{isAmharic ? 'የማድረሻ አድራሻ፡' : 'Delivery Address:'}</strong> {kitchenAddress}</div>
                 </div>
 
                 <div className="pt-3 flex flex-col sm:flex-row justify-center gap-2.5">
@@ -179,14 +210,14 @@ export const MeatByKgServicePage: React.FC = () => {
                     }`}
                   >
                     <MessageSquare className="w-4 h-4" />
-                    <span>Send Order on WhatsApp</span>
+                    <span>{isAmharic ? 'ትዕዛዙን በዋትስአፕ ይላኩ' : 'Send Order on WhatsApp'}</span>
                   </a>
                   <button
                     type="button"
                     onClick={() => setSubmitted(false)}
                     className="px-4 py-2.5 rounded-xl text-xs font-semibold border opacity-75 hover:opacity-100"
                   >
-                    Modify Order
+                    {isAmharic ? 'ትዕዛዙን አስተካክል' : 'Modify Order'}
                   </button>
                 </div>
               </div>
@@ -194,9 +225,11 @@ export const MeatByKgServicePage: React.FC = () => {
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="flex items-center justify-between border-b pb-2.5" style={{ borderColor: isDark ? '#4A2C16' : '#E4D4BC' }}>
                   <h2 className="font-serif font-bold text-base">
-                    Configure Meat Type & Meal Purpose
+                    {isAmharic ? 'የስጋ አይነትና የዝግጅት ምርጫ' : 'Configure Meat Type & Meal Purpose'}
                   </h2>
-                  <span className="text-[11px] opacity-70">Wholesale Commercial Supply</span>
+                  <span className="text-[11px] opacity-70">
+                    {isAmharic ? 'የጅምላና የንግድ አቅርቦት' : 'Wholesale Commercial Supply'}
+                  </span>
                 </div>
 
                 {error && (
@@ -209,14 +242,14 @@ export const MeatByKgServicePage: React.FC = () => {
                 {/* 1. Animal Source Selector */}
                 <div>
                   <label className="block text-xs font-semibold mb-1.5 opacity-90">
-                    1. Select Meat Animal Source
+                    {isAmharic ? '1. የስጋውን እንስሳ አይነት ይምረጡ' : '1. Select Meat Animal Source'}
                   </label>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                     {[
-                      { id: 'sheep', label: 'Sheep (የበግ ሥጋ)' },
-                      { id: 'goat', label: 'Goat (የፍየል ሥጋ)' },
-                      { id: 'cow', label: 'Cow / Beef (የበሬ ሥጋ)' },
-                      { id: 'mixed', label: 'Mixed Order (የተደባለቀ)' }
+                      { id: 'sheep', label: isAmharic ? 'የበግ ሥጋ' : 'Sheep (የበግ ሥጋ)' },
+                      { id: 'goat', label: isAmharic ? 'የፍየል ሥጋ' : 'Goat (የፍየል ሥጋ)' },
+                      { id: 'cow', label: isAmharic ? 'የበሬ ሥጋ' : 'Cow / Beef (የበሬ ሥጋ)' },
+                      { id: 'mixed', label: isAmharic ? 'የተደባለቀ ትዕዛዝ' : 'Mixed Order (የተደባለቀ)' }
                     ].map((item) => (
                       <button
                         key={item.id}
@@ -241,8 +274,14 @@ export const MeatByKgServicePage: React.FC = () => {
                 {/* 2. Ethiopian Meal Purpose Checklist */}
                 <div>
                   <label className="block text-xs font-semibold mb-1.5 opacity-90 flex items-center justify-between">
-                    <span>2. Select Meal Purpose / የሥጋው ዓይነት ለምን ምግብ:</span>
-                    <span className="text-[10px] opacity-60 font-normal">Select all needed</span>
+                    <span>
+                      {isAmharic
+                        ? '2. የሥጋው ዓይነት ለምን ምግብ እንደሚያገለግል ይምረጡ፡'
+                        : '2. Select Meal Purpose / የሥጋው ዓይነት ለምን ምግብ:'}
+                    </span>
+                    <span className="text-[10px] opacity-60 font-normal">
+                      {isAmharic ? 'የሚፈልጉትን ሁሉ ይምረጡ' : 'Select all needed'}
+                    </span>
                   </label>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                     {ethiopianMealPurposes.map((meal) => {
@@ -282,10 +321,12 @@ export const MeatByKgServicePage: React.FC = () => {
                   >
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-bold text-amber-500 uppercase tracking-wider">
-                        3. Mixed Order: Specify KG Amount for Each Meat Type
+                        {isAmharic
+                          ? '3. የተደባለቀ ትዕዛዝ፡ ለእያንዳንዱ አይነት የኪሎ መጠን ይግለጹ'
+                          : '3. Mixed Order: Specify KG Amount for Each Meat Type'}
                       </span>
                       <span className="text-xs font-bold bg-amber-500/20 text-amber-500 px-2 py-0.5 rounded-md">
-                        Total: {totalMixedKg} KG
+                        {isAmharic ? `ጠቅላላ፡ ${totalMixedKg} ኪ.ግ` : `Total: ${totalMixedKg} KG`}
                       </span>
                     </div>
 
@@ -293,7 +334,7 @@ export const MeatByKgServicePage: React.FC = () => {
                       {/* Sheep KG */}
                       <div>
                         <label className="block text-xs font-semibold mb-1 opacity-90">
-                          Sheep / Lamb (በግ)
+                          {isAmharic ? 'የበግ ሥጋ' : 'Sheep / Lamb (በግ)'}
                         </label>
                         <div className="relative">
                           <input
@@ -307,14 +348,16 @@ export const MeatByKgServicePage: React.FC = () => {
                               isDark ? 'bg-[#2A1A0D] border-[#4A2C16] text-[#F4E8D0]' : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#2A1A0D]'
                             }`}
                           />
-                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold opacity-60">KG</span>
+                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold opacity-60">
+                            {isAmharic ? 'ኪ.ግ' : 'KG'}
+                          </span>
                         </div>
                       </div>
 
                       {/* Goat KG */}
                       <div>
                         <label className="block text-xs font-semibold mb-1 opacity-90">
-                          Goat (ፍየል)
+                          {isAmharic ? 'የፍየል ሥጋ' : 'Goat (ፍየል)'}
                         </label>
                         <div className="relative">
                           <input
@@ -328,14 +371,16 @@ export const MeatByKgServicePage: React.FC = () => {
                               isDark ? 'bg-[#2A1A0D] border-[#4A2C16] text-[#F4E8D0]' : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#2A1A0D]'
                             }`}
                           />
-                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold opacity-60">KG</span>
+                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold opacity-60">
+                            {isAmharic ? 'ኪ.ግ' : 'KG'}
+                          </span>
                         </div>
                       </div>
 
                       {/* Cow KG */}
                       <div>
                         <label className="block text-xs font-semibold mb-1 opacity-90">
-                          Cow / Beef (በሬ)
+                          {isAmharic ? 'የበሬ ሥጋ' : 'Cow / Beef (በሬ)'}
                         </label>
                         <div className="relative">
                           <input
@@ -349,7 +394,9 @@ export const MeatByKgServicePage: React.FC = () => {
                               isDark ? 'bg-[#2A1A0D] border-[#4A2C16] text-[#F4E8D0]' : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#2A1A0D]'
                             }`}
                           />
-                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold opacity-60">KG</span>
+                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold opacity-60">
+                            {isAmharic ? 'ኪ.ግ' : 'KG'}
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -358,25 +405,27 @@ export const MeatByKgServicePage: React.FC = () => {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
                     <div>
                       <label className="block text-xs font-semibold uppercase tracking-wider mb-1 opacity-90">
-                        3. Quantity in Kilograms (KG) <span className="text-red-500">*</span>
+                        {isAmharic ? '3. የኪሎ ግራም መጠን (ኪ.ግ)' : '3. Quantity in Kilograms (KG)'} <span className="text-red-500">*</span>
                       </label>
                       <div className="relative">
                         <input
                           type="text"
-                          placeholder="e.g. 20 kg, 50 kg, 200 kg"
+                          placeholder={isAmharic ? 'ለምሳሌ፡ 20 ኪ.ግ፣ 50 ኪ.ግ፣ 200 ኪ.ግ' : 'e.g. 20 kg, 50 kg, 200 kg'}
                           value={quantityKg}
                           onChange={(e) => setQuantityKg(e.target.value)}
                           className={`w-full px-3.5 py-2 rounded-xl text-xs border focus:outline-none ${
                             isDark ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0]' : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#2A1A0D]'
                           }`}
                         />
-                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold opacity-60">KG</span>
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold opacity-60">
+                          {isAmharic ? 'ኪ.ግ' : 'KG'}
+                        </span>
                       </div>
                     </div>
 
                     <div>
                       <label className="block text-xs font-semibold uppercase tracking-wider mb-1 opacity-90">
-                        Supply Frequency
+                        {isAmharic ? 'የአቅርቦት ድግግሞሽ' : 'Supply Frequency'}
                       </label>
                       <select
                         value={orderFrequency}
@@ -385,9 +434,9 @@ export const MeatByKgServicePage: React.FC = () => {
                           isDark ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0]' : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#2A1A0D]'
                         }`}
                       >
-                        <option value="one_time">One-Time Order</option>
-                        <option value="weekly">Weekly Regular Delivery</option>
-                        <option value="daily">Daily Hotel Kitchen Supply</option>
+                        <option value="one_time">{isAmharic ? 'የአንድ ጊዜ ትዕዛዝ' : 'One-Time Order'}</option>
+                        <option value="weekly">{isAmharic ? 'ሳምንታዊ መደበኛ አቅርቦት' : 'Weekly Regular Delivery'}</option>
+                        <option value="daily">{isAmharic ? 'ዕለታዊ የሆቴል/ማብሰያ አቅርቦት' : 'Daily Hotel Kitchen Supply'}</option>
                       </select>
                     </div>
                   </div>
@@ -397,7 +446,7 @@ export const MeatByKgServicePage: React.FC = () => {
                 {animalSource === 'mixed' && (
                   <div>
                     <label className="block text-xs font-semibold uppercase tracking-wider mb-1 opacity-90">
-                      Supply Frequency
+                      {isAmharic ? 'የአቅርቦት ድግግሞሽ' : 'Supply Frequency'}
                     </label>
                     <select
                       value={orderFrequency}
@@ -406,9 +455,9 @@ export const MeatByKgServicePage: React.FC = () => {
                         isDark ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0]' : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#2A1A0D]'
                       }`}
                     >
-                      <option value="one_time">One-Time Order</option>
-                      <option value="weekly">Weekly Regular Delivery</option>
-                      <option value="daily">Daily Hotel Kitchen Supply</option>
+                      <option value="one_time">{isAmharic ? 'የአንድ ጊዜ ትዕዛዝ' : 'One-Time Order'}</option>
+                      <option value="weekly">{isAmharic ? 'ሳምንታዊ መደበኛ አቅርቦት' : 'Weekly Regular Delivery'}</option>
+                      <option value="daily">{isAmharic ? 'ዕለታዊ የሆቴል/ማብሰያ አቅርቦት' : 'Daily Hotel Kitchen Supply'}</option>
                     </select>
                   </div>
                 )}
@@ -417,7 +466,7 @@ export const MeatByKgServicePage: React.FC = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div>
                     <label className="block text-xs font-semibold uppercase tracking-wider mb-1 opacity-90">
-                      Buyer Category
+                      {isAmharic ? 'የገዥው ዘርፍ' : 'Buyer Category'}
                     </label>
                     <select
                       value={establishmentType}
@@ -426,20 +475,20 @@ export const MeatByKgServicePage: React.FC = () => {
                         isDark ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0]' : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#2A1A0D]'
                       }`}
                     >
-                      <option value="hotel_restaurant">Hotel / Restaurant</option>
-                      <option value="catering">Catering Kitchen</option>
-                      <option value="household">Household / Family</option>
-                      <option value="ceremony">Ceremony / Feast</option>
+                      <option value="hotel_restaurant">{isAmharic ? 'ሆቴል / ሬስቶራንት' : 'Hotel / Restaurant'}</option>
+                      <option value="catering">{isAmharic ? 'የካተሪንግ ኩሽና' : 'Catering Kitchen'}</option>
+                      <option value="household">{isAmharic ? 'የቤተሰብ / የቤት ውስጥ' : 'Household / Family'}</option>
+                      <option value="ceremony">{isAmharic ? 'ለድግስ / ለዝግጅት' : 'Ceremony / Feast'}</option>
                     </select>
                   </div>
 
                   <div>
                     <label className="block text-xs font-semibold uppercase tracking-wider mb-1 opacity-90">
-                      Hotel / Business Name
+                      {isAmharic ? 'የሆቴሉ / የድርጅቱ ስም' : 'Hotel / Business Name'}
                     </label>
                     <input
                       type="text"
-                      placeholder="e.g. Bole Traditional Restaurant"
+                      placeholder={isAmharic ? 'ለምሳሌ፡ ቦሌ ባህላዊ ሬስቶራንት' : 'e.g. Bole Traditional Restaurant'}
                       value={businessName}
                       onChange={(e) => setBusinessName(e.target.value)}
                       className={`w-full px-3.5 py-2 rounded-xl text-xs border focus:outline-none ${
@@ -450,11 +499,11 @@ export const MeatByKgServicePage: React.FC = () => {
 
                   <div>
                     <label className="block text-xs font-semibold uppercase tracking-wider mb-1 opacity-90">
-                      Contact Person <span className="text-red-500">*</span>
+                      {isAmharic ? 'የአነጋጋሪው ሙሉ ስም' : 'Contact Person'} <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
-                      placeholder="e.g. Chef Dawit"
+                      placeholder={isAmharic ? 'ለምሳሌ፡ ሼፍ ዳዊት' : 'e.g. Chef Dawit'}
                       value={contactPerson}
                       onChange={(e) => setContactPerson(e.target.value)}
                       className={`w-full px-3.5 py-2 rounded-xl text-xs border focus:outline-none ${
@@ -468,7 +517,7 @@ export const MeatByKgServicePage: React.FC = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="block text-xs font-semibold uppercase tracking-wider mb-1 opacity-90">
-                      Phone Number <span className="text-red-500">*</span>
+                      {isAmharic ? 'ስልክ ቁጥር' : 'Phone Number'} <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="tel"
@@ -483,7 +532,7 @@ export const MeatByKgServicePage: React.FC = () => {
 
                   <div>
                     <label className="block text-xs font-semibold uppercase tracking-wider mb-1 opacity-90">
-                      Delivery Date / Schedule
+                      {isAmharic ? 'የሚፈለግበት ቀን' : 'Delivery Date / Schedule'}
                     </label>
                     <input
                       type="date"
@@ -498,11 +547,11 @@ export const MeatByKgServicePage: React.FC = () => {
 
                 <div>
                   <label className="block text-xs font-semibold uppercase tracking-wider mb-1 opacity-90">
-                    Kitchen / Delivery Address <span className="text-red-500">*</span>
+                    {isAmharic ? 'የማብሰያ ቤት / የማድረሻ አድራሻ' : 'Kitchen / Delivery Address'} <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
-                    placeholder="e.g. Addis Ababa, Bole near Atlas or Kazanchis"
+                    placeholder={isAmharic ? 'ለምሳሌ፡ ቦሌ አትላስ ወይም ካዛንቺስ' : 'e.g. Addis Ababa, Bole near Atlas or Kazanchis'}
                     value={kitchenAddress}
                     onChange={(e) => setKitchenAddress(e.target.value)}
                     className={`w-full px-3.5 py-2 rounded-xl text-xs border focus:outline-none ${
@@ -513,11 +562,11 @@ export const MeatByKgServicePage: React.FC = () => {
 
                 <div>
                   <label className="block text-xs font-semibold uppercase tracking-wider mb-1 opacity-90">
-                    Specific Cut & Butchering Instructions
+                    {isAmharic ? 'ልዩ የስጋ አቆራረጥና የስጋ ዝግጅት መመሪያዎች' : 'Specific Cut & Butchering Instructions'}
                   </label>
                   <textarea
                     rows={2}
-                    placeholder="e.g. Remove sinew from kitfo portions, cut tibs in 2cm cubes, separate goden ribs into 4-rib racks..."
+                    placeholder={isAmharic ? 'ለምሳሌ፡ ለክትፎ የሚሆን ቀይ ስጋ፣ የጥብስ ስጋ በኩብ የተቆረጠ፣ የጎድን አቆራረጥ...' : 'e.g. Remove sinew from kitfo portions, cut tibs in 2cm cubes, separate goden ribs into 4-rib racks...'}
                     value={cutInstructions}
                     onChange={(e) => setCutInstructions(e.target.value)}
                     className={`w-full px-3.5 py-2 rounded-xl text-xs border focus:outline-none resize-none ${
@@ -533,7 +582,7 @@ export const MeatByKgServicePage: React.FC = () => {
                       isDark ? 'bg-[#C58A3A] hover:bg-[#E0B15A] text-[#1B1208]' : 'bg-[#B8792F] hover:bg-[#9E6523] text-[#FAF7F0]'
                     }`}
                   >
-                    Submit Meat in KG Order
+                    {isAmharic ? 'የስጋ በኪሎ ትዕዛዝ ይላኩ' : 'Submit Meat in KG Order'}
                   </button>
                 </div>
               </form>
@@ -549,38 +598,42 @@ export const MeatByKgServicePage: React.FC = () => {
             >
               <div className="flex items-center gap-2 text-xs font-bold text-amber-500 uppercase tracking-wider">
                 <Building2 className="w-4 h-4" />
-                <span>Hotel & Kitchen Wholesale Specs</span>
+                <span>{isAmharic ? 'የሆቴልና ሬስቶራንት የጅምላ ስጋ መስፈርቶች' : 'Hotel & Kitchen Wholesale Specs'}</span>
               </div>
 
               <p className="text-xs opacity-85 leading-relaxed">
-                We process meat directly from verified healthy livestock at our Aware facility under strict sanitary conditions with precision weighing.
+                {isAmharic
+                  ? 'ስጋውን በቀጥታ ጤናማነታቸው ከተረጋገጡ እንስሳት በአዋሬ እርሻችን በከፍተኛ ንጽህናና በትክክለኛ ሚዛን እናዘጋጃለን።'
+                  : 'We process meat directly from verified healthy livestock at our Aware facility under strict sanitary conditions with precision weighing.'}
               </p>
 
               <div className="space-y-2 pt-2 border-t text-xs opacity-90" style={{ borderColor: isDark ? '#4A2C16' : '#E4D4BC' }}>
                 <div className="flex items-center justify-between">
-                  <span><strong>Kitfo Cuts:</strong></span>
-                  <span className="opacity-75">100% lean red meat (ፍርምባ / ለጋ)</span>
+                  <span><strong>{isAmharic ? 'የክትፎ ስጋ፡' : 'Kitfo Cuts:'}</strong></span>
+                  <span className="opacity-75">{isAmharic ? '100% ቀይ ንጹህ ስጋ (ፍርምባ / ለጋ)' : '100% lean red meat (ፍርምባ / ለጋ)'}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span><strong>Tre Kurt Cuts:</strong></span>
-                  <span className="opacity-75">Prime tenderloin & loin (ኮስታላ / ሻንካ)</span>
+                  <span><strong>{isAmharic ? 'የጥሬ ቁርጥ ስጋ፡' : 'Tre Kurt Cuts:'}</strong></span>
+                  <span className="opacity-75">{isAmharic ? 'ምርጥ ኮስታላና ሻንካ' : 'Prime tenderloin & loin (ኮስታላ / ሻንካ)'}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span><strong>Wot Cuts:</strong></span>
-                  <span className="opacity-75">Clean stew meat (የወጥ ሥጋ)</span>
+                  <span><strong>{isAmharic ? 'የወጥ ስጋ፡' : 'Wot Cuts:'}</strong></span>
+                  <span className="opacity-75">{isAmharic ? 'ንጹህ የወጥ ሥጋ' : 'Clean stew meat (የወጥ ሥጋ)'}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span><strong>Tibs Cuts:</strong></span>
-                  <span className="opacity-75">Tender meat & rib strips</span>
+                  <span><strong>{isAmharic ? 'የጥብስ ስጋ፡' : 'Tibs Cuts:'}</strong></span>
+                  <span className="opacity-75">{isAmharic ? 'የለጋ ጥብስ ስጋና የጎድን ቁራጮች' : 'Tender meat & rib strips'}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span><strong>Dulet Cuts:</strong></span>
-                  <span className="opacity-75">Fresh liver, tripe & lean mince</span>
+                  <span><strong>{isAmharic ? 'የዱለት ስጋ፡' : 'Dulet Cuts:'}</strong></span>
+                  <span className="opacity-75">{isAmharic ? 'ትኩስ ጨጓራ፣ ጉበትና ቀይ ስጋ' : 'Fresh liver, tripe & lean mince'}</span>
                 </div>
               </div>
 
               <div className="pt-2 text-[11px] opacity-70">
-                * Certified scales used on all shipments. Recurring contracts receive discounted delivery rates.
+                {isAmharic
+                  ? '* ለሁሉም ጭነቶች የተረጋገጠ ሚዛን ጥቅም ላይ ይውላል። ቀጣይነት ላላቸው ውሎች ልዩ የማድረሻ ቅናሽ አለ።'
+                  : '* Certified scales used on all shipments. Recurring contracts receive discounted delivery rates.'}
               </div>
             </div>
 
@@ -591,13 +644,13 @@ export const MeatByKgServicePage: React.FC = () => {
               }`}
             >
               <span className="font-bold text-amber-500 uppercase tracking-wider text-[10px]">
-                Explore Other Dashboards
+                {isAmharic ? 'ሌሎች አገልግሎቶችን ይመልከቱ' : 'Explore Other Dashboards'}
               </span>
               <div className="grid grid-cols-2 gap-2 pt-1">
-                <Link to="/services/delivery" className="hover:underline opacity-80">Live Delivery</Link>
-                <Link to="/services/slaughter-prep" className="hover:underline opacity-80">On-Site Slaughter</Link>
-                <Link to="/services/events-ceremonies" className="hover:underline opacity-80">Ceremony Supply</Link>
-                <Link to="/services/fresh-slaughtered-sheep" className="hover:underline opacity-80">Fresh Sheep</Link>
+                <Link to="/services/delivery" className="hover:underline opacity-80">{isAmharic ? 'የቀጥታ ማድረስ' : 'Live Delivery'}</Link>
+                <Link to="/services/slaughter-prep" className="hover:underline opacity-80">{isAmharic ? 'በቦታው ላይ ዕርድ' : 'On-Site Slaughter'}</Link>
+                <Link to="/services/events-ceremonies" className="hover:underline opacity-80">{isAmharic ? 'ለበዓላትና ሰርግ' : 'Ceremony Supply'}</Link>
+                <Link to="/services/fresh-slaughtered-sheep" className="hover:underline opacity-80">{isAmharic ? 'የታረደ ትኩስ በግ' : 'Fresh Sheep'}</Link>
               </div>
             </div>
           </div>

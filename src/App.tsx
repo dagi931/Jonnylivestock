@@ -27,13 +27,41 @@ import { Contact } from './pages/Contact';
 import { Admin } from './pages/Admin';
 import { NotFound } from './pages/NotFound';
 
-// Auto scroll-to-top on route navigation
+// Auto scroll-to-top on route navigation and page refresh
 const ScrollToTop: React.FC = () => {
   const { pathname } = useLocation();
 
   useEffect(() => {
+    if ('scrollRestoration' in history) {
+      history.scrollRestoration = 'manual';
+    }
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior });
   }, [pathname]);
+
+  useEffect(() => {
+    if ('scrollRestoration' in history) {
+      history.scrollRestoration = 'manual';
+    }
+    const scrollToTopImmediate = () => {
+      window.scrollTo(0, 0);
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    };
+
+    scrollToTopImmediate();
+    const rafId = requestAnimationFrame(scrollToTopImmediate);
+    const timeoutId = setTimeout(scrollToTopImmediate, 30);
+
+    window.addEventListener('pageshow', scrollToTopImmediate);
+    window.addEventListener('load', scrollToTopImmediate);
+
+    return () => {
+      cancelAnimationFrame(rafId);
+      clearTimeout(timeoutId);
+      window.removeEventListener('pageshow', scrollToTopImmediate);
+      window.removeEventListener('load', scrollToTopImmediate);
+    };
+  }, []);
 
   return null;
 };

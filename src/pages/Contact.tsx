@@ -5,6 +5,7 @@ import { useTheme } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
 import { getPhoneCallLink, getWhatsAppLink } from '../utils/formatters';
 import { FarmMap } from '../components/common/FarmMap';
+import { api } from '../services/api';
 import {
   Phone,
   MessageSquare,
@@ -63,15 +64,27 @@ export const Contact: React.FC = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
 
     setIsSubmitting(true);
-    setTimeout(() => {
+    try {
+      const res = await api.submitContactMessage(formData);
+      if (res.success) {
+        setIsSuccess(true);
+      } else {
+        setErrors({
+          general: res.error || (isAmharic ? 'መልእክት መላክ አልተሳካም። እባክዎ እንደገና ይሞክሩ።' : 'Failed to send message. Please try again.')
+        });
+      }
+    } catch (err: any) {
+      setErrors({
+        general: err.message || (isAmharic ? 'የኔትወርክ ችግር አጋጥሟል። እባክዎ እንደገና ይሞክሩ።' : 'Network error occurred. Please try again.')
+      });
+    } finally {
       setIsSubmitting(false);
-      setIsSuccess(true);
-    }, 600);
+    }
   };
 
   const handleReset = () => {

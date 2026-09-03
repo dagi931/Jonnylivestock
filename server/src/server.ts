@@ -13,6 +13,7 @@ import notificationsRoutes from './routes/notifications.routes.js';
 import settingsRoutes from './routes/settings.routes.js';
 import eventsRoutes from './routes/events.routes.js';
 import packagesRoutes from './routes/packages.routes.js';
+import contactRoutes from './routes/contact.routes.js';
 
 dotenv.config();
 
@@ -30,7 +31,7 @@ const PORT = process.env.PORT || 5000;
 
 // Middleware
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:3000'],
+  origin: true,
   credentials: true
 }));
 app.use(express.json());
@@ -62,6 +63,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/animals', animalsRoutes);
 app.use('/api/orders', ordersRoutes);
 app.use('/api/packages', packagesRoutes);
+app.use('/api/contact', contactRoutes);
 app.use('/api/admin/notifications', notificationsRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/events', eventsRoutes);

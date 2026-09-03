@@ -59,7 +59,9 @@ router.post('/', authenticateToken, requireAdmin, async (req: AuthRequest, res: 
       packagePrice,
       badge,
       image,
-      featured
+      featured,
+      totalSlots,
+      availableSlots
     } = req.body;
 
     if (!name || !description || !image || originalPrice === undefined || packagePrice === undefined) {
@@ -80,7 +82,9 @@ router.post('/', authenticateToken, requireAdmin, async (req: AuthRequest, res: 
       packagePrice: Number(packagePrice),
       badge: badge || 'Special Package',
       image,
-      featured: Boolean(featured)
+      featured: Boolean(featured),
+      totalSlots: totalSlots !== undefined ? Number(totalSlots) : 10,
+      availableSlots: availableSlots !== undefined ? Number(availableSlots) : (totalSlots !== undefined ? Number(totalSlots) : 10)
     });
 
     res.status(201).json({
@@ -91,6 +95,36 @@ router.post('/', authenticateToken, requireAdmin, async (req: AuthRequest, res: 
   } catch (error: any) {
     console.error('Error creating package:', error);
     res.status(500).json({ success: false, error: 'Failed to create celebration package' });
+  }
+});
+
+// ==================== ADMIN: UPDATE PACKAGE SLOTS ====================
+router.patch('/:id/slots', authenticateToken, requireAdmin, async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { availableSlots, totalSlots } = req.body;
+    if (availableSlots === undefined) {
+      res.status(400).json({ success: false, error: 'availableSlots is required' });
+      return;
+    }
+
+    const updated = await PostgresDB.updatePackageSlots(
+      req.params.id,
+      Number(availableSlots),
+      totalSlots !== undefined ? Number(totalSlots) : undefined
+    );
+
+    if (!updated) {
+      res.status(404).json({ success: false, error: 'Package not found' });
+      return;
+    }
+
+    res.json({
+      success: true,
+      message: 'Package slots updated successfully',
+      data: updated
+    });
+  } catch (error: any) {
+    res.status(500).json({ success: false, error: error.message || 'Failed to update slots' });
   }
 });
 

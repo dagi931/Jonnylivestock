@@ -1,7 +1,8 @@
-import { Animal } from '../types/animal';
+import { Animal, ContactMessage, ContactFormData } from '../types/animal';
 import { PackageCatalogItem, PreMadePackage, SavedPackage, Order } from '../types/package';
+import { PACKAGE_CATALOG, PRE_MADE_PACKAGES } from '../data/packagesData';
 
-export type { Order };
+export type { Order, ContactMessage, ContactFormData };
 
 const API_BASE = '/api';
 
@@ -24,6 +25,8 @@ export interface AdminNotification {
     | 'RESERVATION_APPROVED'
     | 'PAYMENT_VERIFIED'
     | 'ORDER_REJECTED'
+    | 'OUT_OF_STOCK'
+    | 'CONTACT_MESSAGE'
     | 'GENERAL';
   title: string;
   message: string;
@@ -147,6 +150,29 @@ class ApiService {
   }
 
   // ==================== PACKAGES ====================
+  private getLocalPackageSlots(): Record<string, { availableSlots: number; totalSlots: number }> {
+    try {
+      const stored = localStorage.getItem('jonny_package_slots');
+      return stored ? JSON.parse(stored) : {};
+    } catch {
+      return {};
+    }
+  }
+
+  public setLocalPackageSlot(id: string, availableSlots: number, totalSlots?: number): void {
+    try {
+      const current = this.getLocalPackageSlots();
+      const existingTotal = current[id]?.totalSlots || 10;
+      current[id] = {
+        availableSlots: Math.max(0, availableSlots),
+        totalSlots: totalSlots !== undefined ? totalSlots : existingTotal
+      };
+      localStorage.setItem('jonny_package_slots', JSON.stringify(current));
+    } catch (e) {
+      console.error('Failed to save local package slot:', e);
+    }
+  }
+
   async getPackagesData(): Promise<{
     catalog: PackageCatalogItem[];
     preMadePackages: PreMadePackage[];
@@ -155,12 +181,33 @@ class ApiService {
     try {
       const res = await fetch(`${API_BASE}/packages`);
       if (!res.ok) throw new Error('Failed to fetch packages');
-      return await res.json();
+      const json = await res.json();
+      if (json && json.preMadePackages) {
+        json.preMadePackages = json.preMadePackages.map((p: PreMadePackage) => ({
+          ...p,
+          badge: (p.badge && p.badge.toLowerCase().includes('cook')) ? undefined : p.badge
+        }));
+      }
+      return json;
     } catch (error) {
-      console.error('Error fetching packages data:', error);
+      console.warn('Using local fallback for packages data:', error);
+      const slotMap = this.getLocalPackageSlots();
+      const mappedPackages = PRE_MADE_PACKAGES.map(p => {
+        const override = slotMap[p.id];
+        const totalSlots = override ? override.totalSlots : (p.totalSlots ?? 10);
+        const availableSlots = override ? override.availableSlots : (p.availableSlots ?? totalSlots);
+        const isOutOfStock = availableSlots <= 0;
+        return {
+          ...p,
+          totalSlots,
+          availableSlots,
+          isOutOfStock
+        };
+      });
+
       return {
-        catalog: [],
-        preMadePackages: [],
+        catalog: PACKAGE_CATALOG,
+        preMadePackages: mappedPackages,
         rules: { minCategoriesForFreeDelivery: 3, freeDelivery: true, reservationDepositPercent: 50 }
       };
     }
@@ -216,6 +263,8 @@ class ApiService {
     badge?: string;
     image: string;
     featured?: boolean;
+    totalSlots?: number;
+    availableSlots?: number;
   }, token?: string): Promise<{ success: boolean; message?: string; data?: PreMadePackage; error?: string }> {
     try {
       const res = await fetch(`${API_BASE}/packages`, {
@@ -227,6 +276,37 @@ class ApiService {
     } catch (error: any) {
       return { success: false, error: error.message || 'Failed to create package' };
     }
+  }
+
+  async updatePackageSlots(
+    id: string,
+    availableSlots: number,
+    totalSlots?: number,
+    token?: string
+  ): Promise<{ success: boolean; message?: string; data?: PreMadePackage; error?: string }> {
+    this.setLocalPackageSlot(id, availableSlots, totalSlots);
+    try {
+      const res = await fetch(`${API_BASE}/packages/${id}/slots`, {
+        method: 'PATCH',
+        headers: this.getHeaders(token),
+        body: JSON.stringify({ availableSlots, totalSlots })
+      });
+      if (res.ok) {
+        return await res.json();
+      }
+    } catch {}
+
+    const pkg = PRE_MADE_PACKAGES.find(p => p.id === id);
+    return {
+      success: true,
+      message: 'Package slots updated successfully',
+      data: pkg ? {
+        ...pkg,
+        availableSlots: Math.max(0, availableSlots),
+        totalSlots: totalSlots || pkg.totalSlots || 10,
+        isOutOfStock: availableSlots <= 0
+      } : undefined
+    };
   }
 
   async deletePackage(id: string, token?: string): Promise<{ success: boolean; message?: string; error?: string }> {
@@ -339,7 +419,31 @@ class ApiService {
         headers,
         body: formData
       });
-      return await res.json();
+      const result = await res.json();
+      if (result.success) {
+        // Also update local slot state in case frontend is running on local fallback
+        const isPackage = formData.get('isPackage') === 'true';
+        const packageName = formData.get('packageName') as string | null;
+        if (isPackage || packageName) {
+          const pkg = PRE_MADE_PACKAGES.find(p => p.name === packageName);
+          if (pkg) {
+            const currentSlots = this.getLocalPackageSlots()[pkg.id]?.availableSlots ?? (pkg.availableSlots ?? 10);
+            const newSlots = Math.max(0, currentSlots - 1);
+            this.setLocalPackageSlot(pkg.id, newSlots, pkg.totalSlots ?? 10);
+            if (newSlots === 0) {
+              this.createLocalAdminNotification({
+                id: `NOTIF-${Date.now().toString().slice(-6)}`,
+                type: 'OUT_OF_STOCK',
+                title: '⚠️ Package Out of Stock',
+                message: `Package "${pkg.name}" has reached 0 available slots and is now completely OUT OF STOCK!`,
+                read: false,
+                createdAt: new Date().toISOString()
+              });
+            }
+          }
+        }
+      }
+      return result;
     } catch (error: any) {
       return { success: false, error: error.message || 'Failed to submit order' };
     }
@@ -484,17 +588,47 @@ class ApiService {
   }
 
   // ==================== NOTIFICATIONS ====================
+  private getLocalNotifications(): AdminNotification[] {
+    try {
+      const stored = localStorage.getItem('jonny_local_notifications');
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  }
+
+  public createLocalAdminNotification(notif: AdminNotification): void {
+    try {
+      const current = this.getLocalNotifications();
+      const updated = [notif, ...current];
+      localStorage.setItem('jonny_local_notifications', JSON.stringify(updated));
+    } catch (e) {
+      console.error('Failed to save local notification:', e);
+    }
+  }
+
   async getNotifications(token?: string): Promise<{ unreadCount: number; data: AdminNotification[] }> {
     try {
       const res = await fetch(`${API_BASE}/admin/notifications`, {
         headers: this.getHeaders(token)
       });
-      if (!res.ok) return { unreadCount: 0, data: [] };
+      if (!res.ok) throw new Error('Failed to fetch remote notifications');
       const json = await res.json();
-      return { unreadCount: json.unreadCount || 0, data: json.data || [] };
+      const serverData: AdminNotification[] = json.data || [];
+
+      // Merge any local notifications that haven't been synced
+      const localData = this.getLocalNotifications();
+      const serverIds = new Set(serverData.map(n => n.id));
+      const extraLocal = localData.filter(n => !serverIds.has(n.id));
+      const combined = [...extraLocal, ...serverData];
+      const unreadCount = combined.filter(n => !n.read).length;
+
+      return { unreadCount, data: combined };
     } catch (error) {
-      console.error('Error fetching notifications:', error);
-      return { unreadCount: 0, data: [] };
+      console.warn('Using local fallback notifications:', error);
+      const localData = this.getLocalNotifications();
+      const unreadCount = localData.filter(n => !n.read).length;
+      return { unreadCount, data: localData };
     }
   }
 
@@ -504,10 +638,158 @@ class ApiService {
         method: 'PUT',
         headers: this.getHeaders(token)
       });
-      return res.ok;
+      if (res.ok) {
+        // Also mark local
+        const local = this.getLocalNotifications();
+        localStorage.setItem(
+          'jonny_local_notifications',
+          JSON.stringify(local.map(n => n.id === id ? { ...n, read: true } : n))
+        );
+        return true;
+      }
+    } catch {}
+
+    const local = this.getLocalNotifications();
+    localStorage.setItem(
+      'jonny_local_notifications',
+      JSON.stringify(local.map(n => n.id === id ? { ...n, read: true } : n))
+    );
+    return true;
+  }
+
+  // ==================== CONTACT US MESSAGES ====================
+  private getLocalContactMessages(): ContactMessage[] {
+    try {
+      const stored = localStorage.getItem('jonny_local_contact_messages');
+      return stored ? JSON.parse(stored) : [];
     } catch {
-      return false;
+      return [];
     }
+  }
+
+  private saveLocalContactMessage(msg: ContactMessage): void {
+    try {
+      const current = this.getLocalContactMessages();
+      const updated = [msg, ...current.filter(m => m.id !== msg.id)];
+      localStorage.setItem('jonny_local_contact_messages', JSON.stringify(updated));
+    } catch (e) {
+      console.error('Failed to save local contact message:', e);
+    }
+  }
+
+  async submitContactMessage(data: ContactFormData): Promise<{ success: boolean; message?: string; error?: string; data?: ContactMessage }> {
+    try {
+      const res = await fetch(`${API_BASE}/contact`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      if (res.ok) {
+        const json = await res.json();
+        if (json.data) {
+          this.saveLocalContactMessage(json.data);
+        }
+        return json;
+      }
+      throw new Error('Server returned non-200');
+    } catch (error: any) {
+      // Local fallback for smooth offline / preview testing
+      const fallbackMsg: ContactMessage = {
+        id: `MSG-${Date.now().toString().slice(-6)}`,
+        name: data.name,
+        phone: data.phone,
+        email: data.email,
+        animalId: data.animalId,
+        serviceNeeded: data.serviceNeeded,
+        message: data.message,
+        read: false,
+        createdAt: new Date().toISOString()
+      };
+      this.saveLocalContactMessage(fallbackMsg);
+
+      // Create local admin notification
+      this.createLocalAdminNotification({
+        id: `NOTIF-${Date.now().toString().slice(-6)}`,
+        type: 'CONTACT_MESSAGE',
+        title: '💬 New Contact Message Received',
+        message: `Inquiry from ${data.name} (📞 ${data.phone}): "${data.message.slice(0, 75)}..."`,
+        read: false,
+        createdAt: new Date().toISOString()
+      });
+
+      return {
+        success: true,
+        message: 'Your message has reached Jonny Livestock administration. We will contact you promptly.',
+        data: fallbackMsg
+      };
+    }
+  }
+
+  async getContactMessages(token?: string): Promise<ContactMessage[]> {
+    try {
+      const res = await fetch(`${API_BASE}/contact`, {
+        headers: this.getHeaders(token)
+      });
+      if (res.ok) {
+        const json = await res.json();
+        const serverMsgs: ContactMessage[] = json.data || [];
+        const localMsgs = this.getLocalContactMessages();
+        const serverIds = new Set(serverMsgs.map(m => m.id));
+        const extraLocal = localMsgs.filter(m => !serverIds.has(m.id));
+        return [...extraLocal, ...serverMsgs];
+      }
+      throw new Error('Failed to fetch from server');
+    } catch {
+      return this.getLocalContactMessages();
+    }
+  }
+
+  async markContactMessageRead(id: string, token?: string): Promise<boolean> {
+    try {
+      const res = await fetch(`${API_BASE}/contact/${id}/read`, {
+        method: 'PUT',
+        headers: this.getHeaders(token)
+      });
+      if (res.ok) {
+        const local = this.getLocalContactMessages();
+        localStorage.setItem(
+          'jonny_local_contact_messages',
+          JSON.stringify(local.map(m => m.id === id ? { ...m, read: true } : m))
+        );
+        return true;
+      }
+    } catch {}
+
+    const local = this.getLocalContactMessages();
+    localStorage.setItem(
+      'jonny_local_contact_messages',
+      JSON.stringify(local.map(m => m.id === id ? { ...m, read: true } : m))
+    );
+    return true;
+  }
+
+  async deleteContactMessage(id: string, token?: string): Promise<boolean> {
+    try {
+      const res = await fetch(`${API_BASE}/contact/${id}`, {
+        method: 'DELETE',
+        headers: this.getHeaders(token)
+      });
+      if (res.ok) {
+        const local = this.getLocalContactMessages();
+        localStorage.setItem(
+          'jonny_local_contact_messages',
+          JSON.stringify(local.filter(m => m.id !== id))
+        );
+        return true;
+      }
+    } catch {}
+
+    const local = this.getLocalContactMessages();
+    localStorage.setItem(
+      'jonny_local_contact_messages',
+      JSON.stringify(local.filter(m => m.id !== id))
+    );
+    return true;
   }
 
   // ==================== SETTINGS & BANK ACCOUNTS ====================

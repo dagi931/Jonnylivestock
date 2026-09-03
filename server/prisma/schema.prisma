@@ -136,6 +136,21 @@ model Package {
   badge         String   @default("Special Package")
   image         String
   featured      Boolean  @default(false)
+  totalSlots    Int      @default(10)
+  availableSlots Int     @default(10)
+  isOutOfStock  Boolean  @default(false)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+}
+
+model ContactMessage {
+  id            String   @id @default(uuid())
+  name          String
+  phone         String
+  email         String?
+  animalId      String?
+  serviceNeeded String?
+  message       String
+  read          Boolean  @default(false)
+  createdAt     DateTime @default(now())
 }
