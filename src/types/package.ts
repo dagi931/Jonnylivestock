@@ -17,7 +17,9 @@ export interface PreMadePackage {
   name: string;
   amharicName?: string;
   tagline: string;
+  amharicTagline?: string;
   description: string;
+  amharicDescription?: string;
   categoryCount: number;
   items: PackageCatalogItem[];
   originalPrice: number;

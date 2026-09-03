@@ -4,7 +4,12 @@ import { api } from '../services/api';
 import { useTheme } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useUserAuth } from '../context/UserAuthContext';
-import { formatPrice } from '../utils/formatters';
+import {
+  formatPrice,
+  getItemDisplayName,
+  getPackageTitle,
+  getPackageDescription
+} from '../utils/formatters';
 import { PackageOrderModal } from '../components/modals/PackageOrderModal';
 import {
   Gift,
@@ -234,14 +239,20 @@ export const PackageBuilder: React.FC = () => {
                         </div>
 
                         <div className="absolute bottom-2 left-2 right-2 sm:bottom-4 sm:left-4 sm:right-4 text-white">
-                          <div className="text-[9px] sm:text-xs font-mono opacity-80 uppercase tracking-wider truncate">{pkg.tagline}</div>
-                          <h3 className="font-serif font-bold text-xs sm:text-2xl line-clamp-1">{pkg.name}</h3>
+                          <div className="text-[9px] sm:text-xs font-mono opacity-80 uppercase tracking-wider truncate">
+                            {isAmharic && pkg.amharicTagline ? pkg.amharicTagline : pkg.tagline}
+                          </div>
+                          <h3 className="font-serif font-bold text-xs sm:text-2xl line-clamp-1">
+                            {getPackageTitle(pkg, isAmharic)}
+                          </h3>
                         </div>
                       </div>
 
                       {/* Content */}
                       <div className="p-2.5 sm:p-6 space-y-2 sm:space-y-4">
-                        <p className="text-[10px] sm:text-sm opacity-80 leading-relaxed line-clamp-1 sm:line-clamp-2">{pkg.description}</p>
+                        <p className="text-[10px] sm:text-sm opacity-80 leading-relaxed line-clamp-1 sm:line-clamp-2">
+                          {getPackageDescription(pkg, isAmharic)}
+                        </p>
 
                         {/* Interactive "Show details / Show more" Toggle */}
                         <button
@@ -257,7 +268,7 @@ export const PackageBuilder: React.FC = () => {
                         {isExpanded && (
                           <div className="space-y-2 pt-1 animate-in fade-in duration-150">
                             <div className="text-[9.5px] sm:text-xs font-bold uppercase tracking-wider opacity-60">
-                              Package Breakdown ({pkg.categoryCount} Categories):
+                              {isAmharic ? `የተካተቱ ምድቦች (${pkg.categoryCount}):` : `Package Breakdown (${pkg.categoryCount} Categories):`}
                             </div>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 sm:gap-2">
                               {pkg.items.map((item, idx) => (
@@ -273,7 +284,7 @@ export const PackageBuilder: React.FC = () => {
                                     className="w-6 h-6 sm:w-8 sm:h-8 rounded-md sm:rounded-lg object-cover shrink-0"
                                   />
                                   <div className="truncate">
-                                    <div className="font-semibold truncate">{item.name}</div>
+                                    <div className="font-semibold truncate">{getItemDisplayName(item, isAmharic)}</div>
                                     <div className="text-[8.5px] sm:text-[10px] opacity-60 font-mono">{formatPrice(item.price)}</div>
                                   </div>
                                 </div>
@@ -398,7 +409,9 @@ export const PackageBuilder: React.FC = () => {
                         <div className="flex-1 flex flex-col justify-between min-w-0">
                           <div>
                             <div className="flex items-start justify-between gap-1">
-                              <h4 className="font-bold text-xs sm:text-sm truncate">{item.name}</h4>
+                              <h4 className="font-bold text-xs sm:text-sm truncate">
+                                {getItemDisplayName(item, isAmharic)}
+                              </h4>
                               <button
                                 type="button"
                                 className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
@@ -529,7 +542,9 @@ export const PackageBuilder: React.FC = () => {
                       >
                         <div className="flex items-center gap-2 truncate pr-2">
                           <img src={item.image} alt={item.name} className="w-6 h-6 rounded object-cover shrink-0" />
-                          <span className="truncate font-semibold">{item.name}</span>
+                          <span className="truncate font-semibold">
+                            {getItemDisplayName(item, isAmharic)}
+                          </span>
                         </div>
                         <div className="flex items-center gap-2 shrink-0">
                           <span className="font-mono font-bold text-amber-500">{formatPrice(item.price)}</span>

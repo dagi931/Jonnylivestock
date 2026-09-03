@@ -5,7 +5,7 @@ export const PACKAGE_CATALOG: PackageCatalogItem[] = [
   {
     id: 'pkg-hen-01',
     category: 'meat_livestock',
-    name: 'Organic Country Rooster / Hen (ዶሮ)',
+    name: 'Organic Country Rooster / Hen',
     amharicName: 'የሀገር ቤት የሰባ ዶሮ',
     description: 'Naturally pasture-raised, healthy Habesha rooster with firm, flavorful meat perfect for Doro Wat.',
     price: 1800,
@@ -16,7 +16,7 @@ export const PACKAGE_CATALOG: PackageCatalogItem[] = [
   {
     id: 'pkg-sheep-01',
     category: 'meat_livestock',
-    name: 'Highland Menz Ram / Sheep (የመንዝ በግ)',
+    name: 'Highland Menz Ram / Sheep',
     amharicName: 'ደንዳና የመንዝ በግ',
     description: 'Prime highland ram with tender marbling, ideal for holiday roasting, tibs, and festive stews.',
     price: 14500,
@@ -27,7 +27,7 @@ export const PACKAGE_CATALOG: PackageCatalogItem[] = [
   {
     id: 'pkg-goat-01',
     category: 'meat_livestock',
-    name: 'Hararghe Tender Goat (የሐረርጌ ፍየል)',
+    name: 'Hararghe Tender Goat',
     amharicName: 'የሐረርጌ ምርጥ ፍየል',
     description: 'Lean and succulent highland goat raised on wild acacia browse and mountain grass.',
     price: 13000,
@@ -38,7 +38,7 @@ export const PACKAGE_CATALOG: PackageCatalogItem[] = [
   {
     id: 'pkg-ox-01',
     category: 'meat_livestock',
-    name: 'Boran Celebration Ox (የቦረና በሬ / ሰንጋ)',
+    name: 'Boran Celebration Ox',
     amharicName: 'የቦረና የሰባ ሰንጋ በሬ',
     description: 'Substantial, well-fattened Boran steer for large family banquets, weddings, and community feasts.',
     price: 75000,
@@ -48,8 +48,8 @@ export const PACKAGE_CATALOG: PackageCatalogItem[] = [
   {
     id: 'pkg-meat-5kg',
     category: 'meat_livestock',
-    name: 'Prime Cut Beef (5 KG) (የበሬ ሥጋ 5 ኪሎ)',
-    amharicName: 'ልዩ ጥራት ያለው የበሬ ሥጋ 5 ኪ.ግ',
+    name: 'Prime Cut Beef (5 KG)',
+    amharicName: 'ልዩ ጥራት ያለው የበሬ ሥጋ (5 ኪ.ግ)',
     description: 'Freshly slaughtered, professionally inspected and vacuum-chilled steak & stew cuts.',
     price: 4500,
     unit: '5 KG Pack',
@@ -59,8 +59,8 @@ export const PACKAGE_CATALOG: PackageCatalogItem[] = [
   {
     id: 'pkg-meat-10kg',
     category: 'meat_livestock',
-    name: 'Holiday Mixed Cuts (10 KG) (የበግና የበሬ ሥጋ 10 ኪሎ)',
-    amharicName: 'የበዓል የበሬና የበግ ሥጋ 10 ኪ.ግ',
+    name: 'Holiday Mixed Cuts (10 KG)',
+    amharicName: 'የበዓል የበሬና የበግ ሥጋ (10 ኪ.ግ)',
     description: 'Generous combination of tender beef ribs, loin cuts, and fresh mutton chops for celebrations.',
     price: 8500,
     unit: '10 KG Pack',
@@ -71,7 +71,7 @@ export const PACKAGE_CATALOG: PackageCatalogItem[] = [
   {
     id: 'pkg-wine-awash',
     category: 'wine',
-    name: 'Awash Axumite / Crystal Wine (አዋሽ ወይን)',
+    name: 'Awash Axumite / Crystal Wine',
     amharicName: 'አዋሽ አክሱማይት ወይን',
     description: 'Iconic Ethiopian sweet red wine crafted from estate-grown grapes with rich fruit notes.',
     price: 1200,
@@ -82,7 +82,7 @@ export const PACKAGE_CATALOG: PackageCatalogItem[] = [
   {
     id: 'pkg-wine-rift',
     category: 'wine',
-    name: 'Rift Valley Reserve Merlot / Syrah (ሪፍት ቫሊ ወይን)',
+    name: 'Rift Valley Reserve Merlot / Syrah',
     amharicName: 'ሪፍት ቫሊ ሪዘርቭ ወይን',
     description: 'Premium dry red wine from the volcanic soils of the Great Rift Valley, Ziway.',
     price: 1850,
@@ -93,7 +93,7 @@ export const PACKAGE_CATALOG: PackageCatalogItem[] = [
   {
     id: 'pkg-wine-gouder',
     category: 'wine',
-    name: 'Gouder Classic Ethiopian Red (ጉደር ወይን)',
+    name: 'Gouder Classic Ethiopian Red',
     amharicName: 'ጉደር ክላሲክ ወይን',
     description: 'Full-bodied traditional dry red wine paired impeccably with spicy stews and kitfo.',
     price: 1400,
@@ -103,8 +103,8 @@ export const PACKAGE_CATALOG: PackageCatalogItem[] = [
   {
     id: 'pkg-wine-tej',
     category: 'wine',
-    name: 'Traditional Pure Honey Tej (2L) (ንጹህ የማር ጠጅ)',
-    amharicName: 'ልዩ የሀገር ቤት ንጹህ ማር ጠጅ 2 ሊትር',
+    name: 'Traditional Pure Honey Tej (2L)',
+    amharicName: 'ልዩ የሀገር ቤት ንጹህ ማር ጠጅ (2 ሊትር)',
     description: 'Authentic fermented honey wine made with 100% natural highland honey and gesho.',
     price: 950,
     unit: '2 Litre Flagon',
@@ -116,8 +116,8 @@ export const PACKAGE_CATALOG: PackageCatalogItem[] = [
   {
     id: 'pkg-egg-dozen',
     category: 'eggs',
-    name: 'Country Fresh Eggs (1 Dozen / 12 pcs) (የሀበሻ እንቁላል)',
-    amharicName: 'የሀገር ቤት እንቁላል 12 ፍሬ',
+    name: 'Country Fresh Eggs (1 Dozen / 12 pcs)',
+    amharicName: 'የሀገር ቤት ትኩስ እንቁላል (12 ፍሬ)',
     description: 'Fresh free-range country eggs with bright golden yolks, freshly collected every morning.',
     price: 350,
     unit: '12 pcs Box',
@@ -126,7 +126,7 @@ export const PACKAGE_CATALOG: PackageCatalogItem[] = [
   {
     id: 'pkg-egg-crate',
     category: 'eggs',
-    name: 'Farm Fresh Egg Crate (30 pcs) (1 ካርቶን እንቁላል)',
+    name: 'Farm Fresh Egg Crate (30 pcs)',
     amharicName: '1 ካርቶን ትኩስ እንቁላል (30 ፍሬ)',
     description: 'Full protective crate of 30 clean, candled, grade-A large farm eggs for family cooking.',
     price: 750,
@@ -137,7 +137,7 @@ export const PACKAGE_CATALOG: PackageCatalogItem[] = [
   {
     id: 'pkg-egg-2crates',
     category: 'eggs',
-    name: 'Celebration Double Egg Crates (60 pcs) (2 ካርቶን እንቁላል)',
+    name: 'Celebration Double Egg Crates (60 pcs)',
     amharicName: '2 ካርቶን ትኩስ እንቁላል (60 ፍሬ)',
     description: 'Double crate of 60 premium eggs for large holiday feasts and Doro Wat prep.',
     price: 1400,
@@ -149,8 +149,8 @@ export const PACKAGE_CATALOG: PackageCatalogItem[] = [
   {
     id: 'pkg-flower-roses',
     category: 'flowers',
-    name: 'Luxury Fresh Red Rose Bouquet (12 Stems) (የቀይ ጽጌረዳ እቅፍ)',
-    amharicName: 'ውብ የቀይ ጽጌረዳ አበባ እቅፍ 12 ፍሬ',
+    name: 'Luxury Fresh Red Rose Bouquet (12 Stems)',
+    amharicName: 'ውብ የቀይ ጽጌረዳ አበባ እቅፍ (12 ፍሬ)',
     description: 'Hand-picked long-stemmed highland roses elegantly wrapped with festive ribbons.',
     price: 1500,
     unit: '12 Stems Bouquet',
@@ -160,7 +160,7 @@ export const PACKAGE_CATALOG: PackageCatalogItem[] = [
   {
     id: 'pkg-flower-adey',
     category: 'flowers',
-    name: 'Festive Adey Abeba Bouquet (የበዓል አደይ አበባ እቅፍ)',
+    name: 'Festive Adey Abeba Bouquet',
     amharicName: 'የበዓል አደይ አበባና ልዩ የማሳ አበባ እቅፍ',
     description: 'Vibrant yellow Adey Abeba and field daisies symbolizing Ethiopian new beginnings and joy.',
     price: 1100,
@@ -171,7 +171,7 @@ export const PACKAGE_CATALOG: PackageCatalogItem[] = [
   {
     id: 'pkg-flower-grand',
     category: 'flowers',
-    name: 'Grand Celebration Bloom Basket (የደማቅ በዓል አበባ ቅርጫት)',
+    name: 'Grand Celebration Bloom Basket',
     amharicName: 'የተዋበ የበዓል አበባ ቅርጫት',
     description: 'Lush hand-crafted basket with assorted lilies, roses, baby’s breath, and decorative greenery.',
     price: 2200,
@@ -186,7 +186,9 @@ export const PRE_MADE_PACKAGES: PreMadePackage[] = [
     name: 'Holiday Grand Feast Package',
     amharicName: 'የበዓል ድግስ ታላቅ ጥቅል',
     tagline: 'Complete 4-in-1 Festive Centerpiece',
+    amharicTagline: 'የተሟላ ባለ 4-በ-1 የበዓል ድግስ',
     description: 'Highland Menz Sheep + Rift Valley Reserve Wine + 1 Crate Farm Fresh Eggs + Luxury Red Rose Bouquet. Free VIP refrigerated delivery included.',
+    amharicDescription: 'ደንዳና የመንዝ በግ + ሪፍት ቫሊ ወይን + 1 ካርቶን ትኩስ እንቁላል + ውብ የቀይ ጽጌረዳ እቅፍ። ነፃ ማድረሻን ጨምሮ።',
     categoryCount: 4,
     items: [
       PACKAGE_CATALOG.find(i => i.id === 'pkg-sheep-01')!,
@@ -206,7 +208,9 @@ export const PRE_MADE_PACKAGES: PreMadePackage[] = [
     name: 'Family Festive Celebration Box',
     amharicName: 'የቤተሰብ በዓል የዶሮና ወይን ጥቅል',
     tagline: 'The Perfect Doro Wat & Toast Set',
+    amharicTagline: 'ለዶሮ ወጥና ለደስታ የተዘጋጀ ምርጥ ስጦታ',
     description: '2 Country Organic Roosters + Awash Axumite Red Wine + 1 Crate Fresh Eggs (30 pcs) + Festive Adey Abeba Bouquet. Free prompt doorstep delivery.',
+    amharicDescription: '2 የሀገር ቤት የሰባ ዶሮዎች + አዋሽ አክሱማይት ወይን + 1 ካርቶን እንቁላል (30 ፍሬ) + የበዓል አደይ አበባ እቅፍ። ነፃ ማድረሻን ጨምሮ።',
     categoryCount: 4,
     items: [
       PACKAGE_CATALOG.find(i => i.id === 'pkg-hen-01')!,
@@ -226,7 +230,9 @@ export const PRE_MADE_PACKAGES: PreMadePackage[] = [
     name: 'Traditional Hararghe Goat & Pure Tej Set',
     amharicName: 'የሐረርጌ ፍየልና የማር ጠጅ ጥቅል',
     tagline: 'Authentic Heritage Celebration',
+    amharicTagline: 'ባህላዊ የደስታና የድግስ ሙሉ ጥቅል',
     description: 'Prime Hararghe Tender Goat + 2L Traditional Pure Honey Tej + 1 Crate Farm Eggs (30 pcs). Free delivery & optional slaughter preparation.',
+    amharicDescription: 'የሐረርጌ ምርጥ ፍየል + 2 ሊትር ንጹህ የማር ጠጅ + 1 ካርቶን እንቁላል (30 ፍሬ)። ነፃ ማድረሻና የዕርድ ዝግጅትን ጨምሮ።',
     categoryCount: 3,
     items: [
       PACKAGE_CATALOG.find(i => i.id === 'pkg-goat-01')!,
@@ -245,7 +251,9 @@ export const PRE_MADE_PACKAGES: PreMadePackage[] = [
     name: 'Prime Gourmet Meat & Wine Hamper',
     amharicName: 'ልዩ የሥጋና ወይን በዓል ጥቅል',
     tagline: 'Cut & Prepared Meat with Wine & Blooms',
+    amharicTagline: 'የተመረጠ ሥጋ፣ ወይንና ውብ አበቦች',
     description: '10 KG Prime Mixed Beef/Mutton + Awash Axumite Wine + 1 Crate Eggs (30 pcs) + Luxury Red Rose Bouquet. Free temperature-controlled delivery.',
+    amharicDescription: '10 ኪ.ግ የተመረጠ የበሬና የበግ ሥጋ + አዋሽ አክሱማይት ወይን + 1 ካርቶን እንቁላል + ውብ የቀይ ጽጌረዳ እቅፍ። ነፃ ማድረሻን ጨምሮ።',
     categoryCount: 4,
     items: [
       PACKAGE_CATALOG.find(i => i.id === 'pkg-meat-10kg')!,

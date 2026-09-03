@@ -2,8 +2,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import { PackageCatalogItem, PreMadePackage } from '../../types/package';
 import { useUserAuth } from '../../context/UserAuthContext';
 import { useTheme } from '../../context/ThemeContext';
+import { useLanguage } from '../../context/LanguageContext';
 import { api, BankAccount } from '../../services/api';
-import { formatPrice } from '../../utils/formatters';
+import { formatPrice, getPackageTitle, cleanEnglishText } from '../../utils/formatters';
 import {
   X,
   UploadCloud,
@@ -40,6 +41,7 @@ export const PackageOrderModal: React.FC<PackageOrderModalProps> = ({
 }) => {
   const { user } = useUserAuth();
   const { theme } = useTheme();
+  const { isAmharic } = useLanguage();
   const isDark = theme === 'design7';
 
   // Payment Mode: 'deposit' (50%) or 'full' (100%)
@@ -95,7 +97,11 @@ export const PackageOrderModal: React.FC<PackageOrderModalProps> = ({
   if (!isOpen) return null;
 
   // Derive package name & total price
-  const packageName = packageItem?.name || customPackage?.name || 'Celebration Package';
+  const packageName = packageItem
+    ? getPackageTitle(packageItem, isAmharic)
+    : customPackage
+      ? (isAmharic ? customPackage.name : cleanEnglishText(customPackage.name))
+      : (isAmharic ? 'የበዓል ጥቅል' : 'Celebration Package');
   const totalPrice = packageItem?.packagePrice || customPackage?.totalPrice || 0;
   const depositAmount = Math.round(totalPrice * 0.5);
   const remainingAmount = totalPrice - depositAmount;

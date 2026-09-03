@@ -4,7 +4,12 @@ import { PreMadePackage } from '../../types/package';
 import { api } from '../../services/api';
 import { useTheme } from '../../context/ThemeContext';
 import { useLanguage } from '../../context/LanguageContext';
-import { formatPrice } from '../../utils/formatters';
+import {
+  formatPrice,
+  getItemDisplayName,
+  getPackageTitle,
+  getPackageDescription
+} from '../../utils/formatters';
 import { PackageOrderModal } from '../modals/PackageOrderModal';
 import {
   Gift,
@@ -161,10 +166,14 @@ export const CelebrationPackagesSection: React.FC = () => {
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
 
                     <div className="absolute bottom-1.5 left-1.5 right-1.5 sm:bottom-3 sm:left-3 sm:right-3 text-white">
-                      <h3 className="font-serif font-bold text-xs sm:text-base line-clamp-1">{pkg.name}</h3>
+                      <h3 className="font-serif font-bold text-xs sm:text-base line-clamp-1">
+                        {getPackageTitle(pkg, isAmharic)}
+                      </h3>
                       <div className="text-[9px] sm:text-[11px] opacity-85 flex items-center gap-1 text-emerald-400 font-semibold truncate">
                         <Truck className="w-2.5 h-2.5 sm:w-3 sm:h-3 shrink-0" />
-                        <span className="truncate">Free Delivery • {pkg.categoryCount} Cat.</span>
+                        <span className="truncate">
+                          {isAmharic ? 'ነፃ ማድረሻ • ' : 'Free Delivery • '}{pkg.categoryCount} {isAmharic ? 'ምድቦች' : 'Cat.'}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -172,7 +181,7 @@ export const CelebrationPackagesSection: React.FC = () => {
                   {/* Compact Content */}
                   <div className="p-2 sm:p-4 space-y-1.5 sm:space-y-3">
                     <p className="text-[9.5px] sm:text-[11px] opacity-75 line-clamp-1 sm:line-clamp-2 leading-tight">
-                      {pkg.description}
+                      {getPackageDescription(pkg, isAmharic)}
                     </p>
 
                     {/* Interactive "Show details / Show more" Toggle */}
@@ -204,7 +213,7 @@ export const CelebrationPackagesSection: React.FC = () => {
                             {pkg.items.map((item, i) => (
                               <div key={i} className="text-[10px] sm:text-xs flex items-center gap-1.5 opacity-85 truncate">
                                 <Check className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-emerald-500 shrink-0" />
-                                <span className="truncate">{item.name}</span>
+                                <span className="truncate">{getItemDisplayName(item, isAmharic)}</span>
                               </div>
                             ))}
                           </div>
@@ -266,9 +275,13 @@ export const CelebrationPackagesSection: React.FC = () => {
               <Sparkles className="w-6 h-6" />
             </div>
             <div>
-              <h4 className="font-serif font-bold text-lg">Prefer to build your own celebration hamper?</h4>
+              <h4 className="font-serif font-bold text-lg">
+                {isAmharic ? 'የራስዎን ልዩ የበዓል ጥቅል ማዘጋጀት ይፈልጋሉ?' : 'Prefer to build your own celebration hamper?'}
+              </h4>
               <p className="text-xs opacity-75">
-                Pick your specific weight of meat, choice of vintage wine/tej, egg crates, and fresh flower bouquets.
+                {isAmharic
+                  ? 'የተመረጡ የቀንድ ከብቶች፣ የጠጅና ወይን ምርጫ፣ ትኩስ እንቁላልና የበዓል አበቦችን እንደፍላጎትዎ መርጠው ያዘጋጁ።'
+                  : 'Pick your specific weight of meat, choice of vintage wine/tej, egg crates, and fresh flower bouquets.'}
               </p>
             </div>
           </div>
@@ -277,7 +290,7 @@ export const CelebrationPackagesSection: React.FC = () => {
             to="/packages"
             className="px-6 py-3 rounded-2xl bg-amber-500 hover:bg-amber-600 text-black font-bold text-xs sm:text-sm transition-all shadow-lg shrink-0 flex items-center gap-2"
           >
-            <span>Launch Package Builder</span>
+            <span>{isAmharic ? 'ጥቅል ማዘጋጃውን ይክፈቱ' : 'Launch Package Builder'}</span>
             <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
