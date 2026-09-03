@@ -55,10 +55,14 @@ export const CelebrationPackagesSection: React.FC = () => {
         {/* Header Title */}
         <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 gap-4">
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-amber-500/15 border border-amber-500/30 text-amber-500 mb-1.5">
+            <span
+              className={`inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider mb-1 ${
+                isDark ? 'text-[#E0B15A]' : 'text-[#B8792F]'
+              }`}
+            >
               <Sparkles className="w-3.5 h-3.5" />
               <span>{isAmharic ? 'የበዓልና የደስታ ልዩ ጥቅሎች' : 'Celebration & Holiday Packages'}</span>
-            </div>
+            </span>
             <h2 className="font-serif font-bold text-2xl sm:text-4xl mt-0.5">
               {isAmharic ? 'የበዓል ድግስና የስጦታ ሙሉ ጥቅሎች' : 'All-in-One Festive Hampers & Bundles'}
             </h2>
