@@ -11,6 +11,7 @@ import {
   getPackageDescription
 } from '../../utils/formatters';
 import { PackageOrderModal } from '../modals/PackageOrderModal';
+import { AnimatedReveal } from '../common/AnimatedReveal';
 import {
   Gift,
   Sparkles,
@@ -68,94 +69,98 @@ export const CelebrationPackagesSection: React.FC = () => {
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header Title */}
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 gap-4">
-          <div>
-            <span
-              className={`inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider mb-1 ${
-                isDark ? 'text-[#E0B15A]' : 'text-[#B8792F]'
-              }`}
-            >
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>{isAmharic ? 'የበዓልና የደስታ ልዩ ጥቅሎች' : 'Celebration & Holiday Packages'}</span>
-            </span>
-            <h2 className="font-serif font-bold text-2xl sm:text-4xl mt-0.5">
-              {isAmharic ? 'የበዓል ድግስና የስጦታ ሙሉ ጥቅሎች' : 'All-in-One Festive Hampers & Bundles'}
-            </h2>
-            <p className="text-xs sm:text-sm opacity-75 mt-1 max-w-xl">
-              Complete celebration packages with livestock/meat, authentic wines/tej, fresh eggs, and flowers with <strong>Free Delivery</strong>.
-            </p>
-          </div>
+        <AnimatedReveal direction="up" delay={50}>
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 gap-4">
+            <div>
+              <span
+                className={`inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider mb-1 ${
+                  isDark ? 'text-[#E0B15A]' : 'text-[#B8792F]'
+                }`}
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>{isAmharic ? 'የበዓልና የደስታ ልዩ ጥቅሎች' : 'Celebration & Holiday Packages'}</span>
+              </span>
+              <h2 className="font-serif font-bold text-2xl sm:text-4xl mt-0.5">
+                {isAmharic ? 'የበዓል ድግስና የስጦታ ሙሉ ጥቅሎች' : 'All-in-One Festive Hampers & Bundles'}
+              </h2>
+              <p className="text-xs sm:text-sm opacity-75 mt-1 max-w-xl">
+                Complete celebration packages with livestock/meat, authentic wines/tej, fresh eggs, and flowers with <strong>Free Delivery</strong>.
+              </p>
+            </div>
 
-          <div className="flex items-center gap-3">
-            <Link
-              to="/packages"
-              className="inline-flex items-center gap-1.5 font-bold text-xs sm:text-sm text-amber-500 hover:text-amber-400 transition-colors group"
-            >
-              <span>{isAmharic ? 'ሁሉንም ጥቅሎች ይመልከቱ' : 'View All & Custom Builder'}</span>
-              <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-            </Link>
+            <div className="flex items-center gap-3">
+              <Link
+                to="/packages"
+                className="inline-flex items-center gap-1.5 font-bold text-xs sm:text-sm text-amber-500 hover:text-amber-400 transition-colors group"
+              >
+                <span>{isAmharic ? 'ሁሉንም ጥቅሎች ይመልከቱ' : 'View All & Custom Builder'}</span>
+                <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+              </Link>
+            </div>
           </div>
-        </div>
+        </AnimatedReveal>
 
         {/* 3 Prominent Benefit Highlights: Separated by vertical lines, without card containers */}
-        <div
-          className={`grid grid-cols-3 py-3 sm:py-4 mb-6 sm:mb-8 border-y ${
-            isDark ? 'border-[#4A2C16] divide-[#4A2C16]' : 'border-[#E4D4BC] divide-[#E4D4BC]'
-          } divide-x`}
-        >
-          {/* Benefit 1 */}
-          <div className="px-2 sm:px-6 flex flex-col items-center sm:flex-row sm:items-center text-center sm:text-left gap-1.5 sm:gap-3 justify-center">
-            <Truck className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-500 shrink-0" />
-            <div>
-              <div className="font-bold text-[10.5px] sm:text-xs leading-tight sm:leading-normal">
-                {isAmharic ? '100% ነፃ ማድረሻ' : '100% Free Doorstep Delivery'}
-              </div>
-              <div className="hidden sm:block text-[11px] opacity-70">
-                {isAmharic ? 'በአዲስ አበባና ቢሾፍቱ ዙሪያ ላሉ ጥቅሎች' : 'On all celebration packages across Addis & Bishoftu'}
+        <AnimatedReveal direction="up" delay={120}>
+          <div
+            className={`grid grid-cols-3 py-3 sm:py-4 mb-6 sm:mb-8 border-y ${
+              isDark ? 'border-[#4A2C16] divide-[#4A2C16]' : 'border-[#E4D4BC] divide-[#E4D4BC]'
+            } divide-x`}
+          >
+            {/* Benefit 1 */}
+            <div className="px-2 sm:px-6 flex flex-col items-center sm:flex-row sm:items-center text-center sm:text-left gap-1.5 sm:gap-3 justify-center">
+              <Truck className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-500 shrink-0" />
+              <div>
+                <div className="font-bold text-[10.5px] sm:text-xs leading-tight sm:leading-normal">
+                  {isAmharic ? '100% ነፃ ማድረሻ' : '100% Free Doorstep Delivery'}
+                </div>
+                <div className="hidden sm:block text-[11px] opacity-70">
+                  {isAmharic ? 'በአዲስ አበባና ቢሾፍቱ ዙሪያ ላሉ ጥቅሎች' : 'On all celebration packages across Addis & Bishoftu'}
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Benefit 2 */}
-          <div className="px-2 sm:px-6 flex flex-col items-center sm:flex-row sm:items-center text-center sm:text-left gap-1.5 sm:gap-3 justify-center">
-            <ShieldCheck className="w-4 h-4 sm:w-5 sm:h-5 text-amber-500 shrink-0" />
-            <div>
-              <div className="font-bold text-[10.5px] sm:text-xs leading-tight sm:leading-normal">
-                {isAmharic ? '50% ቅድመ-ክፍያ' : '50% Reservation Guarantee'}
-              </div>
-              <div className="hidden sm:block text-[11px] opacity-70">
-                {isAmharic ? 'ግማሹን ከፍለው ያስይዙ፣ ቀሪውን ከመረከብዎ በፊት ይጨርሱ' : 'Pay half now to lock items, settle rest before delivery'}
+            {/* Benefit 2 */}
+            <div className="px-2 sm:px-6 flex flex-col items-center sm:flex-row sm:items-center text-center sm:text-left gap-1.5 sm:gap-3 justify-center">
+              <ShieldCheck className="w-4 h-4 sm:w-5 sm:h-5 text-amber-500 shrink-0" />
+              <div>
+                <div className="font-bold text-[10.5px] sm:text-xs leading-tight sm:leading-normal">
+                  {isAmharic ? '50% ቅድመ-ክፍያ' : '50% Reservation Guarantee'}
+                </div>
+                <div className="hidden sm:block text-[11px] opacity-70">
+                  {isAmharic ? 'ግማሹን ከፍለው ያስይዙ፣ ቀሪውን ከመረከብዎ በፊት ይጨርሱ' : 'Pay half now to lock items, settle rest before delivery'}
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Benefit 3 */}
-          <div className="px-2 sm:px-6 flex flex-col items-center sm:flex-row sm:items-center text-center sm:text-left gap-1.5 sm:gap-3 justify-center">
-            <Gift className="w-4 h-4 sm:w-5 sm:h-5 text-purple-400 shrink-0" />
-            <div>
-              <div className="font-bold text-[10.5px] sm:text-xs leading-tight sm:leading-normal">
-                {isAmharic ? 'የራስዎን ጥቅል ያዘጋጁ' : 'Build Your Own Combination'}
-              </div>
-              <div className="hidden sm:block text-[11px] opacity-70">
-                {isAmharic ? 'ከ3 ወይም ከዚያ በላይ ምድቦች መርጠው ያዘጋጁ' : 'Pick 3 or more categories for customized sets'}
+            {/* Benefit 3 */}
+            <div className="px-2 sm:px-6 flex flex-col items-center sm:flex-row sm:items-center text-center sm:text-left gap-1.5 sm:gap-3 justify-center">
+              <Gift className="w-4 h-4 sm:w-5 sm:h-5 text-purple-400 shrink-0" />
+              <div>
+                <div className="font-bold text-[10.5px] sm:text-xs leading-tight sm:leading-normal">
+                  {isAmharic ? 'የራስዎን ጥቅል ያዘጋጁ' : 'Build Your Own Combination'}
+                </div>
+                <div className="hidden sm:block text-[11px] opacity-70">
+                  {isAmharic ? 'ከ3 ወይም ከዚያ በላይ ምድቦች መርጠው ያዘጋጁ' : 'Pick 3 or more categories for customized sets'}
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        </AnimatedReveal>
 
         {/* Packages Cards Grid: 2 Cards per Row on Mobile (grid-cols-2), Compact with Show Details */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-5 items-start">
-          {packages.slice(0, 4).map((pkg) => {
+          {packages.slice(0, 4).map((pkg, idx) => {
             const isExpanded = expandedPkgId === pkg.id;
             return (
-              <div
-                key={pkg.id}
-                onTouchStart={() => handleTouchPkg(pkg.id)}
-                onTouchEnd={() => handleTouchPkg(pkg.id)}
-                className={`rounded-2xl sm:rounded-3xl border overflow-hidden flex flex-col justify-between transition-all duration-300 ease-out hover:shadow-xl group self-start cursor-pointer select-none ${
-                  isDark ? 'bg-[#1D130A] border-[#4A2C16]' : 'bg-white border-[#E4D4BC]'
-                } ${isExpanded ? 'ring-1 ring-amber-500/40 shadow-lg' : ''}`}
-              >
+              <AnimatedReveal key={pkg.id} direction="up" delay={100 + idx * 75} className="h-full">
+                <div
+                  onTouchStart={() => handleTouchPkg(pkg.id)}
+                  onTouchEnd={() => handleTouchPkg(pkg.id)}
+                  className={`h-full rounded-2xl sm:rounded-3xl border overflow-hidden flex flex-col justify-between transition-all duration-300 ease-out hover:shadow-xl group self-start cursor-pointer select-none ${
+                    isDark ? 'bg-[#1D130A] border-[#4A2C16]' : 'bg-white border-[#E4D4BC]'
+                  } ${isExpanded ? 'ring-1 ring-amber-500/40 shadow-lg' : ''}`}
+                >
                 <div>
                   {/* Compact Image */}
                   <div className="relative h-28 sm:h-44 w-full overflow-hidden bg-black/10">
@@ -261,11 +266,13 @@ export const CelebrationPackagesSection: React.FC = () => {
                   </button>
                 </div>
               </div>
-            );
-          })}
-        </div>
+            </AnimatedReveal>
+          );
+        })}
+      </div>
 
-        {/* Bottom Call to Action: "Prefer to build your own celebration hamper?" */}
+      {/* Bottom Call to Action: "Prefer to build your own celebration hamper?" */}
+      <AnimatedReveal direction="up" delay={150}>
         <div
           className={`mt-10 pt-8 border-t flex flex-col sm:flex-row items-center justify-between gap-4 ${
             isDark ? 'border-[#4A2C16]' : 'border-[#E4D4BC]'
@@ -293,7 +300,8 @@ export const CelebrationPackagesSection: React.FC = () => {
             <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
-      </div>
+      </AnimatedReveal>
+    </div>
 
       {/* Package Order Modal */}
       <PackageOrderModal

@@ -80,8 +80,8 @@ export const AnimalGrid: React.FC<AnimalGridProps> = ({
 
   return (
     <div className="grid grid-cols-2 sm:grid-cols-2 xl:grid-cols-3 gap-2 sm:gap-5">
-      {animals.map((animal) => (
-        <AnimalCard key={animal.id} animal={animal} />
+      {animals.map((animal, idx) => (
+        <AnimalCard key={animal.id} animal={animal} animationIndex={idx} />
       ))}
     </div>
   );

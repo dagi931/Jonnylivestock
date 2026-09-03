@@ -11,6 +11,7 @@ import {
   getPackageDescription
 } from '../utils/formatters';
 import { PackageOrderModal } from '../components/modals/PackageOrderModal';
+import { AnimatedReveal } from '../components/common/AnimatedReveal';
 import {
   Gift,
   Sparkles,
@@ -223,17 +224,17 @@ export const PackageBuilder: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-2 lg:grid-cols-2 gap-2.5 sm:gap-6">
-              {preMadePackages.map((pkg) => {
+              {preMadePackages.map((pkg, idx) => {
                 const isExpanded = expandedPreMadeId === pkg.id;
                 return (
-                  <div
-                    key={pkg.id}
-                    onTouchStart={() => handleTouchCard(pkg.id)}
-                    onTouchEnd={() => handleTouchCard(pkg.id)}
-                    className={`group rounded-2xl sm:rounded-3xl border overflow-hidden transition-all duration-300 hover:shadow-2xl flex flex-col justify-between cursor-pointer select-none ${
-                      isDark ? 'bg-[#24170D] border-[#4A2C16]' : 'bg-white border-[#E4D4BC]'
-                    }`}
-                  >
+                  <AnimatedReveal key={pkg.id} direction="up" delay={80 + idx * 80} className="h-full">
+                    <div
+                      onTouchStart={() => handleTouchCard(pkg.id)}
+                      onTouchEnd={() => handleTouchCard(pkg.id)}
+                      className={`h-full group rounded-2xl sm:rounded-3xl border overflow-hidden transition-all duration-300 hover:shadow-2xl flex flex-col justify-between cursor-pointer select-none ${
+                        isDark ? 'bg-[#24170D] border-[#4A2C16]' : 'bg-white border-[#E4D4BC]'
+                      }`}
+                    >
                     <div>
                       {/* Image & Badge Banner */}
                       <div className="relative h-32 sm:h-56 w-full overflow-hidden bg-black/10">
@@ -345,6 +346,7 @@ export const PackageBuilder: React.FC = () => {
                       </div>
                     </div>
                   </div>
+                </AnimatedReveal>
                 );
               })}
             </div>
@@ -399,62 +401,63 @@ export const PackageBuilder: React.FC = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {catalog
                   .filter(item => activeCategoryFilter === 'all' || item.category === activeCategoryFilter)
-                  .map(item => {
+                  .map((item, idx) => {
                     const isSelected = selectedItems.some(i => i.id === item.id);
                     return (
-                      <div
-                        key={item.id}
-                        onClick={() => toggleItem(item)}
-                        onTouchStart={() => handleTouchCard(item.id)}
-                        onTouchEnd={() => handleTouchCard(item.id)}
-                        className={`group p-4 rounded-2xl border cursor-pointer transition-all duration-200 flex gap-3.5 select-none ${
-                          isSelected
-                            ? isDark
-                              ? 'bg-amber-500/10 border-amber-500 ring-1 ring-amber-500 shadow-md'
-                              : 'bg-amber-50 border-amber-600 ring-1 ring-amber-600 shadow-md'
-                            : isDark
-                              ? 'bg-[#24170D] border-[#4A2C16] hover:border-amber-500/40'
-                              : 'bg-white border-[#E4D4BC] hover:border-amber-500/40'
-                        }`}
-                      >
-                        <div className="w-20 h-20 rounded-xl overflow-hidden shrink-0 shadow-sm">
-                          <img
-                            src={item.image}
-                            alt={item.name}
-                            className={`w-full h-full object-cover card-zoom-img transition-transform duration-500 ease-out ${
-                              touchedCardId === item.id ? 'scale-100' : 'scale-110'
-                            } group-hover:scale-100 group-active:scale-100 active:scale-100`}
-                          />
-                        </div>
-                        <div className="flex-1 flex flex-col justify-between min-w-0">
-                          <div>
-                            <div className="flex items-start justify-between gap-1">
-                              <h4 className="font-bold text-xs sm:text-sm truncate">
-                                {getItemDisplayName(item, isAmharic)}
-                              </h4>
-                              <button
-                                type="button"
-                                className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
-                                  isSelected
-                                    ? 'bg-amber-500 text-black'
-                                    : 'bg-black/10 dark:bg-white/10 opacity-60'
-                                }`}
-                              >
-                                {isSelected ? <Check className="w-3.5 h-3.5 stroke-[3]" /> : <Plus className="w-3.5 h-3.5" />}
-                              </button>
+                      <AnimatedReveal key={item.id} direction="up" delay={Math.min(idx * 50, 350)} className="h-full">
+                        <div
+                          onClick={() => toggleItem(item)}
+                          onTouchStart={() => handleTouchCard(item.id)}
+                          onTouchEnd={() => handleTouchCard(item.id)}
+                          className={`h-full group p-4 rounded-2xl border cursor-pointer transition-all duration-200 flex gap-3.5 select-none hover:-translate-y-0.5 ${
+                            isSelected
+                              ? isDark
+                                ? 'bg-amber-500/10 border-amber-500 ring-1 ring-amber-500 shadow-md'
+                                : 'bg-amber-50 border-amber-600 ring-1 ring-amber-600 shadow-md'
+                              : isDark
+                                ? 'bg-[#24170D] border-[#4A2C16] hover:border-amber-500/40'
+                                : 'bg-white border-[#E4D4BC] hover:border-amber-500/40'
+                          }`}
+                        >
+                          <div className="w-20 h-20 rounded-xl overflow-hidden shrink-0 shadow-sm">
+                            <img
+                              src={item.image}
+                              alt={item.name}
+                              className={`w-full h-full object-cover card-zoom-img transition-transform duration-500 ease-out ${
+                                touchedCardId === item.id ? 'scale-100' : 'scale-110'
+                              } group-hover:scale-100 group-active:scale-100 active:scale-100`}
+                            />
+                          </div>
+                          <div className="flex-1 flex flex-col justify-between min-w-0">
+                            <div>
+                              <div className="flex items-start justify-between gap-1">
+                                <h4 className="font-bold text-xs sm:text-sm truncate">
+                                  {getItemDisplayName(item, isAmharic)}
+                                </h4>
+                                <button
+                                  type="button"
+                                  className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
+                                    isSelected
+                                      ? 'bg-amber-500 text-black'
+                                      : 'bg-black/10 dark:bg-white/10 opacity-60'
+                                  }`}
+                                >
+                                  {isSelected ? <Check className="w-3.5 h-3.5 stroke-[3]" /> : <Plus className="w-3.5 h-3.5" />}
+                                </button>
+                              </div>
+                              <p className="text-[11px] opacity-70 line-clamp-2 mt-0.5">{item.description}</p>
                             </div>
-                            <p className="text-[11px] opacity-70 line-clamp-2 mt-0.5">{item.description}</p>
-                          </div>
-                          <div className="flex items-center justify-between mt-2 pt-1 border-t border-black/5 dark:border-white/5">
-                            <span className="font-serif font-bold text-sm text-amber-500">
-                              {formatPrice(item.price)}
-                            </span>
-                            {item.unit && (
-                              <span className="text-[10px] opacity-60 font-mono">{item.unit}</span>
-                            )}
+                            <div className="flex items-center justify-between mt-2 pt-1 border-t border-black/5 dark:border-white/5">
+                              <span className="font-serif font-bold text-sm text-amber-500">
+                                {formatPrice(item.price)}
+                              </span>
+                              {item.unit && (
+                                <span className="text-[10px] opacity-60 font-mono">{item.unit}</span>
+                              )}
+                            </div>
                           </div>
                         </div>
-                      </div>
+                      </AnimatedReveal>
                     );
                   })}
               </div>

@@ -6,15 +6,18 @@ import { formatPrice, formatWeight } from '../../utils/formatters';
 import { MapPin, Scale, ArrowRight, Video, ChevronDown } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 import { useLanguage } from '../../context/LanguageContext';
+import { useInView } from '../../hooks/useInView';
 
 interface AnimalCardProps {
   animal: Animal;
+  animationIndex?: number;
 }
 
-export const AnimalCard: React.FC<AnimalCardProps> = ({ animal }) => {
+export const AnimalCard: React.FC<AnimalCardProps> = ({ animal, animationIndex = 0 }) => {
   const [showMore, setShowMore] = useState(false);
   const [isTouched, setIsTouched] = useState(false);
   const touchTimerRef = useRef<any>(null);
+  const { ref: cardRef, isInView } = useInView();
   const { theme } = useTheme();
   const { t, isAmharic } = useLanguage();
   const isDark = theme === 'design7';
@@ -40,9 +43,19 @@ export const AnimalCard: React.FC<AnimalCardProps> = ({ animal }) => {
 
   return (
     <div
+      ref={cardRef}
       onTouchStart={handleTouch}
       onTouchEnd={handleTouch}
-      className={`group relative rounded-xl sm:rounded-2xl border transition-all duration-200 flex flex-col overflow-hidden hover:-translate-y-1 active:-translate-y-0.5 cursor-pointer select-none ${
+      style={{
+        transitionDelay: `${Math.min(animationIndex * 75, 450)}ms`,
+        transitionDuration: '650ms',
+        transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)',
+      }}
+      className={`group relative rounded-xl sm:rounded-2xl border flex flex-col overflow-hidden hover:-translate-y-1 active:-translate-y-0.5 cursor-pointer select-none transition-all ${
+        isInView
+          ? 'opacity-100 translate-y-0 scale-100'
+          : 'opacity-0 translate-y-7 scale-[0.98]'
+      } ${
         isDark
           ? 'bg-[#2A1A0D] border-[#4A2C16] hover:border-[#C58A3A]/70 shadow-sm hover:shadow-lg'
           : 'bg-[#F1E8D8] border-[#E4D4BC] hover:border-[#B8792F]/70 shadow-sm hover:shadow-md'
