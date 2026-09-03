@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { Animal } from '../../types/animal';
 import { StatusBadge } from './StatusBadge';
@@ -13,9 +13,19 @@ interface AnimalCardProps {
 
 export const AnimalCard: React.FC<AnimalCardProps> = ({ animal }) => {
   const [showMore, setShowMore] = useState(false);
+  const [isTouched, setIsTouched] = useState(false);
+  const touchTimerRef = useRef<any>(null);
   const { theme } = useTheme();
   const { t, isAmharic } = useLanguage();
   const isDark = theme === 'design7';
+
+  const handleTouch = () => {
+    setIsTouched(true);
+    if (touchTimerRef.current) clearTimeout(touchTimerRef.current);
+    touchTimerRef.current = setTimeout(() => {
+      setIsTouched(false);
+    }, 1800);
+  };
 
   const getTypeLabel = () => {
     if (animal.type === 'sheep') return isAmharic ? 'በግ' : 'Sheep';
@@ -30,7 +40,9 @@ export const AnimalCard: React.FC<AnimalCardProps> = ({ animal }) => {
 
   return (
     <div
-      className={`group relative rounded-xl sm:rounded-2xl border transition-all duration-200 flex flex-col overflow-hidden hover:-translate-y-1 ${
+      onTouchStart={handleTouch}
+      onTouchEnd={handleTouch}
+      className={`group relative rounded-xl sm:rounded-2xl border transition-all duration-200 flex flex-col overflow-hidden hover:-translate-y-1 active:-translate-y-0.5 cursor-pointer select-none ${
         isDark
           ? 'bg-[#2A1A0D] border-[#4A2C16] hover:border-[#C58A3A]/70 shadow-sm hover:shadow-lg'
           : 'bg-[#F1E8D8] border-[#E4D4BC] hover:border-[#B8792F]/70 shadow-sm hover:shadow-md'
@@ -42,7 +54,9 @@ export const AnimalCard: React.FC<AnimalCardProps> = ({ animal }) => {
           src={animal.images[0]}
           alt={`${animal.breed} ${animal.type} ${animal.id}`}
           loading="lazy"
-          className="w-full h-full object-cover object-center scale-110 group-hover:scale-100 transition-transform duration-500 ease-out"
+          className={`w-full h-full object-cover object-center card-zoom-img transition-transform duration-500 ease-out ${
+            isTouched ? 'scale-100' : 'scale-110'
+          } group-hover:scale-100 group-active:scale-100 active:scale-100`}
         />
 
         {/* Subtle Overlay */}

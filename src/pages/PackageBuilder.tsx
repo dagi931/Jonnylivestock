@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { PackageCatalogItem, PreMadePackage, PackageCategory } from '../types/package';
 import { api } from '../services/api';
 import { useTheme } from '../context/ThemeContext';
@@ -41,6 +41,16 @@ export const PackageBuilder: React.FC = () => {
   const [preMadePackages, setPreMadePackages] = useState<PreMadePackage[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedPreMadeId, setExpandedPreMadeId] = useState<string | null>(null);
+  const [touchedCardId, setTouchedCardId] = useState<string | null>(null);
+  const touchCardTimerRef = useRef<any>(null);
+
+  const handleTouchCard = (id: string) => {
+    setTouchedCardId(id);
+    if (touchCardTimerRef.current) clearTimeout(touchCardTimerRef.current);
+    touchCardTimerRef.current = setTimeout(() => {
+      setTouchedCardId(null);
+    }, 1800);
+  };
 
   // Builder State
   const [selectedItems, setSelectedItems] = useState<PackageCatalogItem[]>([]);
@@ -218,7 +228,9 @@ export const PackageBuilder: React.FC = () => {
                 return (
                   <div
                     key={pkg.id}
-                    className={`group rounded-2xl sm:rounded-3xl border overflow-hidden transition-all duration-300 hover:shadow-2xl flex flex-col justify-between ${
+                    onTouchStart={() => handleTouchCard(pkg.id)}
+                    onTouchEnd={() => handleTouchCard(pkg.id)}
+                    className={`group rounded-2xl sm:rounded-3xl border overflow-hidden transition-all duration-300 hover:shadow-2xl flex flex-col justify-between cursor-pointer select-none ${
                       isDark ? 'bg-[#24170D] border-[#4A2C16]' : 'bg-white border-[#E4D4BC]'
                     }`}
                   >
@@ -228,7 +240,9 @@ export const PackageBuilder: React.FC = () => {
                         <img
                           src={pkg.image}
                           alt={pkg.name}
-                          className="w-full h-full object-cover scale-110 group-hover:scale-100 transition-transform duration-500 ease-out"
+                          className={`w-full h-full object-cover card-zoom-img transition-transform duration-500 ease-out ${
+                            touchedCardId === pkg.id ? 'scale-100' : 'scale-110'
+                          } group-hover:scale-100 group-active:scale-100 active:scale-100`}
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
                         
@@ -391,7 +405,9 @@ export const PackageBuilder: React.FC = () => {
                       <div
                         key={item.id}
                         onClick={() => toggleItem(item)}
-                        className={`group p-4 rounded-2xl border cursor-pointer transition-all duration-200 flex gap-3.5 ${
+                        onTouchStart={() => handleTouchCard(item.id)}
+                        onTouchEnd={() => handleTouchCard(item.id)}
+                        className={`group p-4 rounded-2xl border cursor-pointer transition-all duration-200 flex gap-3.5 select-none ${
                           isSelected
                             ? isDark
                               ? 'bg-amber-500/10 border-amber-500 ring-1 ring-amber-500 shadow-md'
@@ -405,7 +421,9 @@ export const PackageBuilder: React.FC = () => {
                           <img
                             src={item.image}
                             alt={item.name}
-                            className="w-full h-full object-cover scale-110 group-hover:scale-100 transition-transform duration-500 ease-out"
+                            className={`w-full h-full object-cover card-zoom-img transition-transform duration-500 ease-out ${
+                              touchedCardId === item.id ? 'scale-100' : 'scale-110'
+                            } group-hover:scale-100 group-active:scale-100 active:scale-100`}
                           />
                         </div>
                         <div className="flex-1 flex flex-col justify-between min-w-0">

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { PreMadePackage } from '../../types/package';
 import { api } from '../../services/api';
@@ -30,6 +30,16 @@ export const CelebrationPackagesSection: React.FC = () => {
   const [selectedPackage, setSelectedPackage] = useState<PreMadePackage | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [expandedPkgId, setExpandedPkgId] = useState<string | null>(null);
+  const [touchedPkgId, setTouchedPkgId] = useState<string | null>(null);
+  const touchTimerRef = useRef<any>(null);
+
+  const handleTouchPkg = (id: string) => {
+    setTouchedPkgId(id);
+    if (touchTimerRef.current) clearTimeout(touchTimerRef.current);
+    touchTimerRef.current = setTimeout(() => {
+      setTouchedPkgId(null);
+    }, 1800);
+  };
 
   useEffect(() => {
     const loadPackages = async () => {
@@ -140,7 +150,9 @@ export const CelebrationPackagesSection: React.FC = () => {
             return (
               <div
                 key={pkg.id}
-                className={`rounded-2xl sm:rounded-3xl border overflow-hidden flex flex-col justify-between transition-all duration-300 ease-out hover:shadow-xl group self-start ${
+                onTouchStart={() => handleTouchPkg(pkg.id)}
+                onTouchEnd={() => handleTouchPkg(pkg.id)}
+                className={`rounded-2xl sm:rounded-3xl border overflow-hidden flex flex-col justify-between transition-all duration-300 ease-out hover:shadow-xl group self-start cursor-pointer select-none ${
                   isDark ? 'bg-[#1D130A] border-[#4A2C16]' : 'bg-white border-[#E4D4BC]'
                 } ${isExpanded ? 'ring-1 ring-amber-500/40 shadow-lg' : ''}`}
               >
@@ -150,7 +162,9 @@ export const CelebrationPackagesSection: React.FC = () => {
                     <img
                       src={pkg.image}
                       alt={pkg.name}
-                      className="w-full h-full object-cover scale-110 group-hover:scale-100 transition-transform duration-500 ease-out"
+                      className={`w-full h-full object-cover card-zoom-img transition-transform duration-500 ease-out ${
+                        touchedPkgId === pkg.id ? 'scale-100' : 'scale-110'
+                      } group-hover:scale-100 group-active:scale-100 active:scale-100`}
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
 

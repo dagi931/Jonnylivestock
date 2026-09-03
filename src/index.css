@@ -102,3 +102,12 @@
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(228, 212, 188, 0.9);
 }
+
+/* Touch device support for card image zoom out */
+@media (hover: none) and (pointer: coarse) {
+  .group:active .card-zoom-img,
+  .group:focus-within .card-zoom-img,
+  .card-zoom-img:active {
+    transform: scale(1) !important;
+  }
+}
