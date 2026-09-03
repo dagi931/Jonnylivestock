@@ -895,10 +895,16 @@ export const Admin: React.FC = () => {
           <div className="pt-2 space-y-2">
             <button
               onClick={() => {
+                localStorage.removeItem('jonny_user_token');
+                localStorage.removeItem('jonny_user_profile');
+                localStorage.removeItem('jonny_admin_token');
+                localStorage.removeItem('jonny_admin_user');
+                sessionStorage.clear();
                 userLogout();
                 logout();
+                window.location.href = '/';
               }}
-              className="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-black font-bold text-xs transition-all shadow-md"
+              className="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-black font-bold text-xs transition-all shadow-md cursor-pointer"
             >
               Sign Out & Login as Administrator
             </button>
@@ -1231,8 +1237,17 @@ export const Admin: React.FC = () => {
 
             {/* Logout */}
             <button
-              onClick={logout}
-              className="p-2 rounded-xl bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 transition-colors"
+              onClick={() => {
+                localStorage.removeItem('jonny_admin_token');
+                localStorage.removeItem('jonny_admin_user');
+                localStorage.removeItem('jonny_user_token');
+                localStorage.removeItem('jonny_user_profile');
+                sessionStorage.clear();
+                logout();
+                userLogout();
+                window.location.href = '/';
+              }}
+              className="p-2 rounded-xl bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 transition-colors cursor-pointer"
               title="Sign Out"
             >
               <LogOut className="w-4 h-4" />

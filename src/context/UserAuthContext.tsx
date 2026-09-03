@@ -115,6 +115,9 @@ export const UserAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     localStorage.removeItem('jonny_user_profile');
     localStorage.removeItem('jonny_admin_token');
     localStorage.removeItem('jonny_admin_user');
+    sessionStorage.clear();
+    // Redirect to home and reload a brand new clean page
+    window.location.href = '/';
   };
 
   const openAuthModal = (mode: 'login' | 'register' = 'login') => {

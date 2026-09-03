@@ -47,10 +47,16 @@ export const Navbar: React.FC = () => {
   }, [location.pathname]);
 
   const handleFullLogout = () => {
-    userLogout();
-    adminLogout();
     setUserDropdownOpen(false);
     setIsOpen(false);
+    localStorage.removeItem('jonny_user_token');
+    localStorage.removeItem('jonny_user_profile');
+    localStorage.removeItem('jonny_admin_token');
+    localStorage.removeItem('jonny_admin_user');
+    sessionStorage.clear();
+    userLogout();
+    adminLogout();
+    window.location.href = '/';
   };
 
   const isAdminUser = isAuthenticated && user?.role === 'admin';
