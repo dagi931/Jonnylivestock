@@ -218,7 +218,7 @@ export const PackageBuilder: React.FC = () => {
                 return (
                   <div
                     key={pkg.id}
-                    className={`rounded-2xl sm:rounded-3xl border overflow-hidden transition-all duration-300 hover:shadow-2xl flex flex-col justify-between ${
+                    className={`group rounded-2xl sm:rounded-3xl border overflow-hidden transition-all duration-300 hover:shadow-2xl flex flex-col justify-between ${
                       isDark ? 'bg-[#24170D] border-[#4A2C16]' : 'bg-white border-[#E4D4BC]'
                     }`}
                   >
@@ -228,7 +228,7 @@ export const PackageBuilder: React.FC = () => {
                         <img
                           src={pkg.image}
                           alt={pkg.name}
-                          className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+                          className="w-full h-full object-cover scale-110 group-hover:scale-100 transition-transform duration-500 ease-out"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
                         
@@ -391,7 +391,7 @@ export const PackageBuilder: React.FC = () => {
                       <div
                         key={item.id}
                         onClick={() => toggleItem(item)}
-                        className={`p-4 rounded-2xl border cursor-pointer transition-all duration-200 flex gap-3.5 ${
+                        className={`group p-4 rounded-2xl border cursor-pointer transition-all duration-200 flex gap-3.5 ${
                           isSelected
                             ? isDark
                               ? 'bg-amber-500/10 border-amber-500 ring-1 ring-amber-500 shadow-md'
@@ -401,11 +401,13 @@ export const PackageBuilder: React.FC = () => {
                               : 'bg-white border-[#E4D4BC] hover:border-amber-500/40'
                         }`}
                       >
-                        <img
-                          src={item.image}
-                          alt={item.name}
-                          className="w-20 h-20 rounded-xl object-cover shrink-0 shadow-sm"
-                        />
+                        <div className="w-20 h-20 rounded-xl overflow-hidden shrink-0 shadow-sm">
+                          <img
+                            src={item.image}
+                            alt={item.name}
+                            className="w-full h-full object-cover scale-110 group-hover:scale-100 transition-transform duration-500 ease-out"
+                          />
+                        </div>
                         <div className="flex-1 flex flex-col justify-between min-w-0">
                           <div>
                             <div className="flex items-start justify-between gap-1">

@@ -42,7 +42,7 @@ export const AnimalCard: React.FC<AnimalCardProps> = ({ animal }) => {
           src={animal.images[0]}
           alt={`${animal.breed} ${animal.type} ${animal.id}`}
           loading="lazy"
-          className="w-full h-full object-cover object-center transition-transform duration-300 group-hover:scale-105"
+          className="w-full h-full object-cover object-center scale-110 group-hover:scale-100 transition-transform duration-500 ease-out"
         />
 
         {/* Subtle Overlay */}

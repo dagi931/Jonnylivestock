@@ -1971,7 +1971,7 @@ export const Admin: React.FC = () => {
                 {packagesList.map((pkg) => (
                   <div
                     key={pkg.id}
-                    className={`rounded-3xl border overflow-hidden flex flex-col justify-between transition-all duration-200 hover:shadow-xl ${
+                    className={`group rounded-3xl border overflow-hidden flex flex-col justify-between transition-all duration-200 hover:shadow-xl ${
                       isDark ? 'bg-[#1F140A] border-[#4A2C16]' : 'bg-white border-[#E4D4BC]'
                     }`}
                   >
@@ -1981,7 +1981,7 @@ export const Admin: React.FC = () => {
                         <img
                           src={pkg.image}
                           alt={pkg.name}
-                          className="w-full h-full object-cover"
+                          className="w-full h-full object-cover scale-110 group-hover:scale-100 transition-transform duration-500 ease-out"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
                         
