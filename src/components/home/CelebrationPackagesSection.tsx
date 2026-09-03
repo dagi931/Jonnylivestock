@@ -262,23 +262,19 @@ export const CelebrationPackagesSection: React.FC = () => {
           })}
         </div>
 
-        {/* Bottom Banner Card: "Want to customize your own bundle?" */}
+        {/* Bottom Call to Action: "Prefer to build your own celebration hamper?" */}
         <div
-          className={`mt-8 p-6 rounded-3xl border flex flex-col sm:flex-row items-center justify-between gap-4 ${
-            isDark
-              ? 'bg-gradient-to-r from-[#2A1A0D] to-[#1D130A] border-[#4A2C16]'
-              : 'bg-gradient-to-r from-amber-50 to-[#FAF7F0] border-[#E4D4BC]'
+          className={`mt-10 pt-8 border-t flex flex-col sm:flex-row items-center justify-between gap-4 ${
+            isDark ? 'border-[#4A2C16]' : 'border-[#E4D4BC]'
           }`}
         >
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-amber-500/15 text-amber-500 border border-amber-500/30 flex items-center justify-center shrink-0">
-              <Sparkles className="w-6 h-6" />
-            </div>
+          <div className="flex items-center gap-3 text-center sm:text-left">
+            <Sparkles className="w-5 h-5 text-amber-500 shrink-0 hidden sm:block" />
             <div>
-              <h4 className="font-serif font-bold text-lg">
+              <h4 className="font-serif font-bold text-base sm:text-lg">
                 {isAmharic ? 'የራስዎን ልዩ የበዓል ጥቅል ማዘጋጀት ይፈልጋሉ?' : 'Prefer to build your own celebration hamper?'}
               </h4>
-              <p className="text-xs opacity-75">
+              <p className="text-xs opacity-75 mt-0.5">
                 {isAmharic
                   ? 'የተመረጡ የቀንድ ከብቶች፣ የጠጅና ወይን ምርጫ፣ ትኩስ እንቁላልና የበዓል አበቦችን እንደፍላጎትዎ መርጠው ያዘጋጁ።'
                   : 'Pick your specific weight of meat, choice of vintage wine/tej, egg crates, and fresh flower bouquets.'}
@@ -288,7 +284,7 @@ export const CelebrationPackagesSection: React.FC = () => {
 
           <Link
             to="/packages"
-            className="px-6 py-3 rounded-2xl bg-amber-500 hover:bg-amber-600 text-black font-bold text-xs sm:text-sm transition-all shadow-lg shrink-0 flex items-center gap-2"
+            className="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-black font-bold text-xs sm:text-sm transition-all shadow-md shrink-0 flex items-center gap-2"
           >
             <span>{isAmharic ? 'ጥቅል ማዘጋጃውን ይክፈቱ' : 'Launch Package Builder'}</span>
             <ArrowRight className="w-4 h-4" />
