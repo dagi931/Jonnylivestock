@@ -240,7 +240,7 @@ export const CelebrationPackagesSection: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => handleOrder(pkg)}
-                    className="w-full py-2.5 sm:py-3.5 rounded-t-xl sm:rounded-t-2xl bg-amber-500 hover:bg-amber-600 text-black font-bold text-[10.5px] sm:text-xs transition-all shadow-md flex items-center justify-center gap-1.5 cursor-pointer active:scale-[0.99]"
+                    className="w-full py-2.5 sm:py-3.5 rounded-t-none rounded-b-2xl sm:rounded-b-3xl bg-amber-500 hover:bg-amber-600 text-black font-bold text-[10.5px] sm:text-xs transition-all shadow-md flex items-center justify-center gap-1.5 cursor-pointer active:scale-[0.99]"
                   >
                     <Gift className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                     <span>Order / 50% Reserve</span>
