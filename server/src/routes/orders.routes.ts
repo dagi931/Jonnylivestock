@@ -45,11 +45,12 @@ router.post(
 
       const isPkg = isPackage === true || isPackage === 'true';
       const isRes = isReservation === true || isReservation === 'true';
+      const isMeat = req.body.isMeatByKg === true || req.body.isMeatByKg === 'true';
 
-      if (!isPkg && !animalId) {
+      if (!isPkg && !animalId && !isMeat) {
         res.status(400).json({
           success: false,
-          error: 'Please select an animal or package to proceed'
+          error: 'Please select an animal, celebration package, or meat order to proceed'
         });
         return;
       }
@@ -76,6 +77,13 @@ router.post(
         animalType = animalData.type;
         animalPrice = animalData.price;
         calculatedTotal = animalData.price;
+      } else if (isMeat) {
+        animalType = 'cow';
+        const cutName = req.body.meatCut || 'Prime Cut';
+        const kgVal = Number(req.body.meatKg) || 1;
+        animalBreed = `Raw Ox Beef (${cutName}) - ${kgVal} KG`;
+        animalPrice = Number(totalAmount) || 0;
+        calculatedTotal = Number(totalAmount) || 0;
       }
 
       // Parse services array
@@ -106,6 +114,19 @@ router.post(
           parsedPackageDetails = packageDetails;
         }
 
+        if (totalAmount) {
+          calculatedTotal = Number(totalAmount);
+        }
+      } else if (isMeat) {
+        parsedPackageDetails = {
+          isMeatByKg: true,
+          livestock: 'ox',
+          cut: req.body.meatCut || 'Kurt',
+          kg: Number(req.body.meatKg) || 1,
+          pricePerKg: Number(req.body.pricePerKg) || 2500,
+          isDelivery: Boolean(req.body.isDelivery === true || req.body.isDelivery === 'true'),
+          deliveryAddress: deliveryLocation || undefined
+        };
         if (totalAmount) {
           calculatedTotal = Number(totalAmount);
         }

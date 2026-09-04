@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
 import { business } from '../config/business';
 import { getWhatsAppLink, getPhoneCallLink } from '../utils/formatters';
 import { livestockServices, serviceFlowSteps } from '../data/services';
+import { MeatByKgOrderModal } from '../components/modals/MeatByKgOrderModal';
 import {
   Truck,
   UtensilsCrossed,
@@ -24,6 +25,7 @@ export const Services: React.FC = () => {
   const { theme } = useTheme();
   const { t, isAmharic } = useLanguage();
   const isDark = theme === 'design7';
+  const [isMeatModalOpen, setIsMeatModalOpen] = useState(false);
 
   const iconMap: Record<string, React.ElementType> = {
     Truck,
@@ -164,9 +166,10 @@ export const Services: React.FC = () => {
               <span>{isAmharic ? 'የበዓል ጥቅሎችና ቅርጫቶች' : 'Holiday Packages & Hampers'}</span>
             </Link>
 
-            <a
-              href="#meat-by-kg"
-              className={`px-4 py-2 rounded-xl font-bold text-xs sm:text-sm transition-all shadow-xs inline-flex items-center gap-1.5 ${
+            <button
+              type="button"
+              onClick={() => setIsMeatModalOpen(true)}
+              className={`px-4 py-2 rounded-xl font-bold text-xs sm:text-sm transition-all shadow-xs inline-flex items-center gap-1.5 cursor-pointer ${
                 isDark
                   ? 'bg-[#C58A3A] hover:bg-[#E0B15A] text-[#1B1208]'
                   : 'bg-[#B8792F] hover:bg-[#9E6523] text-[#FAF7F0]'
@@ -174,7 +177,7 @@ export const Services: React.FC = () => {
             >
               <Scale className="w-3.5 h-3.5" />
               <span>{t.servicesPage.orderMeatByKg}</span>
-            </a>
+            </button>
 
             <a
               href="#delivery"
@@ -326,8 +329,19 @@ export const Services: React.FC = () => {
                       ))}
                     </ul>
 
-                    {/* Direct Contact Actions (No Form Required) */}
+                    {/* Direct Contact Actions & Online Order */}
                     <div className="flex flex-wrap items-center gap-2.5 pt-3">
+                      {service.id === 'meat-by-kg' && (
+                        <button
+                          type="button"
+                          onClick={() => setIsMeatModalOpen(true)}
+                          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-black font-bold text-xs shadow-sm transition-all active:scale-[0.98] cursor-pointer"
+                        >
+                          <Scale className="w-3.5 h-3.5" />
+                          <span>{isAmharic ? '🥩 የበሬ ስጋ በኪሎ እዘዝ (ኦንላይን)' : '🥩 Order Raw Meat in KG'}</span>
+                        </button>
+                      )}
+
                       <a
                         href={getWhatsAppLink(
                           business.whatsapp,
@@ -392,6 +406,11 @@ export const Services: React.FC = () => {
           </div>
         </div>
 
+        {/* Meat by KG Order Modal */}
+        <MeatByKgOrderModal
+          isOpen={isMeatModalOpen}
+          onClose={() => setIsMeatModalOpen(false)}
+        />
       </div>
     </div>
   );

@@ -532,7 +532,14 @@ class ApiService {
       const res = await fetch(`${API_BASE}/orders${query}`, {
         headers: this.getHeaders(token)
       });
-      if (!res.ok) return [];
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => null);
+        console.warn(`[Orders API] Failed to fetch orders (HTTP ${res.status}):`, errJson?.error || res.statusText);
+        if (res.status === 401 || res.status === 403) {
+          window.dispatchEvent(new CustomEvent('auth_expired', { detail: { reason: errJson?.error } }));
+        }
+        return [];
+      }
       const json = await res.json();
       return json.data || [];
     } catch (error) {
@@ -844,6 +851,40 @@ class ApiService {
     } catch (error) {
       console.error('Error fetching business settings:', error);
       return null;
+    }
+  }
+
+  // ==================== RAW MEAT PRICING ====================
+  async getMeatPricing(): Promise<{
+    kurtPrice: number;
+    kitfoPrice: number;
+    tibsWotPrice: number;
+    available?: boolean;
+    updatedAt?: string;
+  }> {
+    try {
+      const res = await fetch(`${API_BASE}/settings/meat-pricing`);
+      if (!res.ok) throw new Error('Failed to fetch meat pricing');
+      const json = await res.json();
+      return json.data || { kurtPrice: 2500, kitfoPrice: 2200, tibsWotPrice: 1800, available: true };
+    } catch {
+      return { kurtPrice: 2500, kitfoPrice: 2200, tibsWotPrice: 1800, available: true };
+    }
+  }
+
+  async updateMeatPricing(
+    pricing: { kurtPrice: number; kitfoPrice: number; tibsWotPrice: number; available?: boolean },
+    token?: string
+  ): Promise<{ success: boolean; data?: any; error?: string }> {
+    try {
+      const res = await fetch(`${API_BASE}/settings/meat-pricing`, {
+        method: 'PUT',
+        headers: this.getHeaders(token),
+        body: JSON.stringify(pricing)
+      });
+      return await res.json();
+    } catch (error: any) {
+      return { success: false, error: error.message || 'Failed to update meat pricing' };
     }
   }
 }

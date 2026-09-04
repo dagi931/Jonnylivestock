@@ -69,6 +69,7 @@ app.use('/api/orders', ordersRoutes);
 app.use('/api/packages', packagesRoutes);
 app.use('/api/contact', contactRoutes);
 app.use('/api/admin/notifications', notificationsRoutes);
+app.use('/api/notifications', notificationsRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/events', eventsRoutes);
 

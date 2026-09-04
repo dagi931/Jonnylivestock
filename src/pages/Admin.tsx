@@ -41,15 +41,35 @@ import {
   Gift,
   MessageSquare,
   AlertTriangle,
-  ChevronDown
+  ChevronDown,
+  Edit3,
+  RotateCcw,
+  Scale
 } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { PreMadePackage, PackageCatalogItem } from '../types/package';
 
-type AdminTab = 'overview' | 'orders' | 'inventory' | 'packages' | 'demand' | 'messages' | 'settings';
+type AdminTab = 'overview' | 'orders' | 'inventory' | 'packages' | 'raw_meat' | 'demand' | 'messages' | 'settings';
+
+const getAnimalFirstImage = (animal: Animal | null | undefined): string => {
+  if (!animal) return '';
+  const a = animal as any;
+  if (typeof a.image === 'string' && a.image.trim()) {
+    return a.image.trim().split(/\s+/)[0];
+  }
+  if (Array.isArray(a.images) && a.images.length > 0) {
+    const first = a.images[0];
+    if (typeof first === 'string' && first.trim()) {
+      return first.trim().split(/\s+/)[0];
+    }
+  } else if (typeof a.images === 'string' && a.images.trim()) {
+    return a.images.trim().split(/\s+/)[0];
+  }
+  return '';
+};
 
 export const Admin: React.FC = () => {
-  const { isAuthenticated: isAdminAuth, user: adminUser, login, logout } = useAdminAuth();
+  const { isAuthenticated: isAdminAuth, user: adminUser, token: adminToken, login, logout } = useAdminAuth();
   const { isAuthenticated: isUserAuth, user: currentUser, logout: userLogout } = useUserAuth();
   const { theme } = useTheme();
   const isDark = theme === 'design7';
@@ -128,6 +148,24 @@ export const Admin: React.FC = () => {
   const [imageUploadMode, setImageUploadMode] = useState<'upload' | 'url'>('upload');
   const animalImageInputRef = useRef<HTMLInputElement>(null);
 
+  // Edit Animal Modal State
+  const [editingAnimal, setEditingAnimal] = useState<Animal | null>(null);
+  const [editAnimalType, setEditAnimalType] = useState<AnimalType>('sheep');
+  const [editAnimalBreed, setEditAnimalBreed] = useState('');
+  const [editAnimalGender, setEditAnimalGender] = useState<'Male' | 'Female'>('Male');
+  const [editAnimalWeight, setEditAnimalWeight] = useState<number>(30);
+  const [editAnimalPrice, setEditAnimalPrice] = useState<number>(15000);
+  const [editAnimalQuantity, setEditAnimalQuantity] = useState<number>(1);
+  const [editAnimalColor, setEditAnimalColor] = useState('Natural');
+  const [editAnimalLocation, setEditAnimalLocation] = useState('Aware, Addis Ababa');
+  const [editAnimalDesc, setEditAnimalDesc] = useState('');
+  const [editAnimalStatus, setEditAnimalStatus] = useState<AnimalStatus>('available');
+  const [editAnimalFeatured, setEditAnimalFeatured] = useState(false);
+  const [editAnimalImage, setEditAnimalImage] = useState('');
+  const [isUpdatingAnimal, setIsUpdatingAnimal] = useState(false);
+  const [isUploadingEditImage, setIsUploadingEditImage] = useState(false);
+  const editAnimalImageInputRef = useRef<HTMLInputElement>(null);
+
   // Celebration Packages State
   const [packagesList, setPackagesList] = useState<PreMadePackage[]>([]);
   const [catalogItems, setCatalogItems] = useState<PackageCatalogItem[]>([]);
@@ -165,16 +203,54 @@ export const Admin: React.FC = () => {
   const [restockTotalInput, setRestockTotalInput] = useState<number>(10);
   const [isRestocking, setIsRestocking] = useState(false);
 
+  // Raw Meat Pricing State
+  const [rawMeatPricing, setRawMeatPricing] = useState<{
+    kurtPrice: number;
+    kitfoPrice: number;
+    tibsWotPrice: number;
+    available: boolean;
+    notes?: string;
+  }>({
+    kurtPrice: 2500,
+    kitfoPrice: 2200,
+    tibsWotPrice: 1800,
+    available: true,
+    notes: 'Premium Addis Ababa grass-fed fattened ox beef cuts prepared to culinary order.'
+  });
+  const [isSavingMeatPricing, setIsSavingMeatPricing] = useState(false);
+  const [testMeatCut, setTestMeatCut] = useState<'kurt' | 'kitfo' | 'tibs_wot'>('kurt');
+  const [testMeatKg, setTestMeatKg] = useState<number>(5);
+  const [testIncludeDelivery, setTestIncludeDelivery] = useState<boolean>(false);
+
+  const handleSaveMeatPricing = async () => {
+    setIsSavingMeatPricing(true);
+    try {
+      const activeToken = adminToken || localStorage.getItem('jonny_admin_token') || localStorage.getItem('jonny_user_token') || undefined;
+      const res = await api.updateMeatPricing(rawMeatPricing, activeToken);
+      if (res.success) {
+        showAlert('success', '🥩 Raw meat pricing updated successfully! Live rates are now active.');
+      } else {
+        showAlert('error', res.error || 'Failed to update meat pricing');
+      }
+    } catch (err: any) {
+      showAlert('error', err.message || 'Error updating meat pricing');
+    } finally {
+      setIsSavingMeatPricing(false);
+    }
+  };
+
   // Load Data from Backend
   const loadDashboardData = async () => {
     setIsLoadingData(true);
     try {
-      const [fetchedAnimals, fetchedOrders, notifRes, pkgRes, fetchedMsgs] = await Promise.all([
+      const activeToken = adminToken || localStorage.getItem('jonny_admin_token') || localStorage.getItem('jonny_user_token') || undefined;
+      const [fetchedAnimals, fetchedOrders, notifRes, pkgRes, fetchedMsgs, meatPricingRes] = await Promise.all([
         api.getAnimals(),
-        api.getAllOrders(),
-        api.getNotifications(),
+        api.getAllOrders(activeToken),
+        api.getNotifications(activeToken),
         api.getPackagesData(),
-        api.getContactMessages()
+        api.getContactMessages(),
+        api.getMeatPricing()
       ]);
 
       if (fetchedAnimals && fetchedAnimals.length > 0) {
@@ -191,6 +267,15 @@ export const Admin: React.FC = () => {
         setContactMessages(fetchedMsgs);
         setUnreadMessagesCount(fetchedMsgs.filter(m => !m.read).length);
       }
+      if (meatPricingRes) {
+        setRawMeatPricing({
+          kurtPrice: meatPricingRes.kurtPrice ?? 2500,
+          kitfoPrice: meatPricingRes.kitfoPrice ?? 2200,
+          tibsWotPrice: meatPricingRes.tibsWotPrice ?? 1800,
+          available: meatPricingRes.available ?? true,
+          notes: (meatPricingRes as any).notes ?? ''
+        });
+      }
     } catch (err) {
       console.error('Failed to load backend data:', err);
     } finally {
@@ -201,7 +286,11 @@ export const Admin: React.FC = () => {
   useEffect(() => {
     if (isAuthenticated) {
       loadDashboardData();
-      const interval = setInterval(loadDashboardData, 15000); // Polling every 15s for live slip uploads
+      const interval = setInterval(() => {
+        if (!document.hidden) {
+          loadDashboardData();
+        }
+      }, 30000); // 30s background sync (SSE handles real-time immediate updates)
       return () => clearInterval(interval);
     }
   }, [isAuthenticated]);
@@ -714,14 +803,167 @@ export const Admin: React.FC = () => {
     }
   };
 
+  // Open Edit Animal Modal (prefilling all existing fields)
+  const handleOpenEditAnimal = (animal: Animal) => {
+    setEditingAnimal(animal);
+    setEditAnimalType(animal.type);
+    setEditAnimalBreed(animal.breed);
+    setEditAnimalGender((animal.gender as 'Male' | 'Female') || 'Male');
+    setEditAnimalWeight(animal.weight);
+    setEditAnimalPrice(animal.price);
+    // If it was sold and quantity is 0, prefill 1 so saving makes it cleanly available
+    const currentQty = animal.quantity ?? 1;
+    setEditAnimalQuantity(animal.status === 'sold' && currentQty <= 0 ? 1 : currentQty);
+    setEditAnimalColor(animal.color || 'Natural');
+    setEditAnimalLocation(animal.location || 'Aware, Addis Ababa');
+    setEditAnimalDesc(animal.description || '');
+    setEditAnimalStatus(animal.status);
+    setEditAnimalFeatured(Boolean(animal.featured));
+    setEditAnimalImage(getAnimalFirstImage(animal));
+  };
+
+  // Submit Edit Animal Details & Status
+  const handleEditAnimalSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingAnimal) return;
+    if (!editAnimalBreed.trim()) {
+      showAlert('error', 'Breed name is required');
+      return;
+    }
+
+    setIsUpdatingAnimal(true);
+    try {
+      const activeToken = adminToken || localStorage.getItem('jonny_admin_token') || localStorage.getItem('jonny_user_token') || undefined;
+      const finalImage = editAnimalImage.trim();
+      const existingImages = Array.isArray(editingAnimal.images)
+        ? editingAnimal.images
+        : (typeof (editingAnimal as any).images === 'string' && (editingAnimal as any).images.trim()
+            ? [(editingAnimal as any).images.trim().split(/\s+/)[0]]
+            : []);
+
+      const imagesToSave = finalImage
+        ? [finalImage]
+        : (existingImages.length > 0 ? existingImages : []);
+
+      const res = await api.updateAnimal(
+        editingAnimal.id,
+        {
+          type: editAnimalType,
+          breed: editAnimalBreed.trim(),
+          gender: editAnimalGender,
+          weight: Number(editAnimalWeight),
+          price: Number(editAnimalPrice),
+          quantity: Number(editAnimalQuantity),
+          color: editAnimalColor.trim() || 'Natural',
+          location: editAnimalLocation.trim() || 'Aware, Addis Ababa',
+          description: editAnimalDesc.trim() || editingAnimal.description,
+          status: editAnimalStatus,
+          featured: editAnimalFeatured,
+          images: imagesToSave
+        },
+        activeToken
+      );
+
+      if (res.success && res.data) {
+        setAnimalsList((prev) =>
+          prev.map((a) => (a.id === editingAnimal.id ? res.data! : a))
+        );
+        showAlert(
+          'success',
+          `✓ Livestock "${res.data.breed}" (${res.data.id}) updated! Status is now "${res.data.status.toUpperCase()}" (Stock: ${res.data.quantity ?? 1}).`
+        );
+        setEditingAnimal(null);
+      } else {
+        showAlert('error', res.error || 'Failed to update animal');
+      }
+    } catch (err: any) {
+      showAlert('error', err.message || 'Error updating animal details');
+    } finally {
+      setIsUpdatingAnimal(false);
+    }
+  };
+
+  // One-Click Relist Sold Animal as Available
+  const handleRelistAnimal = async (animal: Animal, restockQuantity = 1) => {
+    try {
+      const activeToken = adminToken || localStorage.getItem('jonny_admin_token') || localStorage.getItem('jonny_user_token') || undefined;
+      const res = await api.updateAnimal(
+        animal.id,
+        {
+          status: 'available',
+          quantity: Math.max(1, restockQuantity)
+        },
+        activeToken
+      );
+
+      if (res.success && res.data) {
+        setAnimalsList((prev) =>
+          prev.map((a) => (a.id === animal.id ? res.data! : a))
+        );
+        showAlert(
+          'success',
+          `🎉 Livestock "${animal.breed}" (${animal.id}) is now RELISTED and AVAILABLE on the marketplace! (Stock: ${Math.max(1, restockQuantity)} head)`
+        );
+      } else {
+        showAlert('error', res.error || 'Failed to relist animal');
+      }
+    } catch (err: any) {
+      showAlert('error', err.message || 'Error relisting animal');
+    }
+  };
+
+  // Upload Photo for Edit Animal
+  const handleEditAnimalImageFile = async (file: File) => {
+    if (!file.type.startsWith('image/')) {
+      showAlert('error', 'Please select a valid image file');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      if (e.target?.result) setEditAnimalImage(e.target.result as string);
+    };
+    reader.readAsDataURL(file);
+
+    try {
+      setIsUploadingEditImage(true);
+      const res = await api.uploadAnimalImage(file);
+      if (res.success && res.url) {
+        setEditAnimalImage(res.url);
+      }
+    } catch (err) {
+      console.error('Failed to upload image:', err);
+    } finally {
+      setIsUploadingEditImage(false);
+    }
+  };
+
   // Handle Toggle Animal Status
   const handleToggleStatus = async (animalId: string, newStatus: AnimalStatus) => {
-    const res = await api.updateAnimal(animalId, { status: newStatus });
-    if (res.success) {
+    const target = animalsList.find((a) => a.id === animalId);
+    const qtyUpdate =
+      newStatus === 'available' && (!target?.quantity || target.quantity <= 0)
+        ? 1
+        : undefined;
+
+    const activeToken = adminToken || localStorage.getItem('jonny_admin_token') || localStorage.getItem('jonny_user_token') || undefined;
+    const res = await api.updateAnimal(
+      animalId,
+      {
+        status: newStatus,
+        ...(qtyUpdate !== undefined && { quantity: qtyUpdate })
+      },
+      activeToken
+    );
+    if (res.success && res.data) {
       setAnimalsList((prev) =>
-        prev.map((a) => (a.id === animalId ? { ...a, status: newStatus } : a))
+        prev.map((a) => (a.id === animalId ? res.data! : a))
       );
-      showAlert('success', `Animal ${animalId} status set to ${newStatus}.`);
+      showAlert(
+        'success',
+        `Animal ${animalId} status set to ${newStatus}${
+          qtyUpdate ? ' (restocked to 1 head)' : ''
+        }.`
+      );
     } else {
       showAlert('error', res.error || 'Failed to update animal status');
     }
@@ -1498,7 +1740,30 @@ export const Admin: React.FC = () => {
                 </span>
               </button>
 
-              {/* 5. Demand & Metrics */}
+              {/* 5. Raw Meat (ስጋ በኪሎ) */}
+              <button
+                type="button"
+                onClick={() => setActiveTab('raw_meat')}
+                className={`flex items-center justify-between gap-2.5 px-3.5 py-3 rounded-xl text-xs font-bold transition-all text-left whitespace-nowrap lg:whitespace-normal cursor-pointer ${
+                  activeTab === 'raw_meat'
+                    ? 'bg-[#C18A45] text-white shadow-sm font-extrabold'
+                    : isDark
+                    ? 'hover:bg-[#2A1A0D] text-[#D8C5A8]'
+                    : 'hover:bg-[#F1E8D8] text-[#746556]'
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <Scale className={`w-4 h-4 shrink-0 ${activeTab === 'raw_meat' ? 'text-white' : 'text-[#C18A45]'}`} />
+                  <span>Raw Meat (በኪሎ ስጋ)</span>
+                </div>
+                <span className={`px-2 py-0.5 rounded-md text-[10.5px] font-mono font-bold shrink-0 ${
+                  activeTab === 'raw_meat' ? 'bg-black/20 text-white' : 'bg-black/5 dark:bg-white/10 opacity-75'
+                }`}>
+                  {ordersList.filter(o => (o.packageDetails as any)?.isMeatByKg).length}
+                </span>
+              </button>
+
+              {/* 6. Demand & Metrics */}
               <button
                 type="button"
                 onClick={() => setActiveTab('demand')}
@@ -1731,9 +1996,14 @@ export const Admin: React.FC = () => {
                               <span className="text-[10px] opacity-50 block">
                                 {new Date(order.createdAt).toLocaleDateString()}
                               </span>
-                              {order.isPackage && (
+                              {order.isPackage && !(order.packageDetails as any)?.isMeatByKg && (
                                 <span className="inline-block px-1.5 py-0.5 mt-1 rounded-md text-[9.5px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30">
                                   Package Order
+                                </span>
+                              )}
+                              {(order.packageDetails as any)?.isMeatByKg && (
+                                <span className="inline-block px-1.5 py-0.5 mt-1 rounded-md text-[9.5px] font-bold bg-rose-500/15 text-rose-400 border border-rose-500/30">
+                                  🥩 Meat in KG
                                 </span>
                               )}
                               {isRes && (
@@ -1748,17 +2018,35 @@ export const Admin: React.FC = () => {
                               <strong className="block text-xs sm:text-sm font-semibold">{order.customerName}</strong>
                               <span className="text-[11px] opacity-70 block">{order.customerPhone}</span>
                               {order.deliveryLocation && (
-                                <span className="text-[10px] opacity-60 truncate max-w-[150px] block">
+                                <span className="text-[10px] opacity-60 truncate max-w-[150px] block" title={order.deliveryLocation}>
                                   📍 {order.deliveryLocation}
+                                </span>
+                              )}
+                              {(order.packageDetails as any)?.isDelivery && (
+                                <span className="inline-block px-1.5 py-0.5 mt-0.5 rounded text-[9.5px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                                  🚚 Doorstep Delivery
                                 </span>
                               )}
                             </td>
 
                             {/* Item & Price */}
                             <td className="py-3 px-3.5">
-                              <div className="font-semibold text-xs">{order.packageName || order.animalBreed || 'Livestock Item'}</div>
+                              <div className="font-semibold text-xs">
+                                {(order.packageDetails as any)?.isMeatByKg ? (
+                                  <span className="text-rose-400 font-bold">
+                                    🥩 {(order.packageDetails as any).cut} ({(order.packageDetails as any).kg} KG)
+                                  </span>
+                                ) : (
+                                  order.packageName || order.animalBreed || 'Livestock Item'
+                                )}
+                              </div>
                               {order.animalId && (
                                 <span className="text-[10px] font-mono opacity-60 block">ID: {order.animalId}</span>
+                              )}
+                              {(order.packageDetails as any)?.isMeatByKg && (
+                                <span className="text-[10px] font-mono opacity-70 block">
+                                  Rate: {formatPrice((order.packageDetails as any).pricePerKg)} / KG
+                                </span>
                               )}
                               <div className={`font-bold text-xs sm:text-sm ${isDark ? 'text-[#E0B15A]' : 'text-[#B8792F]'}`}>
                                 Total: {formatPrice(order.totalAmount)}
@@ -2086,8 +2374,9 @@ export const Admin: React.FC = () => {
                       <th className="py-3 px-3.5 uppercase font-semibold">Gender</th>
                       <th className="py-3 px-3.5 uppercase font-semibold">Weight</th>
                       <th className="py-3 px-3.5 uppercase font-semibold">Price</th>
+                      <th className="py-3 px-3.5 uppercase font-semibold">Stock</th>
                       <th className="py-3 px-3.5 uppercase font-semibold">Status</th>
-                      <th className="py-3 px-3.5 uppercase font-semibold text-right">Quick Toggle Status</th>
+                      <th className="py-3 px-3.5 uppercase font-semibold text-right">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y" style={{ borderColor: isDark ? '#4A2C16' : '#E4D4BC' }}>
@@ -2108,32 +2397,78 @@ export const Admin: React.FC = () => {
                         <td className={`py-3 px-3.5 font-bold ${isDark ? 'text-[#E0B15A]' : 'text-[#B8792F]'}`}>
                           {formatPrice(animal.price)}
                         </td>
+                        <td className="py-3 px-3.5 font-mono text-xs">
+                          {animal.quantity !== undefined ? (
+                            animal.quantity > 0 ? (
+                              <span className="text-emerald-500 font-bold">{animal.quantity} head</span>
+                            ) : (
+                              <span className="text-red-400 font-bold px-1.5 py-0.5 rounded bg-red-500/10 border border-red-500/20 text-[10px]">
+                                0 (Sold Out)
+                              </span>
+                            )
+                          ) : (
+                            <span className="opacity-70 font-semibold">1 head</span>
+                          )}
+                        </td>
                         <td className="py-3 px-3.5">
                           <StatusBadge status={animal.status} size="sm" />
                         </td>
                         <td className="py-3 px-3.5 text-right">
-                          <div className="inline-flex items-center gap-1">
+                          <div className="inline-flex items-center justify-end gap-1.5 flex-wrap">
+                            {/* If sold, provide instant 1-click Relist button */}
+                            {animal.status === 'sold' && (
+                              <button
+                                type="button"
+                                onClick={() => handleRelistAnimal(animal)}
+                                className="px-2.5 py-1 rounded-lg text-[10.5px] font-bold bg-emerald-500 hover:bg-emerald-600 text-white shadow-xs flex items-center gap-1 cursor-pointer transition-all hover:scale-[1.02] active:scale-95"
+                                title="Restock this animal to 1 head and set status to Available immediately"
+                              >
+                                <RotateCcw className="w-3 h-3" />
+                                <span>Make Available</span>
+                              </button>
+                            )}
+
+                            {/* Edit animal button */}
                             <button
-                              onClick={() => handleToggleStatus(animal.id, 'available')}
-                              disabled={animal.status === 'available'}
-                              className="px-2 py-0.5 rounded text-[10px] font-semibold bg-green-500/20 text-green-400 border border-green-500/30 hover:bg-green-500/30 disabled:opacity-30"
+                              type="button"
+                              onClick={() => handleOpenEditAnimal(animal)}
+                              className="px-2.5 py-1 rounded-lg text-[10.5px] font-bold bg-[#C18A45]/15 hover:bg-[#C18A45]/30 text-[#C18A45] border border-[#C18A45]/30 flex items-center gap-1 cursor-pointer transition-all hover:scale-[1.02] active:scale-95"
+                              title="Edit livestock details, weight, price, photo, or availability"
                             >
-                              Avail
+                              <Edit3 className="w-3 h-3" />
+                              <span>Edit</span>
                             </button>
-                            <button
-                              onClick={() => handleToggleStatus(animal.id, 'reserved')}
-                              disabled={animal.status === 'reserved'}
-                              className="px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-500/20 text-amber-400 border border-amber-500/30 hover:bg-amber-500/30 disabled:opacity-30"
-                            >
-                              Hold
-                            </button>
-                            <button
-                              onClick={() => handleToggleStatus(animal.id, 'sold')}
-                              disabled={animal.status === 'sold'}
-                              className="px-2 py-0.5 rounded text-[10px] font-semibold bg-stone-600/20 text-stone-400 border border-stone-600/30 hover:bg-stone-600/30 disabled:opacity-30"
-                            >
-                              Sold
-                            </button>
+
+                            {/* Quick status toggles */}
+                            <div className="inline-flex items-center gap-0.5 rounded-lg border p-0.5 border-black/10 dark:border-white/10">
+                              <button
+                                type="button"
+                                onClick={() => handleToggleStatus(animal.id, 'available')}
+                                disabled={animal.status === 'available'}
+                                className="px-1.5 py-0.5 rounded text-[9.5px] font-semibold bg-green-500/20 text-green-400 hover:bg-green-500/30 disabled:opacity-25 cursor-pointer"
+                                title="Set Available"
+                              >
+                                Avail
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleToggleStatus(animal.id, 'reserved')}
+                                disabled={animal.status === 'reserved'}
+                                className="px-1.5 py-0.5 rounded text-[9.5px] font-semibold bg-amber-500/20 text-amber-400 hover:bg-amber-500/30 disabled:opacity-25 cursor-pointer"
+                                title="Set Reserved (Hold)"
+                              >
+                                Hold
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleToggleStatus(animal.id, 'sold')}
+                                disabled={animal.status === 'sold'}
+                                className="px-1.5 py-0.5 rounded text-[9.5px] font-semibold bg-stone-600/20 text-stone-400 hover:bg-stone-600/30 disabled:opacity-25 cursor-pointer"
+                                title="Set Sold"
+                              >
+                                Sold
+                              </button>
+                            </div>
                           </div>
                         </td>
                       </tr>
@@ -2357,6 +2692,509 @@ export const Admin: React.FC = () => {
               })}
               </div>
             )}
+          </div>
+        )}
+
+        {/* ============================================================ */}
+        {/* TAB: RAW MEAT (ስጋ በኪሎ) PRICING & ORDER MANAGEMENT */}
+        {/* ============================================================ */}
+        {activeTab === 'raw_meat' && (
+          <div className="space-y-6 animate-in fade-in-50 duration-150">
+            {/* Header with Quick Save */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <h2 className="font-serif font-bold text-2xl flex items-center gap-2">
+                  <span>🥩 Raw Meat (የበሬ / ሰንጋ ስጋ በኪሎ) Administration</span>
+                </h2>
+                <p className="text-xs opacity-70 mt-1">
+                  Configure official price per KG for Ox/Beef cuts. These rates apply directly to customer order calculations and checkout.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={handleSaveMeatPricing}
+                  disabled={isSavingMeatPricing}
+                  className="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-black font-bold text-xs shadow-md transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                >
+                  {isSavingMeatPricing ? (
+                    <>
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                      <span>Saving Rates...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Check className="w-3.5 h-3.5" />
+                      <span>Save & Publish Rates</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {/* Quick Metrics Bar */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className={`p-4 rounded-2xl border ${isDark ? 'bg-[#2A1A0D] border-[#4A2C16]' : 'bg-[#F1E8D8] border-[#E4D4BC]'}`}>
+                <span className="text-[11px] font-semibold uppercase tracking-wider opacity-70 block mb-1">Meat Orders</span>
+                <div className="text-xl font-serif font-extrabold text-[#C18A45]">
+                  {ordersList.filter(o => (o.packageDetails as any)?.isMeatByKg).length} Orders
+                </div>
+                <span className="text-[10px] opacity-60">Submitted online</span>
+              </div>
+
+              <div className={`p-4 rounded-2xl border ${isDark ? 'bg-[#2A1A0D] border-[#4A2C16]' : 'bg-[#F1E8D8] border-[#E4D4BC]'}`}>
+                <span className="text-[11px] font-semibold uppercase tracking-wider opacity-70 block mb-1">Total KG Sold</span>
+                <div className="text-xl font-serif font-extrabold text-emerald-500">
+                  {ordersList
+                    .filter(o => (o.packageDetails as any)?.isMeatByKg)
+                    .reduce((sum, o) => sum + ((o.packageDetails as any)?.kg || 0), 0)}{' '}
+                  KG
+                </div>
+                <span className="text-[10px] opacity-60">Across all ox cuts</span>
+              </div>
+
+              <div className={`p-4 rounded-2xl border ${isDark ? 'bg-[#2A1A0D] border-[#4A2C16]' : 'bg-[#F1E8D8] border-[#E4D4BC]'}`}>
+                <span className="text-[11px] font-semibold uppercase tracking-wider opacity-70 block mb-1">Meat Revenue</span>
+                <div className="text-xl font-serif font-extrabold text-[#C18A45]">
+                  {formatPrice(
+                    ordersList
+                      .filter(o => (o.packageDetails as any)?.isMeatByKg && (o.status === 'completed' || o.status === 'verified'))
+                      .reduce((sum, o) => sum + (o.totalAmount || 0), 0)
+                  )}
+                </div>
+                <span className="text-[10px] opacity-60">Verified sales</span>
+              </div>
+
+              <div className={`p-4 rounded-2xl border ${isDark ? 'bg-[#2A1A0D] border-[#4A2C16]' : 'bg-[#F1E8D8] border-[#E4D4BC]'}`}>
+                <span className="text-[11px] font-semibold uppercase tracking-wider opacity-70 block mb-1">Service Status</span>
+                <div className="text-lg font-bold">
+                  {rawMeatPricing.available ? (
+                    <span className="text-emerald-400 flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                      Accepting Orders
+                    </span>
+                  ) : (
+                    <span className="text-rose-400">Paused</span>
+                  )}
+                </div>
+                <span className="text-[10px] opacity-60">Ox/Beef orders live</span>
+              </div>
+            </div>
+
+            {/* Cut Pricing Configuration Cards */}
+            <div className={`p-6 rounded-3xl border ${isDark ? 'bg-[#2A1A0D] border-[#4A2C16]' : 'bg-[#F1E8D8] border-[#E4D4BC]'}`}>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 mb-6 border-b" style={{ borderColor: isDark ? '#4A2C16' : '#E4D4BC' }}>
+                <div>
+                  <h3 className="font-serif font-bold text-lg">Ox / Beef Cut Rates (ዋጋ በኪሎ)</h3>
+                  <p className="text-xs opacity-70">
+                    Configure the price per KG for each specific culinary cut.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setRawMeatPricing({
+                      ...rawMeatPricing,
+                      kurtPrice: 2500,
+                      kitfoPrice: 2200,
+                      tibsWotPrice: 1800
+                    });
+                  }}
+                  className="text-xs font-semibold text-amber-500 hover:underline mt-2 sm:mt-0 cursor-pointer"
+                >
+                  Reset to Default Rates (2500 / 2200 / 1800)
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* 1. Kurt Cut */}
+                <div className={`p-5 rounded-2xl border ${isDark ? 'bg-[#1B1208] border-[#4A2C16]' : 'bg-white border-[#E4D4BC]'}`}>
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-xs font-bold uppercase tracking-wider text-rose-400">ለጥሬ (Kurt / Raw Cut)</span>
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-rose-500/10 text-rose-400 font-bold border border-rose-500/20">
+                      Top Grade
+                    </span>
+                  </div>
+                  <p className="text-xs opacity-70 mb-4 leading-relaxed">
+                    Ultra-fresh, tender, hand-selected ox beef cuts ideal for kurt connoisseurs and raw meat banquets.
+                  </p>
+                  <label className="block text-[11px] font-semibold opacity-80 mb-1.5">
+                    Price per KG (ETB / ብር)
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      min={500}
+                      step={50}
+                      value={rawMeatPricing.kurtPrice}
+                      onChange={(e) =>
+                        setRawMeatPricing({
+                          ...rawMeatPricing,
+                          kurtPrice: Math.max(0, Number(e.target.value))
+                        })
+                      }
+                      className={`w-full px-3.5 py-2.5 rounded-xl text-sm font-bold border focus:outline-none focus:ring-2 focus:ring-amber-500 ${
+                        isDark ? 'bg-[#2A1A0D] border-[#4A2C16] text-[#F4E8D0]' : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#2A1A0D]'
+                      }`}
+                    />
+                    <span className="absolute right-3.5 top-2.5 text-xs font-bold opacity-60">ETB</span>
+                  </div>
+                </div>
+
+                {/* 2. Kitfo Cut */}
+                <div className={`p-5 rounded-2xl border ${isDark ? 'bg-[#1B1208] border-[#4A2C16]' : 'bg-white border-[#E4D4BC]'}`}>
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-xs font-bold uppercase tracking-wider text-amber-400">ለክትፎ (Kitfo Cut)</span>
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 font-bold border border-amber-500/20">
+                      Lean & Mince
+                    </span>
+                  </div>
+                  <p className="text-xs opacity-70 mb-4 leading-relaxed">
+                    Lean red meat without fat or sinew, minced fresh or prepped for traditional kitfo and dulet banquets.
+                  </p>
+                  <label className="block text-[11px] font-semibold opacity-80 mb-1.5">
+                    Price per KG (ETB / ብር)
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      min={500}
+                      step={50}
+                      value={rawMeatPricing.kitfoPrice}
+                      onChange={(e) =>
+                        setRawMeatPricing({
+                          ...rawMeatPricing,
+                          kitfoPrice: Math.max(0, Number(e.target.value))
+                        })
+                      }
+                      className={`w-full px-3.5 py-2.5 rounded-xl text-sm font-bold border focus:outline-none focus:ring-2 focus:ring-amber-500 ${
+                        isDark ? 'bg-[#2A1A0D] border-[#4A2C16] text-[#F4E8D0]' : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#2A1A0D]'
+                      }`}
+                    />
+                    <span className="absolute right-3.5 top-2.5 text-xs font-bold opacity-60">ETB</span>
+                  </div>
+                </div>
+
+                {/* 3. Tibs & Wot Cut */}
+                <div className={`p-5 rounded-2xl border ${isDark ? 'bg-[#1B1208] border-[#4A2C16]' : 'bg-white border-[#E4D4BC]'}`}>
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-xs font-bold uppercase tracking-wider text-emerald-400">ለጥብስ እና ወጥ (Tibs & Wot Cut)</span>
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 font-bold border border-emerald-500/20">
+                      Stew & Grill
+                    </span>
+                  </div>
+                  <p className="text-xs opacity-70 mb-4 leading-relaxed">
+                    Succulent cuts with balanced marbling, diced for traditional Ethiopian wots, tibs, and catering feasts.
+                  </p>
+                  <label className="block text-[11px] font-semibold opacity-80 mb-1.5">
+                    Price per KG (ETB / ብር)
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      min={500}
+                      step={50}
+                      value={rawMeatPricing.tibsWotPrice}
+                      onChange={(e) =>
+                        setRawMeatPricing({
+                          ...rawMeatPricing,
+                          tibsWotPrice: Math.max(0, Number(e.target.value))
+                        })
+                      }
+                      className={`w-full px-3.5 py-2.5 rounded-xl text-sm font-bold border focus:outline-none focus:ring-2 focus:ring-amber-500 ${
+                        isDark ? 'bg-[#2A1A0D] border-[#4A2C16] text-[#F4E8D0]' : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#2A1A0D]'
+                      }`}
+                    />
+                    <span className="absolute right-3.5 top-2.5 text-xs font-bold opacity-60">ETB</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* General Settings */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6 pt-6 border-t" style={{ borderColor: isDark ? '#4A2C16' : '#E4D4BC' }}>
+                <div>
+                  <label className="block text-xs font-bold mb-2">Quality Guarantee & Service Notes</label>
+                  <textarea
+                    rows={2}
+                    value={rawMeatPricing.notes || ''}
+                    onChange={(e) =>
+                      setRawMeatPricing({
+                        ...rawMeatPricing,
+                        notes: e.target.value
+                      })
+                    }
+                    placeholder="E.g., 100% Guaranteed Fresh Addis Ababa grass-fed fattened ox beef cuts prepared to order."
+                    className={`w-full px-3.5 py-2.5 rounded-xl text-xs border focus:outline-none focus:ring-2 focus:ring-amber-500 ${
+                      isDark ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0]' : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#2A1A0D]'
+                    }`}
+                  />
+                </div>
+
+                <div className="flex flex-col justify-between">
+                  <div>
+                    <label className="block text-xs font-bold mb-2">Service Availability</label>
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="checkbox"
+                        id="meatAvailableCheck"
+                        checked={rawMeatPricing.available}
+                        onChange={(e) =>
+                          setRawMeatPricing({
+                            ...rawMeatPricing,
+                            available: e.target.checked
+                          })
+                        }
+                        className="w-4 h-4 rounded text-amber-500 focus:ring-amber-500 cursor-pointer"
+                      />
+                      <label htmlFor="meatAvailableCheck" className="text-xs font-semibold cursor-pointer">
+                        Accept Raw Meat Online Orders (Show order button to customers)
+                      </label>
+                    </div>
+                  </div>
+
+                  <div className="pt-3 flex justify-end">
+                    <button
+                      type="button"
+                      onClick={handleSaveMeatPricing}
+                      disabled={isSavingMeatPricing}
+                      className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-black font-bold text-xs shadow transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                    >
+                      {isSavingMeatPricing ? (
+                        <>
+                          <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                          <span>Saving...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Check className="w-3.5 h-3.5" />
+                          <span>Save Pricing</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Live Price Calculator Preview */}
+            <div className={`p-6 rounded-3xl border ${isDark ? 'bg-[#2A1A0D] border-[#4A2C16]' : 'bg-[#F1E8D8] border-[#E4D4BC]'}`}>
+              <div className="flex items-center justify-between pb-3 mb-4 border-b" style={{ borderColor: isDark ? '#4A2C16' : '#E4D4BC' }}>
+                <div className="flex items-center gap-2">
+                  <Scale className="w-4 h-4 text-amber-500" />
+                  <h3 className="font-serif font-bold text-base">Live Customer Calculation Simulator</h3>
+                </div>
+                <span className="text-[11px] opacity-70">Verify what customers will be charged</span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
+                <div>
+                  <label className="block text-[11px] font-semibold opacity-80 mb-1">Select Cut</label>
+                  <select
+                    value={testMeatCut}
+                    onChange={(e) => setTestMeatCut(e.target.value as any)}
+                    className={`w-full px-3 py-2 rounded-xl text-xs font-semibold border ${
+                      isDark ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0]' : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#2A1A0D]'
+                    }`}
+                  >
+                    <option value="kurt">ለጥሬ ({formatPrice(rawMeatPricing.kurtPrice)} / KG)</option>
+                    <option value="kitfo">ለክትፎ ({formatPrice(rawMeatPricing.kitfoPrice)} / KG)</option>
+                    <option value="tibs_wot">ለጥብስ እና ወጥ ({formatPrice(rawMeatPricing.tibsWotPrice)} / KG)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-semibold opacity-80 mb-1">Quantity in KG</label>
+                  <input
+                    type="number"
+                    min={1}
+                    max={200}
+                    value={testMeatKg}
+                    onChange={(e) => setTestMeatKg(Math.max(1, Number(e.target.value)))}
+                    className={`w-full px-3 py-2 rounded-xl text-xs font-semibold border ${
+                      isDark ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0]' : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#2A1A0D]'
+                    }`}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-semibold opacity-80 mb-1">Fulfillment</label>
+                  <div className="flex items-center gap-2 pt-1.5">
+                    <input
+                      type="checkbox"
+                      id="testDeliveryToggle"
+                      checked={testIncludeDelivery}
+                      onChange={(e) => setTestIncludeDelivery(e.target.checked)}
+                      className="w-4 h-4 rounded text-amber-500 cursor-pointer"
+                    />
+                    <label htmlFor="testDeliveryToggle" className="text-xs cursor-pointer">
+                      Doorstep Delivery
+                    </label>
+                  </div>
+                </div>
+
+                <div className={`p-4 rounded-xl border text-center ${
+                  isDark ? 'bg-[#1B1208] border-[#4A2C16]' : 'bg-white border-[#E4D4BC]'
+                }`}>
+                  <span className="text-[10px] uppercase font-bold tracking-wider opacity-60 block">Calculated Total</span>
+                  <div className="text-xl font-mono font-extrabold text-amber-500">
+                    {formatPrice(
+                      (testMeatCut === 'kurt'
+                        ? rawMeatPricing.kurtPrice
+                        : testMeatCut === 'kitfo'
+                        ? rawMeatPricing.kitfoPrice
+                        : rawMeatPricing.tibsWotPrice) * testMeatKg
+                    )}
+                  </div>
+                  <span className="text-[10px] opacity-60">
+                    {testMeatKg} KG × {formatPrice(
+                      testMeatCut === 'kurt'
+                        ? rawMeatPricing.kurtPrice
+                        : testMeatCut === 'kitfo'
+                        ? rawMeatPricing.kitfoPrice
+                        : rawMeatPricing.tibsWotPrice
+                    )}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Raw Meat Orders List */}
+            <div className={`rounded-3xl border overflow-hidden shadow-sm ${
+              isDark ? 'bg-[#2A1A0D] border-[#4A2C16]' : 'bg-[#F1E8D8] border-[#E4D4BC]'
+            }`}>
+              <div className="p-4 border-b flex items-center justify-between" style={{ borderColor: isDark ? '#4A2C16' : '#E4D4BC' }}>
+                <div>
+                  <h3 className="font-serif font-bold text-base">Recent Raw Meat Orders</h3>
+                  <p className="text-xs opacity-70">Customers who ordered beef cuts by KG with uploaded payment slips.</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveTab('orders');
+                    setOrderStatusFilter('all');
+                  }}
+                  className="text-xs font-bold text-amber-500 hover:underline cursor-pointer"
+                >
+                  View All Orders →
+                </button>
+              </div>
+
+              {ordersList.filter(o => (o.packageDetails as any)?.isMeatByKg).length === 0 ? (
+                <div className="p-8 text-center opacity-60 text-xs">
+                  No raw meat orders received yet. When customers order ox cuts by KG, they will appear here and in the Orders tab.
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs border-collapse">
+                    <thead>
+                      <tr className={`border-b ${isDark ? 'border-[#4A2C16] text-[#D8C5A8]' : 'border-[#E4D4BC] text-[#746556]'}`}>
+                        <th className="py-3 px-3.5 uppercase font-semibold">Order ID</th>
+                        <th className="py-3 px-3.5 uppercase font-semibold">Customer</th>
+                        <th className="py-3 px-3.5 uppercase font-semibold">Cut & KG</th>
+                        <th className="py-3 px-3.5 uppercase font-semibold">Total Amount</th>
+                        <th className="py-3 px-3.5 uppercase font-semibold">Slip</th>
+                        <th className="py-3 px-3.5 uppercase font-semibold">Status</th>
+                        <th className="py-3 px-3.5 uppercase font-semibold text-right">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y" style={{ borderColor: isDark ? '#4A2C16' : '#E4D4BC' }}>
+                      {ordersList
+                        .filter(o => (o.packageDetails as any)?.isMeatByKg)
+                        .map(order => {
+                          const details = (order.packageDetails as any) || {};
+                          return (
+                            <tr key={order.id} className="hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
+                              <td className="py-3 px-3.5 font-mono font-bold text-amber-500">
+                                {order.id}
+                                <span className="text-[10px] opacity-50 block font-normal">
+                                  {new Date(order.createdAt).toLocaleDateString()}
+                                </span>
+                              </td>
+                              <td className="py-3 px-3.5">
+                                <strong className="block">{order.customerName}</strong>
+                                <span className="text-[11px] opacity-70 block">{order.customerPhone}</span>
+                                {order.deliveryLocation && (
+                                  <span className="text-[10px] opacity-60 block">📍 {order.deliveryLocation}</span>
+                                )}
+                              </td>
+                              <td className="py-3 px-3.5">
+                                <span className="font-bold text-rose-400 block">
+                                  🥩 {details.cut || 'Ox Cut'}
+                                </span>
+                                <span className="font-mono text-[11px] opacity-75">
+                                  {details.kg || 0} KG @ {formatPrice(details.pricePerKg || 0)}
+                                </span>
+                              </td>
+                              <td className="py-3 px-3.5 font-mono font-bold text-amber-400">
+                                {formatPrice(order.totalAmount)}
+                              </td>
+                              <td className="py-3 px-3.5">
+                                {order.paymentSlipUrl ? (
+                                  <button
+                                    type="button"
+                                    onClick={() => setSelectedSlipOrder(order)}
+                                    className="inline-flex items-center gap-1.5 p-1 rounded-lg border border-amber-500/30 hover:border-amber-500 cursor-pointer"
+                                  >
+                                    <img
+                                      src={order.paymentSlipUrl}
+                                      alt="Slip"
+                                      className="w-8 h-8 object-cover rounded"
+                                    />
+                                    <span className="text-[10px] font-bold text-amber-400">Inspect</span>
+                                  </button>
+                                ) : (
+                                  <span className="text-[10px] opacity-40">No Slip</span>
+                                )}
+                              </td>
+                              <td className="py-3 px-3.5">
+                                {order.status === 'pending_verification' && (
+                                  <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30 animate-pulse">
+                                    Slip Pending
+                                  </span>
+                                )}
+                                {(order.status === 'completed' || order.status === 'verified') && (
+                                  <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                                    Verified & Sold
+                                  </span>
+                                )}
+                                {order.status === 'rejected' && (
+                                  <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-rose-500/15 text-rose-400 border border-rose-500/30">
+                                    Rejected
+                                  </span>
+                                )}
+                              </td>
+                              <td className="py-3 px-3.5 text-right">
+                                {order.status === 'pending_verification' && (
+                                  <div className="inline-flex items-center gap-1.5">
+                                    <button
+                                      type="button"
+                                      onClick={() => handleVerifyOrder(order.id)}
+                                      className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow transition-all flex items-center gap-1 cursor-pointer"
+                                      title="Approve slip and confirm meat order"
+                                    >
+                                      <Check className="w-3 h-3" />
+                                      <span>Approve</span>
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => handleRejectOrder(order.id)}
+                                      className="p-1 rounded-lg bg-red-500/15 hover:bg-red-500/25 text-red-400 cursor-pointer"
+                                      title="Reject slip"
+                                    >
+                                      <X className="w-3.5 h-3.5" />
+                                    </button>
+                                  </div>
+                                )}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
           </div>
         )}
 
@@ -2877,11 +3715,11 @@ export const Admin: React.FC = () => {
                 ) : (
                   <div>
                     <input
-                      type="url"
-                      placeholder="https://images.unsplash.com/..."
+                      type="text"
+                      placeholder="https://images.unsplash.com/... or /uploads/..."
                       value={newAnimalImage}
                       onChange={(e) => setNewAnimalImage(e.target.value)}
-                      className="w-full px-3 py-2 rounded-xl text-xs border bg-transparent"
+                      className="w-full px-3 py-2 rounded-xl text-xs border bg-transparent font-mono"
                     />
                     {newAnimalImage && (
                       <div className="mt-2 flex items-center gap-2">
@@ -2910,6 +3748,292 @@ export const Admin: React.FC = () => {
           </div>
         </div>
         )}
+
+      {/* Edit Livestock Listing Modal */}
+      {editingAnimal && (
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div
+            className={`relative w-full max-w-lg rounded-3xl border shadow-2xl p-6 sm:p-8 animate-in fade-in zoom-in-95 duration-200 ${
+              isDark ? 'bg-[#24170D] border-[#4A2C16] text-[#F4E8D0]' : 'bg-white border-[#E4D4BC] text-[#2A1A0D]'
+            }`}
+          >
+            <button
+              type="button"
+              onClick={() => setEditingAnimal(null)}
+              className="absolute top-5 right-5 p-2 rounded-full opacity-60 hover:opacity-100 transition-colors cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="flex items-center gap-2.5 mb-4">
+              <div className="w-9 h-9 rounded-xl bg-[#C18A45]/15 text-[#C18A45] flex items-center justify-center">
+                <Edit3 className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="font-serif font-bold text-xl leading-tight">
+                  Edit Livestock Listing
+                </h3>
+                <span className="text-[11px] font-mono text-[#C18A45] font-bold">
+                  ID: {editingAnimal.id}
+                </span>
+              </div>
+            </div>
+
+            {/* Quick Restock / Relist Banner for Sold Animals */}
+            {editingAnimal.status === 'sold' && (
+              <div className="mb-4 p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                <div>
+                  <div className="flex items-center gap-1.5 font-bold text-amber-500">
+                    <AlertTriangle className="w-4 h-4 shrink-0" />
+                    <span>Currently Marked as SOLD</span>
+                  </div>
+                  <p className="text-[11px] opacity-75 mt-0.5">
+                    Click the button to restock 1 head and make it available on the market immediately.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditAnimalStatus('available');
+                    if (editAnimalQuantity <= 0) setEditAnimalQuantity(1);
+                  }}
+                  className="px-3 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm transition-all cursor-pointer whitespace-nowrap self-start sm:self-auto"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  <span>Set Available (Stock: 1)</span>
+                </button>
+              </div>
+            )}
+
+            <form onSubmit={handleEditAnimalSubmit} className="space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold uppercase mb-1 opacity-80">Type *</label>
+                  <select
+                    value={editAnimalType}
+                    onChange={(e) => setEditAnimalType(e.target.value as AnimalType)}
+                    className="w-full px-3 py-2 rounded-xl text-xs border bg-transparent"
+                  >
+                    <option value="sheep" className="text-black">Sheep</option>
+                    <option value="goat" className="text-black">Goat</option>
+                    <option value="cow" className="text-black">Cow</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold uppercase mb-1 opacity-80">Breed *</label>
+                  <input
+                    type="text"
+                    required
+                    value={editAnimalBreed}
+                    onChange={(e) => setEditAnimalBreed(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl text-xs border bg-transparent"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold uppercase mb-1 opacity-80">Gender</label>
+                  <select
+                    value={editAnimalGender}
+                    onChange={(e) => setEditAnimalGender(e.target.value as 'Male' | 'Female')}
+                    className="w-full px-3 py-2 rounded-xl text-xs border bg-transparent"
+                  >
+                    <option value="Male" className="text-black">Male</option>
+                    <option value="Female" className="text-black">Female</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold uppercase mb-1 opacity-80">Status *</label>
+                  <select
+                    value={editAnimalStatus}
+                    onChange={(e) => {
+                      const newStat = e.target.value as AnimalStatus;
+                      setEditAnimalStatus(newStat);
+                      if (newStat === 'available' && editAnimalQuantity <= 0) {
+                        setEditAnimalQuantity(1);
+                      }
+                    }}
+                    className={`w-full px-3 py-2 rounded-xl text-xs font-bold border bg-transparent ${
+                      editAnimalStatus === 'available'
+                        ? 'text-emerald-500'
+                        : editAnimalStatus === 'reserved'
+                        ? 'text-amber-500'
+                        : 'text-stone-400'
+                    }`}
+                  >
+                    <option value="available" className="text-emerald-600 font-bold">Available</option>
+                    <option value="reserved" className="text-amber-600 font-bold">Reserved (Hold)</option>
+                    <option value="sold" className="text-stone-600 font-bold">Sold Out</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold uppercase mb-1 opacity-80">Stock (Head) *</label>
+                  <input
+                    type="number"
+                    min="0"
+                    required
+                    value={editAnimalQuantity}
+                    onChange={(e) => setEditAnimalQuantity(Math.max(0, Number(e.target.value)))}
+                    className="w-full px-3 py-2 rounded-xl text-xs border bg-transparent font-mono font-bold"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold uppercase mb-1 opacity-80">Weight (kg) *</label>
+                  <input
+                    type="number"
+                    required
+                    value={editAnimalWeight}
+                    onChange={(e) => setEditAnimalWeight(Number(e.target.value))}
+                    className="w-full px-3 py-2 rounded-xl text-xs border bg-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold uppercase mb-1 opacity-80">Price (ETB) *</label>
+                  <input
+                    type="number"
+                    required
+                    value={editAnimalPrice}
+                    onChange={(e) => setEditAnimalPrice(Number(e.target.value))}
+                    className="w-full px-3 py-2 rounded-xl text-xs border bg-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold uppercase mb-1 opacity-80">Color</label>
+                  <input
+                    type="text"
+                    value={editAnimalColor}
+                    onChange={(e) => setEditAnimalColor(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl text-xs border bg-transparent"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold uppercase mb-1 opacity-80">Location</label>
+                <input
+                  type="text"
+                  value={editAnimalLocation}
+                  onChange={(e) => setEditAnimalLocation(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl text-xs border bg-transparent"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold uppercase mb-1 opacity-80">Description</label>
+                <textarea
+                  rows={2}
+                  value={editAnimalDesc}
+                  onChange={(e) => setEditAnimalDesc(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl text-xs border bg-transparent"
+                />
+              </div>
+
+              {/* Photo Upload & Preview */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="block text-xs font-semibold uppercase opacity-80">Photo</label>
+                  <span className="text-[10.5px] opacity-60">Upload local image or paste image link</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="file"
+                    ref={editAnimalImageInputRef}
+                    accept="image/jpeg,image/png,image/webp,image/gif"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) handleEditAnimalImageFile(file);
+                    }}
+                  />
+                  {editAnimalImage ? (
+                    <div className="relative w-16 h-16 rounded-xl overflow-hidden border shrink-0 bg-black/10">
+                      <img
+                        src={editAnimalImage}
+                        alt="Preview"
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          (e.target as HTMLElement).style.display = 'none';
+                        }}
+                      />
+                      {isUploadingEditImage && (
+                        <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                          <RefreshCw className="w-4 h-4 text-[#C18A45] animate-spin" />
+                        </div>
+                      )}
+                    </div>
+                  ) : null}
+                  <div className="flex-1 min-w-0 space-y-1">
+                    <input
+                      type="text"
+                      placeholder="https://... or /uploads/..."
+                      value={editAnimalImage}
+                      onChange={(e) => setEditAnimalImage(e.target.value)}
+                      className="w-full px-3 py-2 rounded-xl text-xs border bg-transparent font-mono"
+                    />
+                    <div className="flex items-center gap-2 text-[11px]">
+                      <button
+                        type="button"
+                        onClick={() => editAnimalImageInputRef.current?.click()}
+                        disabled={isUploadingEditImage}
+                        className="font-semibold text-[#C18A45] hover:underline cursor-pointer disabled:opacity-50"
+                      >
+                        {isUploadingEditImage ? 'Uploading...' : '📁 Upload Local File'}
+                      </button>
+                      {editAnimalImage && (
+                        <>
+                          <span className="opacity-30">•</span>
+                          <button
+                            type="button"
+                            onClick={() => setEditAnimalImage('')}
+                            className="font-semibold text-red-400 hover:underline cursor-pointer"
+                          >
+                            Remove
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 pt-1">
+                <input
+                  type="checkbox"
+                  id="editAnimalFeatured"
+                  checked={editAnimalFeatured}
+                  onChange={(e) => setEditAnimalFeatured(e.target.checked)}
+                  className="rounded border-[#C18A45] text-[#C18A45] focus:ring-[#C18A45]"
+                />
+                <label htmlFor="editAnimalFeatured" className="text-xs font-semibold cursor-pointer">
+                  Feature this animal on the Homepage
+                </label>
+              </div>
+
+              <div className="flex items-center gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setEditingAnimal(null)}
+                  className="flex-1 py-2.5 rounded-xl border text-xs font-bold hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isUpdatingAnimal}
+                  className="flex-1 py-2.5 rounded-xl bg-[#C18A45] hover:bg-[#A06E35] text-white font-bold text-xs shadow transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center gap-1.5"
+                >
+                  {isUpdatingAnimal && <RefreshCw className="w-3.5 h-3.5 animate-spin" />}
+                  <span>Save Changes</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Add Celebration Package Modal */}
       {/* Add Celebration Package Modal */}
@@ -3195,11 +4319,11 @@ export const Admin: React.FC = () => {
                   ) : (
                     <div className="space-y-2">
                       <input
-                        type="url"
-                        placeholder="https://images.unsplash.com/..."
+                        type="text"
+                        placeholder="https://images.unsplash.com/... or /uploads/..."
                         value={newPkgImage}
                         onChange={(e) => setNewPkgImage(e.target.value)}
-                        className="w-full px-3 py-2 rounded-xl text-xs border bg-transparent"
+                        className="w-full px-3 py-2 rounded-xl text-xs border bg-transparent font-mono"
                       />
                       {newPkgImage && (
                         <div className="flex items-center gap-3 p-2 rounded-xl border bg-black/5 dark:bg-white/5">

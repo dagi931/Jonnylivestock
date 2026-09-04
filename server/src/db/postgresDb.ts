@@ -2,6 +2,16 @@ import prisma from './prisma.js';
 import { Animal, Order, User, AdminNotification, BankAccount, SavedPackage, PackageCatalogItem, PreMadePackage, ContactMessage } from '../types/index.js';
 import { PRE_MADE_PACKAGES } from '../data/packagesData.js';
 
+const normalizeAnimalImages = (raw: any): string[] => {
+  if (Array.isArray(raw)) {
+    return raw.flatMap(img => (typeof img === 'string' ? img.trim().split(/\s+/) : [])).filter(Boolean);
+  }
+  if (typeof raw === 'string' && raw.trim()) {
+    return raw.trim().split(/\s+/).filter(Boolean);
+  }
+  return [];
+};
+
 export class PostgresDB {
   // ==================== ANIMALS ====================
   public static async getAnimals(): Promise<Animal[]> {
@@ -10,6 +20,7 @@ export class PostgresDB {
     });
     return animals.map(a => ({
       ...a,
+      images: normalizeAnimalImages(a.images),
       type: a.type as Animal['type'],
       gender: a.gender as Animal['gender'],
       status: a.status as Animal['status'],
@@ -25,6 +36,7 @@ export class PostgresDB {
     if (!animal) return null;
     return {
       ...animal,
+      images: normalizeAnimalImages(animal.images),
       type: animal.type as Animal['type'],
       gender: animal.gender as Animal['gender'],
       status: animal.status as Animal['status'],
@@ -71,6 +83,15 @@ export class PostgresDB {
     });
     if (!existing) return null;
 
+    let finalQuantity: number | undefined = updates.quantity !== undefined ? Number(updates.quantity) : undefined;
+    if (updates.status === 'available') {
+      if (finalQuantity !== undefined) {
+        finalQuantity = Math.max(1, finalQuantity);
+      } else if (existing.quantity <= 0) {
+        finalQuantity = 1;
+      }
+    }
+
     const updated = await prisma.animal.update({
       where: { id: existing.id },
       data: {
@@ -80,11 +101,11 @@ export class PostgresDB {
         ...(updates.weight !== undefined && { weight: Number(updates.weight) }),
         ...(updates.color && { color: updates.color }),
         ...(updates.price !== undefined && { price: Number(updates.price) }),
-        ...(updates.quantity !== undefined && { quantity: Number(updates.quantity) }),
+        ...(finalQuantity !== undefined && { quantity: finalQuantity }),
         ...(updates.location && { location: updates.location }),
         ...(updates.description && { description: updates.description }),
         ...(updates.status && { status: updates.status }),
-        ...(updates.images && { images: updates.images }),
+        ...(updates.images !== undefined && { images: normalizeAnimalImages(updates.images) }),
         ...(updates.video !== undefined && { video: updates.video || null }),
         ...(updates.featured !== undefined && { featured: Boolean(updates.featured) }),
         ...(updates.characteristics && { characteristics: updates.characteristics })
@@ -93,6 +114,7 @@ export class PostgresDB {
 
     return {
       ...updated,
+      images: normalizeAnimalImages(updated.images),
       type: updated.type as Animal['type'],
       gender: updated.gender as Animal['gender'],
       status: updated.status as Animal['status'],
@@ -611,10 +633,17 @@ export class PostgresDB {
     });
 
     // Create Notification
-    const notifType = isReservation ? 'NEW_RESERVATION_DEPOSIT' : 'NEW_ORDER_SLIP';
-    const notifTitle = isReservation ? '🛡️ New 50% Reservation Deposit Slip' : '📦 New Payment Slip Uploaded';
+    const isMeatByKg = Boolean((orderData as any).isMeatByKg || (orderData as any).packageDetails?.isMeatByKg);
+    let notifType = isReservation ? 'NEW_RESERVATION_DEPOSIT' : 'NEW_ORDER_SLIP';
+    let notifTitle = isReservation ? '🛡️ New 50% Reservation Deposit Slip' : '📦 New Payment Slip Uploaded';
+    if (isMeatByKg) {
+      notifType = 'NEW_MEAT_ORDER';
+      notifTitle = '🥩 New Raw Meat (Ox/Beef) Order';
+    }
     const customerPhoneStr = orderData.customerPhone ? ` [📞 ${orderData.customerPhone}]` : '';
-    const notifMsg = isReservation
+    const notifMsg = isMeatByKg
+      ? `${orderData.customerName}${customerPhoneStr} ordered ${orderData.animalBreed || 'Raw Beef by KG'} (${totalAmount.toLocaleString()} ETB). Please inspect the payment slip and approve.`
+      : isReservation
       ? `${orderData.customerName}${customerPhoneStr} uploaded a 50% reservation deposit (${depositAmount.toLocaleString()} ETB of ${totalAmount.toLocaleString()} ETB) for ${orderData.packageName || orderData.animalBreed || 'Order'}.`
       : `${orderData.customerName}${customerPhoneStr} uploaded a payment slip for ${orderData.packageName || orderData.animalBreed || 'Order'} - ${totalAmount.toLocaleString()} ETB.`;
 
@@ -1195,6 +1224,51 @@ export class PostgresDB {
       location: map.location || 'Addis Ababa & Bishoftu, Ethiopia',
       currency: map.currency || 'ETB'
     };
+  }
+
+  // ==================== RAW MEAT PRICING ====================
+  public static async getRawMeatPricing() {
+    try {
+      const setting = await prisma.setting.findUnique({
+        where: { key: 'raw_meat_pricing' }
+      });
+      if (setting && setting.value) {
+        return JSON.parse(setting.value);
+      }
+    } catch (e) {
+      console.error('Error fetching raw meat pricing from DB:', e);
+    }
+    // Default prices as requested by user
+    return {
+      kurtPrice: 2500,     // ለጥሬ (Raw Cut)
+      kitfoPrice: 2200,    // ለክትፎ (Kitfo Cut)
+      tibsWotPrice: 1800,  // ለጥብስ እና ወጥ (Tibs & Wot Cut)
+      available: true,
+      updatedAt: new Date().toISOString()
+    };
+  }
+
+  public static async updateRawMeatPricing(pricing: {
+    kurtPrice: number;
+    kitfoPrice: number;
+    tibsWotPrice: number;
+    available?: boolean;
+  }) {
+    const dataToSave = {
+      kurtPrice: Number(pricing.kurtPrice) || 2500,
+      kitfoPrice: Number(pricing.kitfoPrice) || 2200,
+      tibsWotPrice: Number(pricing.tibsWotPrice) || 1800,
+      available: pricing.available !== undefined ? Boolean(pricing.available) : true,
+      updatedAt: new Date().toISOString()
+    };
+
+    await prisma.setting.upsert({
+      where: { key: 'raw_meat_pricing' },
+      update: { value: JSON.stringify(dataToSave) },
+      create: { key: 'raw_meat_pricing', value: JSON.stringify(dataToSave) }
+    });
+
+    return dataToSave;
   }
 
   // ==================== CONTACT US MESSAGES ====================

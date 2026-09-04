@@ -1,4 +1,4 @@
-﻿import rateLimit from 'express-rate-limit';
+import rateLimit from 'express-rate-limit';
 
 // Standard error response formatter
 const createRateLimitResponse = (message: string) => ({
@@ -6,51 +6,69 @@ const createRateLimitResponse = (message: string) => ({
   error: message
 });
 
+// Helper to identify localhost / loopback traffic
+const isLocalhost = (req: any): boolean => {
+  const ip = req.ip || req.connection?.remoteAddress || '';
+  return (
+    ip === '127.0.0.1' ||
+    ip === '::1' ||
+    ip === '::ffff:127.0.0.1' ||
+    ip.includes('127.0.0.1') ||
+    process.env.NODE_ENV !== 'production'
+  );
+};
+
 /**
- * Global API rate limiter (protects all /api endpoints from general scraping / DDoS)
- * Allows up to 150 requests per 15 minutes per IP.
+ * Global API rate limiter (protects all /api endpoints from DDoS)
+ * Skips localhost/dev and allows up to 5000 requests per 15 minutes.
  */
 export const globalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 150,
-  standardHeaders: true, // Return standard RateLimit headers in response
+  max: 5000,
+  skip: (req) => isLocalhost(req),
+  standardHeaders: true,
   legacyHeaders: false,
-  message: createRateLimitResponse('Too many requests from this IP address. Please try again in 15 minutes.')
+  message: createRateLimitResponse('Too many requests from this IP address. Please try again in a few minutes.')
 });
 
 /**
- * Strict rate limiter for sending OTPs via Email/SMS (Brevo quota protection)
- * Allows max 5 requests per 15 minutes per IP.
+ * Rate limiter for sending OTPs via Email/SMS (Brevo quota protection)
+ * Allows max 15 requests per 15 minutes per IP (skips localhost).
  */
 export const otpLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5,
+  max: 15,
+  skip: (req) => isLocalhost(req),
   standardHeaders: true,
   legacyHeaders: false,
-  message: createRateLimitResponse('Too many OTP verification code requests. Please wait 15 minutes before requesting another code.')
+  message: createRateLimitResponse('Too many OTP verification code requests. Please wait a few minutes before requesting another code.')
 });
 
 /**
  * Rate limiter for authentication (Login, Register, OTP verification)
- * Protects against password & 6-digit OTP brute-force attacks.
- * Allows max 10 attempts per 15 minutes per IP.
+ * Protects against brute-force attacks.
+ * - Skips successful logins so legitimate users are NEVER penalized!
+ * - Skips localhost / local development.
+ * - Allows up to 60 failed attempts per 15 minutes.
  */
 export const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 10,
+  max: 60,
+  skipSuccessfulRequests: true, // Only count failed login attempts!
+  skip: (req) => isLocalhost(req),
   standardHeaders: true,
   legacyHeaders: false,
-  message: createRateLimitResponse('Too many authentication attempts. Please try again after 15 minutes.')
+  message: createRateLimitResponse('Too many failed authentication attempts. Please try again after 15 minutes.')
 });
 
 /**
  * Rate limiter for creating Orders and Contact inquiries
- * Prevents automated spam orders and duplicate inquiries.
- * Allows max 15 submissions per 15 minutes per IP.
+ * Prevents automated spam submissions.
  */
 export const orderContactLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 15,
+  max: 100,
+  skip: (req) => isLocalhost(req),
   standardHeaders: true,
   legacyHeaders: false,
   message: createRateLimitResponse('Too many submissions. Please wait a few minutes before submitting again.')

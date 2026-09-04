@@ -1,10 +1,11 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
 import { useTheme } from '../../context/ThemeContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { business } from '../../config/business';
+import { api } from '../../services/api';
 import { getWhatsAppLink, getPhoneCallLink } from '../../utils/formatters';
 import { AnimatedReveal } from '../common/AnimatedReveal';
+import { MeatByKgOrderModal } from '../modals/MeatByKgOrderModal';
 import {
   Shield,
   ShieldCheck,
@@ -24,6 +25,24 @@ export const MeatByKgPromoSection: React.FC = () => {
   const { theme } = useTheme();
   const { isAmharic } = useLanguage();
   const isDark = theme === 'design7';
+  const [isMeatModalOpen, setIsMeatModalOpen] = useState(false);
+  const [prices, setPrices] = useState({
+    kurt: 2500,
+    kitfo: 2200,
+    wot: 1800
+  });
+
+  useEffect(() => {
+    api.getMeatPricing().then((res) => {
+      if (res) {
+        setPrices({
+          kurt: Number(res.kurtPrice) || 2500,
+          kitfo: Number(res.kitfoPrice) || 2200,
+          wot: Number(res.tibsWotPrice) || 1800
+        });
+      }
+    });
+  }, []);
 
   const beefDishes = [
     {
@@ -31,10 +50,10 @@ export const MeatByKgPromoSection: React.FC = () => {
       icon: Beef,
       name: 'Tre Kurt / Tere Siga',
       amharicName: 'ጥሬ ቁርጥ',
-      price: 2800,
+      price: prices.kurt,
       desc: 'Prime tender raw cuts from high-grade fattened oxen',
-      amharicDesc: 'ከምርጥ ሰንጋ የተመረጠ ጥሬ ቁርጥ',
-      badge: isAmharic ? 'ፕሪሚየም ጥሬ ቁርጥ' : 'Prime Raw Cut',
+      amharicDesc: 'ከምርጥ ሰንጋ የተመረጠ ለጥሬ የሚሆን ለስላሳ ሥጋ',
+      badge: isAmharic ? 'ለጥሬ ቁርጥ' : 'Prime Raw Cut',
       image: 'https://images.unsplash.com/photo-1603048588665-791ca8aea617?auto=format&fit=crop&w=600&q=80'
     },
     {
@@ -42,21 +61,21 @@ export const MeatByKgPromoSection: React.FC = () => {
       icon: Utensils,
       name: 'Kitfo Cut',
       amharicName: 'ክትፎ',
-      price: 2200,
+      price: prices.kitfo,
       desc: 'Extra-lean red beef trimmed completely free of sinew',
       amharicDesc: 'ያለ ጅማትና ስብ በልዩ ሁኔታ የተዘጋጀ ለስላሳ ቀይ ስጋ',
-      badge: isAmharic ? 'ለስላሳ ቀይ ስጋ' : 'Extra Lean Beef',
+      badge: isAmharic ? 'ለክትፎ' : 'Extra Lean Beef',
       image: 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=600&q=80'
     },
     {
       id: 'wot',
       icon: CookingPot,
-      name: 'Key / Alicha Wot',
-      amharicName: 'ወጥ (ቀይና አልጫ)',
-      price: 1800,
-      desc: 'Rich stew-sized beef chunks perfect for family wot pots',
-      amharicDesc: 'ለቀይና ለአልጫ ወጥ ድምቀት የሚሆን የስጋ ቁርጥራጭ',
-      badge: isAmharic ? 'ለወጥ ድስ' : 'Stew Portions',
+      name: 'Tibs & Wot Cut',
+      amharicName: 'ጥብስ እና ወጥ',
+      price: prices.wot,
+      desc: 'Rich stew-sized beef chunks perfect for family wot pots and sizzling tibs',
+      amharicDesc: 'ለጥብስና ለቤተሰብ ወጥ ድስ የሚሆን በንጽህና የተቆራረጠ ጣፋጭ ስጋ',
+      badge: isAmharic ? 'ለጥብስና ወጥ' : 'Tibs & Stew',
       image: 'https://images.unsplash.com/photo-1547928576-a4a33237cbc3?auto=format&fit=crop&w=600&q=80'
     }
   ];
@@ -241,16 +260,17 @@ export const MeatByKgPromoSection: React.FC = () => {
                   }`}
                 >
                   {/* Primary Amber CTA Button */}
-                  <Link
-                    to="/services#meat-by-kg"
-                    className="w-full inline-flex items-center justify-between px-5 py-3.5 rounded-2xl bg-amber-500 hover:bg-amber-600 text-black font-bold text-xs sm:text-sm shadow-md transition-all active:scale-[0.98] group"
+                  <button
+                    type="button"
+                    onClick={() => setIsMeatModalOpen(true)}
+                    className="w-full inline-flex items-center justify-between px-5 py-3.5 rounded-2xl bg-amber-500 hover:bg-amber-600 text-black font-bold text-xs sm:text-sm shadow-md transition-all active:scale-[0.98] group cursor-pointer"
                   >
                     <div className="flex items-center gap-2.5">
                       <Beef className="w-4 h-4 text-black shrink-0" />
-                      <span>{isAmharic ? 'የበሬ ስጋ በኪሎ አገልግሎቶችን እይ' : 'View Beef in KG Services'}</span>
+                      <span>{isAmharic ? 'የበሬ ስጋ በኪሎ እዘዝ / ዋጋ ተመልከት' : 'Order Beef in KG / View Services'}</span>
                     </div>
                     <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-                  </Link>
+                  </button>
 
                   {/* WhatsApp Inquiry Button */}
                   <a
@@ -409,6 +429,12 @@ export const MeatByKgPromoSection: React.FC = () => {
           </div>
         </AnimatedReveal>
       </div>
+
+      {/* Interactive Beef in KG Ordering & Payment Modal */}
+      <MeatByKgOrderModal
+        isOpen={isMeatModalOpen}
+        onClose={() => setIsMeatModalOpen(false)}
+      />
     </section>
   );
 };

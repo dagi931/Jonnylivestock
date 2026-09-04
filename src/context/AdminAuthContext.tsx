@@ -69,9 +69,49 @@ export const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
     window.addEventListener('storage', syncAdminAuth);
     window.addEventListener('auth_change', syncAdminAuth);
+
+    const handleAuthExpired = () => {
+      setToken(null);
+      setUser(null);
+      localStorage.removeItem('jonny_admin_token');
+      localStorage.removeItem('jonny_admin_user');
+    };
+    window.addEventListener('auth_expired', handleAuthExpired);
+
+    // Validate saved token on initialization
+    const validateExistingSession = async () => {
+      const active = localStorage.getItem('jonny_admin_token');
+      if (active) {
+        try {
+          const res = await api.getMe(active);
+          // Only reset session if the server definitively confirmed an auth failure (invalid token or wrong role)
+          const isExplicitAuthFailure =
+            (res.user && res.user.role !== 'admin') ||
+            (res.error && (
+              res.error.toLowerCase().includes('expired') ||
+              res.error.toLowerCase().includes('invalid') ||
+              res.error.toLowerCase().includes('unauthorized') ||
+              res.error.toLowerCase().includes('token required')
+            ));
+
+          if (isExplicitAuthFailure) {
+            console.warn('[AdminAuth] Saved admin token is invalid or expired. Prompting for fresh login.');
+            setToken(null);
+            setUser(null);
+            localStorage.removeItem('jonny_admin_token');
+            localStorage.removeItem('jonny_admin_user');
+          }
+        } catch {
+          // Ignore network errors or temporary glitches - keep existing session
+        }
+      }
+    };
+    validateExistingSession();
+
     return () => {
       window.removeEventListener('storage', syncAdminAuth);
       window.removeEventListener('auth_change', syncAdminAuth);
+      window.removeEventListener('auth_expired', handleAuthExpired);
     };
   }, []);
 
@@ -107,12 +147,14 @@ export const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           phone: res.user.phone
         };
 
-        setToken(res.token);
-        setUser(adminData);
-
-        // Also synchronize with user auth
+        // Synchronously save admin & user storage tokens immediately
+        localStorage.setItem('jonny_admin_token', res.token);
+        localStorage.setItem('jonny_admin_user', JSON.stringify(adminData));
         localStorage.setItem('jonny_user_token', res.token);
         localStorage.setItem('jonny_user_profile', JSON.stringify(res.user));
+
+        setToken(res.token);
+        setUser(adminData);
 
         return { success: true };
       }
