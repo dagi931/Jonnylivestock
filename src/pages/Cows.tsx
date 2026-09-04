@@ -14,8 +14,8 @@ export const Cows: React.FC = () => {
         am: 'የሚገኙ ከብቶችና ሰንጋዎች'
       }}
       description={{
-        en: 'Browse our Boran bulls, Fogera cows, Begait steers, and local highland oxen. Accurate live weights and direct single-seller pricing.',
-        am: 'የቦረና፣ የፎገራና የበጋይት ሰንጋዎችንና ላሞችን ይመልከቱ። ትክክለኛ የቀጥታ ሚዛን ክብደትና ግልጽ የእርሻ ዋጋ።'
+        en: 'Browse our Debrebirhan, Ginchi, Wolayita, and Arsi cattle and oxen. Accurate live weights and direct single-seller pricing.',
+        am: 'የደብረ ብርሃን፣ የጊንጪ፣ የወላይታና የአርሲ ሰንጋዎችንና ላሞችን ይመልከቱ። ትክክለኛ የቀጥታ ሚዛን ክብደትና ግልጽ የእርሻ ዋጋ።'
       }}
       typeLabel={{
         en: 'cows',

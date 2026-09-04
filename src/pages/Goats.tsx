@@ -14,8 +14,8 @@ export const Goats: React.FC = () => {
         am: 'የሚገኙ ፍየሎች'
       }}
       description={{
-        en: 'Browse our Boer Cross, Hararghe Highland, Abergelle, and Central Highland goats with detailed weights, pricing, and health records.',
-        am: 'የቦየር ክሮስ፣ የሐረርጌ ደጋ፣ የአበርገሌና የማዕከላዊ ደጋ ፍየሎችን ከሙሉ ክብደት፣ ዋጋና የጤና መረጃ ጋር ይመልከቱ።'
+        en: 'Browse our Debrebirhan, Ginchi, Wolayita, and Arsi goats with detailed weights, pricing, and health records.',
+        am: 'የደብረ ብርሃን፣ የጊንጪ፣ የወላይታና የአርሲ ፍየሎችን ከሙሉ ክብደት፣ ዋጋና የጤና መረጃ ጋር ይመልከቱ።'
       }}
       typeLabel={{
         en: 'goats',

@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 import { LanguageProvider } from './context/LanguageContext';
 import { AdminAuthProvider } from './context/AdminAuthContext';
@@ -17,11 +17,6 @@ import { Services } from './pages/Services';
 import { PackageBuilder } from './pages/PackageBuilder';
 import { MyPackages } from './pages/MyPackages';
 import { MyReservations } from './pages/MyReservations';
-import { DeliveryServicePage } from './pages/services/DeliveryServicePage';
-import { SlaughterPrepServicePage } from './pages/services/SlaughterPrepServicePage';
-import { CeremonyServicePage } from './pages/services/CeremonyServicePage';
-import { MeatByKgServicePage } from './pages/services/MeatByKgServicePage';
-import { FreshSheepServicePage } from './pages/services/FreshSheepServicePage';
 import { About } from './pages/About';
 import { Contact } from './pages/Contact';
 import { Admin } from './pages/Admin';
@@ -91,15 +86,9 @@ const AppContent: React.FC = () => {
           <Route path="/my-packages" element={<MyPackages />} />
           <Route path="/my-reservations" element={<MyReservations />} />
 
-          {/* Main Services Overview */}
+          {/* Main Services Page (No redundant form pages) */}
           <Route path="/services" element={<Services />} />
-
-          {/* 5 Distinct Dedicated Service Dashboards */}
-          <Route path="/services/delivery" element={<DeliveryServicePage />} />
-          <Route path="/services/slaughter-prep" element={<SlaughterPrepServicePage />} />
-          <Route path="/services/events-ceremonies" element={<CeremonyServicePage />} />
-          <Route path="/services/meat-by-kg" element={<MeatByKgServicePage />} />
-          <Route path="/services/fresh-slaughtered-sheep" element={<FreshSheepServicePage />} />
+          <Route path="/services/*" element={<Navigate to="/services" replace />} />
 
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />

@@ -1,11 +1,12 @@
 import { Router, Request, Response } from 'express';
 import { PostgresDB } from '../db/postgresDb.js';
 import { authenticateToken, requireAdmin, AuthRequest } from '../middleware/auth.middleware.js';
+import { orderContactLimiter } from '../middleware/rateLimit.middleware.js';
 
 const router = Router();
 
 // ==================== PUBLIC: SUBMIT CONTACT US INQUIRY ====================
-router.post('/', async (req: Request, res: Response): Promise<void> => {
+router.post('/', orderContactLimiter, async (req: Request, res: Response): Promise<void> => {
   try {
     const { name, phone, email, animalId, serviceNeeded, message } = req.body;
 

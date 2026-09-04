@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Hero } from '../components/home/Hero';
 import { TrustSection } from '../components/home/TrustSection';
 import { CelebrationPackagesSection } from '../components/home/CelebrationPackagesSection';
+import { MeatByKgPromoSection } from '../components/home/MeatByKgPromoSection';
 import { ServicesOverview } from '../components/home/ServicesOverview';
 import { HowItWorks } from '../components/home/HowItWorks';
 import { CTASection } from '../components/home/CTASection';
@@ -181,6 +182,9 @@ export const Home: React.FC = () => {
           </div>
         </div>
       </section>
+
+      {/* Do you want to buy meat in KG? Section */}
+      <MeatByKgPromoSection />
 
       {/* Farm to Table Additional Services Overview */}
       <ServicesOverview />

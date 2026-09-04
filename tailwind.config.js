@@ -47,7 +47,7 @@ export default {
         }
       },
       fontFamily: {
-        serif: ['Cinzel', 'Playfair Display', 'Georgia', 'serif'],
+        serif: ['Lora', 'Georgia', 'serif'],
         sans: ['Plus Jakarta Sans', 'Inter', 'system-ui', 'sans-serif'],
       },
       boxShadow: {

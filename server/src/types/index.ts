@@ -41,8 +41,10 @@ export interface PackageCatalogItem {
   name: string;
   amharicName?: string;
   description: string;
+  amharicDescription?: string;
   price: number; // in ETB
   unit?: string; // e.g. "per head", "per bottle", "per crate (30 pcs)", "per 5kg"
+  amharicUnit?: string;
   image: string;
   popular?: boolean;
 }

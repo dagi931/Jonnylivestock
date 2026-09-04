@@ -35,7 +35,7 @@ const fileFilter = (_req: any, file: Express.Multer.File, cb: multer.FileFilterC
 export const uploadSlip = multer({
   storage,
   limits: {
-    fileSize: 10 * 1024 * 1024 // 10 MB limit
+    fileSize: 50 * 1024 * 1024 // 50 MB limit
   },
   fileFilter
 });

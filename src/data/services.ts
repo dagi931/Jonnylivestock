@@ -5,6 +5,7 @@ export interface MealPurposeOption {
   name: string;
   amharicName: string;
   description: string;
+  pricePerKg: number;
 }
 
 export const ethiopianMealPurposes: MealPurposeOption[] = [
@@ -12,37 +13,22 @@ export const ethiopianMealPurposes: MealPurposeOption[] = [
     id: 'kurt',
     name: 'Tre Kurt / Tere Siga',
     amharicName: 'ጥሬ ቁርጥ',
-    description: 'Prime, tender, fresh raw meat cuts selected from best portions.'
+    description: 'Prime, tender, fresh raw meat cuts selected from best portions of oxen.',
+    pricePerKg: 2800
   },
   {
     id: 'kitfo',
     name: 'Kitfo',
     amharicName: 'ክትፎ',
-    description: 'Extra-lean, finely trimmed red beef free from sinew and fat.'
+    description: 'Extra-lean, finely trimmed red beef free from sinew and fat.',
+    pricePerKg: 2200
   },
   {
     id: 'wot',
     name: 'Wot (Key / Alicha)',
     amharicName: 'ወጥ',
-    description: 'Bite-sized stew portions perfect for Key Wot, Alicha, or Minchet.'
-  },
-  {
-    id: 'tibs',
-    name: 'Tibs',
-    amharicName: 'ጥብስ',
-    description: 'Tender cubed meat and rib tips ideal for quick searing and frying.'
-  },
-  {
-    id: 'dulet',
-    name: 'Dulet',
-    amharicName: 'ዱለት',
-    description: 'Special combination of finely diced liver, tripe, and lean meat.'
-  },
-  {
-    id: 'goden_kikel',
-    name: 'Goden / Kikel',
-    amharicName: 'ጎድን / ቅቅል',
-    description: 'Succulent ribs and bone-in cuts for soup, kikel, and roasted goden.'
+    description: 'Bite-sized stew portions perfect for Key Wot, Alicha, or Minchet.',
+    pricePerKg: 1800
   }
 ];
 
@@ -91,18 +77,20 @@ export const livestockServices: ServiceItem[] = [
   },
   {
     id: 'meat-by-kg',
-    title: 'Meat Supply in KG (for Hotels, Restaurants & Catering)',
-    shortDescription: 'Fresh meat extracted in kilograms from sheep, goat, or cow — tailored for Ethiopian dishes like Wot, Kitfo, Tre Kurt, Tibs, and Dulet.',
-    fullDescription: 'We provide fresh, clean, and expertly extracted meat sold by the kilogram (KG) for hotels, traditional restaurants, banquet caterers, and bulk family orders. Buyers can select meat extracted from Sheep, Goat, or Cow, and specify the exact Ethiopian dish purpose (ወጥ / Wot, ክትፎ / Kitfo, ጥሬ ቁርጥ / Tre Kurt, ጥብስ / Tibs, ዱለት / Dulet, or ጎድን / Goden).',
+    title: 'Prime Beef Supply in KG (for Hotels, Restaurants & Catering)',
+    shortDescription: 'Fresh prime beef extracted in kilograms from oxen: Kurt (2,800 ETB/kg), Kitfo (2,200 ETB/kg), Wot (1,800 ETB/kg).',
+    fullDescription: 'We provide fresh, clean, and expertly extracted 100% prime Beef sold by the kilogram (KG) for hotels, traditional restaurants, banquet caterers, and private home kitchens. Handpicked from well-fattened oxen and custom-cut for Tre Kurt (2,800 ETB/kg), Kitfo (2,200 ETB/kg), and Wot (1,800 ETB/kg).',
     iconName: 'Scale',
     highlights: [
-      'Select animal type: Sheep (Mutton), Goat (Chevon), or Cow (Beef)',
-      'Custom cut for Ethiopian dishes: Wot (ወጥ), Kitfo (ክትፎ), Tre Kurt (ጥሬ ቁርጥ), Tibs (ጥብስ), Dulet (ዱለት)',
+      '100% Fresh Prime Beef from healthy fattened oxen',
+      'Tre Kurt (ጥሬ ቁርጥ): 2,800 ETB / KG',
+      'Kitfo Cut (ክትፎ): 2,200 ETB / KG',
+      'Wot Stew Cut (ወጥ): 1,800 ETB / KG',
       'Accurate weights measured on certified digital scales',
       'Bulk wholesale contracts available for hotel & restaurant kitchens',
       'Hygienic processing & direct delivery to your kitchen'
     ],
-    ctaLabel: 'Order Meat by KG'
+    ctaLabel: 'Order Prime Beef by KG'
   },
   {
     id: 'fresh-slaughtered-sheep',
@@ -124,7 +112,7 @@ export const serviceFlowSteps = [
   {
     step: '01',
     title: 'Select Live Animal or Meat by KG',
-    description: 'Choose live livestock, freshly slaughtered sheep, or specify meat in kg with your desired Ethiopian dish purpose (Wot, Kitfo, Tre Kurt, Tibs).'
+    description: 'Choose live livestock, freshly slaughtered sheep, or specify meat in kg with your desired Ethiopian beef cut (Kurt, Kitfo, Wot).'
   },
   {
     step: '02',

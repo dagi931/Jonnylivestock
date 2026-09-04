@@ -164,25 +164,25 @@ export const AnimalDetails: React.FC = () => {
     : `Hello ${business.name}, I am interested in purchasing ${animal.breed} (${animal.id}) priced at ${formatPrice(animal.price)} in ${animal.location}.${selectedServices.length > 0 ? ` I would also like additional services: [${selectedServices.join(', ')}].` : ''}`;
 
   return (
-    <div className="min-h-screen py-6 sm:py-10">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen py-4 sm:py-10">
+      <div className="max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8">
         
         {/* Navigation Breadcrumbs & Back Button */}
-        <div className="flex flex-wrap items-center justify-between gap-3 mb-5 text-xs sm:text-sm">
-          <nav className="flex items-center gap-2 opacity-80">
-            <Link to="/" className="hover:underline">{t.nav.home}</Link>
-            <ChevronRight className="w-3.5 h-3.5" />
-            <Link to={categoryPath} className="hover:underline">
+        <div className="flex items-center justify-between gap-2 mb-4 sm:mb-5 text-xs sm:text-sm">
+          <nav className="flex items-center gap-1.5 sm:gap-2 opacity-80 min-w-0 overflow-hidden text-ellipsis whitespace-nowrap">
+            <Link to="/" className="hover:underline shrink-0">{t.nav.home}</Link>
+            <ChevronRight className="w-3.5 h-3.5 shrink-0" />
+            <Link to={categoryPath} className="hover:underline shrink-0">
               {categoryLabel}
             </Link>
-            <ChevronRight className="w-3.5 h-3.5" />
-            <span className="font-mono font-semibold">{animal.id}</span>
+            <ChevronRight className="w-3.5 h-3.5 shrink-0" />
+            <span className="font-mono font-semibold truncate">{animal.id}</span>
           </nav>
 
           <button
             onClick={() => navigate(-1)}
             type="button"
-            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-semibold transition-colors ${
+            className={`shrink-0 inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg border text-xs font-semibold transition-colors cursor-pointer ${
               isDark
                 ? 'bg-[#2A1A0D] border-[#4A2C16] text-[#D8C5A8] hover:text-[#F4E8D0]'
                 : 'bg-[#F1E8D8] border-[#E4D4BC] text-[#746556] hover:text-[#241A12]'
@@ -194,10 +194,10 @@ export const AnimalDetails: React.FC = () => {
         </div>
 
         {/* Main Details Grid: Left Gallery + Right Information */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
           
-          {/* Left Column: Gallery & Video */}
-          <div className="lg:col-span-7 space-y-5">
+          {/* Left Column: Gallery & Video (Balanced 50/50 proportion) */}
+          <div className="lg:col-span-6 space-y-4 sm:space-y-5">
             <ImageGallery images={animal.images} alt={`${animal.breed} (${animal.id})`} />
 
             {/* Optional Video Section */}
@@ -210,181 +210,301 @@ export const AnimalDetails: React.FC = () => {
             )}
           </div>
 
-          {/* Right Column: Animal Specifications & Actions */}
-          <div className="lg:col-span-5 space-y-5">
-            
-            {/* Header Card */}
+          {/* Right Column: Animal Detail Card + Dedicated Service Card */}
+          <div className="lg:col-span-6 space-y-5">
+            {/* Main Animal Details & Booking Card */}
             <div
-              className={`p-5 sm:p-6 rounded-3xl border transition-all ${
-                isDark ? 'bg-[#2A1A0D] border-[#4A2C16] shadow-rustic' : 'bg-[#F1E8D8] border-[#E4D4BC] shadow-premium'
+              className={`p-5 sm:p-7 rounded-2xl sm:rounded-3xl border shadow-sm space-y-5 ${
+                isDark ? 'bg-[#2A1A0D] border-[#4A2C16]' : 'bg-[#F1E8D8] border-[#E4D4BC]'
               }`}
             >
-              {/* Type, ID, Status */}
-              <div className="flex items-center justify-between gap-3 mb-2.5">
-                <div className="flex items-center gap-2">
-                  <span
-                    className={`text-xs font-bold uppercase tracking-wider ${
-                      isDark ? 'text-[#C58A3A]' : 'text-[#B8792F]'
-                    }`}
-                  >
-                    {typeName}
-                  </span>
-                  <span className="font-mono text-xs px-2 py-0.5 rounded-md bg-black/20 font-semibold">
-                    {animal.id}
-                  </span>
-                </div>
-                <StatusBadge status={animal.status} size="sm" />
-              </div>
-
-              {/* Breed Title */}
-              <h1
-                className={`font-serif font-bold text-xl sm:text-2xl ${
-                  isDark ? 'text-[#F4E8D0]' : 'text-[#241A12]'
-                }`}
-              >
-                {animal.breed}
-              </h1>
-
-              {/* Price Banner with 50% Reservation Deposit */}
-              <div
-                className={`mt-3.5 p-3.5 rounded-2xl border flex items-center justify-between ${
-                  isDark
-                    ? 'bg-[#1B1208] border-[#4A2C16]'
-                    : 'bg-[#FAF7F0] border-[#E4D4BC]'
-                }`}
-              >
-                <div>
-                  <span className="block text-[11px] uppercase tracking-wider opacity-70 font-semibold">
-                    {t.common.farmPrice}
-                  </span>
-                  <span
-                    className={`text-2xl sm:text-3xl font-extrabold font-serif ${
-                      isDark ? 'text-[#E0B15A]' : 'text-[#B8792F]'
-                    }`}
-                  >
-                    {formatPrice(animal.price)}
-                  </span>
-                </div>
-
-                <div className="text-right">
-                  <span className="block text-[10px] sm:text-[11px] uppercase tracking-wider font-bold text-amber-500">
-                    {isAmharic ? '50% ቅድመ-ክፍያ ማስያዣ' : '50% Reserve Deposit'}
-                  </span>
-                  <span className="text-base sm:text-lg font-black font-mono text-emerald-500">
-                    {formatPrice(animal.price * 0.5)}
-                  </span>
-                </div>
-              </div>
-
-              {/* Characteristics Tags */}
-              {animal.characteristics && animal.characteristics.length > 0 && (
-                <div className="mt-3.5 flex flex-wrap gap-1.5">
-                  {animal.characteristics.map((c, i) => (
+              {/* SECTION 1: HEADER & PRICING */}
+              <div>
+                {/* Type, ID, Status */}
+                <div className="flex items-center justify-between gap-2 mb-2">
+                  <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
                     <span
-                      key={i}
-                      className={`text-xs px-2.5 py-0.5 rounded-lg border font-medium ${
-                        isDark
-                          ? 'bg-[#1B1208]/60 border-[#4A2C16] text-[#D8C5A8]'
-                          : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#746556]'
+                      className={`text-xs font-bold uppercase tracking-wider shrink-0 ${
+                        isDark ? 'text-[#C58A3A]' : 'text-[#B8792F]'
                       }`}
                     >
-                      {c}
+                      {typeName}
                     </span>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Detailed Specification Table (Strictly NO Age) */}
-            <div
-              className={`p-5 rounded-3xl border space-y-3 text-xs sm:text-sm ${
-                isDark ? 'bg-[#2A1A0D] border-[#4A2C16]' : 'bg-[#F1E8D8] border-[#E4D4BC]'
-              }`}
-            >
-              <h3
-                className={`font-serif font-bold text-sm sm:text-base border-b pb-2 ${
-                  isDark ? 'text-[#F4E8D0] border-[#4A2C16]' : 'text-[#241A12] border-[#E4D4BC]'
-                }`}
-              >
-                {t.detailsPage.specificationsTitle}
-              </h3>
-
-              <div className="grid grid-cols-2 gap-y-2.5 pt-1">
-                <div className="flex items-center gap-1.5 opacity-70 text-[11px] uppercase tracking-wider font-semibold">
-                  <Tag className="w-3 h-3" />
-                  <span>{t.common.animalId}</span>
-                </div>
-                <div className="font-mono font-bold text-right">{animal.id}</div>
-
-                <div className="flex items-center gap-1.5 opacity-70 text-[11px] uppercase tracking-wider font-semibold">
-                  <Tag className="w-3 h-3" />
-                  <span>{t.common.breed}</span>
-                </div>
-                <div className="font-semibold text-right">{animal.breed}</div>
-
-                <div className="flex items-center gap-1.5 opacity-70 text-[11px] uppercase tracking-wider font-semibold">
-                  <Tag className="w-3 h-3" />
-                  <span>{t.common.gender}</span>
-                </div>
-                <div className="font-semibold text-right">
-                  {animal.gender === 'Male' ? t.common.male : animal.gender === 'Female' ? t.common.female : animal.gender}
+                    <span className="font-mono text-xs px-2 py-0.5 rounded-md bg-black/20 font-semibold truncate">
+                      {animal.id}
+                    </span>
+                  </div>
+                  <StatusBadge status={animal.status} size="sm" />
                 </div>
 
-                <div className="flex items-center gap-1.5 opacity-70 text-[11px] uppercase tracking-wider font-semibold">
-                  <Scale className="w-3 h-3" />
-                  <span>{t.common.weight}</span>
-                </div>
-                <div className="font-bold text-right">{formatWeight(animal.weight)}</div>
+                {/* Breed Title */}
+                <h1
+                  className={`font-serif font-bold text-2xl sm:text-3xl leading-tight ${
+                    isDark ? 'text-[#F4E8D0]' : 'text-[#241A12]'
+                  }`}
+                >
+                  {animal.breed}
+                </h1>
 
-                <div className="flex items-center gap-1.5 opacity-70 text-[11px] uppercase tracking-wider font-semibold">
-                  <Palette className="w-3 h-3" />
-                  <span>{t.common.color}</span>
-                </div>
-                <div className="font-semibold text-right">{animal.color}</div>
+                {/* Integrated Price & 50% Deposit Bar */}
+                <div
+                  className={`mt-3.5 p-3.5 sm:p-4 rounded-xl sm:rounded-2xl border flex items-center justify-between gap-2.5 ${
+                    isDark
+                      ? 'bg-[#1B1208] border-[#4A2C16]'
+                      : 'bg-[#FAF7F0] border-[#E4D4BC]'
+                  }`}
+                >
+                  <div className="min-w-0">
+                    <span className="block text-[10.5px] uppercase tracking-wider opacity-70 font-semibold truncate">
+                      {t.common.farmPrice}
+                    </span>
+                    <span
+                      className={`text-2xl sm:text-3xl font-extrabold font-serif tracking-tight ${
+                        isDark ? 'text-[#E0B15A]' : 'text-[#B8792F]'
+                      }`}
+                    >
+                      {formatPrice(animal.price)}
+                    </span>
+                  </div>
 
-                <div className="flex items-center gap-1.5 opacity-70 text-[11px] uppercase tracking-wider font-semibold">
-                  <MapPin className="w-3 h-3" />
-                  <span>{t.common.location}</span>
+                  <div className="text-right shrink-0">
+                    <span className="block text-[10px] sm:text-[11px] uppercase tracking-wider font-bold text-amber-500 whitespace-nowrap">
+                      {isAmharic ? '50% ቅድመ-ክፍያ' : '50% Deposit'}
+                    </span>
+                    <span className="text-base sm:text-lg font-black font-mono text-emerald-500 whitespace-nowrap">
+                      {formatPrice(animal.price * 0.5)}
+                    </span>
+                  </div>
                 </div>
-                <div className="font-semibold text-right">{animal.location}</div>
 
-                <div className="flex items-center gap-1.5 opacity-70 text-[11px] uppercase tracking-wider font-semibold">
-                  <ShieldCheck className="w-3 h-3" />
-                  <span>{t.common.status}</span>
+                {/* Characteristics Tags */}
+                {animal.characteristics && animal.characteristics.length > 0 && (
+                  <div className="mt-3 flex flex-wrap gap-1.5">
+                    {animal.characteristics.map((c, i) => (
+                      <span
+                        key={i}
+                        className={`text-[11px] sm:text-xs px-2.5 py-0.5 rounded-lg border font-medium ${
+                          isDark
+                            ? 'bg-[#1B1208]/60 border-[#4A2C16] text-[#D8C5A8]'
+                            : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#746556]'
+                        }`}
+                      >
+                        {c}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* SECTION 2: SPECIFICATIONS & DESCRIPTION */}
+              <div className="pt-4 border-t" style={{ borderColor: isDark ? '#4A2C16' : '#E4D4BC' }}>
+                <h3
+                  className={`font-serif font-bold text-sm sm:text-base mb-2 ${
+                    isDark ? 'text-[#F4E8D0]' : 'text-[#241A12]'
+                  }`}
+                >
+                  {t.detailsPage.specificationsTitle}
+                </h3>
+
+                <div className="divide-y divide-black/5 dark:divide-white/5">
+                  {/* Animal ID */}
+                  <div className="flex items-center justify-between gap-2 py-1.5 text-xs sm:text-sm">
+                    <div className="flex items-center gap-1.5 opacity-70 text-[11px] uppercase tracking-wider font-semibold shrink-0">
+                      <Tag className="w-3.5 h-3.5" />
+                      <span>{t.common.animalId}</span>
+                    </div>
+                    <div className="font-mono font-bold text-right truncate">{animal.id}</div>
+                  </div>
+
+                  {/* Breed */}
+                  <div className="flex items-center justify-between gap-2 py-1.5 text-xs sm:text-sm">
+                    <div className="flex items-center gap-1.5 opacity-70 text-[11px] uppercase tracking-wider font-semibold shrink-0">
+                      <Tag className="w-3.5 h-3.5" />
+                      <span>{t.common.breed}</span>
+                    </div>
+                    <div className="font-semibold text-right text-balance break-words">{animal.breed}</div>
+                  </div>
+
+                  {/* Gender */}
+                  <div className="flex items-center justify-between gap-2 py-1.5 text-xs sm:text-sm">
+                    <div className="flex items-center gap-1.5 opacity-70 text-[11px] uppercase tracking-wider font-semibold shrink-0">
+                      <Tag className="w-3.5 h-3.5" />
+                      <span>{t.common.gender}</span>
+                    </div>
+                    <div className="font-semibold text-right">
+                      {animal.gender === 'Male' ? t.common.male : animal.gender === 'Female' ? t.common.female : animal.gender}
+                    </div>
+                  </div>
+
+                  {/* Weight */}
+                  <div className="flex items-center justify-between gap-2 py-1.5 text-xs sm:text-sm">
+                    <div className="flex items-center gap-1.5 opacity-70 text-[11px] uppercase tracking-wider font-semibold shrink-0">
+                      <Scale className="w-3.5 h-3.5" />
+                      <span>{t.common.weight}</span>
+                    </div>
+                    <div className="font-bold text-right font-mono">{formatWeight(animal.weight)}</div>
+                  </div>
+
+                  {/* Color */}
+                  <div className="flex items-center justify-between gap-2 py-1.5 text-xs sm:text-sm">
+                    <div className="flex items-center gap-1.5 opacity-70 text-[11px] uppercase tracking-wider font-semibold shrink-0">
+                      <Palette className="w-3.5 h-3.5" />
+                      <span>{t.common.color}</span>
+                    </div>
+                    <div className="font-semibold text-right text-balance break-words">{animal.color}</div>
+                  </div>
+
+                  {/* Location */}
+                  <div className="flex items-center justify-between gap-2 py-1.5 text-xs sm:text-sm">
+                    <div className="flex items-center gap-1.5 opacity-70 text-[11px] uppercase tracking-wider font-semibold shrink-0">
+                      <MapPin className="w-3.5 h-3.5" />
+                      <span>{t.common.location}</span>
+                    </div>
+                    <div className="font-semibold text-right text-balance break-words">{animal.location}</div>
+                  </div>
+
+                  {/* Status */}
+                  <div className="flex items-center justify-between gap-2 py-1.5 text-xs sm:text-sm">
+                    <div className="flex items-center gap-1.5 opacity-70 text-[11px] uppercase tracking-wider font-semibold shrink-0">
+                      <ShieldCheck className="w-3.5 h-3.5" />
+                      <span>{t.common.status}</span>
+                    </div>
+                    <div className="text-right capitalize font-bold text-emerald-500">
+                      {animal.status === 'available' ? t.common.available : animal.status === 'reserved' ? t.common.reserved : t.common.sold}
+                    </div>
+                  </div>
                 </div>
-                <div className="text-right capitalize font-bold">
-                  {animal.status === 'available' ? t.common.available : animal.status === 'reserved' ? t.common.reserved : t.common.sold}
+
+                {/* Description */}
+                <div className="pt-2.5 mt-2 border-t" style={{ borderColor: isDark ? '#4A2C16' : '#E4D4BC' }}>
+                  <span className="block text-[11px] uppercase tracking-wider font-semibold opacity-70 mb-1">
+                    {t.detailsPage.descriptionTitle}
+                  </span>
+                  <p className="text-xs leading-relaxed opacity-90">
+                    {animal.description}
+                  </p>
                 </div>
               </div>
 
-              {/* Description */}
-              <div className="pt-2.5 border-t" style={{ borderColor: isDark ? '#4A2C16' : '#E4D4BC' }}>
-                <span className="block text-[11px] uppercase tracking-wider font-semibold opacity-70 mb-1">
-                  {t.detailsPage.descriptionTitle}
-                </span>
-                <p className="text-xs leading-relaxed opacity-90">
-                  {animal.description}
+              {/* SECTION 3: ACTIONS & CONTACT SELLER */}
+              <div className="pt-4 border-t" style={{ borderColor: isDark ? '#4A2C16' : '#E4D4BC' }}>
+                <h3
+                  className={`font-serif font-bold text-sm sm:text-base mb-2.5 ${
+                    isDark ? 'text-[#F4E8D0]' : 'text-[#241A12]'
+                  }`}
+                >
+                  {t.detailsPage.contactSellerTitle}
+                </h3>
+
+                {isSold ? (
+                  <div className="p-4 rounded-2xl bg-stone-800/40 border border-stone-700/50 text-center text-xs text-stone-400 font-semibold">
+                    {t.detailsPage.soldNotice}
+                  </div>
+                ) : (
+                  <div className="space-y-2.5">
+                    {/* Primary CTA: 50% Reservation Deposit */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setBuyModalMode('deposit');
+                        setIsBuyModalOpen(true);
+                      }}
+                      className="w-full py-3.5 px-4 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-between gap-2 bg-amber-500 hover:bg-amber-600 text-black shadow-lg hover:shadow-xl hover:scale-[1.005] active:scale-[0.99] transition-all cursor-pointer"
+                    >
+                      <span className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+                        <ShieldCheck className="w-4 h-4 shrink-0" />
+                        <span className="truncate">{isAmharic ? 'በ50% ቅድመ-ክፍያ ያስይዙ' : 'Reserve with 50% Deposit'}</span>
+                      </span>
+                      <span className="font-mono font-black text-xs sm:text-sm bg-black/10 px-2.5 py-0.5 rounded-lg shrink-0 whitespace-nowrap">
+                        {formatPrice(animal.price * 0.5)}
+                      </span>
+                    </button>
+
+                    {/* Secondary CTA: Direct Buy in Full */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setBuyModalMode('full');
+                        setIsBuyModalOpen(true);
+                      }}
+                      className={`w-full py-2.5 px-3 sm:px-4 rounded-xl text-xs font-semibold border flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                        isDark
+                          ? 'bg-[#1B1208] border-[#4A2C16] text-[#D8C5A8] hover:border-[#C58A3A] hover:text-[#F4E8D0]'
+                          : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#746556] hover:border-[#B8792F] hover:text-[#241A12]'
+                      }`}
+                    >
+                      <CreditCard className="w-3.5 h-3.5 shrink-0" />
+                      <span className="truncate">{isAmharic ? '100% ሙሉ ክፍያ ፈጽመው ይግዙ (Buy in Full)' : 'Buy in Full & Upload Payment Slip'}</span>
+                    </button>
+
+                    <div className="grid grid-cols-2 gap-2">
+                      {/* Call Seller */}
+                      <a
+                        href={getPhoneCallLink(business.phone)}
+                        className={`py-2.5 px-2.5 sm:px-3 rounded-xl text-xs font-bold border flex items-center justify-center gap-1.5 transition-colors ${
+                          isDark
+                            ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0] hover:border-[#C58A3A]'
+                            : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#241A12] hover:border-[#B8792F]'
+                        }`}
+                      >
+                        <Phone className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                        <span className="truncate">{t.common.callSeller}</span>
+                      </a>
+
+                      {/* WhatsApp */}
+                      <a
+                        href={getWhatsAppLink(business.whatsapp, whatsappInquiryText)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`py-2.5 px-2.5 sm:px-3 rounded-xl text-xs font-bold border flex items-center justify-center gap-1.5 transition-colors ${
+                          isDark
+                            ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0] hover:border-[#C58A3A]'
+                            : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#241A12] hover:border-[#B8792F]'
+                        }`}
+                      >
+                        <MessageCircle className="w-3.5 h-3.5 text-green-500 shrink-0" />
+                        <span className="truncate">{t.common.whatsApp}</span>
+                      </a>
+                    </div>
+
+                    {/* Send Inquiry */}
+                    <button
+                      type="button"
+                      onClick={() => setIsInquiryOpen(true)}
+                      className={`w-full py-2 px-3 rounded-xl text-xs font-semibold transition-colors flex items-center justify-center gap-1 opacity-80 hover:opacity-100 cursor-pointer ${
+                        isDark ? 'hover:text-[#E0B15A]' : 'hover:text-[#B8792F]'
+                      }`}
+                    >
+                      <HelpCircle className="w-3 h-3 shrink-0" />
+                      <span className="truncate">{t.detailsPage.askQuestionConsultation}</span>
+                    </button>
+                  </div>
+                )}
+
+                <p className="text-[10px] opacity-60 text-center pt-2 mt-2 border-t" style={{ borderColor: isDark ? '#4A2C16' : '#E4D4BC' }}>
+                  {t.detailsPage.singleOwnerNotice}
                 </p>
               </div>
+
             </div>
 
-            {/* Additional Services Checklist Option */}
+            {/* SEPARATE CARD: OPTIONAL FARM SERVICES & PREPARATION */}
             <div
-              className={`p-5 rounded-3xl border space-y-3.5 ${
+              className={`p-5 sm:p-6 rounded-2xl sm:rounded-3xl border shadow-sm space-y-3.5 ${
                 isDark ? 'bg-[#2A1A0D] border-[#4A2C16]' : 'bg-[#F1E8D8] border-[#E4D4BC]'
               }`}
             >
-              <div className="flex items-center justify-between">
-                <div>
+              <div className="flex items-center justify-between gap-2">
+                <div className="min-w-0">
                   <div className="flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wider text-amber-500 mb-0.5">
-                    <Truck className="w-3 h-3" />
+                    <Truck className="w-3.5 h-3.5" />
                     <span>{t.detailsPage.optionalServicesTitle}</span>
                   </div>
-                  <h3 className={`font-serif font-bold text-sm sm:text-base ${isDark ? 'text-[#F4E8D0]' : 'text-[#241A12]'}`}>
+                  <h3 className={`font-serif font-bold text-sm sm:text-base truncate ${isDark ? 'text-[#F4E8D0]' : 'text-[#241A12]'}`}>
                     {t.detailsPage.optionalServicesSubtitle}
                   </h3>
                 </div>
-                <Link to="/services" className="text-xs font-medium hover:underline text-amber-500">
+                <Link to="/services" className="text-xs font-semibold hover:underline text-amber-500 shrink-0">
                   {t.detailsPage.detailsAndFaqs}
                 </Link>
               </div>
@@ -393,137 +513,32 @@ export const AnimalDetails: React.FC = () => {
                 selectedServices={selectedServices}
                 onChange={setSelectedServices}
               />
-            </div>
 
-            {/* Direct Seller Action Buttons */}
-            <div
-              className={`p-5 rounded-3xl border space-y-2.5 ${
-                isDark ? 'bg-[#2A1A0D] border-[#4A2C16]' : 'bg-[#F1E8D8] border-[#E4D4BC]'
-              }`}
-            >
-              <h3
-                className={`font-serif font-bold text-sm sm:text-base ${
-                  isDark ? 'text-[#F4E8D0]' : 'text-[#241A12]'
-                }`}
-              >
-                {t.detailsPage.contactSellerTitle}
-              </h3>
-
-              {isSold ? (
-                <div className="p-4 rounded-2xl bg-stone-800/40 border border-stone-700/50 text-center text-xs text-stone-400 font-semibold">
-                  {t.detailsPage.soldNotice}
-                </div>
-              ) : (
-                <div className="space-y-2.5">
-                  {/* Primary CTA: 50% Reservation Deposit */}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setBuyModalMode('deposit');
-                      setIsBuyModalOpen(true);
-                    }}
-                    className="w-full py-3.5 px-4 rounded-xl text-sm font-bold flex items-center justify-between bg-amber-500 hover:bg-amber-600 text-black shadow-lg hover:shadow-xl hover:scale-[1.01] active:scale-[0.99] transition-all cursor-pointer"
-                  >
-                    <span className="flex items-center gap-2">
-                      <ShieldCheck className="w-4 h-4" />
-                      <span>{isAmharic ? 'በ50% ቅድመ-ክፍያ እንስሳውን ያስይዙ' : 'Reserve Animal with 50% Deposit'}</span>
-                    </span>
-                    <span className="font-mono font-black text-sm bg-black/10 px-2.5 py-0.5 rounded-lg">
-                      {formatPrice(animal.price * 0.5)}
-                    </span>
-                  </button>
-
-                  {/* Secondary CTA: Direct Buy in Full */}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setBuyModalMode('full');
-                      setIsBuyModalOpen(true);
-                    }}
-                    className={`w-full py-2.5 px-4 rounded-xl text-xs font-semibold border flex items-center justify-center gap-2 transition-all cursor-pointer ${
-                      isDark
-                        ? 'bg-[#1B1208] border-[#4A2C16] text-[#D8C5A8] hover:border-[#C58A3A] hover:text-[#F4E8D0]'
-                        : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#746556] hover:border-[#B8792F] hover:text-[#241A12]'
-                    }`}
-                  >
-                    <CreditCard className="w-3.5 h-3.5" />
-                    <span>{isAmharic ? '100% ሙሉ ክፍያ ፈጽመው ይግዙ (Buy in Full)' : 'Buy in Full & Upload Payment Slip'}</span>
-                  </button>
-
-                  {/* Tertiary CTA: Request Services if selected */}
-                  {selectedServices.length > 0 && (
-                    <button
-                      type="button"
-                      onClick={() => setIsServiceModalOpen(true)}
-                      className={`w-full py-2 px-3 rounded-xl text-xs font-semibold border flex items-center justify-center gap-1.5 transition-all ${
-                        isDark
-                          ? 'bg-[#1B1208] border-[#4A2C16] text-[#D8C5A8] hover:border-[#C58A3A]'
-                          : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#746556] hover:border-[#B8792F]'
-                      }`}
-                    >
-                      <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-                      <span>{t.detailsPage.requestAnimalAndServices} ({selectedServices.length})</span>
-                    </button>
-                  )}
-
-                  <div className="grid grid-cols-2 gap-2">
-                    {/* Call Seller */}
-                    <a
-                      href={getPhoneCallLink(business.phone)}
-                      className={`py-2.5 px-3 rounded-xl text-xs font-semibold border flex items-center justify-center gap-1.5 transition-colors ${
-                        isDark
-                          ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0] hover:border-[#C58A3A]'
-                          : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#241A12] hover:border-[#B8792F]'
-                      }`}
-                    >
-                      <Phone className="w-3.5 h-3.5 text-amber-500" />
-                      <span>{t.common.callSeller}</span>
-                    </a>
-
-                    {/* WhatsApp */}
-                    <a
-                      href={getWhatsAppLink(business.whatsapp, whatsappInquiryText)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className={`py-2.5 px-3 rounded-xl text-xs font-semibold border flex items-center justify-center gap-1.5 transition-colors ${
-                        isDark
-                          ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0] hover:border-[#C58A3A]'
-                          : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#241A12] hover:border-[#B8792F]'
-                      }`}
-                    >
-                      <MessageCircle className="w-3.5 h-3.5 text-green-500" />
-                      <span>{t.common.whatsApp}</span>
-                    </a>
-                  </div>
-
-                  {/* Send Inquiry */}
-                  <button
-                    type="button"
-                    onClick={() => setIsInquiryOpen(true)}
-                    className={`w-full py-2 px-3 rounded-xl text-xs font-semibold transition-colors flex items-center justify-center gap-1 opacity-80 hover:opacity-100 ${
-                      isDark ? 'hover:text-[#E0B15A]' : 'hover:text-[#B8792F]'
-                    }`}
-                  >
-                    <HelpCircle className="w-3 h-3" />
-                    <span>{t.detailsPage.askQuestionConsultation}</span>
-                  </button>
-                </div>
+              {/* Request Custom Service Button if items are checked */}
+              {selectedServices.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setIsServiceModalOpen(true)}
+                  className={`w-full mt-2 py-2.5 px-3 rounded-xl text-xs font-bold border flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-sm ${
+                    isDark
+                      ? 'bg-amber-500/15 border-amber-500/40 text-amber-400 hover:bg-amber-500/25'
+                      : 'bg-amber-500/15 border-amber-500/40 text-amber-600 hover:bg-amber-500/25'
+                  }`}
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                  <span>{t.detailsPage.requestAnimalAndServices} ({selectedServices.length})</span>
+                </button>
               )}
-
-              <p className="text-[10px] opacity-60 text-center pt-1.5 border-t" style={{ borderColor: isDark ? '#4A2C16' : '#E4D4BC' }}>
-                {t.detailsPage.singleOwnerNotice}
-              </p>
             </div>
-
           </div>
         </div>
 
         {/* Related Animals Section */}
         {relatedAnimals.length > 0 && (
-          <div className="mt-12 pt-8 border-t" style={{ borderColor: isDark ? '#4A2C16' : '#E4D4BC' }}>
-            <div className="flex items-center justify-between mb-6">
+          <div className="mt-8 sm:mt-12 pt-6 sm:pt-8 border-t" style={{ borderColor: isDark ? '#4A2C16' : '#E4D4BC' }}>
+            <div className="flex items-center justify-between mb-4 sm:mb-6">
               <h2
-                className={`font-serif font-bold text-xl sm:text-2xl ${
+                className={`font-serif font-bold text-lg sm:text-2xl ${
                   isDark ? 'text-[#F4E8D0]' : 'text-[#241A12]'
                 }`}
               >
@@ -539,7 +554,7 @@ export const AnimalDetails: React.FC = () => {
               </Link>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-6 items-start">
               {relatedAnimals.map((item) => (
                 <AnimalCard key={item.id} animal={item} />
               ))}

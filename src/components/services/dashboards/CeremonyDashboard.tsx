@@ -301,7 +301,7 @@ export const CeremonyDashboard: React.FC = () => {
                 </label>
                 <textarea
                   rows={2}
-                  placeholder="e.g. Prefer heavy fat-tailed Horro rams, specific arrival morning timing..."
+                  placeholder="e.g. Prefer heavy Debrebirhan rams, specific arrival morning timing..."
                   value={specialRequests}
                   onChange={(e) => setSpecialRequests(e.target.value)}
                   className={`w-full px-3.5 py-2 rounded-xl text-xs border focus:outline-none resize-none ${

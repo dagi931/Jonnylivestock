@@ -5,6 +5,7 @@ import { PostgresDB } from '../db/postgresDb.js';
 import { generateToken, authenticateToken, AuthRequest } from '../middleware/auth.middleware.js';
 import { User } from '../types/index.js';
 import { EmailService } from '../services/email.service.js';
+import { otpLimiter, authLimiter } from '../middleware/rateLimit.middleware.js';
 
 const router = Router();
 
@@ -19,8 +20,19 @@ interface PendingRegistrationOtp {
 
 const registrationOtpStore = new Map<string, PendingRegistrationOtp>();
 
+// In-memory OTP storage for password reset (keyed by lowercase email)
+interface PendingForgotPasswordOtp {
+  otp: string;
+  email: string;
+  name: string;
+  userId: string;
+  expiresAt: number;
+}
+
+const forgotPasswordOtpStore = new Map<string, PendingForgotPasswordOtp>();
+
 // ==================== SEND REGISTRATION OTP VIA BREVO ====================
-router.post('/send-registration-otp', async (req: AuthRequest, res: Response): Promise<void> => {
+router.post('/send-registration-otp', otpLimiter, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { name, email, phone } = req.body;
 
@@ -84,7 +96,7 @@ router.post('/send-registration-otp', async (req: AuthRequest, res: Response): P
 });
 
 // ==================== VERIFY OTP & COMPLETE REGISTRATION ====================
-router.post('/verify-registration-otp', async (req: AuthRequest, res: Response): Promise<void> => {
+router.post('/verify-registration-otp', authLimiter, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { name, email, phone, password, otp } = req.body;
 
@@ -168,7 +180,7 @@ router.post('/verify-registration-otp', async (req: AuthRequest, res: Response):
 });
 
 // ==================== REGISTER (DIRECT / FALLBACK) ====================
-router.post('/register', async (req: AuthRequest, res: Response): Promise<void> => {
+router.post('/register', authLimiter, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { name, email, phone, password } = req.body;
 
@@ -224,8 +236,165 @@ router.post('/register', async (req: AuthRequest, res: Response): Promise<void> 
   }
 });
 
+// ==================== SEND FORGOT PASSWORD OTP ====================
+router.post('/send-forgot-password-otp', otpLimiter, async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { email } = req.body;
+
+    if (!email || !email.trim()) {
+      res.status(400).json({ success: false, error: 'Please provide your registered email address' });
+      return;
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+
+    // Check if account exists
+    const user = await PostgresDB.findUserByEmail(normalizedEmail);
+    if (!user) {
+      res.status(404).json({
+        success: false,
+        error: 'No account registered with this email address. Please check spelling or create an account.'
+      });
+      return;
+    }
+
+    // Generate 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = Date.now() + 10 * 60 * 1000; // 10 minutes
+
+    forgotPasswordOtpStore.set(normalizedEmail, {
+      otp,
+      email: normalizedEmail,
+      name: user.name,
+      userId: user.id,
+      expiresAt
+    });
+
+    console.log(`[Brevo Password Reset] Sending 6-digit code to ${normalizedEmail}...`);
+    const emailResult = await EmailService.sendPasswordResetOtp(normalizedEmail, user.name, otp);
+
+    if (!emailResult.success) {
+      console.error('[Brevo Password Reset] Email delivery failure:', emailResult.error);
+      res.status(500).json({
+        success: false,
+        error: emailResult.error || 'Failed to dispatch password reset email. Please try again later.'
+      });
+      return;
+    }
+
+    console.log(`[Brevo Password Reset] Code dispatched successfully to ${normalizedEmail} (MessageId: ${emailResult.messageId})`);
+
+    res.json({
+      success: true,
+      message: `Password reset verification code sent to ${normalizedEmail}`,
+      expiresInMinutes: 10
+    });
+  } catch (error: any) {
+    console.error('Send forgot password OTP error:', error);
+    res.status(500).json({ success: false, error: 'Failed to send password reset code' });
+  }
+});
+
+// ==================== RESET PASSWORD WITH OTP ====================
+router.post('/reset-password-with-otp', authLimiter, async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { email, otp, newPassword } = req.body;
+
+    if (!email || !otp || !newPassword) {
+      res.status(400).json({
+        success: false,
+        error: 'Email, verification code, and new password are all required'
+      });
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      res.status(400).json({
+        success: false,
+        error: 'New password must be at least 6 characters long'
+      });
+      return;
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+    const pending = forgotPasswordOtpStore.get(normalizedEmail);
+
+    if (!pending) {
+      res.status(400).json({
+        success: false,
+        error: 'Verification code not found or expired. Please request a new code.'
+      });
+      return;
+    }
+
+    if (Date.now() > pending.expiresAt) {
+      forgotPasswordOtpStore.delete(normalizedEmail);
+      res.status(400).json({
+        success: false,
+        error: 'Verification code has expired. Please request a new code.'
+      });
+      return;
+    }
+
+    if (pending.otp !== otp.toString().trim()) {
+      res.status(400).json({
+        success: false,
+        error: 'Incorrect verification code. Please check your email and try again.'
+      });
+      return;
+    }
+
+    const user = await PostgresDB.findUserByEmail(normalizedEmail);
+    if (!user) {
+      res.status(404).json({ success: false, error: 'User account not found' });
+      return;
+    }
+
+    // Hash new password
+    const salt = await bcrypt.genSalt(10);
+    const newPasswordHash = await bcrypt.hash(newPassword, salt);
+
+    // Update in database
+    const updateSuccess = await PostgresDB.updateUserPassword(user.id, newPasswordHash);
+    if (!updateSuccess) {
+      res.status(500).json({ success: false, error: 'Failed to update password in database' });
+      return;
+    }
+
+    // Clear OTP from store
+    forgotPasswordOtpStore.delete(normalizedEmail);
+
+    // Generate authenticated JWT token for instant seamless sign-in
+    const token = generateToken({
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      name: user.name,
+      phone: user.phone
+    });
+
+    console.log(`[Password Reset] User ${normalizedEmail} successfully reset password`);
+
+    res.json({
+      success: true,
+      message: 'Password reset successfully! You are now signed in.',
+      token,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        role: user.role
+      }
+    });
+  } catch (error: any) {
+    console.error('Reset password with OTP error:', error);
+    res.status(500).json({ success: false, error: 'Failed to reset password' });
+  }
+});
+
 // ==================== LOGIN ====================
-router.post('/login', async (req: AuthRequest, res: Response): Promise<void> => {
+router.post('/login', authLimiter, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { email, password } = req.body;
 

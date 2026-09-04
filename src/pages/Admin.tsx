@@ -8,7 +8,9 @@ import { formatPrice, formatWeight, getPhoneCallLink, getWhatsAppLink } from '..
 import { useTheme } from '../context/ThemeContext';
 import { api, Order, AdminNotification } from '../services/api';
 import { SlipPreviewModal } from '../components/modals/SlipPreviewModal';
-import { useRealtimeEvent, useRealtime } from '../context/RealtimeContext';
+import { useRealtimeEvent } from '../context/RealtimeContext';
+import { ThemeToggle } from '../components/common/ThemeToggle';
+import { LanguageToggle } from '../components/common/LanguageToggle';
 import {
   DollarSign,
   ShoppingBag,
@@ -38,7 +40,8 @@ import {
   Phone,
   Gift,
   MessageSquare,
-  AlertTriangle
+  AlertTriangle,
+  ChevronDown
 } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { PreMadePackage, PackageCatalogItem } from '../types/package';
@@ -46,10 +49,23 @@ import { PreMadePackage, PackageCatalogItem } from '../types/package';
 type AdminTab = 'overview' | 'orders' | 'inventory' | 'packages' | 'demand' | 'messages' | 'settings';
 
 export const Admin: React.FC = () => {
-  const { isAuthenticated, user, login, logout } = useAdminAuth();
+  const { isAuthenticated: isAdminAuth, user: adminUser, login, logout } = useAdminAuth();
   const { isAuthenticated: isUserAuth, user: currentUser, logout: userLogout } = useUserAuth();
   const { theme } = useTheme();
   const isDark = theme === 'design7';
+
+  // Unified admin authentication state: Avoid prompting for password twice
+  const isAuthenticated = Boolean(
+    isAdminAuth || (isUserAuth && currentUser?.role === 'admin')
+  );
+
+  const user = adminUser || (currentUser?.role === 'admin' ? {
+    id: currentUser.id,
+    email: currentUser.email,
+    name: currentUser.name,
+    role: 'Livestock Administrator',
+    phone: currentUser.phone
+  } : null);
 
   // Login Form States
   const [emailInput, setEmailInput] = useState('');
@@ -135,6 +151,7 @@ export const Admin: React.FC = () => {
   const [customItemPrice, setCustomItemPrice] = useState<number>(1500);
   const [newPkgTotalSlots, setNewPkgTotalSlots] = useState<number>(10);
   const [newPkgAvailableSlots, setNewPkgAvailableSlots] = useState<number>(10);
+  const [expandedPkgIds, setExpandedPkgIds] = useState<Record<string, boolean>>({});
 
   // Contact Messages State
   const [contactMessages, setContactMessages] = useState<ContactMessage[]>([]);
@@ -210,8 +227,6 @@ export const Admin: React.FC = () => {
       document.removeEventListener('touchstart', handleClickOutside);
     };
   }, [isNotifDropdownOpen]);
-
-  const { isConnected } = useRealtime();
 
   // 🚀 REALTIME LISTENER: New Payment Slip Uploaded by Customer
   useRealtimeEvent<{ order: Order; notification: AdminNotification; animal: Animal | null }>('NEW_ORDER_SLIP', (data) => {
@@ -977,11 +992,6 @@ export const Admin: React.FC = () => {
     }
   };
 
-  const handleUseDemoCredentials = () => {
-    setEmailInput('admin@jonnylivestock.com');
-    setPasswordInput('admin123');
-    setLoginError('');
-  };
 
   // ==========================================
   // VIEW 1A: 403 FORBIDDEN (If logged in as customer)
@@ -1126,20 +1136,6 @@ export const Admin: React.FC = () => {
               {isLoggingIn ? 'Verifying Credentials...' : 'Sign In to Dashboard'}
             </button>
           </form>
-
-          {/* Quick Demo Helper */}
-          <div className="mt-5 pt-4 border-t text-center space-y-2" style={{ borderColor: isDark ? '#4A2C16' : '#E4D4BC' }}>
-            <p className="text-[11px] opacity-70">
-              Demo Credentials: <strong className="font-mono">admin@jonnylivestock.com</strong> / <strong className="font-mono">admin123</strong>
-            </p>
-            <button
-              type="button"
-              onClick={handleUseDemoCredentials}
-              className={`text-xs font-semibold hover:underline ${isDark ? 'text-[#E0B15A]' : 'text-[#B8792F]'}`}
-            >
-              Auto-fill Demo Credentials
-            </button>
-          </div>
         </div>
       </div>
     );
@@ -1152,7 +1148,7 @@ export const Admin: React.FC = () => {
     <div className={`min-h-screen pb-16 transition-colors duration-300 ${isDark ? 'bg-[#1B1208] text-[#F4E8D0]' : 'bg-[#FAF7F0] text-[#241A12]'}`}>
       
       {/* Top Banner with Real-Time Notification Bell & Refresh */}
-      <div className={`border-b sticky top-16 z-40 backdrop-blur-md ${isDark ? 'bg-[#1B1208]/90 border-[#4A2C16]' : 'bg-[#FAF7F0]/90 border-[#E4D4BC]'}`}>
+      <div className={`border-b sticky top-0 z-40 backdrop-blur-md ${isDark ? 'bg-[#1B1208]/90 border-[#4A2C16]' : 'bg-[#FAF7F0]/90 border-[#E4D4BC]'}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-xl bg-[#C18A45]/20 text-[#C18A45] flex items-center justify-center font-bold font-serif text-sm">
@@ -1161,9 +1157,6 @@ export const Admin: React.FC = () => {
             <div>
               <div className="flex items-center gap-2">
                 <span className="font-bold text-sm sm:text-base">Jonny Admin Portal</span>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-mono bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                  LIVE API
-                </span>
               </div>
               <p className="text-[11px] opacity-70">
                 Logged in as: <strong className="text-[#C18A45]">{user?.name}</strong> ({user?.email})
@@ -1172,18 +1165,6 @@ export const Admin: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-2">
-            {/* Realtime Stream Badge */}
-            <div
-              className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[11px] font-semibold border"
-              style={{
-                backgroundColor: isConnected ? (isDark ? 'rgba(16, 185, 129, 0.1)' : '#E8F5E9') : (isDark ? 'rgba(239, 68, 68, 0.1)' : '#FFEBEE'),
-                borderColor: isConnected ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.3)',
-                color: isConnected ? '#10B981' : '#EF4444'
-              }}
-            >
-              <span className={`w-2 h-2 rounded-full ${isConnected ? 'bg-emerald-500 animate-pulse' : 'bg-red-500'}`} />
-              <span>{isConnected ? 'Live Stream Active' : 'Connecting Stream...'}</span>
-            </div>
 
             {/* Refresh Button */}
             <button
@@ -1238,11 +1219,11 @@ export const Admin: React.FC = () => {
                       <div className="flex items-center gap-2">
                         <span className="font-bold text-xs">Payment Notifications</span>
                         {newPaymentsCount > 0 ? (
-                          <span className="px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-amber-500 text-black shadow-xs">
+                          <span className="px-1.5 py-0.5 rounded-md text-[9px] font-bold bg-amber-500 text-black shadow-xs">
                             {newPaymentsCount} new payment{newPaymentsCount > 1 ? 's' : ''}
                           </span>
                         ) : (
-                          <span className="px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-emerald-500/20 text-emerald-400">
+                          <span className="px-1.5 py-0.5 rounded-md text-[9px] font-bold bg-emerald-500/20 text-emerald-400">
                             All reviewed
                           </span>
                         )}
@@ -1289,12 +1270,12 @@ export const Admin: React.FC = () => {
                             >
                               <div className="flex items-start justify-between gap-1 mb-0.5">
                                 <div className={`font-bold break-words flex items-center gap-1.5 ${
-                                  n.type === 'OUT_OF_STOCK' ? 'text-red-400' : n.type === 'CONTACT_MESSAGE' ? 'text-cyan-400' : 'text-[#C18A45]'
+                                  n.type === 'OUT_OF_STOCK' ? 'text-red-400' : 'text-[#C18A45]'
                                 }`}>
                                   {n.type === 'OUT_OF_STOCK' ? (
                                     <AlertTriangle className="w-3 h-3 text-red-400 shrink-0" />
                                   ) : n.type === 'CONTACT_MESSAGE' ? (
-                                    <MessageSquare className="w-3 h-3 text-cyan-400 shrink-0" />
+                                    <MessageSquare className="w-3 h-3 text-amber-500 shrink-0" />
                                   ) : isPendingReview ? (
                                     <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0 animate-pulse" />
                                   ) : null}
@@ -1302,53 +1283,46 @@ export const Admin: React.FC = () => {
                                 </div>
                                 <div className="flex items-center gap-1 shrink-0">
                                   {n.type === 'OUT_OF_STOCK' ? (
-                                    <span className="px-1.5 py-0.5 rounded text-[8.5px] font-bold bg-red-500/20 text-red-400 border border-red-500/30">
+                                    <span className="px-1.5 py-0.5 rounded-md text-[8.5px] font-bold bg-red-500/15 text-red-400 border border-red-500/30">
                                       ⚠️ Stock Alert
                                     </span>
                                   ) : n.type === 'CONTACT_MESSAGE' ? (
-                                    <span className="px-1.5 py-0.5 rounded text-[8.5px] font-bold bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">
+                                    <span className="px-1.5 py-0.5 rounded-md text-[8.5px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30">
                                       💬 Inquiry
                                     </span>
                                   ) : isPendingReview ? (
-                                    <span className="px-1.5 py-0.5 rounded text-[8.5px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                                    <span className="px-1.5 py-0.5 rounded-md text-[8.5px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30">
                                       Pending Approval
                                     </span>
                                   ) : relatedOrder?.status === 'completed' || relatedOrder?.status === 'verified' || relatedOrder?.status === 'delivered' ? (
-                                    <span className="px-1.5 py-0.5 rounded text-[8.5px] font-bold bg-emerald-500/20 text-emerald-400">
+                                    <span className="px-1.5 py-0.5 rounded-md text-[8.5px] font-bold bg-emerald-500/15 text-emerald-400">
                                       ✓ Settled
                                     </span>
                                   ) : relatedOrder?.status === 'reserved' ? (
-                                    <span className="px-1.5 py-0.5 rounded text-[8.5px] font-bold bg-emerald-500/20 text-emerald-400">
-                                      Reserved
+                                    <span className="px-1.5 py-0.5 rounded-md text-[8.5px] font-bold bg-amber-500/15 text-amber-400">
+                                      50% Reserved
                                     </span>
                                   ) : null}
                                   {n.orderId && (
-                                    <span className="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-[#C18A45]/15 text-[#C18A45]">
+                                    <span className="px-1.5 py-0.5 rounded-md text-[9px] font-mono font-bold bg-[#C18A45]/15 text-[#C18A45]">
                                       #{n.orderId}
                                     </span>
                                   )}
                                 </div>
                               </div>
-                              <p className="text-[11px] opacity-90 break-words leading-relaxed">{n.message}</p>
+                              <p className="opacity-80 text-[11px] leading-relaxed line-clamp-2">
+                                {n.message}
+                              </p>
                               
-                              {relatedOrder?.customerPhone && (
-                                <div className="mt-1 inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-mono text-[10px]">
-                                  <Phone className="w-2.5 h-2.5" />
-                                  <span>{relatedOrder.customerPhone}</span>
-                                </div>
-                              )}
-                              
-                              <div className="mt-1.5 flex items-center justify-between gap-2 text-[9px]">
-                                <span className="opacity-50 font-mono">
-                                  {new Date(n.createdAt).toLocaleTimeString()} • {new Date(n.createdAt).toLocaleDateString()}
-                                </span>
+                              <div className="mt-1.5 flex items-center justify-between text-[10px] opacity-60">
+                                <span>{new Date(n.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                                 {n.type === 'OUT_OF_STOCK' ? (
                                   <span className="text-red-400 font-bold inline-flex items-center gap-0.5 group-hover:underline">
-                                    <span>Manage Stock / Restock</span>
+                                    <span>Restock Package Slots</span>
                                     <ArrowRight className="w-2.5 h-2.5" />
                                   </span>
                                 ) : n.type === 'CONTACT_MESSAGE' ? (
-                                  <span className="text-cyan-400 font-bold inline-flex items-center gap-0.5 group-hover:underline">
+                                  <span className="text-[#C18A45] font-bold inline-flex items-center gap-0.5 group-hover:underline">
                                     <span>View & Reply Inquiry</span>
                                     <ArrowRight className="w-2.5 h-2.5" />
                                   </span>
@@ -1368,6 +1342,10 @@ export const Admin: React.FC = () => {
                 </>
               )}
             </div>
+
+            {/* Language & Theme Controls */}
+            <LanguageToggle />
+            <ThemeToggle />
 
             {/* Logout */}
             <button
@@ -1408,106 +1386,184 @@ export const Admin: React.FC = () => {
         </div>
       )}
 
-      {/* Main Dashboard Container */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+      {/* Main Dashboard Layout: Full-Height Continuous Sidebar + Content Area */}
+      <div className="flex flex-col lg:flex-row min-h-[calc(100vh-61px)]">
         
-        {/* Navigation Tabs */}
-        <div className="flex flex-wrap items-center gap-2 border-b pb-4 mb-6" style={{ borderColor: isDark ? '#4A2C16' : '#E4D4BC' }}>
-          <button
-            onClick={() => setActiveTab('overview')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-              activeTab === 'overview'
-                ? 'bg-[#C18A45] text-white shadow-md'
-                : isDark ? 'hover:bg-[#2A1A0D] text-[#D8C5A8]' : 'hover:bg-[#F1E8D8] text-[#746556]'
-            }`}
-          >
-            <LayoutDashboard className="w-4 h-4" />
-            <span>Overview</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('orders')}
-            className={`relative flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-              activeTab === 'orders'
-                ? 'bg-[#C18A45] text-white shadow-md'
-                : isDark ? 'hover:bg-[#2A1A0D] text-[#D8C5A8]' : 'hover:bg-[#F1E8D8] text-[#746556]'
-            }`}
-          >
-            <CreditCard className="w-4 h-4" />
-            <span>Orders & Payment Slips</span>
-            {stats.pendingOrdersCount > 0 && (
-              <span className="px-1.5 py-0.2 rounded-full bg-amber-500 text-black text-[10px] font-black">
-                {stats.pendingOrdersCount}
+        {/* Full-Height Left Sidebar covering top to bottom */}
+        <aside
+          className={`w-full lg:w-64 xl:w-72 shrink-0 border-b lg:border-b-0 lg:border-r transition-colors z-30 flex flex-col justify-between ${
+            isDark ? 'bg-[#1E140A] border-[#3D2513]' : 'bg-[#FAF6EE] border-[#E8DCCB]'
+          }`}
+        >
+          <div className="p-4 sm:p-5 lg:sticky lg:top-20">
+            <div className="hidden lg:flex items-center justify-between px-3 py-2 mb-3 rounded-xl bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[#C18A45]">
+                Admin Modules
               </span>
-            )}
-          </button>
+              <span className="text-[10px] font-mono opacity-50">6 Tabs</span>
+            </div>
 
-          <button
-            onClick={() => setActiveTab('inventory')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-              activeTab === 'inventory'
-                ? 'bg-[#C18A45] text-white shadow-md'
-                : isDark ? 'hover:bg-[#2A1A0D] text-[#D8C5A8]' : 'hover:bg-[#F1E8D8] text-[#746556]'
-            }`}
-          >
-            <Layers className="w-4 h-4" />
-            <span>Livestock Inventory ({animalsList.length})</span>
-          </button>
+            <nav className="flex flex-row lg:flex-col gap-1.5 overflow-x-auto lg:overflow-visible pb-1 lg:pb-0 no-scrollbar">
+              
+              {/* 1. Overview */}
+              <button
+                type="button"
+                onClick={() => setActiveTab('overview')}
+                className={`flex items-center justify-between gap-2.5 px-3.5 py-3 rounded-xl text-xs font-bold transition-all text-left whitespace-nowrap lg:whitespace-normal cursor-pointer ${
+                  activeTab === 'overview'
+                    ? 'bg-[#C18A45] text-white shadow-sm font-extrabold'
+                    : isDark
+                    ? 'hover:bg-[#2A1A0D] text-[#D8C5A8]'
+                    : 'hover:bg-[#F1E8D8] text-[#746556]'
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <LayoutDashboard className={`w-4 h-4 shrink-0 ${activeTab === 'overview' ? 'text-white' : 'text-[#C18A45]'}`} />
+                  <span>Overview</span>
+                </div>
+              </button>
 
-          <button
-            onClick={() => setActiveTab('packages')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-              activeTab === 'packages'
-                ? 'bg-[#C18A45] text-white shadow-md'
-                : isDark ? 'hover:bg-[#2A1A0D] text-[#D8C5A8]' : 'hover:bg-[#F1E8D8] text-[#746556]'
-            }`}
-          >
-            <Gift className="w-4 h-4 text-amber-400" />
-            <span>Celebration Packages ({packagesList.length})</span>
-          </button>
+              {/* 2. Orders & Payment Slips */}
+              <button
+                type="button"
+                onClick={() => setActiveTab('orders')}
+                className={`flex items-center justify-between gap-2.5 px-3.5 py-3 rounded-xl text-xs font-bold transition-all text-left whitespace-nowrap lg:whitespace-normal cursor-pointer ${
+                  activeTab === 'orders'
+                    ? 'bg-[#C18A45] text-white shadow-sm font-extrabold'
+                    : isDark
+                    ? 'hover:bg-[#2A1A0D] text-[#D8C5A8]'
+                    : 'hover:bg-[#F1E8D8] text-[#746556]'
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <CreditCard className={`w-4 h-4 shrink-0 ${activeTab === 'orders' ? 'text-white' : 'text-[#C18A45]'}`} />
+                  <span>Orders & Payment Slips</span>
+                </div>
+                {stats.pendingOrdersCount > 0 ? (
+                  <span className="px-2 py-0.5 rounded-md bg-amber-500 text-black text-[10px] font-black shrink-0 animate-pulse">
+                    {stats.pendingOrdersCount} new
+                  </span>
+                ) : (
+                  <span className={`px-2 py-0.5 rounded-md text-[10.5px] font-mono font-bold shrink-0 ${
+                    activeTab === 'orders' ? 'bg-black/20 text-white' : 'bg-black/5 dark:bg-white/10 opacity-75'
+                  }`}>
+                    {ordersList.length}
+                  </span>
+                )}
+              </button>
 
-          <button
-            onClick={() => setActiveTab('demand')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-              activeTab === 'demand'
-                ? 'bg-[#C18A45] text-white shadow-md'
-                : isDark ? 'hover:bg-[#2A1A0D] text-[#D8C5A8]' : 'hover:bg-[#F1E8D8] text-[#746556]'
-            }`}
-          >
-            <BarChart3 className="w-4 h-4" />
-            <span>Demand & Metrics</span>
-          </button>
+              {/* 3. Livestock Inventory */}
+              <button
+                type="button"
+                onClick={() => setActiveTab('inventory')}
+                className={`flex items-center justify-between gap-2.5 px-3.5 py-3 rounded-xl text-xs font-bold transition-all text-left whitespace-nowrap lg:whitespace-normal cursor-pointer ${
+                  activeTab === 'inventory'
+                    ? 'bg-[#C18A45] text-white shadow-sm font-extrabold'
+                    : isDark
+                    ? 'hover:bg-[#2A1A0D] text-[#D8C5A8]'
+                    : 'hover:bg-[#F1E8D8] text-[#746556]'
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <Layers className={`w-4 h-4 shrink-0 ${activeTab === 'inventory' ? 'text-white' : 'text-[#C18A45]'}`} />
+                  <span>Livestock Inventory</span>
+                </div>
+                <span className={`px-2 py-0.5 rounded-md text-[10.5px] font-mono font-bold shrink-0 ${
+                  activeTab === 'inventory' ? 'bg-black/20 text-white' : 'bg-black/5 dark:bg-white/10 opacity-75'
+                }`}>
+                  {animalsList.length}
+                </span>
+              </button>
 
-          <button
-            onClick={() => setActiveTab('messages')}
-            className={`relative flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-              activeTab === 'messages'
-                ? 'bg-[#C18A45] text-white shadow-md'
-                : isDark ? 'hover:bg-[#2A1A0D] text-[#D8C5A8]' : 'hover:bg-[#F1E8D8] text-[#746556]'
-            }`}
-          >
-            <MessageSquare className="w-4 h-4 text-cyan-400" />
-            <span>Customer Inquiries ({contactMessages.length})</span>
-            {unreadMessagesCount > 0 && (
-              <span className="px-1.5 py-0.5 rounded-full bg-cyan-500 text-black text-[10px] font-black animate-pulse">
-                {unreadMessagesCount} new
-              </span>
-            )}
-          </button>
-        </div>
+              {/* 4. Celebration Packages */}
+              <button
+                type="button"
+                onClick={() => setActiveTab('packages')}
+                className={`flex items-center justify-between gap-2.5 px-3.5 py-3 rounded-xl text-xs font-bold transition-all text-left whitespace-nowrap lg:whitespace-normal cursor-pointer ${
+                  activeTab === 'packages'
+                    ? 'bg-[#C18A45] text-white shadow-sm font-extrabold'
+                    : isDark
+                    ? 'hover:bg-[#2A1A0D] text-[#D8C5A8]'
+                    : 'hover:bg-[#F1E8D8] text-[#746556]'
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <Gift className={`w-4 h-4 shrink-0 ${activeTab === 'packages' ? 'text-white' : 'text-[#C18A45]'}`} />
+                  <span>Celebration Packages</span>
+                </div>
+                <span className={`px-2 py-0.5 rounded-md text-[10.5px] font-mono font-bold shrink-0 ${
+                  activeTab === 'packages' ? 'bg-black/20 text-white' : 'bg-black/5 dark:bg-white/10 opacity-75'
+                }`}>
+                  {packagesList.length}
+                </span>
+              </button>
+
+              {/* 5. Demand & Metrics */}
+              <button
+                type="button"
+                onClick={() => setActiveTab('demand')}
+                className={`flex items-center justify-between gap-2.5 px-3.5 py-3 rounded-xl text-xs font-bold transition-all text-left whitespace-nowrap lg:whitespace-normal cursor-pointer ${
+                  activeTab === 'demand'
+                    ? 'bg-[#C18A45] text-white shadow-sm font-extrabold'
+                    : isDark
+                    ? 'hover:bg-[#2A1A0D] text-[#D8C5A8]'
+                    : 'hover:bg-[#F1E8D8] text-[#746556]'
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <BarChart3 className={`w-4 h-4 shrink-0 ${activeTab === 'demand' ? 'text-white' : 'text-[#C18A45]'}`} />
+                  <span>Demand & Metrics</span>
+                </div>
+              </button>
+
+              {/* 6. Customer Inquiries */}
+              <button
+                type="button"
+                onClick={() => setActiveTab('messages')}
+                className={`flex items-center justify-between gap-2.5 px-3.5 py-3 rounded-xl text-xs font-bold transition-all text-left whitespace-nowrap lg:whitespace-normal cursor-pointer ${
+                  activeTab === 'messages'
+                    ? 'bg-[#C18A45] text-white shadow-sm font-extrabold'
+                    : isDark
+                    ? 'hover:bg-[#2A1A0D] text-[#D8C5A8]'
+                    : 'hover:bg-[#F1E8D8] text-[#746556]'
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <MessageSquare className={`w-4 h-4 shrink-0 ${activeTab === 'messages' ? 'text-white' : 'text-[#C18A45]'}`} />
+                  <span>Customer Inquiries</span>
+                </div>
+                {unreadMessagesCount > 0 ? (
+                  <span className="px-2 py-0.5 rounded-md bg-amber-500 text-black text-[10px] font-black animate-pulse shrink-0">
+                    {unreadMessagesCount} new
+                  </span>
+                ) : (
+                  <span className={`px-2 py-0.5 rounded-md text-[10.5px] font-mono font-bold shrink-0 ${
+                    activeTab === 'messages' ? 'bg-black/20 text-white' : 'bg-black/5 dark:bg-white/10 opacity-75'
+                  }`}>
+                    {contactMessages.length}
+                  </span>
+                )}
+              </button>
+
+            </nav>
+          </div>
+        </aside>
+
+        {/* Right Main Content Area */}
+        <main className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8">
 
         {/* ============================================================ */}
         {/* TAB 1: OVERVIEW & METRICS */}
         {/* ============================================================ */}
         {activeTab === 'overview' && (
           <div className="space-y-6 animate-in fade-in-50 duration-150">
-            {/* KPI Cards Grid */}
+            {/* KPI Cards Grid with Consistent Unified Icons */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               <div className={`p-4 sm:p-5 rounded-2xl border ${isDark ? 'bg-[#2A1A0D] border-[#4A2C16]' : 'bg-[#F1E8D8] border-[#E4D4BC]'}`}>
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-[11px] font-semibold uppercase tracking-wider opacity-70">Verified Revenue</span>
-                  <div className="w-7 h-7 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
-                    <DollarSign className="w-3.5 h-3.5" />
+                  <div className="w-8 h-8 rounded-xl bg-amber-500/10 text-[#C18A45] border border-amber-500/20 flex items-center justify-center">
+                    <DollarSign className="w-4 h-4 text-[#C18A45]" />
                   </div>
                 </div>
                 <div className="text-xl sm:text-2xl font-serif font-extrabold text-[#C18A45]">
@@ -1521,11 +1577,11 @@ export const Admin: React.FC = () => {
               <div className={`p-4 sm:p-5 rounded-2xl border ${isDark ? 'bg-[#2A1A0D] border-[#4A2C16]' : 'bg-[#F1E8D8] border-[#E4D4BC]'}`}>
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-[11px] font-semibold uppercase tracking-wider opacity-70">Pending Slips</span>
-                  <div className="w-7 h-7 rounded-lg bg-amber-500/10 text-amber-500 flex items-center justify-center">
-                    <Clock className="w-3.5 h-3.5" />
+                  <div className="w-8 h-8 rounded-xl bg-amber-500/10 text-[#C18A45] border border-amber-500/20 flex items-center justify-center">
+                    <Clock className="w-4 h-4 text-[#C18A45]" />
                   </div>
                 </div>
-                <div className="text-xl sm:text-2xl font-serif font-extrabold text-amber-400">
+                <div className="text-xl sm:text-2xl font-serif font-extrabold text-[#C18A45]">
                   {stats.pendingOrdersCount} Slips
                 </div>
                 <p className="text-[11px] opacity-70 mt-1">
@@ -1536,8 +1592,8 @@ export const Admin: React.FC = () => {
               <div className={`p-4 sm:p-5 rounded-2xl border ${isDark ? 'bg-[#2A1A0D] border-[#4A2C16]' : 'bg-[#F1E8D8] border-[#E4D4BC]'}`}>
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-[11px] font-semibold uppercase tracking-wider opacity-70">Total Animals</span>
-                  <div className="w-7 h-7 rounded-lg bg-blue-500/10 text-blue-500 flex items-center justify-center">
-                    <ShoppingBag className="w-3.5 h-3.5" />
+                  <div className="w-8 h-8 rounded-xl bg-amber-500/10 text-[#C18A45] border border-amber-500/20 flex items-center justify-center">
+                    <ShoppingBag className="w-4 h-4 text-[#C18A45]" />
                   </div>
                 </div>
                 <div className="text-xl sm:text-2xl font-serif font-extrabold">
@@ -1551,19 +1607,19 @@ export const Admin: React.FC = () => {
               <div className={`p-4 sm:p-5 rounded-2xl border ${isDark ? 'bg-[#2A1A0D] border-[#4A2C16]' : 'bg-[#F1E8D8] border-[#E4D4BC]'}`}>
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-[11px] font-semibold uppercase tracking-wider opacity-70">Inventory Status</span>
-                  <div className="w-7 h-7 rounded-lg bg-green-500/10 text-green-500 flex items-center justify-center">
-                    <CheckCircle2 className="w-3.5 h-3.5" />
+                  <div className="w-8 h-8 rounded-xl bg-amber-500/10 text-[#C18A45] border border-amber-500/20 flex items-center justify-center">
+                    <CheckCircle2 className="w-4 h-4 text-[#C18A45]" />
                   </div>
                 </div>
                 <div className="flex items-center gap-1.5 text-xs font-semibold">
-                  <span className="text-green-500 font-bold">{stats.availableCount} Avail</span>
+                  <span className="text-emerald-500 font-bold">{stats.availableCount} Avail</span>
                   <span>·</span>
                   <span className="text-amber-500 font-bold">{stats.reservedCount} Hold</span>
                   <span>·</span>
                   <span className="text-stone-400 font-bold">{stats.soldCount} Sold</span>
                 </div>
                 <div className="mt-2 w-full bg-stone-700/30 rounded-full h-1.5 overflow-hidden flex">
-                  <div style={{ width: `${(stats.availableCount / (stats.totalAnimals || 1)) * 100}%` }} className="bg-green-500 h-full" />
+                  <div style={{ width: `${(stats.availableCount / (stats.totalAnimals || 1)) * 100}%` }} className="bg-emerald-500 h-full" />
                   <div style={{ width: `${(stats.reservedCount / (stats.totalAnimals || 1)) * 100}%` }} className="bg-amber-500 h-full" />
                   <div style={{ width: `${(stats.soldCount / (stats.totalAnimals || 1)) * 100}%` }} className="bg-stone-500 h-full" />
                 </div>
@@ -1573,16 +1629,16 @@ export const Admin: React.FC = () => {
             {/* Quick Pending Slips Action Banner */}
             {stats.pendingOrdersCount > 0 && (
               <div
-                className={`p-5 rounded-3xl border flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${
+                className={`p-5 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${
                   isDark ? 'bg-[#2A1A0D] border-amber-500/40' : 'bg-[#FFF8EC] border-amber-500/40'
                 }`}
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-2xl bg-amber-500/20 text-amber-500 flex items-center justify-center flex-shrink-0">
-                    <Clock className="w-5 h-5" />
+                  <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-[#C18A45] flex items-center justify-center flex-shrink-0">
+                    <Clock className="w-5 h-5 text-[#C18A45]" />
                   </div>
                   <div>
-                    <h3 className="font-serif font-bold text-base text-amber-400">
+                    <h3 className="font-serif font-bold text-base text-[#C18A45]">
                       {stats.pendingOrdersCount} Customer Payment Slips Awaiting Review
                     </h3>
                     <p className="text-xs opacity-75">
@@ -1592,7 +1648,7 @@ export const Admin: React.FC = () => {
                 </div>
                 <button
                   onClick={() => setActiveTab('orders')}
-                  className="px-5 py-2.5 rounded-xl bg-[#C18A45] hover:bg-[#A06E35] text-white font-bold text-xs shadow-md transition-all self-start sm:self-auto flex items-center gap-1.5"
+                  className="px-5 py-2.5 rounded-xl bg-[#C18A45] hover:bg-[#A06E35] text-white font-bold text-xs shadow-md transition-all self-start sm:self-auto flex items-center gap-1.5 cursor-pointer"
                 >
                   <span>Review Slips Now</span>
                   <ArrowUpRight className="w-4 h-4" />
@@ -1668,43 +1724,43 @@ export const Admin: React.FC = () => {
                         const remaining = order.remainingAmount || (order.totalAmount * 0.5);
 
                         return (
-                          <tr key={order.id} className={`hover:bg-black/10 transition-colors ${isDark ? 'text-[#F4E8D0]' : 'text-[#2A1A0D]'}`}>
+                          <tr key={order.id} className={`hover:bg-black/5 dark:hover:bg-white/5 transition-colors ${isDark ? 'text-[#F4E8D0]' : 'text-[#2A1A0D]'}`}>
                             {/* Order ID & Type */}
-                            <td className="py-3.5 px-3.5 font-mono font-bold">
-                              <div className="text-amber-500">{order.id}</div>
+                            <td className="py-3 px-3.5 font-mono font-bold">
+                              <div className="text-amber-500 font-semibold">{order.id}</div>
                               <span className="text-[10px] opacity-50 block">
                                 {new Date(order.createdAt).toLocaleDateString()}
                               </span>
                               {order.isPackage && (
-                                <span className="inline-block px-1.5 py-0.5 mt-0.5 rounded text-[9px] font-bold bg-purple-500/20 text-purple-400">
+                                <span className="inline-block px-1.5 py-0.5 mt-1 rounded-md text-[9.5px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30">
                                   Package Order
                                 </span>
                               )}
                               {isRes && (
-                                <span className="inline-block px-1.5 py-0.5 mt-0.5 rounded text-[9px] font-bold bg-emerald-500/20 text-emerald-400 ml-1">
+                                <span className="inline-block px-1.5 py-0.5 mt-1 rounded-md text-[9.5px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 ml-1">
                                   50% Reserve
                                 </span>
                               )}
                             </td>
 
                             {/* Customer */}
-                            <td className="py-3.5 px-3.5">
-                              <strong className="block text-sm">{order.customerName}</strong>
+                            <td className="py-3 px-3.5">
+                              <strong className="block text-xs sm:text-sm font-semibold">{order.customerName}</strong>
                               <span className="text-[11px] opacity-70 block">{order.customerPhone}</span>
                               {order.deliveryLocation && (
-                                <span className="text-[10px] opacity-50 truncate max-w-[150px] block">
+                                <span className="text-[10px] opacity-60 truncate max-w-[150px] block">
                                   📍 {order.deliveryLocation}
                                 </span>
                               )}
                             </td>
 
                             {/* Item & Price */}
-                            <td className="py-3.5 px-3.5">
-                              <div className="font-semibold">{order.packageName || order.animalBreed || 'Livestock Item'}</div>
+                            <td className="py-3 px-3.5">
+                              <div className="font-semibold text-xs">{order.packageName || order.animalBreed || 'Livestock Item'}</div>
                               {order.animalId && (
                                 <span className="text-[10px] font-mono opacity-60 block">ID: {order.animalId}</span>
                               )}
-                              <div className={`font-bold text-sm ${isDark ? 'text-[#E0B15A]' : 'text-[#B8792F]'}`}>
+                              <div className={`font-bold text-xs sm:text-sm ${isDark ? 'text-[#E0B15A]' : 'text-[#B8792F]'}`}>
                                 Total: {formatPrice(order.totalAmount)}
                               </div>
                               {isRes && (
@@ -1716,19 +1772,19 @@ export const Admin: React.FC = () => {
                             </td>
 
                             {/* Slip Preview Thumbnails (Initial + Final) */}
-                            <td className="py-3.5 px-3.5">
+                            <td className="py-3 px-3.5">
                               <div className="space-y-1">
                                 {order.paymentSlipUrl ? (
                                   <button
                                     type="button"
                                     onClick={() => setSelectedSlipOrder(order)}
-                                    className="group relative inline-flex items-center gap-1.5 p-1 rounded-xl border border-[#C18A45]/30 hover:border-[#C18A45] transition-all bg-black/20"
+                                    className="group relative inline-flex items-center gap-1.5 p-1 rounded-lg border border-[#C18A45]/30 hover:border-[#C18A45] transition-all bg-black/10 dark:bg-white/5 cursor-pointer"
                                     title="Click to inspect initial slip"
                                   >
                                     <img
                                       src={order.paymentSlipUrl}
                                       alt="Receipt"
-                                      className="w-10 h-10 object-cover rounded-lg"
+                                      className="w-9 h-9 object-cover rounded-md"
                                     />
                                     <span className="text-[10px] font-bold text-[#C18A45] pr-1">
                                       {isRes ? 'Deposit Slip' : 'Full Slip'}
@@ -1745,13 +1801,13 @@ export const Admin: React.FC = () => {
                                       ...order,
                                       paymentSlipUrl: order.finalPaymentSlipUrl!
                                     })}
-                                    className="group relative inline-flex items-center gap-1.5 p-1 rounded-xl border border-emerald-500/30 hover:border-emerald-500 transition-all bg-emerald-500/10"
+                                    className="group relative inline-flex items-center gap-1.5 p-1 rounded-lg border border-emerald-500/30 hover:border-emerald-500 transition-all bg-emerald-500/10 cursor-pointer"
                                     title="Click to inspect final 50% balance slip"
                                   >
                                     <img
                                       src={order.finalPaymentSlipUrl}
                                       alt="Final Receipt"
-                                      className="w-10 h-10 object-cover rounded-lg"
+                                      className="w-9 h-9 object-cover rounded-md"
                                     />
                                     <span className="text-[10px] font-bold text-emerald-400 pr-1">
                                       Final Slip
@@ -1762,8 +1818,8 @@ export const Admin: React.FC = () => {
                             </td>
 
                             {/* Method */}
-                            <td className="py-3.5 px-3.5">
-                              <div className="font-semibold">{order.paymentMethod}</div>
+                            <td className="py-3 px-3.5">
+                              <div className="font-semibold text-xs">{order.paymentMethod}</div>
                               {order.transactionReference && (
                                 <span className="text-[10px] font-mono opacity-70 block">
                                   Txn: {order.transactionReference}
@@ -1771,59 +1827,59 @@ export const Admin: React.FC = () => {
                               )}
                             </td>
 
-                            {/* Status Badge */}
-                            <td className="py-3.5 px-3.5">
+                            {/* Status Badge (Rectangular & Unified Colors) */}
+                            <td className="py-3 px-3.5">
                               {order.status === 'reservation_pending' && (
-                                <span className="inline-block px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30 animate-pulse">
+                                <span className="inline-block px-2.5 py-1 rounded-md text-[10.5px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30 animate-pulse">
                                   50% Deposit Review Pending
                                 </span>
                               )}
                               {order.status === 'reserved' && (
-                                <span className="inline-block px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                                <span className="inline-block px-2.5 py-1 rounded-md text-[10.5px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30">
                                   Active Reservation (50% Paid)
                                 </span>
                               )}
                               {order.status === 'final_payment_pending' && (
-                                <span className="inline-block px-2.5 py-1 rounded-full text-[10px] font-bold bg-purple-500/20 text-purple-400 border border-purple-500/30 animate-pulse">
+                                <span className="inline-block px-2.5 py-1 rounded-md text-[10.5px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30 animate-pulse">
                                   Final 50% Slip Review Pending
                                 </span>
                               )}
                               {order.status === 'pending_verification' && (
-                                <span className="inline-block px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30 animate-pulse">
+                                <span className="inline-block px-2.5 py-1 rounded-md text-[10.5px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30 animate-pulse">
                                   Full Slip Review Pending
                                 </span>
                               )}
                               {order.status === 'delivery_pending' && (
-                                <span className="inline-block px-2.5 py-1 rounded-full text-[10px] font-bold bg-blue-500/20 text-blue-400 border border-blue-500/30">
+                                <span className="inline-block px-2.5 py-1 rounded-md text-[10.5px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30">
                                   🚚 Delivery Pending
                                 </span>
                               )}
                               {order.status === 'delivered' && (
-                                <span className="inline-block px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                                <span className="inline-block px-2.5 py-1 rounded-md text-[10.5px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
                                   🏡 Delivered to Customer
                                 </span>
                               )}
                               {(order.status === 'completed' || order.status === 'verified') && (
-                                <span className="inline-block px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                                <span className="inline-block px-2.5 py-1 rounded-md text-[10.5px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
                                   ✓ Sold
                                 </span>
                               )}
                               {order.status === 'rejected' && (
-                                <span className="inline-block px-2.5 py-1 rounded-full text-[10px] font-bold bg-red-500/20 text-red-400 border border-red-500/30">
+                                <span className="inline-block px-2.5 py-1 rounded-md text-[10.5px] font-bold bg-red-500/15 text-red-400 border border-red-500/30">
                                   Rejected
                                 </span>
                               )}
                             </td>
 
                             {/* Actions */}
-                            <td className="py-3.5 px-3.5 text-right">
+                            <td className="py-3 px-3.5 text-right">
                               <div className="inline-flex flex-wrap items-center justify-end gap-1.5">
                                 {/* 1. Deposit Review Pending Action */}
                                 {order.status === 'reservation_pending' && (
                                   <>
                                     <button
                                       onClick={() => handleVerifyReservation(order.id)}
-                                      className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-black font-bold text-xs shadow transition-all flex items-center gap-1"
+                                      className="px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-black font-bold text-xs shadow transition-all flex items-center gap-1 cursor-pointer"
                                       title="Approve 50% deposit and lock/reserve item"
                                     >
                                       <Check className="w-3.5 h-3.5" />
@@ -1831,7 +1887,7 @@ export const Admin: React.FC = () => {
                                     </button>
                                     <button
                                       onClick={() => handleRejectOrder(order.id)}
-                                      className="p-1.5 rounded-xl bg-red-500/20 hover:bg-red-500/30 text-red-400 transition-colors"
+                                      className="p-1.5 rounded-lg bg-red-500/15 hover:bg-red-500/25 text-red-400 transition-colors cursor-pointer"
                                       title="Reject deposit slip"
                                     >
                                       <X className="w-4 h-4" />
@@ -1844,7 +1900,7 @@ export const Admin: React.FC = () => {
                                   <>
                                     <button
                                       onClick={() => handleVerifyFinalPayment(order.id)}
-                                      className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow transition-all flex items-center gap-1"
+                                      className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow transition-all flex items-center gap-1 cursor-pointer"
                                       title="Verify final balance and mark animal as SOLD"
                                     >
                                       <Check className="w-3.5 h-3.5" />
@@ -1852,7 +1908,7 @@ export const Admin: React.FC = () => {
                                     </button>
                                     <button
                                       onClick={() => handleRejectOrder(order.id)}
-                                      className="p-1.5 rounded-xl bg-red-500/20 hover:bg-red-500/30 text-red-400 transition-colors"
+                                      className="p-1.5 rounded-lg bg-red-500/15 hover:bg-red-500/25 text-red-400 transition-colors cursor-pointer"
                                       title="Reject final slip"
                                     >
                                       <X className="w-4 h-4" />
@@ -1865,7 +1921,7 @@ export const Admin: React.FC = () => {
                                   <>
                                     <button
                                       onClick={() => handleVerifyOrder(order.id)}
-                                      className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow transition-all flex items-center gap-1"
+                                      className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow transition-all flex items-center gap-1 cursor-pointer"
                                       title="Verify payment and mark animal as SOLD"
                                     >
                                       <Check className="w-3.5 h-3.5" />
@@ -1873,7 +1929,7 @@ export const Admin: React.FC = () => {
                                     </button>
                                     <button
                                       onClick={() => handleRejectOrder(order.id)}
-                                      className="p-1.5 rounded-xl bg-red-500/20 hover:bg-red-500/30 text-red-400 transition-colors"
+                                      className="p-1.5 rounded-lg bg-red-500/15 hover:bg-red-500/25 text-red-400 transition-colors cursor-pointer"
                                       title="Reject slip"
                                     >
                                       <X className="w-4 h-4" />
@@ -1895,14 +1951,14 @@ export const Admin: React.FC = () => {
                                       <>
                                         <button
                                           onClick={() => handleUpdateOrderStatus(order.id, 'delivery_pending')}
-                                          className="px-2.5 py-1 rounded-xl bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 font-bold text-[11px] transition-colors"
+                                          className="px-2.5 py-1 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 text-amber-400 font-bold text-[11px] border border-amber-500/30 transition-colors cursor-pointer"
                                           title="Set order as Delivery Pending"
                                         >
                                           Dispatch Delivery
                                         </button>
                                         <button
                                           onClick={() => handleUpdateOrderStatus(order.id, 'delivered')}
-                                          className="px-2.5 py-1 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 font-bold text-[11px] transition-colors"
+                                          className="px-2.5 py-1 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 font-bold text-[11px] border border-emerald-500/30 transition-colors cursor-pointer"
                                           title="Mark as Delivered"
                                         >
                                           Mark Delivered ✓
@@ -1921,7 +1977,7 @@ export const Admin: React.FC = () => {
                                   <div className="flex items-center gap-1.5">
                                     <button
                                       onClick={() => handleUpdateOrderStatus(order.id, 'delivered')}
-                                      className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow transition-colors flex items-center gap-1"
+                                      className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow transition-colors flex items-center gap-1 cursor-pointer"
                                       title="Confirm delivery to customer"
                                     >
                                       <Check className="w-3.5 h-3.5" />
@@ -2133,93 +2189,122 @@ export const Admin: React.FC = () => {
                 </button>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                {packagesList.map((pkg) => (
-                  <div
-                    key={pkg.id}
-                    className={`group rounded-3xl border overflow-hidden flex flex-col justify-between transition-all duration-200 hover:shadow-xl ${
-                      isDark ? 'bg-[#1F140A] border-[#4A2C16]' : 'bg-white border-[#E4D4BC]'
-                    }`}
-                  >
-                    <div>
-                      {/* Package Image & Badges */}
-                      <div className="relative h-48 w-full bg-black/20 overflow-hidden">
-                        <img
-                          src={pkg.image}
-                          alt={pkg.name}
-                          className="w-full h-full object-cover scale-110 group-hover:scale-100 transition-transform duration-500 ease-out"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-                        
-                        <div className="absolute top-3 left-3">
-                          <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-500 text-black shadow-md">
-                            {pkg.badge || 'Holiday Package'}
-                          </span>
-                        </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 items-start">
+                {packagesList.map((pkg, pIdx) => {
+                  const pkgKey = String(pkg.id || `pkg-${pIdx}`);
+                  const isExpanded = Boolean(expandedPkgIds[pkgKey]);
 
-                        <div className="absolute top-3 right-3 flex flex-col items-end gap-1">
-                          {pkg.featured && (
-                            <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500 text-white shadow-md">
-                              ★ Featured
+                  return (
+                    <div
+                      key={pkgKey}
+                      className={`group rounded-3xl border overflow-hidden flex flex-col justify-between transition-all duration-200 hover:shadow-xl ${
+                        isDark ? 'bg-[#1F140A] border-[#4A2C16]' : 'bg-white border-[#E4D4BC]'
+                      }`}
+                    >
+                      <div>
+                        {/* Package Image & Badges */}
+                        <div className="relative h-36 sm:h-40 w-full bg-black/20 overflow-hidden">
+                          <img
+                            src={pkg.image}
+                            alt={pkg.name}
+                            className="w-full h-full object-cover scale-105 group-hover:scale-100 transition-transform duration-500 ease-out"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                          
+                          <div className="absolute top-2.5 left-2.5">
+                            <span className="px-2.5 py-0.5 rounded-md text-[10.5px] font-bold bg-amber-500 text-black shadow-md">
+                              {pkg.badge || 'Holiday Package'}
                             </span>
-                          )}
-                          {(() => {
-                            const avail = pkg.availableSlots !== undefined ? pkg.availableSlots : 10;
-                            const isOut = Boolean(pkg.isOutOfStock || avail <= 0);
-                            if (isOut) {
+                          </div>
+
+                          <div className="absolute top-2.5 right-2.5 flex flex-col items-end gap-1">
+                            {pkg.featured && (
+                              <span className="px-2 py-0.5 rounded-md text-[9.5px] font-bold bg-emerald-500 text-white shadow-md">
+                                ★ Featured
+                              </span>
+                            )}
+                            {(() => {
+                              const avail = pkg.availableSlots !== undefined ? pkg.availableSlots : 10;
+                              const isOut = Boolean(pkg.isOutOfStock || avail <= 0);
+                              if (isOut) {
+                                return (
+                                  <span className="px-2 py-0.5 rounded-md text-[9px] font-bold bg-red-600 text-white shadow-md animate-pulse">
+                                    OUT OF STOCK
+                                  </span>
+                                );
+                              }
                               return (
-                                <span className="px-2.5 py-0.5 rounded-full text-[9.5px] font-bold bg-red-600 text-white shadow-md animate-pulse">
-                                  OUT OF STOCK
+                                <span className="px-2 py-0.5 rounded-md text-[9px] font-bold bg-black/75 text-emerald-300 border border-emerald-500/30">
+                                  {avail} Slots Left
                                 </span>
                               );
-                            }
-                            return (
-                              <span className="px-2.5 py-0.5 rounded-full text-[9.5px] font-bold bg-black/75 text-emerald-300 border border-emerald-500/30">
-                                {avail} Slots Left
-                              </span>
-                            );
-                          })()}
+                            })()}
+                          </div>
+
+                          <div className="absolute bottom-2.5 left-2.5 right-2.5 text-white">
+                            <h4 className="font-serif font-bold text-sm sm:text-base line-clamp-1">{pkg.name}</h4>
+                            {pkg.amharicName && (
+                              <div className="text-[11px] text-amber-300 font-serif opacity-90 line-clamp-1">{pkg.amharicName}</div>
+                            )}
+                          </div>
                         </div>
 
-                        <div className="absolute bottom-3 left-3 right-3 text-white">
-                          <h4 className="font-serif font-bold text-base line-clamp-1">{pkg.name}</h4>
-                          {pkg.amharicName && (
-                            <div className="text-xs text-amber-300 font-serif opacity-90 line-clamp-1">{pkg.amharicName}</div>
+                        {/* Content Details */}
+                        <div className="p-3.5 sm:p-4 space-y-2.5">
+                          {pkg.tagline && (
+                            <div className="text-xs font-semibold text-amber-500 italic line-clamp-1">
+                              "{pkg.tagline}"
+                            </div>
                           )}
-                        </div>
-                      </div>
 
-                      {/* Content Details */}
-                      <div className="p-4 sm:p-5 space-y-3">
-                        {pkg.tagline && (
-                          <div className="text-xs font-semibold text-amber-500 italic">
-                            "{pkg.tagline}"
-                          </div>
-                        )}
+                          <p className="text-xs opacity-80 line-clamp-2 leading-relaxed">
+                            {pkg.description}
+                          </p>
 
-                        <p className="text-xs opacity-80 line-clamp-3 leading-relaxed">
-                          {pkg.description}
-                        </p>
-
-                        {/* Included Contents */}
-                        <div className="space-y-1.5 pt-1">
-                          <div className="text-[10px] font-bold uppercase tracking-wider opacity-60 flex items-center justify-between">
-                            <span>Includes ({pkg.items?.length || 0} items):</span>
-                            <span className="text-emerald-500 font-semibold">{pkg.categoryCount} Categories</span>
-                          </div>
-                          <div className="flex flex-wrap gap-1">
-                            {pkg.items?.map((item, idx) => (
-                              <span
-                                key={idx}
-                                className="text-[10px] px-2 py-0.5 rounded-md bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 font-medium truncate max-w-[220px]"
-                              >
-                                • {item.name}
+                          {/* Included Contents Dropdown Button */}
+                          <div className="space-y-1.5 pt-1">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setExpandedPkgIds(prev => ({
+                                  ...prev,
+                                  [pkgKey]: !prev[pkgKey]
+                                }));
+                              }}
+                              className={`w-full py-1.5 px-3 rounded-xl border text-xs font-semibold flex items-center justify-between transition-all cursor-pointer ${
+                                isExpanded
+                                  ? 'bg-amber-500/15 border-amber-500/40 text-amber-500'
+                                  : 'border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5 opacity-80 hover:opacity-100'
+                              }`}
+                            >
+                              <span className="flex items-center gap-1.5 font-bold">
+                                <span>Included Items ({pkg.items?.length || 0})</span>
+                                <span className="text-[10px] opacity-70 font-normal">• {pkg.categoryCount} Categories</span>
                               </span>
-                            ))}
+                              <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${
+                                isExpanded ? 'rotate-180 text-amber-500' : ''
+                              }`} />
+                            </button>
+
+                            {/* Expanded Dropdown Content */}
+                            {isExpanded && (
+                              <div className="space-y-1 pt-1 max-h-48 overflow-y-auto overscroll-contain animate-in fade-in zoom-in-95 duration-150">
+                                {pkg.items?.map((item, idx) => (
+                                  <div
+                                    key={idx}
+                                    className="text-[11px] px-2.5 py-1 rounded-lg bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 flex items-center justify-between gap-2"
+                                  >
+                                    <span className="font-medium truncate">• {item.name}</span>
+                                    {item.price ? (
+                                      <span className="font-mono text-[10px] opacity-70 shrink-0">{formatPrice(item.price)}</span>
+                                    ) : null}
+                                  </div>
+                                ))}
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
-                    </div>
 
                     {/* Slots Control & Restock Action */}
                     <div className="px-4 sm:px-5 py-2.5 border-t flex items-center justify-between border-black/5 dark:border-white/5 bg-black/[0.02] dark:bg-white/[0.02]">
@@ -2268,7 +2353,8 @@ export const Admin: React.FC = () => {
                       </button>
                     </div>
                   </div>
-                ))}
+                );
+              })}
               </div>
             )}
           </div>
@@ -2318,9 +2404,9 @@ export const Admin: React.FC = () => {
             }`}>
               <div>
                 <h3 className="font-serif font-bold text-xl flex items-center gap-2">
-                  <MessageSquare className="w-5 h-5 text-cyan-400" />
+                  <MessageSquare className="w-5 h-5 text-[#C18A45]" />
                   <span>Customer Inquiries & Messages</span>
-                  <span className="text-xs px-2 py-0.5 rounded-full font-sans font-bold bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">
+                  <span className="text-xs px-2 py-0.5 rounded-md font-sans font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30">
                     {contactMessages.length} Total
                   </span>
                 </h3>
@@ -2400,7 +2486,7 @@ export const Admin: React.FC = () => {
                   <div className={`text-center py-16 rounded-2xl border ${
                     isDark ? 'bg-[#2A1A0D]/40 border-[#4A2C16]' : 'bg-[#F1E8D8]/40 border-[#E4D4BC]'
                   }`}>
-                    <MessageSquare className="w-12 h-12 mx-auto mb-3 opacity-30 text-cyan-400" />
+                    <MessageSquare className="w-12 h-12 mx-auto mb-3 opacity-30 text-[#C18A45]" />
                     <p className="font-semibold text-sm">No customer inquiries found</p>
                     <p className="text-xs opacity-60 mt-1">
                       {messageSearch || messageFilter !== 'all'
@@ -2419,8 +2505,8 @@ export const Admin: React.FC = () => {
                       className={`p-4 sm:p-5 rounded-2xl border transition-all ${
                         !msg.read
                           ? isDark
-                            ? 'bg-[#24170D] border-cyan-500/40 shadow-md ring-1 ring-cyan-500/20'
-                            : 'bg-white border-cyan-500/50 shadow-md ring-1 ring-cyan-500/20'
+                            ? 'bg-[#24170D] border-amber-500/40 shadow-md ring-1 ring-amber-500/20'
+                            : 'bg-white border-amber-500/50 shadow-md ring-1 ring-amber-500/20'
                           : isDark
                           ? 'bg-[#2A1A0D] border-[#4A2C16]'
                           : 'bg-[#FAF7F0] border-[#E4D4BC]'
@@ -2432,11 +2518,11 @@ export const Admin: React.FC = () => {
                           <div className="flex items-center gap-2">
                             <span className="font-bold text-sm sm:text-base">{msg.name}</span>
                             {!msg.read ? (
-                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">
+                              <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30">
                                 Unread
                               </span>
                             ) : (
-                              <span className="px-2 py-0.5 rounded-full text-[10px] font-medium opacity-60 border border-black/10 dark:border-white/10">
+                              <span className="px-2 py-0.5 rounded-md text-[10px] font-medium opacity-60 border border-black/10 dark:border-white/10">
                                 Read
                               </span>
                             )}
@@ -2527,6 +2613,7 @@ export const Admin: React.FC = () => {
             })()}
           </div>
         )}
+        </main>
       </div>
 
       {/* Slip Preview & Direct Approval Modal */}
@@ -2596,7 +2683,7 @@ export const Admin: React.FC = () => {
                   <input
                     type="text"
                     required
-                    placeholder="e.g. Horro, Boer, Boran"
+                    placeholder="e.g. Debrebirhan, Ginchi, Wolayita, Arsi"
                     value={newAnimalBreed}
                     onChange={(e) => setNewAnimalBreed(e.target.value)}
                     className="w-full px-3 py-2 rounded-xl text-xs border bg-transparent"
@@ -2825,392 +2912,395 @@ export const Admin: React.FC = () => {
         )}
 
       {/* Add Celebration Package Modal */}
+      {/* Add Celebration Package Modal */}
       {isAddPackageOpen && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
           <div
-            className={`relative w-full max-w-2xl rounded-3xl border shadow-2xl p-6 sm:p-8 animate-in fade-in zoom-in-95 duration-200 my-8 ${
+            className={`relative w-full max-w-lg max-h-[88vh] rounded-3xl border shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200 ${
               isDark ? 'bg-[#24170D] border-[#4A2C16] text-[#F4E8D0]' : 'bg-white border-[#E4D4BC] text-[#2A1A0D]'
             }`}
           >
-            <button
-              onClick={() => setIsAddPackageOpen(false)}
-              className="absolute top-5 right-5 p-2 rounded-full opacity-60 hover:opacity-100 cursor-pointer"
-            >
-              <X className="w-5 h-5" />
-            </button>
-
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-8 h-8 rounded-xl bg-amber-500/15 text-amber-500 flex items-center justify-center">
-                <Gift className="w-4 h-4" />
+            {/* Fixed Header */}
+            <div className="p-4 sm:p-5 border-b flex items-center justify-between shrink-0" style={{ borderColor: isDark ? '#4A2C16' : '#E4D4BC' }}>
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-amber-500/15 text-amber-500 flex items-center justify-center">
+                  <Gift className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="font-serif font-bold text-base sm:text-lg leading-tight">Create Celebration Package</h3>
+                  <p className="text-[11px] opacity-70">Add bundle directly to PostgreSQL</p>
+                </div>
               </div>
-              <h3 className="font-serif font-bold text-xl">Create New Celebration Package</h3>
+              <button
+                type="button"
+                onClick={() => setIsAddPackageOpen(false)}
+                className="p-1.5 rounded-full hover:bg-black/10 dark:hover:bg-white/10 opacity-70 hover:opacity-100 transition-colors cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
             </div>
-            <p className="text-xs opacity-70 mb-5">
-              Fill in all package details. It will be saved directly into PostgreSQL and featured on the celebration marketplace.
-            </p>
 
-            <form onSubmit={handleAddPackageSubmit} className="space-y-4">
-              {/* Package Title (English & Amharic) */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-semibold uppercase mb-1 opacity-80">Package Name (English) *</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. Enkutatash Royal Banquet"
-                    value={newPkgName}
-                    onChange={(e) => setNewPkgName(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl text-xs border bg-transparent"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold uppercase mb-1 opacity-80">Package Name (Amharic)</label>
-                  <input
-                    type="text"
-                    placeholder="የእንቁጣጣሽ የንግሥና ድግስ ጥቅል"
-                    value={newPkgAmharicName}
-                    onChange={(e) => setNewPkgAmharicName(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl text-xs border bg-transparent"
-                  />
-                </div>
-              </div>
-
-              {/* Tagline & Badge */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-semibold uppercase mb-1 opacity-80">Tagline / Subtitle</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. All-Inclusive Holiday Feast for 15-25 Guests"
-                    value={newPkgTagline}
-                    onChange={(e) => setNewPkgTagline(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl text-xs border bg-transparent"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold uppercase mb-1 opacity-80">Badge / Promotional Label</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. ⭐ Most Popular, 👑 VIP Luxury, 🎉 Holiday Special"
-                    value={newPkgBadge}
-                    onChange={(e) => setNewPkgBadge(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl text-xs border bg-transparent"
-                  />
-                </div>
-              </div>
-
-              {/* Detailed Description */}
-              <div>
-                <label className="block text-xs font-semibold uppercase mb-1 opacity-80">Package Description *</label>
-                <textarea
-                  rows={2}
-                  required
-                  placeholder="Describe what makes this package special, included premium meats, beverages, and service details..."
-                  value={newPkgDescription}
-                  onChange={(e) => setNewPkgDescription(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl text-xs border bg-transparent"
-                />
-              </div>
-
-              {/* Pricing & Featured */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div>
-                  <label className="block text-xs font-semibold uppercase mb-1 opacity-80">Package Price (Selling) *</label>
-                  <input
-                    type="number"
-                    required
-                    min={1}
-                    value={newPkgPackagePrice}
-                    onChange={(e) => setNewPkgPackagePrice(Number(e.target.value))}
-                    className="w-full px-3 py-2 rounded-xl text-xs border bg-transparent font-mono"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold uppercase mb-1 opacity-80">Original / Regular Price *</label>
-                  <input
-                    type="number"
-                    required
-                    min={1}
-                    value={newPkgOriginalPrice}
-                    onChange={(e) => setNewPkgOriginalPrice(Number(e.target.value))}
-                    className="w-full px-3 py-2 rounded-xl text-xs border bg-transparent font-mono"
-                  />
-                </div>
-                <div className="flex flex-col justify-end">
-                  <label className="flex items-center gap-2 text-xs font-semibold cursor-pointer pb-2">
-                    <input
-                      type="checkbox"
-                      checked={newPkgFeatured}
-                      onChange={(e) => setNewPkgFeatured(e.target.checked)}
-                      className="w-4 h-4 rounded text-amber-500"
-                    />
-                    <span>Feature on Homepage</span>
-                  </label>
-                </div>
-              </div>
-
-              {/* Inventory Capacity Slots */}
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-semibold uppercase mb-1 opacity-80">
-                    Initial Available Slots *
-                  </label>
-                  <input
-                    type="number"
-                    required
-                    min={0}
-                    value={newPkgAvailableSlots}
-                    onChange={(e) => setNewPkgAvailableSlots(Math.max(0, parseInt(e.target.value) || 0))}
-                    className="w-full px-3 py-2 rounded-xl text-xs border bg-transparent font-mono"
-                  />
-                  <p className="text-[10px] opacity-60 mt-0.5">Slots decrease on order/reservation</p>
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold uppercase mb-1 opacity-80">
-                    Total Slots Cap *
-                  </label>
-                  <input
-                    type="number"
-                    required
-                    min={1}
-                    value={newPkgTotalSlots}
-                    onChange={(e) => setNewPkgTotalSlots(Math.max(1, parseInt(e.target.value) || 1))}
-                    className="w-full px-3 py-2 rounded-xl text-xs border bg-transparent font-mono"
-                  />
-                  <p className="text-[10px] opacity-60 mt-0.5">Maximum package capacity</p>
-                </div>
-              </div>
-
-              {/* Real-time Savings Pill */}
-              {newPkgOriginalPrice > newPkgPackagePrice && (
-                <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs flex items-center justify-between">
-                  <span>Customer Savings / Discount:</span>
-                  <span className="font-mono font-bold">Save {formatPrice(newPkgOriginalPrice - newPkgPackagePrice)} ({(Math.round(((newPkgOriginalPrice - newPkgPackagePrice) / newPkgOriginalPrice) * 100))}% OFF)</span>
-                </div>
-              )}
-
-              {/* Drag and Drop Image Uploader */}
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <label className="block text-xs font-semibold uppercase opacity-80">
-                    Package Cover Photo (Drag & Drop, File, or URL) *
-                  </label>
-                  <div className="flex items-center gap-1 text-[10px]">
-                    <button
-                      type="button"
-                      onClick={() => setPkgImageUploadMode('upload')}
-                      className={`px-2 py-0.5 rounded-lg font-medium transition-colors cursor-pointer ${
-                        pkgImageUploadMode === 'upload'
-                          ? 'bg-amber-500 text-black font-bold'
-                          : 'opacity-60 hover:opacity-100'
-                      }`}
-                    >
-                      File Upload
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setPkgImageUploadMode('url')}
-                      className={`px-2 py-0.5 rounded-lg font-medium transition-colors cursor-pointer ${
-                        pkgImageUploadMode === 'url'
-                          ? 'bg-amber-500 text-black font-bold'
-                          : 'opacity-60 hover:opacity-100'
-                      }`}
-                    >
-                      Paste URL
-                    </button>
-                  </div>
-                </div>
-
-                <input
-                  type="file"
-                  ref={pkgImageInputRef}
-                  accept="image/*"
-                  className="hidden"
-                  onChange={(e) => {
-                    if (e.target.files && e.target.files[0]) {
-                      handlePackageImageFile(e.target.files[0]);
-                    }
-                  }}
-                />
-
-                {pkgImageUploadMode === 'upload' ? (
-                  newPkgImage ? (
-                    <div
-                      className={`flex items-center gap-3 p-3 rounded-2xl border ${
-                        isDark ? 'bg-[#1B1208] border-[#4A2C16]' : 'bg-[#FAF7F0] border-[#E4D4BC]'
-                      }`}
-                    >
-                      <div className="relative w-20 h-20 rounded-xl overflow-hidden shrink-0 border border-black/10 dark:border-white/10 bg-black/10">
-                        <img
-                          src={newPkgImage}
-                          alt="Package Preview"
-                          className="w-full h-full object-cover"
-                        />
-                        {isUploadingPkgImage && (
-                          <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                            <RefreshCw className="w-5 h-5 text-amber-500 animate-spin" />
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="flex-1 min-w-0 pr-1">
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-xs font-bold text-amber-500">
-                            {isUploadingPkgImage ? 'Uploading image...' : '✓ Package Photo Attached'}
-                          </span>
-                        </div>
-                        <p className="text-[10px] opacity-60 truncate mt-0.5">
-                          {newPkgImage.startsWith('data:') ? 'Local preview ready' : newPkgImage}
-                        </p>
-                        <div className="mt-2 flex items-center gap-2">
-                          <button
-                            type="button"
-                            onClick={() => pkgImageInputRef.current?.click()}
-                            className="text-[11px] font-semibold text-amber-500 hover:underline cursor-pointer"
-                          >
-                            Choose Another
-                          </button>
-                          <span className="opacity-30">•</span>
-                          <button
-                            type="button"
-                            onClick={() => setNewPkgImage('')}
-                            className="text-[11px] font-semibold text-red-400 hover:underline inline-flex items-center gap-0.5 cursor-pointer"
-                          >
-                            <Trash2 className="w-3 h-3" />
-                            <span>Remove</span>
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    <div
-                      onDragOver={handlePackageDragOver}
-                      onDragLeave={handlePackageDragLeave}
-                      onDrop={handlePackageDrop}
-                      onClick={() => pkgImageInputRef.current?.click()}
-                      className={`relative cursor-pointer rounded-2xl border-2 border-dashed p-5 text-center transition-all group select-none ${
-                        isDraggingPkgImage
-                          ? 'border-amber-500 bg-amber-500/20 scale-[1.01]'
-                          : isDark
-                          ? 'border-[#4A2C16] hover:border-amber-500/70 bg-[#1B1208]/60 hover:bg-[#1B1208]'
-                          : 'border-[#E4D4BC] hover:border-amber-500/70 bg-[#FAF7F0]/80 hover:bg-[#FAF7F0]'
-                      }`}
-                    >
-                      <div className="flex flex-col items-center justify-center gap-1.5">
-                        <div className="p-2.5 rounded-full bg-amber-500/15 text-amber-500">
-                          <UploadCloud className="w-5 h-5" />
-                        </div>
-                        <p className="text-xs font-bold">
-                          Drag and drop package photo here, or <span className="text-amber-500 underline">browse</span>
-                        </p>
-                        <span className="text-[10px] opacity-50">JPG, PNG, WEBP up to 10MB</span>
-                      </div>
-                    </div>
-                  )
-                ) : (
+            {/* Form with Scrollable Content & Sticky Footer */}
+            <form onSubmit={handleAddPackageSubmit} className="flex flex-col flex-1 min-h-0">
+              <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-3.5">
+                
+                {/* Package Titles */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                   <div>
-                    <input
-                      type="url"
-                      placeholder="https://images.unsplash.com/..."
-                      value={newPkgImage}
-                      onChange={(e) => setNewPkgImage(e.target.value)}
-                      className="w-full px-3 py-2 rounded-xl text-xs border bg-transparent"
-                    />
-                    {newPkgImage && (
-                      <div className="mt-2 flex items-center gap-2">
-                        <img
-                          src={newPkgImage}
-                          alt="URL Preview"
-                          className="w-12 h-12 rounded-lg object-cover border"
-                          onError={(e) => {
-                            (e.target as HTMLElement).style.display = 'none';
-                          }}
-                        />
-                        <span className="text-[10px] opacity-60">URL preview ready</span>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              {/* Included Items Selector */}
-              <div className="space-y-2 pt-2 border-t border-black/10 dark:border-white/10">
-                <div className="flex items-center justify-between">
-                  <label className="block text-xs font-bold uppercase tracking-wider opacity-90">
-                    Included Items in Package ({newPkgSelectedItems.length} selected) *
-                  </label>
-                  <span className="text-[11px] text-amber-500 font-semibold">
-                    Click items below to include
-                  </span>
-                </div>
-
-                {/* Available Catalog Items */}
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-44 overflow-y-auto p-1">
-                  {catalogItems.map((item) => {
-                    const isSelected = newPkgSelectedItems.some(i => i.id === item.id);
-                    return (
-                      <button
-                        type="button"
-                        key={item.id}
-                        onClick={() => handleToggleCatalogItem(item)}
-                        className={`p-2 rounded-xl border text-left flex items-center gap-2 transition-all cursor-pointer ${
-                          isSelected
-                            ? 'bg-amber-500/20 border-amber-500 text-amber-500 shadow-sm'
-                            : 'bg-black/5 dark:bg-white/5 border-transparent opacity-70 hover:opacity-100'
-                        }`}
-                      >
-                        <div className="w-4 h-4 rounded border flex items-center justify-center shrink-0 border-current">
-                          {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
-                        </div>
-                        <div className="min-w-0">
-                          <div className="text-[11px] font-bold truncate">{item.name}</div>
-                          <div className="text-[9px] opacity-70">{formatPrice(item.price)}</div>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-
-                {/* Quick Add Custom Item */}
-                <div className="pt-2 flex flex-col sm:flex-row gap-2 items-end">
-                  <div className="flex-1 w-full">
+                    <label className="block text-[11px] font-bold uppercase mb-1 opacity-80">Name (English) *</label>
                     <input
                       type="text"
-                      placeholder="Add custom item (e.g. 5kg Extra Berbere Spices)"
-                      value={customItemName}
-                      onChange={(e) => setCustomItemName(e.target.value)}
+                      required
+                      placeholder="e.g. Enkutatash Royal Feast"
+                      value={newPkgName}
+                      onChange={(e) => setNewPkgName(e.target.value)}
                       className="w-full px-3 py-1.5 rounded-xl text-xs border bg-transparent"
                     />
                   </div>
-                  <div className="w-full sm:w-36">
+                  <div>
+                    <label className="block text-[11px] font-bold uppercase mb-1 opacity-80">Name (Amharic)</label>
+                    <input
+                      type="text"
+                      placeholder="የእንቁጣጣሽ ድግስ ጥቅል"
+                      value={newPkgAmharicName}
+                      onChange={(e) => setNewPkgAmharicName(e.target.value)}
+                      className="w-full px-3 py-1.5 rounded-xl text-xs border bg-transparent"
+                    />
+                  </div>
+                </div>
+
+                {/* Tagline & Badge */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  <div>
+                    <label className="block text-[11px] font-bold uppercase mb-1 opacity-80">Tagline / Subtitle</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Holiday Feast for 15-20 Guests"
+                      value={newPkgTagline}
+                      onChange={(e) => setNewPkgTagline(e.target.value)}
+                      className="w-full px-3 py-1.5 rounded-xl text-xs border bg-transparent"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-bold uppercase mb-1 opacity-80">Badge Label</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. ⭐ Most Popular, 🎉 Special"
+                      value={newPkgBadge}
+                      onChange={(e) => setNewPkgBadge(e.target.value)}
+                      className="w-full px-3 py-1.5 rounded-xl text-xs border bg-transparent"
+                    />
+                  </div>
+                </div>
+
+                {/* Description */}
+                <div>
+                  <label className="block text-[11px] font-bold uppercase mb-1 opacity-80">Description *</label>
+                  <textarea
+                    rows={2}
+                    required
+                    placeholder="Describe included meats, beverages, and celebration items..."
+                    value={newPkgDescription}
+                    onChange={(e) => setNewPkgDescription(e.target.value)}
+                    className="w-full px-3 py-1.5 rounded-xl text-xs border bg-transparent"
+                  />
+                </div>
+
+                {/* Pricing & Featured */}
+                <div className="grid grid-cols-3 gap-2.5">
+                  <div>
+                    <label className="block text-[11px] font-bold uppercase mb-1 opacity-80">Selling Price *</label>
+                    <input
+                      type="number"
+                      required
+                      min={1}
+                      value={newPkgPackagePrice}
+                      onChange={(e) => setNewPkgPackagePrice(Number(e.target.value))}
+                      className="w-full px-3 py-1.5 rounded-xl text-xs border bg-transparent font-mono"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-bold uppercase mb-1 opacity-80">Original Price *</label>
+                    <input
+                      type="number"
+                      required
+                      min={1}
+                      value={newPkgOriginalPrice}
+                      onChange={(e) => setNewPkgOriginalPrice(Number(e.target.value))}
+                      className="w-full px-3 py-1.5 rounded-xl text-xs border bg-transparent font-mono"
+                    />
+                  </div>
+                  <div className="flex flex-col justify-end">
+                    <label className="flex items-center gap-1.5 text-xs font-semibold cursor-pointer pb-2">
+                      <input
+                        type="checkbox"
+                        checked={newPkgFeatured}
+                        onChange={(e) => setNewPkgFeatured(e.target.checked)}
+                        className="w-3.5 h-3.5 rounded text-amber-500"
+                      />
+                      <span className="text-[11px]">Featured</span>
+                    </label>
+                  </div>
+                </div>
+
+                {/* Slots Capacity */}
+                <div className="grid grid-cols-2 gap-2.5">
+                  <div>
+                    <label className="block text-[11px] font-bold uppercase mb-1 opacity-80">Available Slots *</label>
+                    <input
+                      type="number"
+                      required
+                      min={0}
+                      value={newPkgAvailableSlots}
+                      onChange={(e) => setNewPkgAvailableSlots(Math.max(0, parseInt(e.target.value) || 0))}
+                      className="w-full px-3 py-1.5 rounded-xl text-xs border bg-transparent font-mono"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-bold uppercase mb-1 opacity-80">Total Cap *</label>
+                    <input
+                      type="number"
+                      required
+                      min={1}
+                      value={newPkgTotalSlots}
+                      onChange={(e) => setNewPkgTotalSlots(Math.max(1, parseInt(e.target.value) || 1))}
+                      className="w-full px-3 py-1.5 rounded-xl text-xs border bg-transparent font-mono"
+                    />
+                  </div>
+                </div>
+
+                {/* Real-time Savings Banner */}
+                {newPkgOriginalPrice > newPkgPackagePrice && (
+                  <div className="p-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs flex items-center justify-between">
+                    <span className="text-[11px]">Savings Discount:</span>
+                    <span className="font-mono font-bold text-[11px]">
+                      Save {formatPrice(newPkgOriginalPrice - newPkgPackagePrice)} ({Math.round(((newPkgOriginalPrice - newPkgPackagePrice) / newPkgOriginalPrice) * 100)}% OFF)
+                    </span>
+                  </div>
+                )}
+
+                {/* Image Uploader (Enhanced & Enlarged) */}
+                <div className="space-y-2 pt-1">
+                  <div className="flex items-center justify-between">
+                    <label className="block text-xs font-bold uppercase opacity-90">
+                      Package Cover Photo *
+                    </label>
+                    <div className="flex items-center gap-1 text-[10px]">
+                      <button
+                        type="button"
+                        onClick={() => setPkgImageUploadMode('upload')}
+                        className={`px-2.5 py-1 rounded-lg font-bold transition-colors cursor-pointer ${
+                          pkgImageUploadMode === 'upload' ? 'bg-amber-500 text-black shadow-sm' : 'opacity-60 hover:opacity-100'
+                        }`}
+                      >
+                        File Upload
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setPkgImageUploadMode('url')}
+                        className={`px-2.5 py-1 rounded-lg font-bold transition-colors cursor-pointer ${
+                          pkgImageUploadMode === 'url' ? 'bg-amber-500 text-black shadow-sm' : 'opacity-60 hover:opacity-100'
+                        }`}
+                      >
+                        Paste URL
+                      </button>
+                    </div>
+                  </div>
+
+                  <input
+                    type="file"
+                    ref={pkgImageInputRef}
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      if (e.target.files && e.target.files[0]) {
+                        handlePackageImageFile(e.target.files[0]);
+                      }
+                    }}
+                  />
+
+                  {pkgImageUploadMode === 'upload' ? (
+                    newPkgImage ? (
+                      <div
+                        className={`flex items-center gap-4 p-3.5 rounded-2xl border ${
+                          isDark ? 'bg-[#1B1208] border-[#4A2C16]' : 'bg-[#FAF7F0] border-[#E4D4BC]'
+                        }`}
+                      >
+                        <div className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-xl overflow-hidden shrink-0 border border-black/10 dark:border-white/10 bg-black/10 shadow-sm">
+                          <img src={newPkgImage} alt="Package Preview" className="w-full h-full object-cover" />
+                          {isUploadingPkgImage && (
+                            <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                              <RefreshCw className="w-6 h-6 text-amber-500 animate-spin" />
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-xs sm:text-sm font-bold text-amber-500">
+                              {isUploadingPkgImage ? 'Uploading image...' : '✓ High-Res Photo Attached'}
+                            </span>
+                          </div>
+                          <p className="text-[11px] opacity-60 truncate mt-1">
+                            {newPkgImage.startsWith('data:') ? 'Ready for publishing' : newPkgImage}
+                          </p>
+                          <div className="mt-3 flex items-center gap-3">
+                            <button
+                              type="button"
+                              onClick={() => pkgImageInputRef.current?.click()}
+                              className="px-3 py-1 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 text-amber-500 text-xs font-bold transition-all cursor-pointer"
+                            >
+                              Change Photo
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setNewPkgImage('')}
+                              className="text-xs font-semibold text-red-400 hover:underline inline-flex items-center gap-1 cursor-pointer"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                              <span>Remove</span>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div
+                        onDragOver={handlePackageDragOver}
+                        onDragLeave={handlePackageDragLeave}
+                        onDrop={handlePackageDrop}
+                        onClick={() => pkgImageInputRef.current?.click()}
+                        className={`cursor-pointer rounded-2xl border-2 border-dashed p-6 sm:p-8 text-center transition-all select-none group ${
+                          isDraggingPkgImage
+                            ? 'border-amber-500 bg-amber-500/20 scale-[1.01]'
+                            : isDark
+                            ? 'border-[#4A2C16] hover:border-amber-500/70 bg-[#1B1208]/80 hover:bg-[#1B1208]'
+                            : 'border-[#E4D4BC] hover:border-amber-500/70 bg-[#FAF7F0] hover:bg-[#F3EDE2]'
+                        }`}
+                      >
+                        <div className="flex flex-col items-center justify-center gap-2">
+                          <div className="w-12 h-12 rounded-2xl bg-amber-500/15 text-amber-500 flex items-center justify-center group-hover:scale-110 transition-transform">
+                            <UploadCloud className="w-6 h-6" />
+                          </div>
+                          <div>
+                            <p className="text-xs sm:text-sm font-bold">
+                              Drag & drop high-resolution photo here, or <span className="text-amber-500 underline">browse files</span>
+                            </p>
+                            <p className="text-[11px] opacity-60 mt-0.5">
+                              Supports JPG, PNG, WEBP, GIF up to 50MB
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  ) : (
+                    <div className="space-y-2">
+                      <input
+                        type="url"
+                        placeholder="https://images.unsplash.com/..."
+                        value={newPkgImage}
+                        onChange={(e) => setNewPkgImage(e.target.value)}
+                        className="w-full px-3 py-2 rounded-xl text-xs border bg-transparent"
+                      />
+                      {newPkgImage && (
+                        <div className="flex items-center gap-3 p-2 rounded-xl border bg-black/5 dark:bg-white/5">
+                          <img
+                            src={newPkgImage}
+                            alt="URL Preview"
+                            className="w-16 h-16 rounded-lg object-cover border"
+                            onError={(e) => {
+                              (e.target as HTMLElement).style.display = 'none';
+                            }}
+                          />
+                          <span className="text-xs opacity-70">URL preview attached</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* Included Items Selector */}
+                <div className="space-y-2 pt-2 border-t border-black/10 dark:border-white/10">
+                  <div className="flex items-center justify-between">
+                    <label className="block text-[11px] font-bold uppercase tracking-wider opacity-90">
+                      Included Items ({newPkgSelectedItems.length} selected) *
+                    </label>
+                    <span className="text-[10.5px] text-amber-500 font-semibold">Click to select</span>
+                  </div>
+
+                  {/* Available Catalog Items */}
+                  <div className="grid grid-cols-2 gap-1.5 max-h-36 overflow-y-auto p-1 border rounded-2xl border-black/5 dark:border-white/5">
+                    {catalogItems.map((item) => {
+                      const isSelected = newPkgSelectedItems.some(i => i.id === item.id);
+                      return (
+                        <button
+                          type="button"
+                          key={item.id}
+                          onClick={() => handleToggleCatalogItem(item)}
+                          className={`p-1.5 rounded-xl border text-left flex items-center gap-1.5 transition-all cursor-pointer ${
+                            isSelected
+                              ? 'bg-amber-500/20 border-amber-500 text-amber-500'
+                              : 'bg-black/5 dark:bg-white/5 border-transparent opacity-70 hover:opacity-100'
+                          }`}
+                        >
+                          <div className="w-3.5 h-3.5 rounded border flex items-center justify-center shrink-0 border-current">
+                            {isSelected && <Check className="w-2.5 h-2.5 stroke-[3]" />}
+                          </div>
+                          <div className="min-w-0">
+                            <div className="text-[10.5px] font-bold truncate">{item.name}</div>
+                            <div className="text-[9px] opacity-70">{formatPrice(item.price)}</div>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Quick Add Custom Item */}
+                  <div className="pt-1 flex flex-col sm:flex-row gap-1.5 items-center">
+                    <input
+                      type="text"
+                      placeholder="Custom item (e.g. 5kg Extra Berbere)"
+                      value={customItemName}
+                      onChange={(e) => setCustomItemName(e.target.value)}
+                      className="flex-1 w-full px-2.5 py-1.5 rounded-xl text-xs border bg-transparent"
+                    />
                     <select
                       value={customItemCategory}
                       onChange={(e) => setCustomItemCategory(e.target.value as any)}
-                      className="w-full px-2 py-1.5 rounded-xl text-xs border bg-transparent"
+                      className="w-full sm:w-32 px-2 py-1.5 rounded-xl text-xs border bg-transparent"
                     >
-                      <option value="meat_livestock" className="text-black">Meat / Livestock</option>
-                      <option value="wine" className="text-black">Wine & Tej</option>
+                      <option value="meat_livestock" className="text-black">Meat</option>
+                      <option value="wine" className="text-black">Wine, Whiskies &amp; Tej</option>
                       <option value="eggs" className="text-black">Farm Eggs</option>
-                      <option value="flowers" className="text-black">Celebration Flowers</option>
+                      <option value="flowers" className="text-black">Flowers</option>
                     </select>
+                    <button
+                      type="button"
+                      onClick={handleAddCustomItem}
+                      className="w-full sm:w-auto px-3 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-500 text-xs font-bold transition-colors whitespace-nowrap cursor-pointer"
+                    >
+                      + Add
+                    </button>
                   </div>
-                  <button
-                    type="button"
-                    onClick={handleAddCustomItem}
-                    className="w-full sm:w-auto px-3 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-500 text-xs font-bold transition-colors whitespace-nowrap cursor-pointer"
-                  >
-                    + Add Item
-                  </button>
                 </div>
+
               </div>
 
-              {/* Submit & Save */}
-              <button
-                type="submit"
-                className="w-full py-3.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-black font-extrabold text-xs shadow-lg hover:shadow-xl hover:scale-[1.01] active:scale-[0.99] transition-all cursor-pointer"
-              >
-                Publish Celebration Package to Database
-              </button>
+              {/* Sticky Footer */}
+              <div className="p-3.5 sm:p-4 border-t shrink-0 flex items-center gap-2 bg-black/[0.02] dark:bg-white/[0.02]" style={{ borderColor: isDark ? '#4A2C16' : '#E4D4BC' }}>
+                <button
+                  type="button"
+                  onClick={() => setIsAddPackageOpen(false)}
+                  className="w-1/3 py-2.5 rounded-xl border text-xs font-semibold hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-black font-extrabold text-xs shadow-md hover:scale-[1.01] active:scale-[0.99] transition-all cursor-pointer"
+                >
+                  Publish Celebration Package
+                </button>
+              </div>
             </form>
           </div>
         </div>

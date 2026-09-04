@@ -185,6 +185,19 @@ export class PostgresDB {
     }
   }
 
+  public static async updateUserPassword(userId: string, passwordHash: string): Promise<boolean> {
+    try {
+      await prisma.user.update({
+        where: { id: userId },
+        data: { passwordHash }
+      });
+      return true;
+    } catch (e) {
+      console.error('Failed to update user password in Postgres:', e);
+      return false;
+    }
+  }
+
   // ==================== SAVED PACKAGES ====================
   public static async getSavedPackages(userId?: string): Promise<SavedPackage[]> {
     const saved = await prisma.savedPackage.findMany({
@@ -1174,9 +1187,9 @@ export class PostgresDB {
     }
     return {
       businessName: map.businessName || 'Jonny Livestock',
-      phone: map.phone || '+251911234567',
-      displayPhone: map.displayPhone || '+251 911 234 567',
-      whatsapp: map.whatsapp || '+251911234567',
+      phone: map.phone || '+251910194903',
+      displayPhone: map.displayPhone || '+251 910 194 903',
+      whatsapp: map.whatsapp || '251910194903',
       telegram: map.telegram || 'jonnylivestock',
       email: map.email || 'info@jonnylivestock.com',
       location: map.location || 'Addis Ababa & Bishoftu, Ethiopia',

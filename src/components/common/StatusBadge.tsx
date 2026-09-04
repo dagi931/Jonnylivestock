@@ -6,12 +6,14 @@ interface StatusBadgeProps {
   status: AnimalStatus;
   className?: string;
   size?: 'sm' | 'md' | 'lg';
+  shape?: 'rect' | 'pill';
 }
 
 export const StatusBadge: React.FC<StatusBadgeProps> = ({
   status,
   className = '',
-  size = 'md'
+  size = 'md',
+  shape = 'rect'
 }) => {
   const { t } = useLanguage();
 
@@ -58,9 +60,11 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({
     lg: 'w-2.5 h-2.5'
   };
 
+  const radiusClass = shape === 'pill' ? 'rounded-full' : 'rounded-md';
+
   return (
     <span
-      className={`inline-flex items-center gap-1.5 font-medium rounded-full border backdrop-blur-sm shadow-sm ${config.bg} ${sizeClasses[size]} ${className}`}
+      className={`inline-flex items-center gap-1.5 font-semibold ${radiusClass} border backdrop-blur-sm shadow-sm ${config.bg} ${sizeClasses[size]} ${className}`}
       aria-label={`Status: ${config.label}`}
     >
       <span className={`rounded-full animate-pulse ${config.dot} ${dotSizes[size]}`} aria-hidden="true" />

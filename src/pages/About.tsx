@@ -8,36 +8,91 @@ import { FarmMap } from '../components/common/FarmMap';
 
 export const About: React.FC = () => {
   const { theme } = useTheme();
-  const { t } = useLanguage();
+  const { t, isAmharic } = useLanguage();
   const isDark = theme === 'design7';
 
   return (
     <div className="min-h-screen py-8 sm:py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        {/* Header Hero */}
-        <div className="max-w-3xl mb-10">
-          <span
-            className={`text-xs font-semibold uppercase tracking-wider ${
-              isDark ? 'text-[#C58A3A]' : 'text-[#B8792F]'
+        {/* Header Hero Section (Exact Pixel-Matched Layout) */}
+        <div className="max-w-4xl mb-12 sm:mb-14">
+          {/* Top Badge Pill */}
+          <div
+            className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-wider border mb-4 ${
+              isDark
+                ? 'border-[#C58A3A]/40 bg-[#2A1A0D]/70 text-[#E0B15A]'
+                : 'border-[#B8792F]/40 bg-[#F1E8D8]/70 text-[#B8792F]'
             }`}
           >
-            {t.aboutPage.badge}
-          </span>
+            <ShieldCheck className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+            <span>{t.aboutPage.badge}</span>
+          </div>
+
+          {/* Main Title Heading */}
           <h1
-            className={`font-serif font-bold text-3xl sm:text-4xl lg:text-5xl mt-1.5 mb-4 ${
+            className={`font-serif font-bold text-3xl sm:text-5xl lg:text-[52px] leading-[1.14] tracking-tight ${
               isDark ? 'text-[#F4E8D0]' : 'text-[#241A12]'
             }`}
           >
-            {t.aboutPage.title}
+            {isAmharic ? (
+              t.aboutPage.title
+            ) : (
+              <>
+                <span className="block">Single-Seller Quality Sheep,</span>
+                <span className="block">Goats, Cows &amp;</span>
+                <span className="block">Farm-to-Table Services</span>
+              </>
+            )}
           </h1>
+
+          {/* Description Lead */}
           <p
-            className={`text-sm sm:text-base leading-relaxed ${
+            className={`mt-4 text-sm sm:text-base leading-relaxed max-w-3xl ${
               isDark ? 'text-[#D8C5A8]' : 'text-[#746556]'
             }`}
           >
-            {business.name} {t.aboutPage.heroDesc}
+            <strong className={`font-bold ${isDark ? 'text-[#F4E8D0]' : 'text-[#241A12]'}`}>
+              {business.name}
+            </strong>{' '}
+            {t.aboutPage.heroDesc}
           </p>
+
+          {/* Credibility Pill Badges */}
+          <div className="mt-6 flex flex-wrap items-center gap-2 sm:gap-3">
+            <div
+              className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border text-xs font-normal ${
+                isDark
+                  ? 'border-[#4A2C16] bg-[#2A1A0D]/80 text-[#D8C5A8]'
+                  : 'border-[#E4D4BC] bg-[#F1E8D8]/80 text-[#746556]'
+              }`}
+            >
+              <MapPin className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+              <span>{business.location}</span>
+            </div>
+
+            <div
+              className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border text-xs font-normal ${
+                isDark
+                  ? 'border-[#4A2C16] bg-[#2A1A0D]/80 text-[#D8C5A8]'
+                  : 'border-[#E4D4BC] bg-[#F1E8D8]/80 text-[#746556]'
+              }`}
+            >
+              <Award className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+              <span>{isAmharic ? 'የቀጥታ እርሻ ዋጋ' : 'Single-Seller Direct Price'}</span>
+            </div>
+
+            <div
+              className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border text-xs font-normal ${
+                isDark
+                  ? 'border-[#4A2C16] bg-[#2A1A0D]/80 text-[#D8C5A8]'
+                  : 'border-[#E4D4BC] bg-[#F1E8D8]/80 text-[#746556]'
+              }`}
+            >
+              <Truck className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+              <span>{isAmharic ? 'የማድረስና የዕርድ አገልግሎት' : 'Delivery & Sanitary Prep'}</span>
+            </div>
+          </div>
         </div>
 
         {/* 2-Column Story Section */}

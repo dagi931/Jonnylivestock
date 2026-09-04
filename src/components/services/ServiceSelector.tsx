@@ -65,7 +65,7 @@ export const ServiceSelector: React.FC<ServiceSelectorProps> = ({
           <label
             key={service.id}
             onClick={() => toggleService(service.id)}
-            className={`flex items-start gap-3 p-3 rounded-2xl border cursor-pointer transition-all select-none ${
+            className={`flex items-start gap-2.5 sm:gap-3 p-2.5 sm:p-3 rounded-xl sm:rounded-2xl border cursor-pointer transition-all select-none ${
               isSelected
                 ? isDark
                   ? 'bg-[#4A2C16]/50 border-[#C58A3A] shadow-xs ring-1 ring-[#C58A3A]/40'
@@ -97,7 +97,7 @@ export const ServiceSelector: React.FC<ServiceSelectorProps> = ({
                   {title}
                 </span>
               </div>
-              <p className={`text-[11px] mt-0.5 leading-snug ${isDark ? 'text-[#D8C5A8]/80' : 'text-[#746556]'}`}>
+              <p className={`text-[10.5px] sm:text-[11px] mt-0.5 leading-snug line-clamp-2 ${isDark ? 'text-[#D8C5A8]/80' : 'text-[#746556]'}`}>
                 {desc}
               </p>
             </div>

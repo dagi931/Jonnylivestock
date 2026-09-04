@@ -14,8 +14,8 @@ export const Sheep: React.FC = () => {
         am: 'የሚገኙ በጎች'
       }}
       description={{
-        en: 'Browse our current flock of Horro, Menz, Bonga, Washera, and Somali sheep. All animals are weighed accurately with transparent direct pricing.',
-        am: 'የሆሮ፣ የመንዝ፣ የቦንጋ፣ የዋሸራና የሶማሊ ዝርያ በጎችን ይመልከቱ። ሁሉም እንስሳት በትክክለኛ ሚዛን የተመዘኑና የቀጥታ እርሻ ዋጋ ያላቸው ናቸው።'
+        en: 'Browse our current flock of Debrebirhan, Ginchi, Wolayita, and Arsi sheep. All animals are weighed accurately with transparent direct pricing.',
+        am: 'የደብረ ብርሃን፣ የጊንጪ፣ የወላይታና የአርሲ ዝርያ በጎችን ይመልከቱ። ሁሉም እንስሳት በትክክለኛ ሚዛን የተመዘኑና የቀጥታ እርሻ ዋጋ ያላቸው ናቸው።'
       }}
       typeLabel={{
         en: 'sheep',

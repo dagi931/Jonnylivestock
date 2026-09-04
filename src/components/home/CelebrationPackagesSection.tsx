@@ -82,7 +82,9 @@ export const CelebrationPackagesSection: React.FC = () => {
                 {isAmharic ? 'የበዓል ድግስና የስጦታ ሙሉ ጥቅሎች' : 'All-in-One Festive Hampers & Bundles'}
               </h2>
               <p className="text-xs sm:text-sm opacity-75 mt-1 max-w-xl">
-                Complete celebration packages with livestock/meat, authentic wines/tej, fresh eggs, and flowers with <strong>Free Delivery</strong>.
+                {isAmharic
+                  ? 'የቀንድ ከብት ወይም ስጋ፣ ጥራት ያላቸው ወይኖች፣ ጆኒ ዎከር ዊስኪና ማር ጠጅ፣ ትኩስ እንቁላል እና አበቦች ከነፃ ማድረሻ ጋር የተሟላ የበዓል ጥቅሎች።'
+                  : 'Complete celebration packages with livestock/meat, wines, Johnnie Walker whiskies & tej, fresh eggs, and flowers with Free Delivery.'}
               </p>
             </div>
 
@@ -106,7 +108,7 @@ export const CelebrationPackagesSection: React.FC = () => {
           >
             {/* Benefit 1 */}
             <div className="px-2 sm:px-6 flex flex-col items-center sm:flex-row sm:items-center text-center sm:text-left gap-1.5 sm:gap-3 justify-center">
-              <Truck className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-500 shrink-0" />
+              <Truck className="w-4 h-4 sm:w-5 sm:h-5 text-amber-500 shrink-0" />
               <div>
                 <div className="font-bold text-[10.5px] sm:text-xs leading-tight sm:leading-normal">
                   {isAmharic ? '100% ነፃ ማድረሻ' : '100% Free Doorstep Delivery'}
@@ -132,7 +134,7 @@ export const CelebrationPackagesSection: React.FC = () => {
 
             {/* Benefit 3 */}
             <div className="px-2 sm:px-6 flex flex-col items-center sm:flex-row sm:items-center text-center sm:text-left gap-1.5 sm:gap-3 justify-center">
-              <Gift className="w-4 h-4 sm:w-5 sm:h-5 text-purple-400 shrink-0" />
+              <Gift className="w-4 h-4 sm:w-5 sm:h-5 text-amber-500 shrink-0" />
               <div>
                 <div className="font-bold text-[10.5px] sm:text-xs leading-tight sm:leading-normal">
                   {isAmharic ? 'የራስዎን ጥቅል ያዘጋጁ' : 'Build Your Own Combination'}
@@ -256,7 +258,7 @@ export const CelebrationPackagesSection: React.FC = () => {
                       </div>
                       <div className="text-right shrink-0">
                         <div className="text-[8.5px] sm:text-[10px] text-emerald-500 font-bold">
-                          50% Deposit:
+                          {isAmharic ? '50% ቅድመ-ክፍያ:' : '50% Deposit:'}
                         </div>
                         <div className="font-mono font-bold text-[10px] sm:text-xs text-emerald-500">
                           {formatPrice(pkg.packagePrice * 0.5)}

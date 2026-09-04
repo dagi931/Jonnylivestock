@@ -17,9 +17,9 @@ export const ImageGallery: React.FC<ImageGalleryProps> = ({ images, alt }) => {
 
   return (
     <div className="space-y-4">
-      {/* Main Image Container */}
+      {/* Main Image Container (Refined Compact Aspect Ratio) */}
       <div
-        className={`relative aspect-[4/3] rounded-3xl overflow-hidden border group shadow-lg ${
+        className={`relative aspect-[16/10] sm:aspect-[16/11] max-h-[340px] sm:max-h-[400px] w-full rounded-2xl sm:rounded-3xl overflow-hidden border group shadow-md ${
           isDark ? 'bg-[#1B1208] border-[#4A2C16]' : 'bg-[#FAF7F0] border-[#E4D4BC]'
         }`}
       >
@@ -29,20 +29,20 @@ export const ImageGallery: React.FC<ImageGalleryProps> = ({ images, alt }) => {
           className="w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-102"
         />
 
-        {/* Fullscreen Button */}
+        {/* Fullscreen Button - Visible on touch screens & hover on desktop */}
         <button
           onClick={() => setIsLightboxOpen(true)}
           type="button"
-          className="absolute bottom-4 right-4 p-2.5 rounded-xl bg-black/70 hover:bg-black/90 text-[#FAF7F0] backdrop-blur-sm border border-white/20 transition-all opacity-0 group-hover:opacity-100 focus:opacity-100"
+          className="absolute bottom-3 right-3 sm:bottom-4 sm:right-4 p-2 sm:p-2.5 rounded-xl bg-black/70 hover:bg-black/90 text-[#FAF7F0] backdrop-blur-sm border border-white/20 transition-all opacity-90 sm:opacity-0 sm:group-hover:opacity-100 focus:opacity-100 cursor-pointer shadow-md"
           title="Open Fullscreen Gallery"
           aria-label="Open Fullscreen Gallery"
         >
-          <Maximize2 className="w-4 h-4" />
+          <Maximize2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
         </button>
 
         {/* Counter Badge */}
         {images.length > 1 && (
-          <div className="absolute top-4 right-4 px-3 py-1 rounded-full bg-black/70 text-[#FAF7F0] text-xs font-mono font-medium backdrop-blur-sm border border-white/10">
+          <div className="absolute top-3 right-3 sm:top-4 sm:right-4 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full bg-black/70 text-[#FAF7F0] text-[10px] sm:text-xs font-mono font-bold backdrop-blur-sm border border-white/10 shadow-xs">
             {selectedIndex + 1} / {images.length}
           </div>
         )}
@@ -50,13 +50,13 @@ export const ImageGallery: React.FC<ImageGalleryProps> = ({ images, alt }) => {
 
       {/* Thumbnails */}
       {images.length > 1 && (
-        <div className="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-thin">
+        <div className="flex items-center gap-2 sm:gap-3 overflow-x-auto pb-1.5 scrollbar-thin">
           {images.map((img, idx) => (
             <button
               key={idx}
               type="button"
               onClick={() => setSelectedIndex(idx)}
-              className={`relative shrink-0 w-20 h-20 rounded-xl overflow-hidden border-2 transition-all ${
+              className={`relative shrink-0 w-14 h-14 sm:w-20 sm:h-20 rounded-lg sm:rounded-xl overflow-hidden border-2 transition-all cursor-pointer ${
                 selectedIndex === idx
                   ? isDark
                     ? 'border-[#C58A3A] ring-2 ring-[#C58A3A]/40 scale-105'

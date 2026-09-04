@@ -217,10 +217,10 @@ export const PackageOrderModal: React.FC<PackageOrderModalProps> = ({
               <h3 className="font-serif font-bold text-lg leading-tight">{packageName}</h3>
               <div className="flex items-center gap-2 text-xs opacity-75">
                 <span className="flex items-center gap-1 text-emerald-500 font-semibold">
-                  <Truck className="w-3.5 h-3.5" /> Free Delivery
+                  <Truck className="w-3.5 h-3.5" /> {isAmharic ? 'ነፃ ማድረሻ' : 'Free Delivery'}
                 </span>
                 <span>•</span>
-                <span>All-in-one celebration bundle</span>
+                <span>{isAmharic ? 'የተሟላ የበዓል ጥቅል' : 'All-in-one celebration bundle'}</span>
               </div>
             </div>
           </div>
@@ -240,17 +240,23 @@ export const PackageOrderModal: React.FC<PackageOrderModalProps> = ({
                 <CheckCircle2 className="w-10 h-10" />
               </div>
               <h4 className="font-serif font-bold text-2xl text-emerald-500">
-                {paymentMode === 'deposit' ? 'Reservation Deposit Submitted!' : 'Package Order Placed!'}
+                {paymentMode === 'deposit'
+                  ? (isAmharic ? 'የ50% ቅድመ-ክፍያ ደረሰኝ ገብቷል!' : 'Reservation Deposit Submitted!')
+                  : (isAmharic ? 'የጥቅል ትዕዛዝዎ ተልኳል!' : 'Package Order Placed!')}
               </h4>
               <p className="text-xs sm:text-sm opacity-80 max-w-md mx-auto leading-relaxed">
-                Order ID: <strong className="font-mono text-amber-500">{createdOrderId}</strong>. Our admin team has received your payment slip and will verify it shortly. You can track this in <strong>"My Reservations"</strong>.
+                {isAmharic ? (
+                  <>የማዘዣ ቁጥር: <strong className="font-mono text-amber-500">{createdOrderId}</strong>። የክፍያ ደረሰኝዎ ደርሶናል፣ አስተዳዳሪው በአጭር ጊዜ ውስጥ ያረጋግጣል። ሁኔታውን በ <strong>"የተያዙ ትዕዛዞቼ"</strong> ውስጥ መከታተል ይችላሉ።</>
+                ) : (
+                  <>Order ID: <strong className="font-mono text-amber-500">{createdOrderId}</strong>. Our admin team has received your payment slip and will verify it shortly. You can track this in <strong>"My Reservations"</strong>.</>
+                )}
               </p>
               <div className="pt-2">
                 <button
                   onClick={onClose}
-                  className="px-8 py-3 rounded-2xl bg-amber-500 hover:bg-amber-600 text-black font-bold transition-all shadow-lg shadow-amber-500/25"
+                  className="px-8 py-3 rounded-2xl bg-amber-500 hover:bg-amber-600 text-black font-bold transition-all shadow-lg shadow-amber-500/25 cursor-pointer"
                 >
-                  Done
+                  {isAmharic ? 'ተጠናቋል' : 'Done'}
                 </button>
               </div>
             </div>
@@ -259,7 +265,7 @@ export const PackageOrderModal: React.FC<PackageOrderModalProps> = ({
               {/* Payment Mode Selector: 50% Reservation vs 100% Full */}
               <div className="space-y-2">
                 <label className="block text-xs font-bold uppercase tracking-wider opacity-80">
-                  Select Payment Option:
+                  {isAmharic ? 'የክፍያ አማራጭ ይምረጡ:' : 'Select Payment Option:'}
                 </label>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div
@@ -275,17 +281,19 @@ export const PackageOrderModal: React.FC<PackageOrderModalProps> = ({
                     <div className="flex items-center justify-between mb-1">
                       <div className="font-bold text-sm flex items-center gap-1.5 text-amber-500">
                         <ShieldCheck className="w-4 h-4" />
-                        <span>50% Deposit (Reserve)</span>
+                        <span>{isAmharic ? '50% ቅድመ-ክፍያ (መያዣ)' : '50% Deposit (Reserve)'}</span>
                       </div>
                       <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500 text-black">
-                        Recommended
+                        {isAmharic ? 'ይመከራል' : 'Recommended'}
                       </span>
                     </div>
                     <div className="font-serif font-bold text-lg text-amber-500">
                       {formatPrice(depositAmount)}
                     </div>
                     <p className="text-[11px] opacity-70 mt-1">
-                      Lock item now with half payment. Pay remaining {formatPrice(remainingAmount)} before delivery.
+                      {isAmharic
+                        ? `በግማሽ ክፍያ አሁኑኑ ያስይዙ። ቀሪውን ${formatPrice(remainingAmount)} ከርክክብ በፊት ይክፈሉ።`
+                        : `Lock item now with half payment. Pay remaining ${formatPrice(remainingAmount)} before delivery.`}
                     </p>
                   </div>
 
@@ -302,14 +310,16 @@ export const PackageOrderModal: React.FC<PackageOrderModalProps> = ({
                     <div className="flex items-center justify-between mb-1">
                       <div className="font-bold text-sm flex items-center gap-1.5">
                         <Sparkles className="w-4 h-4 text-emerald-500" />
-                        <span>100% Full Payment</span>
+                        <span>{isAmharic ? '100% ሙሉ ክፍያ' : '100% Full Payment'}</span>
                       </div>
                     </div>
                     <div className="font-serif font-bold text-lg">
                       {formatPrice(totalPrice)}
                     </div>
                     <p className="text-[11px] opacity-70 mt-1">
-                      Complete full transaction upfront. Seamless dispatch and door delivery.
+                      {isAmharic
+                        ? 'ሙሉ ክፍያውን አስቀድመው ይፈጽሙ። ፈጣን እና ቀጥታ የበር ማድረስ።'
+                        : 'Complete full transaction upfront. Seamless dispatch and door delivery.'}
                     </p>
                   </div>
                 </div>
@@ -323,9 +333,10 @@ export const PackageOrderModal: React.FC<PackageOrderModalProps> = ({
               >
                 <div className="flex items-center justify-between">
                   <div className="text-xs font-bold uppercase tracking-wider opacity-80 flex items-center gap-1.5">
-                    <CreditCard className="w-3.5 h-3.5 text-amber-500" /> Transfer {formatPrice(currentPayAmount)} To:
+                    <CreditCard className="w-3.5 h-3.5 text-amber-500" />
+                    <span>{isAmharic ? `${formatPrice(currentPayAmount)} ወደሚከተሉት ባንኮች ያስተላልፉ፡` : `Transfer ${formatPrice(currentPayAmount)} To:`}</span>
                   </div>
-                  <div className="text-[11px] opacity-70">Official Business Accounts</div>
+                  <div className="text-[11px] opacity-70">{isAmharic ? 'ሕጋዊ የንግድ ሒሳቦች' : 'Official Business Accounts'}</div>
                 </div>
 
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -334,7 +345,7 @@ export const PackageOrderModal: React.FC<PackageOrderModalProps> = ({
                       key={b.id}
                       type="button"
                       onClick={() => setSelectedBankId(b.id)}
-                      className={`p-2.5 rounded-xl border text-center transition-all ${
+                      className={`p-2.5 rounded-xl border text-center transition-all cursor-pointer ${
                         selectedBankId === b.id
                           ? 'bg-amber-500 text-black font-bold border-amber-500 shadow-sm'
                           : isDark
@@ -354,17 +365,17 @@ export const PackageOrderModal: React.FC<PackageOrderModalProps> = ({
                     }`}
                   >
                     <div className="flex justify-between items-center">
-                      <span className="opacity-70">Account Name:</span>
+                      <span className="opacity-70">{isAmharic ? 'የሒሳብ ስም:' : 'Account Name:'}</span>
                       <span className="font-bold">{selectedBank.accountName}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="opacity-70">Account Number:</span>
+                      <span className="opacity-70">{isAmharic ? 'የሒሳብ ቁጥር:' : 'Account Number:'}</span>
                       <div className="flex items-center gap-2">
                         <span className="font-mono font-bold text-amber-500">{selectedBank.accountNumber}</span>
                         <button
                           type="button"
                           onClick={() => handleCopy(selectedBank.accountNumber, selectedBank.id)}
-                          className="p-1 rounded hover:bg-black/10 dark:hover:bg-white/10"
+                          className="p-1 rounded hover:bg-black/10 dark:hover:bg-white/10 cursor-pointer"
                         >
                           {copiedBankId === selectedBank.id ? (
                             <Check className="w-3.5 h-3.5 text-emerald-500" />
@@ -387,14 +398,14 @@ export const PackageOrderModal: React.FC<PackageOrderModalProps> = ({
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div>
                   <label className="block text-xs font-bold mb-1 opacity-80">
-                    Full Name <span className="text-red-500">*</span>
+                    {isAmharic ? 'ሙሉ ስም' : 'Full Name'} <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
                     required
                     value={customerName}
                     onChange={e => setCustomerName(e.target.value)}
-                    placeholder="e.g. Dawit Tadesse"
+                    placeholder={isAmharic ? 'ለምሳሌ፡ ዳዊት ታደሰ' : 'e.g. Dawit Tadesse'}
                     className={`w-full px-3.5 py-2.5 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 ${
                       isDark
                         ? 'bg-[#24170D] border-[#4A2C16] text-[#F4E8D0]'
@@ -405,14 +416,14 @@ export const PackageOrderModal: React.FC<PackageOrderModalProps> = ({
 
                 <div>
                   <label className="block text-xs font-bold mb-1 opacity-80">
-                    Phone Number <span className="text-red-500">*</span>
+                    {isAmharic ? 'ስልክ ቁጥር' : 'Phone Number'} <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="tel"
                     required
                     value={customerPhone}
                     onChange={e => setCustomerPhone(e.target.value)}
-                    placeholder="e.g. +251 911 234 567"
+                    placeholder={isAmharic ? 'ለምሳሌ፡ 0910194903' : 'e.g. +251 910 194 903'}
                     className={`w-full px-3.5 py-2.5 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 ${
                       isDark
                         ? 'bg-[#24170D] border-[#4A2C16] text-[#F4E8D0]'
@@ -423,13 +434,13 @@ export const PackageOrderModal: React.FC<PackageOrderModalProps> = ({
 
                 <div className="sm:col-span-2">
                   <label className="block text-xs font-bold mb-1 opacity-80">
-                    Delivery Address / Specific Neighborhood
+                    {isAmharic ? 'የማድረሻ አድራሻ / ሰፈር' : 'Delivery Address / Specific Neighborhood'}
                   </label>
                   <input
                     type="text"
                     value={deliveryLocation}
                     onChange={e => setDeliveryLocation(e.target.value)}
-                    placeholder="e.g. Bole, Ayat, CMC, Sarbet, Bishoftu..."
+                    placeholder={isAmharic ? 'ለምሳሌ፡ ቦሌ፣ አያት፣ ሲኤምሲ፣ ሳርቤት፣ ቢሾፍቱ...' : 'e.g. Bole, Ayat, CMC, Sarbet, Bishoftu...'}
                     className={`w-full px-3.5 py-2.5 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 ${
                       isDark
                         ? 'bg-[#24170D] border-[#4A2C16] text-[#F4E8D0]'
@@ -440,13 +451,13 @@ export const PackageOrderModal: React.FC<PackageOrderModalProps> = ({
 
                 <div>
                   <label className="block text-xs font-bold mb-1 opacity-80">
-                    Transaction Reference (Optional)
+                    {isAmharic ? 'የትራንዛክሽን ቁጥር (አማራጭ)' : 'Transaction Reference (Optional)'}
                   </label>
                   <input
                     type="text"
                     value={transactionRef}
                     onChange={e => setTransactionRef(e.target.value)}
-                    placeholder="e.g. FT2348589..."
+                    placeholder={isAmharic ? 'ለምሳሌ፡ FT2348589...' : 'e.g. FT2348589...'}
                     className={`w-full px-3.5 py-2.5 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 ${
                       isDark
                         ? 'bg-[#24170D] border-[#4A2C16] text-[#F4E8D0]'
@@ -457,13 +468,13 @@ export const PackageOrderModal: React.FC<PackageOrderModalProps> = ({
 
                 <div>
                   <label className="block text-xs font-bold mb-1 opacity-80">
-                    Special Delivery Instructions (Optional)
+                    {isAmharic ? 'ተጨማሪ ማስታወሻ (አማራጭ)' : 'Special Delivery Instructions (Optional)'}
                   </label>
                   <input
                     type="text"
                     value={customerNotes}
                     onChange={e => setCustomerNotes(e.target.value)}
-                    placeholder="e.g. Deliver before 10 AM on Holiday Eve"
+                    placeholder={isAmharic ? 'ለምሳሌ፡ በበዓል ዋዜማ ከጠዋቱ 4 ሰዓት በፊት ይድረስ' : 'e.g. Deliver before 10 AM on Holiday Eve'}
                     className={`w-full px-3.5 py-2.5 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 ${
                       isDark
                         ? 'bg-[#24170D] border-[#4A2C16] text-[#F4E8D0]'
@@ -476,7 +487,7 @@ export const PackageOrderModal: React.FC<PackageOrderModalProps> = ({
               {/* Upload Receipt / Slip */}
               <div className="space-y-1.5">
                 <label className="block text-xs font-bold uppercase tracking-wider opacity-80">
-                  Upload Transfer Slip Screenshot <span className="text-red-500">*</span>
+                  {isAmharic ? 'የክፍያ ማረጋገጫ ደረሰኝ / ስክሪንሾት ያያይዙ' : 'Upload Transfer Slip Screenshot'} <span className="text-red-500">*</span>
                 </label>
 
                 <div
@@ -510,17 +521,23 @@ export const PackageOrderModal: React.FC<PackageOrderModalProps> = ({
                         className="max-h-36 mx-auto rounded-xl shadow-md object-contain border"
                       />
                       <div className="text-xs font-bold text-emerald-500 flex items-center justify-center gap-1">
-                        <CheckCircle2 className="w-4 h-4" /> Slip Attached ({slipFile?.name})
+                        <CheckCircle2 className="w-4 h-4" /> {isAmharic ? `ደረሰኝ ተያይዟል (${slipFile?.name})` : `Slip Attached (${slipFile?.name})`}
                       </div>
-                      <p className="text-[11px] opacity-60">Click or drag to change receipt</p>
+                      <p className="text-[11px] opacity-60">
+                        {isAmharic ? 'ለመቀየር ይጫኑ ወይም ፋይል ይጎትቱ' : 'Click or drag to change receipt'}
+                      </p>
                     </div>
                   ) : (
                     <div className="space-y-1.5">
                       <div className="w-10 h-10 rounded-full bg-amber-500/15 text-amber-500 flex items-center justify-center mx-auto">
                         <UploadCloud className="w-5 h-5" />
                       </div>
-                      <div className="text-xs font-bold">Click to browse or drop your transfer screenshot</div>
-                      <div className="text-[11px] opacity-60">Supports JPG, PNG, PDF (Telebirr or Bank SMS/Slip)</div>
+                      <div className="text-xs font-bold">
+                        {isAmharic ? 'የክፍያ ደረሰኝ ስክሪንሾት ለመምረጥ ይጫኑ' : 'Click to browse or drop your transfer screenshot'}
+                      </div>
+                      <div className="text-[11px] opacity-60">
+                        {isAmharic ? 'JPG, PNG, PDF ይደግፋል (የቴሌብር ወይም የባንክ መልእክት)' : 'Supports JPG, PNG, PDF (Telebirr or Bank SMS/Slip)'}
+                      </div>
                     </div>
                   )}
                 </div>
@@ -537,17 +554,21 @@ export const PackageOrderModal: React.FC<PackageOrderModalProps> = ({
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full py-3.5 rounded-2xl bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-black font-bold text-sm tracking-wide transition-all shadow-lg shadow-amber-500/25 flex items-center justify-center gap-2"
+                className="w-full py-3.5 rounded-2xl bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-black font-bold text-sm tracking-wide transition-all shadow-lg shadow-amber-500/25 flex items-center justify-center gap-2 cursor-pointer"
               >
                 {isSubmitting ? (
-                  <span>Processing...</span>
+                  <span>{isAmharic ? 'በማስተናገድ ላይ...' : 'Processing...'}</span>
                 ) : (
                   <>
                     <CheckCircle2 className="w-4 h-4" />
                     <span>
                       {paymentMode === 'deposit'
-                        ? `Submit 50% Reservation Deposit (${formatPrice(depositAmount)})`
-                        : `Complete Full Order (${formatPrice(totalPrice)})`}
+                        ? (isAmharic
+                            ? `የ50% ቅድመ-ክፍያ ደረሰኝ ላክ (${formatPrice(depositAmount)})`
+                            : `Submit 50% Reservation Deposit (${formatPrice(depositAmount)})`)
+                        : (isAmharic
+                            ? `ሙሉ ትዕዛዝ ጨርስ (${formatPrice(totalPrice)})`
+                            : `Complete Full Order (${formatPrice(totalPrice)})`)}
                     </span>
                   </>
                 )}

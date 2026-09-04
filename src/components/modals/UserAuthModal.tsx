@@ -17,7 +17,8 @@ import {
   ShieldCheck,
   ArrowLeft,
   RefreshCw,
-  CheckCircle2
+  CheckCircle2,
+  KeyRound
 } from 'lucide-react';
 
 export const UserAuthModal: React.FC = () => {
@@ -27,7 +28,9 @@ export const UserAuthModal: React.FC = () => {
     authModalMode,
     login,
     sendRegistrationOtp,
-    verifyAndRegister
+    verifyAndRegister,
+    sendForgotPasswordOtp,
+    resetPasswordWithOtp
   } = useUserAuth();
 
   const navigate = useNavigate();
@@ -35,8 +38,9 @@ export const UserAuthModal: React.FC = () => {
   const { isAmharic } = useLanguage();
   const isDark = theme === 'design7';
 
-  const [mode, setMode] = useState<'login' | 'register'>(authModalMode || 'login');
+  const [mode, setMode] = useState<'login' | 'register' | 'forgot_password'>(authModalMode || 'login');
   const [step, setStep] = useState<'form' | 'otp'>('form');
+  const [forgotStep, setForgotStep] = useState<'email' | 'otp'>('email');
 
   // Form Fields
   const [name, setName] = useState('');
@@ -44,6 +48,11 @@ export const UserAuthModal: React.FC = () => {
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+
+  // Forgot Password Fields
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showNewPassword, setShowNewPassword] = useState(false);
 
   // OTP State
   const [otp, setOtp] = useState('');
@@ -58,7 +67,10 @@ export const UserAuthModal: React.FC = () => {
   useEffect(() => {
     if (authModalMode) setMode(authModalMode);
     setStep('form');
+    setForgotStep('email');
     setOtp('');
+    setNewPassword('');
+    setConfirmPassword('');
     setError(null);
     setInfoMessage(null);
   }, [authModalMode, isAuthModalOpen]);
@@ -74,7 +86,7 @@ export const UserAuthModal: React.FC = () => {
 
   if (!isAuthModalOpen) return null;
 
-  // Handle Initial Form Submission
+  // Handle Initial Form Submission (Login or Register Step 1)
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -86,7 +98,11 @@ export const UserAuthModal: React.FC = () => {
         const res = await login(email, password);
         if (res.success) {
           closeAuthModal();
-          navigate('/');
+          if (res.user?.role === 'admin') {
+            navigate('/admin');
+          } else {
+            navigate('/');
+          }
         } else {
           setError(res.error || (isAmharic ? 'መግባት አልተሳካም' : 'Login failed'));
         }
@@ -139,8 +155,8 @@ export const UserAuthModal: React.FC = () => {
     }
   };
 
-  // Handle OTP Verification
-  const handleVerifyOtp = async (e: React.FormEvent) => {
+  // Handle Registration OTP Verification
+  const handleVerifyRegistrationOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     if (otp.trim().length !== 6) {
       setError(isAmharic ? 'እባክዎ 6 አሃዝ የማረጋገጫ ኮድ ያስገቡ' : 'Please enter the 6-digit verification code');
@@ -172,8 +188,8 @@ export const UserAuthModal: React.FC = () => {
     }
   };
 
-  // Handle Resending OTP
-  const handleResendOtp = async () => {
+  // Handle Resending Registration OTP
+  const handleResendRegistrationOtp = async () => {
     if (resendCountdown > 0 || isLoading) return;
     setError(null);
     setIsLoading(true);
@@ -197,13 +213,100 @@ export const UserAuthModal: React.FC = () => {
     }
   };
 
-  const handleDemoFill = (type: 'customer' | 'admin') => {
-    if (type === 'customer') {
-      setEmail('dawit@example.com');
-      setPassword('password123');
-    } else {
-      setEmail('admin@jonnylivestock.com');
-      setPassword('admin123');
+  // Handle Forgot Password - Step 1: Request OTP
+  const handleSendForgotPasswordOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email.trim()) {
+      setError(isAmharic ? 'እባክዎ የተመዘገቡበትን ኢሜይል ያስገቡ' : 'Please enter your registered email address');
+      return;
+    }
+
+    setError(null);
+    setInfoMessage(null);
+    setIsLoading(true);
+
+    try {
+      const res = await sendForgotPasswordOtp(email.trim());
+      if (res.success) {
+        setForgotStep('otp');
+        setResendCountdown(60);
+        setOtp('');
+        setInfoMessage(
+          isAmharic
+            ? `የይለፍ ቃል መቀየሪያ ኮድ ወደ ${email} ተልኳል`
+            : `A 6-digit password reset code has been sent to ${email}`
+        );
+      } else {
+        setError(res.error || (isAmharic ? 'የማረጋገጫ ኮድ መላክ አልተቻለም' : 'Failed to send reset code'));
+      }
+    } catch (err: any) {
+      setError(err.message || 'An unexpected error occurred');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Handle Forgot Password - Step 2: Verify OTP & Reset Password
+  const handleResetPasswordSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (otp.trim().length !== 6) {
+      setError(isAmharic ? 'እባክዎ 6 አሃዝ የማረጋገጫ ኮድ ያስገቡ' : 'Please enter the 6-digit verification code');
+      return;
+    }
+    if (newPassword.length < 6) {
+      setError(isAmharic ? 'የይለፍ ቃል ቢያንስ 6 ፊደላት መሆን አለበት' : 'New password must be at least 6 characters');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setError(isAmharic ? 'የይለፍ ቃሎቹ አይመሳሰሉም' : 'Passwords do not match');
+      return;
+    }
+
+    setError(null);
+    setIsLoading(true);
+
+    try {
+      const res = await resetPasswordWithOtp({
+        email: email.trim(),
+        otp: otp.trim(),
+        newPassword
+      });
+
+      if (res.success) {
+        closeAuthModal();
+        navigate('/');
+      } else {
+        setError(res.error || (isAmharic ? 'የይለፍ ቃል መቀየር አልተሳካም' : 'Failed to reset password'));
+      }
+    } catch (err: any) {
+      setError(err.message || 'An unexpected error occurred');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Handle Resending Forgot Password OTP
+  const handleResendForgotPasswordOtp = async () => {
+    if (resendCountdown > 0 || isLoading) return;
+    setError(null);
+    setIsLoading(true);
+
+    try {
+      const res = await sendForgotPasswordOtp(email.trim());
+      if (res.success) {
+        setResendCountdown(60);
+        setInfoMessage(
+          isAmharic
+            ? `አዲስ የማረጋገጫ ኮድ ወደ ${email} ተልኳል`
+            : `A new reset code was dispatched to ${email}`
+        );
+      } else {
+        setError(res.error || 'Failed to resend reset code');
+      }
+    } catch (err: any) {
+      setError(err.message || 'Failed to resend reset code');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -231,9 +334,212 @@ export const UserAuthModal: React.FC = () => {
           </button>
 
           {/* ========================================================== */}
-          {/* VIEW: STEP 2 (OTP VERIFICATION) */}
+          {/* VIEW: FORGOT PASSWORD FLOW */}
           {/* ========================================================== */}
-          {mode === 'register' && step === 'otp' ? (
+          {mode === 'forgot_password' ? (
+            <div>
+              <button
+                type="button"
+                onClick={() => {
+                  setMode('login');
+                  setForgotStep('email');
+                  setError(null);
+                  setInfoMessage(null);
+                }}
+                className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#C18A45] hover:underline mb-4 cursor-pointer"
+              >
+                <ArrowLeft className="w-3.5 h-3.5" />
+                <span>{isAmharic ? 'ወደ መግቢያ ተመለስ' : 'Back to Sign In'}</span>
+              </button>
+
+              <div className="text-center mb-6">
+                <div className="w-14 h-14 rounded-2xl bg-[#C18A45]/15 border border-[#C18A45]/30 text-[#C18A45] flex items-center justify-center mx-auto mb-3 shadow-inner">
+                  <KeyRound className="w-7 h-7" />
+                </div>
+                <h2 className="text-xl sm:text-2xl font-bold font-serif">
+                  {isAmharic ? 'የይለፍ ቃል ዳግም ማስጀመሪያ' : 'Reset Your Password'}
+                </h2>
+                <p className="text-xs opacity-75 mt-1.5 max-w-xs mx-auto leading-relaxed">
+                  {forgotStep === 'email'
+                    ? isAmharic
+                      ? 'የተመዘገቡበትን ኢሜይል ያስገቡ፣ የ 6 አሃዝ የማረጋገጫ ኮድ እንልክልዎታለን።'
+                      : 'Enter your registered email address and we will send a 6-digit verification code to reset your password.'
+                    : isAmharic
+                    ? `የ 6 አሃዝ የማረጋገጫ ኮድ ወደ ${email} ልከናል።`
+                    : `Enter the 6-digit code sent to ${email} and choose a new password.`}
+                </p>
+              </div>
+
+              {/* Status alerts */}
+              {infoMessage && (
+                <div className="mb-4 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 shrink-0" />
+                  <span>{infoMessage}</span>
+                </div>
+              )}
+
+              {error && (
+                <div className="mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-xs flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  <span>{error}</span>
+                </div>
+              )}
+
+              {/* Forgot Password Step 1: Request Code */}
+              {forgotStep === 'email' ? (
+                <form onSubmit={handleSendForgotPasswordOtp} className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5 opacity-80">
+                      {isAmharic ? 'የተመዘገቡበት ኢሜይል' : 'Registered Email Address'} *
+                    </label>
+                    <div className="relative">
+                      <Mail className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 opacity-50" />
+                      <input
+                        type="email"
+                        required
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="you@example.com"
+                        autoFocus
+                        className={`w-full pl-10 pr-4 py-2.5 rounded-xl border text-sm transition-all focus:outline-none focus:ring-2 focus:ring-[#C18A45] ${
+                          isDark
+                            ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0] placeholder-[#D8C5A8]/40'
+                            : 'bg-white border-[#E4D4BC] text-[#2A1A0D] placeholder-[#746556]/40'
+                        }`}
+                      />
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={isLoading || !email.trim()}
+                    className="w-full py-3 rounded-xl bg-gradient-to-r from-[#C18A45] to-[#A06E35] text-white font-bold text-sm shadow-lg hover:shadow-xl hover:scale-[1.01] active:scale-[0.99] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    {isLoading ? (
+                      <span className="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    ) : (
+                      <>
+                        <KeyRound className="w-4 h-4" />
+                        <span>{isAmharic ? 'የማረጋገጫ ኮድ ላክ' : 'Send Verification Code'}</span>
+                      </>
+                    )}
+                  </button>
+                </form>
+              ) : (
+                /* Forgot Password Step 2: Verify Code & Set New Password */
+                <form onSubmit={handleResetPasswordSubmit} className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-semibold uppercase tracking-wider mb-2 text-center opacity-80">
+                      {isAmharic ? 'የ 6 አሃዝ ኮድ ያስገቡ' : 'Enter 6-Digit Code'} *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      maxLength={6}
+                      value={otp}
+                      onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
+                      placeholder="123456"
+                      autoFocus
+                      className={`w-full py-3 px-4 text-center font-mono text-2xl font-extrabold tracking-[0.35em] rounded-2xl border shadow-inner transition-all focus:outline-none focus:ring-2 focus:ring-[#C18A45] ${
+                        isDark
+                          ? 'bg-[#1B1208] border-[#4A2C16] text-[#E0B15A] placeholder-[#D8C5A8]/20'
+                          : 'bg-white border-[#E4D4BC] text-[#8F6026] placeholder-[#746556]/20'
+                      }`}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5 opacity-80">
+                      {isAmharic ? 'አዲስ የይለፍ ቃል' : 'New Password'} *
+                    </label>
+                    <div className="relative">
+                      <Lock className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 opacity-50" />
+                      <input
+                        type={showNewPassword ? 'text' : 'password'}
+                        required
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        placeholder="••••••••"
+                        className={`w-full pl-10 pr-10 py-2.5 rounded-xl border text-sm transition-all focus:outline-none focus:ring-2 focus:ring-[#C18A45] ${
+                          isDark
+                            ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0] placeholder-[#D8C5A8]/40'
+                            : 'bg-white border-[#E4D4BC] text-[#2A1A0D] placeholder-[#746556]/40'
+                        }`}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowNewPassword(!showNewPassword)}
+                        className="absolute right-3.5 top-1/2 -translate-y-1/2 opacity-50 hover:opacity-100 cursor-pointer"
+                      >
+                        {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5 opacity-80">
+                      {isAmharic ? 'አዲሱን የይለፍ ቃል ያረጋግጡ' : 'Confirm New Password'} *
+                    </label>
+                    <div className="relative">
+                      <Lock className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 opacity-50" />
+                      <input
+                        type={showNewPassword ? 'text' : 'password'}
+                        required
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        placeholder="••••••••"
+                        className={`w-full pl-10 pr-4 py-2.5 rounded-xl border text-sm transition-all focus:outline-none focus:ring-2 focus:ring-[#C18A45] ${
+                          isDark
+                            ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0] placeholder-[#D8C5A8]/40'
+                            : 'bg-white border-[#E4D4BC] text-[#2A1A0D] placeholder-[#746556]/40'
+                        }`}
+                      />
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={isLoading || otp.trim().length !== 6 || newPassword.length < 6}
+                    className="w-full py-3 rounded-xl bg-gradient-to-r from-[#C18A45] to-[#A06E35] text-white font-bold text-sm shadow-lg hover:shadow-xl hover:scale-[1.01] active:scale-[0.99] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    {isLoading ? (
+                      <span className="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    ) : (
+                      <>
+                        <CheckCircle2 className="w-4 h-4" />
+                        <span>{isAmharic ? 'የይለፍ ቃል ቀይር እና ግባ' : 'Reset Password & Sign In'}</span>
+                      </>
+                    )}
+                  </button>
+
+                  {/* Resend Section */}
+                  <div className="pt-2 border-t border-black/5 dark:border-white/5 text-center">
+                    {resendCountdown > 0 ? (
+                      <p className="text-xs opacity-60">
+                        {isAmharic ? 'እንደገና ለመላክ ይጠብቁ፡' : 'Resend code available in:'}{' '}
+                        <span className="font-mono font-bold text-[#C18A45]">{resendCountdown}s</span>
+                      </p>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={handleResendForgotPasswordOtp}
+                        disabled={isLoading}
+                        className="inline-flex items-center gap-1.5 text-xs font-bold text-[#C18A45] hover:underline disabled:opacity-50 cursor-pointer"
+                      >
+                        <RefreshCw className="w-3 h-3" />
+                        <span>{isAmharic ? 'ኮድ አልደረሰዎትም? በድጋሚ ይላኩ' : "Didn't receive code? Resend Email"}</span>
+                      </button>
+                    )}
+                  </div>
+                </form>
+              )}
+            </div>
+          ) : mode === 'register' && step === 'otp' ? (
+            /* ========================================================== */
+            /* VIEW: STEP 2 (REGISTRATION OTP VERIFICATION) */
+            /* ========================================================== */
             <div>
               <button
                 type="button"
@@ -242,7 +548,7 @@ export const UserAuthModal: React.FC = () => {
                   setError(null);
                   setInfoMessage(null);
                 }}
-                className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#C18A45] hover:underline mb-4"
+                className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#C18A45] hover:underline mb-4 cursor-pointer"
               >
                 <ArrowLeft className="w-3.5 h-3.5" />
                 <span>{isAmharic ? 'ወደ ኋላ ተመለስ' : 'Edit details'}</span>
@@ -285,7 +591,7 @@ export const UserAuthModal: React.FC = () => {
                 </div>
               )}
 
-              <form onSubmit={handleVerifyOtp} className="space-y-4">
+              <form onSubmit={handleVerifyRegistrationOtp} className="space-y-4">
                 <div>
                   <label className="block text-xs font-semibold uppercase tracking-wider mb-2 text-center opacity-80">
                     {isAmharic ? 'የ 6 አሃዝ ኮድ ያስገቡ' : 'Enter 6-Digit Code'}
@@ -336,7 +642,7 @@ export const UserAuthModal: React.FC = () => {
                   ) : (
                     <button
                       type="button"
-                      onClick={handleResendOtp}
+                      onClick={handleResendRegistrationOtp}
                       disabled={isLoading}
                       className="inline-flex items-center gap-1.5 text-xs font-bold text-[#C18A45] hover:underline disabled:opacity-50 cursor-pointer"
                     >
@@ -384,6 +690,7 @@ export const UserAuthModal: React.FC = () => {
                   onClick={() => {
                     setMode('login');
                     setError(null);
+                    setInfoMessage(null);
                   }}
                   className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                     mode === 'login'
@@ -398,6 +705,7 @@ export const UserAuthModal: React.FC = () => {
                   onClick={() => {
                     setMode('register');
                     setError(null);
+                    setInfoMessage(null);
                   }}
                   className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                     mode === 'register'
@@ -480,7 +788,7 @@ export const UserAuthModal: React.FC = () => {
                         required
                         value={phone}
                         onChange={(e) => setPhone(e.target.value)}
-                        placeholder="+251 911 234 567"
+                        placeholder="+251 910 194 903"
                         className={`w-full pl-10 pr-4 py-2.5 rounded-xl border text-sm transition-all focus:outline-none focus:ring-2 focus:ring-[#C18A45] ${
                           isDark
                             ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0] placeholder-[#D8C5A8]/40'
@@ -512,11 +820,29 @@ export const UserAuthModal: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3.5 top-1/2 -translate-y-1/2 opacity-50 hover:opacity-100"
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 opacity-50 hover:opacity-100 cursor-pointer"
                     >
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                   </div>
+
+                  {/* Forgot Password Link on Login Mode */}
+                  {mode === 'login' && (
+                    <div className="flex justify-end pt-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setMode('forgot_password');
+                          setForgotStep('email');
+                          setError(null);
+                          setInfoMessage(null);
+                        }}
+                        className="text-xs font-semibold text-[#C18A45] hover:underline cursor-pointer transition-colors"
+                      >
+                        {isAmharic ? 'የይለፍ ቃል ረሱ?' : 'Forgot Password?'}
+                      </button>
+                    </div>
+                  )}
                 </div>
 
                 {/* Submit Button */}
@@ -540,27 +866,6 @@ export const UserAuthModal: React.FC = () => {
                   )}
                 </button>
               </form>
-
-              {/* Quick Demo Credentials for Fast Testing */}
-              <div className="mt-6 pt-4 border-t border-black/10 dark:border-white/10 text-center">
-                <p className="text-xs opacity-60 mb-2">{isAmharic ? 'ፈጣን ሙከራ (Quick Fill)' : 'Quick Demo Test Accounts:'}</p>
-                <div className="flex gap-2 justify-center">
-                  <button
-                    type="button"
-                    onClick={() => handleDemoFill('customer')}
-                    className="text-xs px-2.5 py-1 rounded-lg bg-black/5 dark:bg-white/5 hover:bg-[#C18A45]/20 hover:text-[#C18A45] transition-colors"
-                  >
-                    Demo Customer
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleDemoFill('admin')}
-                    className="text-xs px-2.5 py-1 rounded-lg bg-black/5 dark:bg-white/5 hover:bg-[#C18A45]/20 hover:text-[#C18A45] transition-colors"
-                  >
-                    Admin (Jonny)
-                  </button>
-                </div>
-              </div>
             </div>
           )}
         </div>

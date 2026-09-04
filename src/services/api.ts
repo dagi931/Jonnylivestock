@@ -394,6 +394,36 @@ class ApiService {
     }
   }
 
+  async sendForgotPasswordOtp(email: string): Promise<{ success: boolean; message?: string; error?: string }> {
+    try {
+      const res = await fetch(`${API_BASE}/auth/send-forgot-password-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+      return await res.json();
+    } catch (error: any) {
+      return { success: false, error: error.message || 'Network error sending password reset code' };
+    }
+  }
+
+  async resetPasswordWithOtp(data: {
+    email: string;
+    otp: string;
+    newPassword: string;
+  }): Promise<{ success: boolean; token?: string; user?: UserProfile; message?: string; error?: string }> {
+    try {
+      const res = await fetch(`${API_BASE}/auth/reset-password-with-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      return await res.json();
+    } catch (error: any) {
+      return { success: false, error: error.message || 'Network error resetting password' };
+    }
+  }
+
   async getMe(token?: string): Promise<{ success: boolean; user?: UserProfile; error?: string }> {
     try {
       const res = await fetch(`${API_BASE}/auth/me`, {

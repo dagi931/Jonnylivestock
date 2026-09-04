@@ -7,6 +7,8 @@ import { useUserAuth } from '../context/UserAuthContext';
 import {
   formatPrice,
   getItemDisplayName,
+  getItemDisplayDescription,
+  getItemDisplayUnit,
   getPackageTitle,
   getPackageDescription
 } from '../utils/formatters';
@@ -55,7 +57,7 @@ export const PackageBuilder: React.FC = () => {
 
   // Builder State
   const [selectedItems, setSelectedItems] = useState<PackageCatalogItem[]>([]);
-  const [packageName, setPackageName] = useState('My Custom Celebration Package');
+  const [packageName, setPackageName] = useState('');
   const [activeCategoryFilter, setActiveCategoryFilter] = useState<PackageCategory | 'all'>('all');
   const [saveSuccessMsg, setSaveSuccessMsg] = useState<string | null>(null);
 
@@ -78,6 +80,13 @@ export const PackageBuilder: React.FC = () => {
     };
     fetchPackageData();
   }, []);
+
+  // Set default package title according to language if empty
+  useEffect(() => {
+    if (!packageName || packageName === 'My Custom Celebration Package' || packageName === 'የኔ ልዩ የበዓል ጥቅል') {
+      setPackageName(isAmharic ? 'የኔ ልዩ የበዓል ጥቅል' : 'My Custom Celebration Package');
+    }
+  }, [isAmharic]);
 
   // Category counts
   const selectedCategories = new Set(selectedItems.map(i => i.category));
@@ -102,12 +111,16 @@ export const PackageBuilder: React.FC = () => {
 
     try {
       const res = await api.savePackage({
-        name: packageName.trim() || 'My Custom Celebration Package',
+        name: packageName.trim() || (isAmharic ? 'የኔ ልዩ የበዓል ጥቅል' : 'My Custom Celebration Package'),
         items: selectedItems,
         totalPrice
       });
       if (res.success) {
-        setSaveSuccessMsg('🎉 Package saved to your collection! View it in "My Packages".');
+        setSaveSuccessMsg(
+          isAmharic
+            ? '🎉 ጥቅሉ በመለያዎ ተቀምጧል! በ "የተቀመጡ ጥቅሎች" ውስጥ ማየት ይችላሉ።'
+            : '🎉 Package saved to your collection! View it in "My Packages".'
+        );
         setTimeout(() => setSaveSuccessMsg(null), 4000);
       }
     } catch (err) {
@@ -126,11 +139,11 @@ export const PackageBuilder: React.FC = () => {
     setIsOrderModalOpen(true);
   };
 
-  const categories: { id: PackageCategory; name: string; icon: any; color: string }[] = [
-    { id: 'meat_livestock', name: 'Livestock & Prime Meat', icon: Beef, color: 'text-rose-500' },
-    { id: 'wine', name: 'Wines & Traditional Tej', icon: Wine, color: 'text-purple-500' },
-    { id: 'eggs', name: 'Farm Fresh Eggs', icon: Egg, color: 'text-amber-500' },
-    { id: 'flowers', name: 'Celebration Flowers', icon: Flower2, color: 'text-pink-500' }
+  const categories: { id: PackageCategory; name: string; amharicName: string; icon: any; color: string }[] = [
+    { id: 'meat_livestock', name: 'Livestock & Prime Meat', amharicName: 'የቀንድ ከብትና ልዩ ሥጋ', icon: Beef, color: 'text-amber-500' },
+    { id: 'wine', name: 'Wines, Whiskies & Tej', amharicName: 'ወይኖች፣ ዊስኪና ማር ጠጅ', icon: Wine, color: 'text-amber-500' },
+    { id: 'eggs', name: 'Farm Fresh Eggs', amharicName: 'ትኩስ የጓሮ እንቁላል', icon: Egg, color: 'text-amber-500' },
+    { id: 'flowers', name: 'Celebration Flowers', amharicName: 'የበዓል አበቦች', icon: Flower2, color: 'text-amber-500' }
   ];
 
   return (
@@ -138,31 +151,60 @@ export const PackageBuilder: React.FC = () => {
       {/* Hero Banner */}
       <section className="relative overflow-hidden pt-8 pb-12 sm:pt-12 sm:pb-16 border-b border-black/10 dark:border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-3xl mx-auto space-y-4">
+          <div className="text-center max-w-3xl mx-auto space-y-3.5">
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider bg-amber-500/15 border border-amber-500/30 text-amber-500">
-              <Sparkles className="w-3.5 h-3.5" />
+              <Sparkles className="w-3.5 h-3.5 text-amber-500" />
               <span>{isAmharic ? 'የበዓልና የደስታ ልዩ ጥቅሎች' : 'Holiday Hampers & Custom Packages'}</span>
             </div>
 
             <h1 className="font-serif font-bold text-3xl sm:text-5xl tracking-tight leading-tight">
-              {isAmharic ? 'የበዓል ድግስና የስጦታ ሙሉ ጥቅል' : 'Build or Choose Your Celebration Package'}
+              {isAmharic ? (
+                <>
+                  <span className="block">የበዓል ድግስና የስጦታ</span>
+                  <span className="block">ሙሉ ጥቅል</span>
+                </>
+              ) : (
+                <>
+                  <span className="block">Build or Choose Your</span>
+                  <span className="block">Celebration Package</span>
+                </>
+              )}
             </h1>
 
-            <p className="text-sm sm:text-base opacity-80 max-w-2xl mx-auto leading-relaxed">
-              Combine your choice of <strong>Livestock or Prime Meat</strong>, <strong>Ethiopian Wines or Honey Tej</strong>, <strong>Farm Eggs</strong>, and <strong>Celebration Flowers</strong>.
-            </p>
+            <div className="space-y-2.5 max-w-2xl mx-auto">
+              <p className="text-sm sm:text-base text-stone-600 dark:text-[#D8C5A8] leading-relaxed">
+                {isAmharic ? (
+                  <>
+                    <span className="block">የስጋና የቀንድ ከብት፣ የተመረጡ ወይኖች፣ ጆኒ ዎከር ዊስኪዎችና ማር ጠጅ፣</span>
+                    <span className="block">የጓሮ እንቁላል እንዲሁም የበዓል አበቦችን በአንድ ላይ አቀናጅተው ያዙ።</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="block">
+                      Combine your choice of <strong className="font-semibold text-stone-900 dark:text-[#F4EAD9]">Livestock or Prime Meat</strong>, <strong className="font-semibold text-stone-900 dark:text-[#F4EAD9]">Wines, Johnnie Walker Whiskies &amp; Honey Tej</strong>,
+                    </span>
+                    <span className="block">
+                      <strong className="font-semibold text-stone-900 dark:text-[#F4EAD9]">Farm Fresh Eggs</strong>, and <strong className="font-semibold text-stone-900 dark:text-[#F4EAD9]">Celebration Flowers</strong>.
+                    </span>
+                  </>
+                )}
+              </p>
 
-            {/* Benefit Badges */}
-            <div className="flex flex-wrap items-center justify-center gap-2.5 sm:gap-4 pt-2">
-              <span className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-500 border border-emerald-500/30">
-                <Truck className="w-3.5 h-3.5" /> Free Refrigerated Delivery
-              </span>
-              <span className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-500/15 text-amber-500 border border-amber-500/30">
-                <ShieldCheck className="w-3.5 h-3.5" /> 50% Deposit Reservation
-              </span>
-              <span className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-purple-500/15 text-purple-400 border border-purple-500/30">
-                <Gift className="w-3.5 h-3.5" /> Min. 3 Categories
-              </span>
+              {/* Benefit Badges */}
+              <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 pt-0.5">
+                <span className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border border-black/10 dark:border-white/15 bg-black/[0.03] dark:bg-white/[0.04] text-stone-700 dark:text-[#F4EAD9]">
+                  <Truck className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                  <span>{isAmharic ? 'በማቀዝቀዣ መኪና ነፃ ማድረስ' : 'Free Refrigerated Delivery'}</span>
+                </span>
+                <span className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border border-black/10 dark:border-white/15 bg-black/[0.03] dark:bg-white/[0.04] text-stone-700 dark:text-[#F4EAD9]">
+                  <ShieldCheck className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                  <span>{isAmharic ? '50% ቅድመ ክፍያ ማስያዣ' : '50% Deposit Reservation'}</span>
+                </span>
+                <span className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border border-black/10 dark:border-white/15 bg-black/[0.03] dark:bg-white/[0.04] text-stone-700 dark:text-[#F4EAD9]">
+                  <Gift className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                  <span>{isAmharic ? 'ቢያንስ 3 የጥቅል ክፍሎች' : 'Min. 3 Categories'}</span>
+                </span>
+              </div>
             </div>
 
             {/* View Switcher Tabs */}
@@ -174,24 +216,24 @@ export const PackageBuilder: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setActiveTab('premade')}
-                  className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all ${activeTab === 'premade'
+                  className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${activeTab === 'premade'
                       ? 'bg-amber-500 text-black shadow-md'
-                      : 'opacity-70 hover:opacity-100'
+                      : 'text-stone-700 dark:text-[#F4EAD9] bg-transparent hover:bg-black/5 dark:hover:bg-[rgba(244,234,217,0.08)]'
                     }`}
                 >
                   <Gift className="w-4 h-4" />
-                  <span>Curated Packages</span>
+                  <span>{isAmharic ? 'የተዘጋጁ ጥቅሎች' : 'Curated Packages'}</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setActiveTab('builder')}
-                  className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all ${activeTab === 'builder'
+                  className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${activeTab === 'builder'
                       ? 'bg-amber-500 text-black shadow-md'
-                      : 'opacity-70 hover:opacity-100'
+                      : 'text-stone-700 dark:text-[#F4EAD9] bg-transparent hover:bg-black/5 dark:hover:bg-[rgba(244,234,217,0.08)]'
                     }`}
                 >
                   <Sparkles className="w-4 h-4" />
-                  <span>Custom Package Builder</span>
+                  <span>{isAmharic ? 'የራስዎን ጥቅል ያዘጋጁ' : 'Custom Package Builder'}</span>
                 </button>
               </div>
             </div>
@@ -202,25 +244,31 @@ export const PackageBuilder: React.FC = () => {
       {/* Main Content Area */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 sm:pt-10">
         {loading ? (
-          <div className="text-center py-20 opacity-60">Loading celebration packages...</div>
+          <div className="text-center py-20 opacity-60">
+            {isAmharic ? 'የበዓል ጥቅሎችን በመጫን ላይ...' : 'Loading celebration packages...'}
+          </div>
         ) : activeTab === 'premade' ? (
           /* ==================== PRE-MADE PACKAGES VIEW ==================== */
           <div className="space-y-8">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
               <div>
-                <h2 className="font-serif font-bold text-2xl">Chef & Holiday Curated Bundles</h2>
-                <p className="text-xs opacity-75">Ready-to-order complete celebration sets with complimentary delivery</p>
+                <h2 className="font-serif font-bold text-2xl">
+                  {isAmharic ? 'በልዩ ባለሙያና ለበዓል የተዘጋጁ ሙሉ ጥቅሎች' : 'Chef & Holiday Curated Bundles'}
+                </h2>
+                <p className="text-xs opacity-75">
+                  {isAmharic ? 'ለማዘዝ የተዘጋጁ ሙሉ የበዓል ስብስቦች ከነፃ ማድረሻ ጋር' : 'Ready-to-order complete celebration sets with complimentary delivery'}
+                </p>
               </div>
               <button
                 onClick={() => setActiveTab('builder')}
-                className="flex items-center gap-2 text-xs font-bold text-amber-500 hover:underline"
+                className="flex items-center gap-2 text-xs font-bold text-amber-500 hover:underline cursor-pointer"
               >
-                <span>Prefer to pick your own items? Open Custom Builder</span>
+                <span>{isAmharic ? 'የራስዎን እቃዎች መምረጥ ይፈልጋሉ? ልዩ ጥቅል ማዘጋጃን ይክፈቱ' : 'Prefer to pick your own items? Open Custom Builder'}</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </button>
             </div>
 
-            <div className="grid grid-cols-2 lg:grid-cols-2 gap-2.5 sm:gap-6 items-start">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5 sm:gap-4 lg:gap-4.5 items-start">
               {preMadePackages.map((pkg, idx) => {
                 const isExpanded = expandedPreMadeId === pkg.id;
                 return (
@@ -228,12 +276,12 @@ export const PackageBuilder: React.FC = () => {
                     <div
                       onTouchStart={() => handleTouchCard(pkg.id)}
                       onTouchEnd={() => handleTouchCard(pkg.id)}
-                      className={`self-start h-fit w-full group rounded-2xl sm:rounded-3xl border overflow-hidden transition-all duration-300 hover:shadow-2xl flex flex-col justify-between cursor-pointer select-none ${isDark ? 'bg-[#24170D] border-[#4A2C16]' : 'bg-white border-[#E4D4BC]'
+                      className={`self-start h-fit w-full group rounded-2xl border overflow-hidden transition-all duration-300 hover:shadow-xl flex flex-col justify-between cursor-pointer select-none ${isDark ? 'bg-[#24170D] border-[#4A2C16]' : 'bg-white border-[#E4D4BC]'
                         }`}
                     >
                       <div>
                         {/* Image & Badge Banner */}
-                        <div className="relative h-32 sm:h-56 w-full overflow-hidden bg-black/10">
+                        <div className="relative h-32 sm:h-40 lg:h-36 w-full overflow-hidden bg-black/10">
                           <img
                             src={pkg.image}
                             alt={pkg.name}
@@ -242,9 +290,9 @@ export const PackageBuilder: React.FC = () => {
                           />
                           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
 
-                          <div className="absolute top-2 left-2 sm:top-4 sm:left-4 flex flex-wrap gap-1 sm:gap-2">
-                            <span className="px-2 py-0.5 sm:px-3 sm:py-1 rounded-full text-[9px] sm:text-xs font-bold bg-emerald-600 text-white flex items-center gap-1 shadow-md">
-                              <Truck className="w-2.5 h-2.5 sm:w-3 sm:h-3" /> Free Delivery
+                          <div className="absolute top-2 left-2 sm:top-3 sm:left-3 flex flex-wrap gap-1">
+                            <span className="px-2 py-0.5 sm:px-2.5 sm:py-0.5 rounded-full text-[9px] sm:text-[11px] font-bold bg-emerald-600 text-white flex items-center gap-1 shadow-md">
+                              <Truck className="w-2.5 h-2.5 sm:w-3 sm:h-3" /> {isAmharic ? 'ነፃ ማድረሻ' : 'Free Delivery'}
                             </span>
                           </div>
 
@@ -254,8 +302,8 @@ export const PackageBuilder: React.FC = () => {
                             const isSoldOut = Boolean(pkg.isOutOfStock || avail <= 0);
                             if (isSoldOut) {
                               return (
-                                <div className="absolute top-2 right-2 sm:top-4 sm:right-4">
-                                  <span className="px-2 py-0.5 sm:px-2.5 sm:py-0.5 rounded-full text-[8.5px] sm:text-xs font-bold bg-red-600 text-white shadow-md">
+                                <div className="absolute top-2 right-2 sm:top-3 sm:right-3">
+                                  <span className="px-2 py-0.5 sm:px-2 sm:py-0.5 rounded-full text-[8.5px] sm:text-[10px] font-bold bg-red-600 text-white shadow-md">
                                     {isAmharic ? 'አልቋል' : 'Sold Out'}
                                   </span>
                                 </div>
@@ -264,19 +312,19 @@ export const PackageBuilder: React.FC = () => {
                             return null;
                           })()}
 
-                          <div className="absolute bottom-2 left-2 right-2 sm:bottom-4 sm:left-4 sm:right-4 text-white">
-                            <div className="text-[9px] sm:text-xs font-mono opacity-80 uppercase tracking-wider truncate">
+                          <div className="absolute bottom-2 left-2 right-2 sm:bottom-3 sm:left-3 sm:right-3 text-white">
+                            <div className="text-[9px] sm:text-[10px] font-mono opacity-80 uppercase tracking-wider truncate">
                               {isAmharic && pkg.amharicTagline ? pkg.amharicTagline : pkg.tagline}
                             </div>
-                            <h3 className="font-serif font-bold text-xs sm:text-2xl line-clamp-1">
+                            <h3 className="font-serif font-bold text-xs sm:text-base lg:text-sm line-clamp-1">
                               {getPackageTitle(pkg, isAmharic)}
                             </h3>
                           </div>
                         </div>
 
                         {/* Content */}
-                        <div className="p-2.5 sm:p-6 space-y-2 sm:space-y-4">
-                          <p className="text-[10px] sm:text-sm opacity-80 leading-relaxed line-clamp-1 sm:line-clamp-2">
+                        <div className="p-2.5 sm:p-4 lg:p-3.5 space-y-2 sm:space-y-2.5">
+                          <p className="text-[10px] sm:text-xs opacity-80 leading-relaxed line-clamp-1 sm:line-clamp-2">
                             {getPackageDescription(pkg, isAmharic)}
                           </p>
 
@@ -284,33 +332,33 @@ export const PackageBuilder: React.FC = () => {
                           <button
                             type="button"
                             onClick={() => setExpandedPreMadeId(isExpanded ? null : pkg.id)}
-                            className="w-full text-[10px] sm:text-xs font-semibold flex items-center justify-between py-1 px-1.5 rounded-md hover:bg-black/5 dark:hover:bg-white/5 opacity-80 hover:opacity-100 transition-colors border border-black/5 dark:border-white/5"
+                            className="w-full text-[10px] sm:text-xs font-semibold flex items-center justify-between py-1 px-1.5 rounded-md hover:bg-black/5 dark:hover:bg-white/5 opacity-80 hover:opacity-100 transition-colors border border-black/5 dark:border-white/5 cursor-pointer"
                           >
                             <span>{isExpanded ? (isAmharic ? 'ዝርዝር አሳንስ' : 'Hide details') : (isAmharic ? 'የጥቅሉ ዝርዝር' : 'Show details')}</span>
                             <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
                           </button>
 
-                          {/* Items Included Breakdown (Expandable on mobile, always visible on larger) */}
+                          {/* Items Included Breakdown */}
                           {isExpanded && (
                             <div className="space-y-2 pt-1 animate-in fade-in duration-150">
-                              <div className="text-[9.5px] sm:text-xs font-bold uppercase tracking-wider opacity-60">
+                              <div className="text-[9px] sm:text-[10.5px] font-bold uppercase tracking-wider opacity-60">
                                 {isAmharic ? `የተካተቱ ምድቦች (${pkg.categoryCount}):` : `Package Breakdown (${pkg.categoryCount} Categories):`}
                               </div>
-                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 sm:gap-2">
+                              <div className="grid grid-cols-1 gap-1.5">
                                 {pkg.items.map((item, idx) => (
                                   <div
                                     key={idx}
-                                    className={`p-1.5 sm:p-2.5 rounded-lg sm:rounded-xl border flex items-center gap-1.5 sm:gap-2.5 text-[10px] sm:text-xs ${isDark ? 'bg-[#1D130A] border-[#4A2C16]' : 'bg-[#FAF7F0] border-[#E4D4BC]'
+                                    className={`p-1.5 sm:p-2 rounded-lg border flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs ${isDark ? 'bg-[#1D130A] border-[#4A2C16]' : 'bg-[#FAF7F0] border-[#E4D4BC]'
                                       }`}
                                   >
                                     <img
                                       src={item.image}
                                       alt={item.name}
-                                      className="w-6 h-6 sm:w-8 sm:h-8 rounded-md sm:rounded-lg object-cover shrink-0"
+                                      className="w-6 h-6 sm:w-7 sm:h-7 rounded-md object-cover shrink-0"
                                     />
                                     <div className="truncate">
                                       <div className="font-semibold truncate">{getItemDisplayName(item, isAmharic)}</div>
-                                      <div className="text-[8.5px] sm:text-[10px] opacity-60 font-mono">{formatPrice(item.price)}</div>
+                                      <div className="text-[8.5px] sm:text-[9.5px] opacity-60 font-mono">{formatPrice(item.price)}</div>
                                     </div>
                                   </div>
                                 ))}
@@ -322,24 +370,24 @@ export const PackageBuilder: React.FC = () => {
 
                       {/* Pricing & Actions Footer */}
                       <div
-                        className={`p-2.5 sm:p-6 border-t flex flex-col items-stretch justify-between gap-2 sm:gap-4 ${isDark ? 'bg-[#1D130A]/60 border-[#4A2C16]' : 'bg-[#FAF7F0]/60 border-[#E4D4BC]'
+                        className={`p-2.5 sm:p-4 lg:p-3.5 border-t flex flex-col items-stretch justify-between gap-2 sm:gap-3 ${isDark ? 'bg-[#1D130A]/60 border-[#4A2C16]' : 'bg-[#FAF7F0]/60 border-[#E4D4BC]'
                           }`}
                       >
                         <div>
-                          <div className="flex items-center gap-1.5 sm:gap-2">
-                            <span className="text-[9.5px] sm:text-xs line-through opacity-50 font-mono">
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-[9.5px] sm:text-[11px] line-through opacity-50 font-mono">
                               {formatPrice(pkg.originalPrice)}
                             </span>
-                            <span className="text-[9.5px] sm:text-xs font-bold text-emerald-500">
-                              Save {formatPrice(pkg.savings)}
+                            <span className="text-[9.5px] sm:text-[11px] font-bold text-emerald-500">
+                              {isAmharic ? 'ቁጠባ ' : 'Save '}{formatPrice(pkg.savings)}
                             </span>
                           </div>
-                          <div className="font-serif font-bold text-sm sm:text-2xl text-amber-500">
+                          <div className="font-serif font-bold text-sm sm:text-lg lg:text-base text-amber-500">
                             {formatPrice(pkg.packagePrice)}
                           </div>
-                          <div className="text-[9px] sm:text-[11px] opacity-70 flex items-center gap-1">
+                          <div className="text-[9px] sm:text-[10.5px] opacity-70 flex items-center gap-1">
                             <ShieldCheck className="w-3 h-3 text-emerald-500 shrink-0" />
-                            <span className="truncate">50% deposit ({formatPrice(pkg.packagePrice * 0.5)})</span>
+                            <span className="truncate">{isAmharic ? '50% ቅድመ-ክፍያ' : '50% deposit'} ({formatPrice(pkg.packagePrice * 0.5)})</span>
                           </div>
                         </div>
 
@@ -352,9 +400,9 @@ export const PackageBuilder: React.FC = () => {
                                 <button
                                   type="button"
                                   disabled
-                                  className="w-full px-2.5 py-2 sm:px-6 sm:py-3 rounded-xl sm:rounded-2xl bg-stone-700/60 text-stone-300 font-bold text-[10px] sm:text-sm cursor-not-allowed opacity-80 flex items-center justify-center gap-1 sm:gap-1.5"
+                                  className="w-full px-2.5 py-2 sm:px-3 sm:py-2.5 rounded-xl bg-stone-700/60 text-stone-300 font-bold text-[10px] sm:text-xs cursor-not-allowed opacity-80 flex items-center justify-center gap-1"
                                 >
-                                  <span>{isAmharic ? '🚫 ጥቅሉ አልቋል (Out of Stock)' : '🚫 Sold Out (Out of Stock)'}</span>
+                                  <span>{isAmharic ? '🚫 አልቋል (Out of Stock)' : '🚫 Sold Out (Out of Stock)'}</span>
                                 </button>
                               );
                             }
@@ -362,9 +410,9 @@ export const PackageBuilder: React.FC = () => {
                               <button
                                 type="button"
                                 onClick={() => handleOrderPreMade(pkg)}
-                                className="w-full px-2.5 py-2 sm:px-6 sm:py-3 rounded-xl sm:rounded-2xl bg-amber-500 hover:bg-amber-600 text-black font-bold text-[10px] sm:text-sm transition-all shadow-md flex items-center justify-center gap-1 sm:gap-1.5 cursor-pointer active:scale-[0.99]"
+                                className="w-full px-2.5 py-2 sm:px-3 sm:py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-black font-bold text-[10px] sm:text-xs transition-all shadow-md flex items-center justify-center gap-1 cursor-pointer active:scale-[0.99]"
                               >
-                                <Gift className="w-3 h-3 sm:w-4 sm:h-4 shrink-0" />
+                                <Gift className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" />
                                 <span className="truncate">{isAmharic ? 'ይዘዙ / በ50% ይያዙ' : 'Order / 50% Reserve'}</span>
                               </button>
                             );
@@ -387,14 +435,14 @@ export const PackageBuilder: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setActiveCategoryFilter('all')}
-                  className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${activeCategoryFilter === 'all'
+                  className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${activeCategoryFilter === 'all'
                       ? 'bg-amber-500 text-black shadow-sm'
                       : isDark
                         ? 'bg-[#24170D] border border-[#4A2C16] text-[#F4E8D0] opacity-75 hover:opacity-100'
                         : 'bg-white border border-[#E4D4BC] text-[#241A12] opacity-75 hover:opacity-100'
                     }`}
                 >
-                  All Items
+                  {isAmharic ? 'ሁሉም እቃዎች' : 'All Items'}
                 </button>
                 {categories.map(cat => {
                   const Icon = cat.icon;
@@ -404,7 +452,7 @@ export const PackageBuilder: React.FC = () => {
                       key={cat.id}
                       type="button"
                       onClick={() => setActiveCategoryFilter(cat.id)}
-                      className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${activeCategoryFilter === cat.id
+                      className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${activeCategoryFilter === cat.id
                           ? 'bg-amber-500 text-black shadow-sm'
                           : isDark
                             ? 'bg-[#24170D] border border-[#4A2C16] text-[#F4E8D0]'
@@ -412,7 +460,7 @@ export const PackageBuilder: React.FC = () => {
                         }`}
                     >
                       <Icon className={`w-3.5 h-3.5 ${activeCategoryFilter === cat.id ? 'text-black' : cat.color}`} />
-                      <span>{cat.name}</span>
+                      <span>{isAmharic ? cat.amharicName : cat.name}</span>
                       {isCatSelected && (
                         <span className="w-2 h-2 rounded-full bg-emerald-500" />
                       )}
@@ -466,14 +514,18 @@ export const PackageBuilder: React.FC = () => {
                                   {isSelected ? <Check className="w-3.5 h-3.5 stroke-[3]" /> : <Plus className="w-3.5 h-3.5" />}
                                 </button>
                               </div>
-                              <p className="text-[11px] opacity-70 line-clamp-2 mt-0.5">{item.description}</p>
+                              <p className="text-[11px] opacity-70 line-clamp-2 mt-0.5">
+                                {getItemDisplayDescription(item, isAmharic)}
+                              </p>
                             </div>
                             <div className="flex items-center justify-between mt-2 pt-1 border-t border-black/5 dark:border-white/5">
                               <span className="font-serif font-bold text-sm text-amber-500">
                                 {formatPrice(item.price)}
                               </span>
                               {item.unit && (
-                                <span className="text-[10px] opacity-60 font-mono">{item.unit}</span>
+                                <span className="text-[10px] opacity-60 font-mono">
+                                  {getItemDisplayUnit(item, isAmharic)}
+                                </span>
                               )}
                             </div>
                           </div>
@@ -493,7 +545,7 @@ export const PackageBuilder: React.FC = () => {
                 {/* Package Name Input */}
                 <div>
                   <label className="text-[11px] font-bold uppercase tracking-wider opacity-70 block mb-1">
-                    Custom Package Title
+                    {isAmharic ? 'የጥቅሉ ስያሜ' : 'Custom Package Title'}
                   </label>
                   <input
                     type="text"
@@ -520,19 +572,19 @@ export const PackageBuilder: React.FC = () => {
                       ) : (
                         <AlertTriangle className="w-4 h-4 text-amber-500" />
                       )}
-                      <span>Category Requirement: {categoryCount} / 3</span>
+                      <span>{isAmharic ? `የምድብ መስፈርት፡ ${categoryCount} / 3` : `Category Requirement: ${categoryCount} / 3`}</span>
                     </div>
                     {isEligible && (
                       <span className="text-[10px] uppercase font-bold bg-emerald-500 text-black px-2 py-0.5 rounded-full">
-                        Free Delivery Ready
+                        {isAmharic ? 'ነፃ ማድረሻ ተፈቅዷል' : 'Free Delivery Ready'}
                       </span>
                     )}
                   </div>
 
                   <p className="text-[11px] opacity-80 leading-tight">
                     {isEligible
-                      ? '✓ Package meets the 3-category rule and qualifies for complimentary VIP delivery and 50% reservation!'
-                      : '⚠️ Choose items from at least 3 distinct categories (Meat, Wine, Eggs, Flowers) to unlock package benefits.'}
+                      ? (isAmharic ? '✓ ጥቅልዎ የ3 ምድቦችን መስፈርት ስላሟላ ነፃ ማድረሻና የ50% ቅድመ ክፍያ ማስያዝ ይችላሉ!' : '✓ Package meets the 3-category rule and qualifies for complimentary VIP delivery and 50% reservation!')
+                      : (isAmharic ? '⚠️ የጥቅል ጥቅማጥቅሞችን ለማግኘት ቢያንስ ከ3 የተለያዩ ምድቦች (ሥጋ፣ ወይን፣ እንቁላል፣ አበባ) ይምረጡ።' : '⚠️ Choose items from at least 3 distinct categories (Meat, Wine, Eggs, Flowers) to unlock package benefits.')}
                   </p>
 
                   {/* Checklist */}
@@ -546,7 +598,7 @@ export const PackageBuilder: React.FC = () => {
                             }`}
                         >
                           <span>{isCatActive ? '✓' : '○'}</span>
-                          <span className="truncate">{cat.name.split(' ')[0]}</span>
+                          <span className="truncate">{isAmharic ? cat.amharicName.split(' ')[0] : cat.name.split(' ')[0]}</span>
                         </div>
                       );
                     })}
@@ -556,21 +608,21 @@ export const PackageBuilder: React.FC = () => {
                 {/* Selected Items List */}
                 <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
                   <div className="text-xs font-bold uppercase tracking-wider opacity-60 flex justify-between">
-                    <span>Selected Items ({selectedItems.length})</span>
+                    <span>{isAmharic ? `የተመረጡ እቃዎች (${selectedItems.length})` : `Selected Items (${selectedItems.length})`}</span>
                     {selectedItems.length > 0 && (
                       <button
                         type="button"
                         onClick={() => setSelectedItems([])}
-                        className="text-[10px] text-red-400 hover:underline"
+                        className="text-[10px] text-red-400 hover:underline cursor-pointer"
                       >
-                        Clear all
+                        {isAmharic ? 'ሁሉንም አጽዳ' : 'Clear all'}
                       </button>
                     )}
                   </div>
 
                   {selectedItems.length === 0 ? (
                     <div className="p-4 rounded-xl border border-dashed text-center text-xs opacity-50">
-                      No items selected yet. Click any item on the left to add it to your custom celebration box.
+                      {isAmharic ? 'እስካሁን የተመረጠ እቃ የለም። እቃዎችን ለመጨመር በግራ በኩል ካሉት ዝርዝሮች ይጫኑ።' : 'No items selected yet. Click any item on the left to add it to your custom celebration box.'}
                     </div>
                   ) : (
                     selectedItems.map(item => (
@@ -590,7 +642,7 @@ export const PackageBuilder: React.FC = () => {
                           <button
                             type="button"
                             onClick={() => toggleItem(item)}
-                            className="p-0.5 text-neutral-400 hover:text-red-400"
+                            className="p-0.5 text-neutral-400 hover:text-red-400 cursor-pointer"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
@@ -603,18 +655,18 @@ export const PackageBuilder: React.FC = () => {
                 {/* Price Summary */}
                 <div className="pt-3 border-t border-black/10 dark:border-white/10 space-y-2">
                   <div className="flex justify-between text-xs">
-                    <span className="opacity-70">Delivery Fee:</span>
+                    <span className="opacity-70">{isAmharic ? 'የማድረሻ ክፍያ፡' : 'Delivery Fee:'}</span>
                     <span className={isEligible ? 'text-emerald-500 font-bold' : 'opacity-70'}>
-                      {isEligible ? 'FREE' : 'Select ≥3 categories'}
+                      {isEligible ? (isAmharic ? 'ነፃ' : 'FREE') : (isAmharic ? 'ቢያንስ 3 ምድቦችን ይምረጡ' : 'Select ≥3 categories')}
                     </span>
                   </div>
                   <div className="flex justify-between items-baseline">
-                    <span className="font-bold text-sm">Total Package Price:</span>
+                    <span className="font-bold text-sm">{isAmharic ? 'ጠቅላላ የጥቅል ዋጋ፡' : 'Total Package Price:'}</span>
                     <span className="font-serif font-bold text-2xl text-amber-500">{formatPrice(totalPrice)}</span>
                   </div>
                   {isEligible && (
                     <div className="flex justify-between text-xs text-emerald-500 font-medium">
-                      <span>50% Deposit to Reserve:</span>
+                      <span>{isAmharic ? '50% ቅድመ ክፍያ ማስያዣ፡' : '50% Deposit to Reserve:'}</span>
                       <span className="font-bold font-mono">{formatPrice(totalPrice * 0.5)}</span>
                     </div>
                   )}
@@ -633,17 +685,17 @@ export const PackageBuilder: React.FC = () => {
                     type="button"
                     disabled={!isEligible}
                     onClick={handleOrderCustom}
-                    className="w-full py-3.5 rounded-2xl bg-amber-500 hover:bg-amber-600 disabled:opacity-40 disabled:cursor-not-allowed text-black font-bold text-xs sm:text-sm tracking-wide transition-all shadow-lg shadow-amber-500/25 flex items-center justify-center gap-2"
+                    className="w-full py-3.5 rounded-2xl bg-amber-500 hover:bg-amber-600 disabled:opacity-40 disabled:cursor-not-allowed text-black font-bold text-xs sm:text-sm tracking-wide transition-all shadow-lg shadow-amber-500/25 flex items-center justify-center gap-2 cursor-pointer"
                   >
                     <Gift className="w-4 h-4" />
-                    <span>Proceed to Order / 50% Reserve</span>
+                    <span>{isAmharic ? 'ይዘዙ / በ50% ይያዙ' : 'Proceed to Order / 50% Reserve'}</span>
                   </button>
 
                   <button
                     type="button"
                     disabled={!isEligible}
                     onClick={handleSaveToMyPackages}
-                    className={`w-full py-2.5 rounded-2xl border text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${!isEligible
+                    className={`w-full py-2.5 rounded-2xl border text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${!isEligible
                         ? 'opacity-30 cursor-not-allowed'
                         : isDark
                           ? 'border-[#4A2C16] hover:bg-[#2A1A0D] text-amber-400'
@@ -651,7 +703,7 @@ export const PackageBuilder: React.FC = () => {
                       }`}
                   >
                     <BookmarkPlus className="w-3.5 h-3.5" />
-                    <span>Save to My Packages</span>
+                    <span>{isAmharic ? 'ወደ መለያዬ አስቀምጥ' : 'Save to My Packages'}</span>
                   </button>
                 </div>
               </div>

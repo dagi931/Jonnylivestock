@@ -4,12 +4,14 @@ import { authenticateToken, requireAdmin, optionalAuth, AuthRequest } from '../m
 import { uploadSlip } from '../middleware/upload.middleware.js';
 import { Order } from '../types/index.js';
 import { realtimeService } from '../services/realtime.service.js';
+import { orderContactLimiter } from '../middleware/rateLimit.middleware.js';
 
 const router = Router();
 
 // ==================== CREATE ORDER / RESERVATION (Animal or Package) ====================
 router.post(
   '/',
+  orderContactLimiter,
   optionalAuth,
   uploadSlip.single('paymentSlip'),
   async (req: AuthRequest, res: Response): Promise<void> => {

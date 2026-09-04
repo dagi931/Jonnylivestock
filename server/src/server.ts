@@ -14,6 +14,7 @@ import settingsRoutes from './routes/settings.routes.js';
 import eventsRoutes from './routes/events.routes.js';
 import packagesRoutes from './routes/packages.routes.js';
 import contactRoutes from './routes/contact.routes.js';
+import { globalLimiter } from './middleware/rateLimit.middleware.js';
 
 dotenv.config();
 
@@ -34,8 +35,8 @@ app.use(cors({
   origin: true,
   credentials: true
 }));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // Serve static uploaded files (payment slips, animal photos)
 app.use('/uploads', express.static(UPLOADS_DIR));
@@ -57,6 +58,9 @@ app.get('/api/health', async (_req, res) => {
     });
   }
 });
+
+// Apply global rate limiter across all /api routes
+app.use('/api', globalLimiter);
 
 // API Routes
 app.use('/api/auth', authRoutes);

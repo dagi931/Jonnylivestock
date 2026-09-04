@@ -46,12 +46,39 @@ export const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const isAuthenticated = Boolean(token && user);
 
   useEffect(() => {
+    const syncAdminAuth = () => {
+      const savedToken = localStorage.getItem('jonny_admin_token') || localStorage.getItem('jonny_user_token');
+      const savedUser = localStorage.getItem('jonny_admin_user') || localStorage.getItem('jonny_user_profile');
+      if (savedToken && savedUser) {
+        try {
+          const parsed = JSON.parse(savedUser);
+          if (parsed.role === 'admin' || parsed.role === 'Livestock Administrator') {
+            setToken(savedToken);
+            setUser({
+              id: parsed.id,
+              email: parsed.email,
+              name: parsed.name,
+              role: 'Livestock Administrator',
+              phone: parsed.phone
+            });
+            return;
+          }
+        } catch {}
+      }
+    };
+
+    window.addEventListener('storage', syncAdminAuth);
+    window.addEventListener('auth_change', syncAdminAuth);
+    return () => {
+      window.removeEventListener('storage', syncAdminAuth);
+      window.removeEventListener('auth_change', syncAdminAuth);
+    };
+  }, []);
+
+  useEffect(() => {
     if (token && user) {
       localStorage.setItem('jonny_admin_token', token);
       localStorage.setItem('jonny_admin_user', JSON.stringify(user));
-    } else {
-      localStorage.removeItem('jonny_admin_token');
-      localStorage.removeItem('jonny_admin_user');
     }
   }, [token, user]);
 

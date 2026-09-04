@@ -160,10 +160,10 @@ export const FreshSheepDashboard: React.FC = () => {
                     }`}
                   >
                     <option value="any">Best Available Prime Sheep</option>
-                    <option value="horro">Horro Ram (Heavy Fat-Tailed)</option>
-                    <option value="menz">Menz Highland Sheep</option>
-                    <option value="bonga">Bonga Long-Tailed Sheep</option>
-                    <option value="washera">Washera Short Fat-Tailed Sheep</option>
+                    <option value="debrebirhan">Debrebirhan Prime Sheep</option>
+                    <option value="ginchi">Ginchi Highland Sheep</option>
+                    <option value="wolayita">Wolayita Breed Sheep</option>
+                    <option value="arsi">Arsi Prime Sheep</option>
                   </select>
                 </div>
 

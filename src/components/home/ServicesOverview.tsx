@@ -33,8 +33,8 @@ export const ServicesOverview: React.FC = () => {
       desc: 'ለበዓል ድግስ፣ ለሰርግና ለተለያዩ ዝግጅቶች የሚሆኑ የተመረጡ ሰንጋዎች፣ በጎችና ፍየሎች ከሙሉ አገልግሎት ጋር።'
     },
     'meat-by-kg': {
-      title: 'ስጋ በኪሎ ለሆቴሎችና ሬስቶራንቶች',
-      desc: 'ከበግ፣ ፍየልና ሰንጋ የተመረጠ ጥራት ያለው ስጋ በኪሎ ለክትፎ፣ ጥሬ ቁርጥ፣ ወጥ፣ ጥብስና ዱለት እናቀርባለን።'
+      title: 'የበሬ ስጋ በኪሎ ለሆቴሎችና ሬስቶራንቶች',
+      desc: 'ከምርጥ ሰንጋ የተዘጋጀ የበሬ ስጋ በኪሎ፡ ቁርጥ (2,800 ብር)፣ ክትፎ (2,200 ብር)፣ ወጥ (1,800 ብር) በትክክለኛ ሚዛን እናቀርባለን።'
     },
     'fresh-slaughtered-sheep': {
       title: 'የታረደ ትኩስ በግ ማድረስ',
@@ -140,7 +140,7 @@ export const ServicesOverview: React.FC = () => {
 
                 <div>
                   <Link
-                    to={`/services/${service.id}`}
+                    to={`/services#${service.id}`}
                     className={`inline-flex items-center gap-1 text-xs font-bold transition-colors ${
                       isDark ? 'text-[#E0B15A] hover:underline' : 'text-[#B8792F] hover:underline'
                     }`}

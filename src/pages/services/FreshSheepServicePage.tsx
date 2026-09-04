@@ -198,10 +198,10 @@ export const FreshSheepServicePage: React.FC = () => {
                       }`}
                     >
                       <option value="any">{isAmharic ? 'ምርጥ የሚገኝ የበግ ዝርያ' : 'Best Available Prime Sheep'}</option>
-                      <option value="horro">{isAmharic ? 'የሆሮ ሙክት (ወፍራም ላቱ)' : 'Horro Ram (Heavy Fat-Tailed)'}</option>
-                      <option value="menz">{isAmharic ? 'የመንዝ ደጋ በግ' : 'Menz Highland Sheep'}</option>
-                      <option value="bonga">{isAmharic ? 'የቦንጋ ረጃጅም ጅራት በግ' : 'Bonga Long-Tailed Sheep'}</option>
-                      <option value="washera">{isAmharic ? 'የዋሸራ አጭር ላቱ በግ' : 'Washera Short Fat-Tailed Sheep'}</option>
+                      <option value="debrebirhan">{isAmharic ? 'የደብረ ብርሃን ምርጥ በግ' : 'Debrebirhan Prime Sheep'}</option>
+                      <option value="ginchi">{isAmharic ? 'የጊንጪ ደጋ በግ' : 'Ginchi Highland Sheep'}</option>
+                      <option value="wolayita">{isAmharic ? 'የወላይታ ዝርያ በግ' : 'Wolayita Breed Sheep'}</option>
+                      <option value="arsi">{isAmharic ? 'የአርሲ ምርጥ በግ' : 'Arsi Prime Sheep'}</option>
                     </select>
                   </div>
 

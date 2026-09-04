@@ -5,15 +5,17 @@ interface UserAuthContextType {
   isAuthenticated: boolean;
   user: UserProfile | null;
   token: string | null;
-  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  login: (email: string, password: string) => Promise<{ success: boolean; user?: UserProfile; error?: string }>;
   register: (name: string, email: string, phone: string, password: string) => Promise<{ success: boolean; error?: string }>;
   sendRegistrationOtp: (name: string, email: string, phone: string) => Promise<{ success: boolean; message?: string; error?: string }>;
   verifyAndRegister: (data: { name: string; email: string; phone: string; password: string; otp: string }) => Promise<{ success: boolean; error?: string }>;
+  sendForgotPasswordOtp: (email: string) => Promise<{ success: boolean; message?: string; error?: string }>;
+  resetPasswordWithOtp: (data: { email: string; otp: string; newPassword: string }) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
-  openAuthModal: (mode?: 'login' | 'register') => void;
+  openAuthModal: (mode?: 'login' | 'register' | 'forgot_password') => void;
   closeAuthModal: () => void;
   isAuthModalOpen: boolean;
-  authModalMode: 'login' | 'register';
+  authModalMode: 'login' | 'register' | 'forgot_password';
 }
 
 const UserAuthContext = createContext<UserAuthContextType | undefined>(undefined);
@@ -29,7 +31,7 @@ export const UserAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   });
 
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  const [authModalMode, setAuthModalMode] = useState<'login' | 'register'>('login');
+  const [authModalMode, setAuthModalMode] = useState<'login' | 'register' | 'forgot_password'>('login');
 
   const isAuthenticated = Boolean(token && user);
 
@@ -66,8 +68,9 @@ export const UserAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         }));
       }
 
+      window.dispatchEvent(new Event('auth_change'));
       setIsAuthModalOpen(false);
-      return { success: true };
+      return { success: true, user: res.user };
     }
     return { success: false, error: res.error || 'Invalid credentials' };
   };
@@ -79,6 +82,7 @@ export const UserAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       setUser(res.user);
       localStorage.setItem('jonny_user_token', res.token);
       localStorage.setItem('jonny_user_profile', JSON.stringify(res.user));
+      window.dispatchEvent(new Event('auth_change'));
       setIsAuthModalOpen(false);
       return { success: true };
     }
@@ -102,10 +106,41 @@ export const UserAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       setUser(res.user);
       localStorage.setItem('jonny_user_token', res.token);
       localStorage.setItem('jonny_user_profile', JSON.stringify(res.user));
+      window.dispatchEvent(new Event('auth_change'));
       setIsAuthModalOpen(false);
       return { success: true };
     }
     return { success: false, error: res.error || 'Verification failed' };
+  };
+
+  const sendForgotPasswordOtp = async (email: string) => {
+    return await api.sendForgotPasswordOtp(email);
+  };
+
+  const resetPasswordWithOtp = async (data: { email: string; otp: string; newPassword: string }) => {
+    const res = await api.resetPasswordWithOtp(data);
+    if (res.success && res.token && res.user) {
+      setToken(res.token);
+      setUser(res.user);
+      localStorage.setItem('jonny_user_token', res.token);
+      localStorage.setItem('jonny_user_profile', JSON.stringify(res.user));
+
+      if (res.user.role === 'admin') {
+        localStorage.setItem('jonny_admin_token', res.token);
+        localStorage.setItem('jonny_admin_user', JSON.stringify({
+          id: res.user.id,
+          email: res.user.email,
+          name: res.user.name,
+          role: 'Livestock Administrator',
+          phone: res.user.phone
+        }));
+      }
+
+      window.dispatchEvent(new Event('auth_change'));
+      setIsAuthModalOpen(false);
+      return { success: true };
+    }
+    return { success: false, error: res.error || 'Password reset failed' };
   };
 
   const logout = () => {
@@ -116,11 +151,11 @@ export const UserAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     localStorage.removeItem('jonny_admin_token');
     localStorage.removeItem('jonny_admin_user');
     sessionStorage.clear();
-    // Redirect to home and reload a brand new clean page
+    window.dispatchEvent(new Event('auth_change'));
     window.location.href = '/';
   };
 
-  const openAuthModal = (mode: 'login' | 'register' = 'login') => {
+  const openAuthModal = (mode: 'login' | 'register' | 'forgot_password' = 'login') => {
     setAuthModalMode(mode);
     setIsAuthModalOpen(true);
   };
@@ -139,6 +174,8 @@ export const UserAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         register,
         sendRegistrationOtp,
         verifyAndRegister,
+        sendForgotPasswordOtp,
+        resetPasswordWithOtp,
         logout,
         openAuthModal,
         closeAuthModal,

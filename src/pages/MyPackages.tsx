@@ -5,7 +5,7 @@ import { api } from '../services/api';
 import { useTheme } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useUserAuth } from '../context/UserAuthContext';
-import { formatPrice } from '../utils/formatters';
+import { formatPrice, getItemDisplayName } from '../utils/formatters';
 import { PackageOrderModal } from '../components/modals/PackageOrderModal';
 import {
   Gift,
@@ -71,13 +71,15 @@ export const MyPackages: React.FC = () => {
             <div>
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-amber-500/15 border border-amber-500/30 text-amber-500 mb-2">
                 <Bookmark className="w-3.5 h-3.5" />
-                <span>My Saved Collections</span>
+                <span>{isAmharic ? 'የተቀመጡ ስብስቦች' : 'My Saved Collections'}</span>
               </div>
               <h1 className="font-serif font-bold text-3xl sm:text-4xl tracking-tight">
                 {isAmharic ? 'የተቀመጡ የበዓል ጥቅሎች' : 'My Saved Packages'}
               </h1>
               <p className="text-xs sm:text-sm opacity-75 mt-1">
-                Your customized combinations of livestock/meat, wine, eggs, and flowers ready for instant reservation
+                {isAmharic
+                  ? 'የቀንድ ከብት፣ ወይን፣ እንቁላልና አበቦች ያካተቱ ያዘጋጇቸው ልዩ ጥቅሎች ለቀጥታ ማዘዣ ተዘጋጅተዋል'
+                  : 'Your customized combinations of livestock/meat, wine, eggs, and flowers ready for instant reservation'}
               </p>
             </div>
 
@@ -86,7 +88,7 @@ export const MyPackages: React.FC = () => {
               className="flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-amber-500 hover:bg-amber-600 text-black font-bold text-xs sm:text-sm transition-all shadow-lg shadow-amber-500/20"
             >
               <Plus className="w-4 h-4" />
-              <span>Create New Package</span>
+              <span>{isAmharic ? 'አዲስ ጥቅል አዘጋጅ' : 'Create New Package'}</span>
             </Link>
           </div>
         </div>
@@ -103,19 +105,25 @@ export const MyPackages: React.FC = () => {
             <div className="w-12 h-12 rounded-2xl bg-amber-500/15 text-amber-500 flex items-center justify-center mx-auto">
               <Bookmark className="w-6 h-6" />
             </div>
-            <h3 className="font-serif font-bold text-xl">Sign In to View Saved Packages</h3>
+            <h3 className="font-serif font-bold text-xl">
+              {isAmharic ? 'የተቀመጡ ጥቅሎችን ለማየት ይግቡ' : 'Sign In to View Saved Packages'}
+            </h3>
             <p className="text-xs opacity-75">
-              Access your personalized celebration hampers across your devices and order with a single click.
+              {isAmharic
+                ? 'ያዘጋጇቸውን ልዩ የበዓል ጥቅሎች በማንኛውም ስልክ ወይም ኮምፒውተር ለማየትና በአንድ ጠቅታ ለማዘዝ ይግቡ።'
+                : 'Access your personalized celebration hampers across your devices and order with a single click.'}
             </p>
             <button
               onClick={() => openAuthModal('login')}
-              className="px-6 py-2.5 rounded-2xl bg-amber-500 hover:bg-amber-600 text-black font-bold text-xs transition-all shadow-md"
+              className="px-6 py-2.5 rounded-2xl bg-amber-500 hover:bg-amber-600 text-black font-bold text-xs transition-all shadow-md cursor-pointer"
             >
-              Sign In
+              {isAmharic ? 'ይግቡ' : 'Sign In'}
             </button>
           </div>
         ) : loading ? (
-          <div className="text-center py-20 opacity-60">Loading saved packages...</div>
+          <div className="text-center py-20 opacity-60">
+            {isAmharic ? 'የተቀመጡ ጥቅሎችን በመጫን ላይ...' : 'Loading saved packages...'}
+          </div>
         ) : savedPackages.length === 0 ? (
           <div
             className={`p-12 rounded-3xl border text-center max-w-lg mx-auto space-y-4 ${
@@ -125,16 +133,20 @@ export const MyPackages: React.FC = () => {
             <div className="w-14 h-14 rounded-2xl bg-amber-500/15 text-amber-500 flex items-center justify-center mx-auto">
               <Gift className="w-7 h-7" />
             </div>
-            <h3 className="font-serif font-bold text-xl">No Saved Packages Yet</h3>
+            <h3 className="font-serif font-bold text-xl">
+              {isAmharic ? 'እስካሁን ምንም የተቀመጠ ጥቅል የለም' : 'No Saved Packages Yet'}
+            </h3>
             <p className="text-xs opacity-75 leading-relaxed">
-              Use our interactive package builder to craft your ideal celebration hamper and save it here for upcoming holidays!
+              {isAmharic
+                ? 'የጥቅል ማዘጋጃውን በመጠቀም የራስዎን የበዓል ጥቅል ያዘጋጁ እና ለመጪው በዓላት እዚህ ያስቀምጡ!'
+                : 'Use our interactive package builder to craft your ideal celebration hamper and save it here for upcoming holidays!'}
             </p>
             <Link
               to="/packages"
               className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-amber-500 hover:bg-amber-600 text-black font-bold text-xs transition-all shadow-lg"
             >
               <Sparkles className="w-4 h-4" />
-              <span>Open Package Builder</span>
+              <span>{isAmharic ? 'የጥቅል ማዘጋጃን ክፈት' : 'Open Package Builder'}</span>
             </Link>
           </div>
         ) : (
@@ -150,12 +162,14 @@ export const MyPackages: React.FC = () => {
                   <div className="flex items-start justify-between gap-2">
                     <div>
                       <h3 className="font-serif font-bold text-lg">{pkg.name}</h3>
-                      <div className="text-[11px] opacity-60">Saved on {new Date(pkg.createdAt).toLocaleDateString()}</div>
+                      <div className="text-[11px] opacity-60">
+                        {isAmharic ? 'የተቀመጠው በ' : 'Saved on'} {new Date(pkg.createdAt).toLocaleDateString()}
+                      </div>
                     </div>
                     <button
                       onClick={() => handleDelete(pkg.id)}
-                      className="p-1.5 rounded-lg text-neutral-400 hover:text-red-400 hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
-                      title="Delete package"
+                      className="p-1.5 rounded-lg text-neutral-400 hover:text-red-400 hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer"
+                      title={isAmharic ? 'ጥቅሉን ሰርዝ' : 'Delete package'}
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -164,7 +178,7 @@ export const MyPackages: React.FC = () => {
                   {/* Items in Saved Package */}
                   <div className="space-y-2">
                     <div className="text-[11px] font-bold uppercase tracking-wider opacity-60">
-                      Contains {pkg.items.length} items:
+                      {isAmharic ? `${pkg.items.length} እቃዎችን ይዟል:` : `Contains ${pkg.items.length} items:`}
                     </div>
                     <div className="space-y-1.5">
                       {pkg.items.map((item, idx) => (
@@ -176,7 +190,7 @@ export const MyPackages: React.FC = () => {
                         >
                           <div className="flex items-center gap-2 truncate">
                             <img src={item.image} alt={item.name} className="w-6 h-6 rounded object-cover shrink-0" />
-                            <span className="truncate font-medium">{item.name}</span>
+                            <span className="truncate font-medium">{getItemDisplayName(item, isAmharic)}</span>
                           </div>
                           <span className="font-mono font-bold text-amber-500 shrink-0">{formatPrice(item.price)}</span>
                         </div>
@@ -192,17 +206,17 @@ export const MyPackages: React.FC = () => {
                   }`}
                 >
                   <div className="flex justify-between items-baseline">
-                    <span className="text-xs opacity-70">Total Value:</span>
+                    <span className="text-xs opacity-70">{isAmharic ? 'ጠቅላላ ዋጋ:' : 'Total Value:'}</span>
                     <span className="font-serif font-bold text-xl text-amber-500">{formatPrice(pkg.totalPrice)}</span>
                   </div>
 
                   <button
                     type="button"
                     onClick={() => handleOrder(pkg)}
-                    className="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-black font-bold text-xs transition-all shadow-md flex items-center justify-center gap-1.5"
+                    className="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-black font-bold text-xs transition-all shadow-md flex items-center justify-center gap-1.5 cursor-pointer"
                   >
                     <Gift className="w-3.5 h-3.5" />
-                    <span>Order / 50% Reserve Now</span>
+                    <span>{isAmharic ? 'ይዘዙ / በ50% ይያዙ' : 'Order / 50% Reserve Now'}</span>
                   </button>
                 </div>
               </div>

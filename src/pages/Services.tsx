@@ -2,6 +2,8 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
+import { business } from '../config/business';
+import { getWhatsAppLink, getPhoneCallLink } from '../utils/formatters';
 import { livestockServices, serviceFlowSteps } from '../data/services';
 import {
   Truck,
@@ -10,11 +12,12 @@ import {
   Scale,
   Sparkles,
   Check,
-  ArrowRight,
   UserCheck,
   ShieldCheck,
   Building2,
-  Gift
+  Gift,
+  MessageSquare,
+  PhoneCall
 } from 'lucide-react';
 
 export const Services: React.FC = () => {
@@ -161,8 +164,8 @@ export const Services: React.FC = () => {
               <span>{isAmharic ? 'የበዓል ጥቅሎችና ቅርጫቶች' : 'Holiday Packages & Hampers'}</span>
             </Link>
 
-            <Link
-              to="/services/meat-by-kg"
+            <a
+              href="#meat-by-kg"
               className={`px-4 py-2 rounded-xl font-bold text-xs sm:text-sm transition-all shadow-xs inline-flex items-center gap-1.5 ${
                 isDark
                   ? 'bg-[#C58A3A] hover:bg-[#E0B15A] text-[#1B1208]'
@@ -171,10 +174,10 @@ export const Services: React.FC = () => {
             >
               <Scale className="w-3.5 h-3.5" />
               <span>{t.servicesPage.orderMeatByKg}</span>
-            </Link>
+            </a>
 
-            <Link
-              to="/services/delivery"
+            <a
+              href="#delivery"
               className={`px-4 py-2 rounded-xl font-semibold text-xs sm:text-sm border transition-colors ${
                 isDark
                   ? 'bg-[#2A1A0D] border-[#4A2C16] text-[#F4E8D0] hover:border-[#C58A3A]'
@@ -182,22 +185,16 @@ export const Services: React.FC = () => {
               }`}
             >
               <span>{t.servicesPage.bookLiveDelivery}</span>
-            </Link>
+            </a>
           </div>
         </div>
 
-        {/* Highlight Banner: Celebration & Holiday Packages Service */}
-        <div
-          className={`mb-12 p-6 sm:p-8 rounded-3xl border shadow-xl relative overflow-hidden ${
-            isDark
-              ? 'bg-gradient-to-br from-[#2A1A0D] via-[#1D130A] to-[#2A1A0D] border-[#4A2C16]'
-              : 'bg-gradient-to-br from-amber-50 via-[#FAF7F0] to-amber-50/50 border-[#E4D4BC]'
-          }`}
-        >
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+        {/* Featured Celebration Service - Clean Editorial Layout (Unboxed) */}
+        <div className={`pt-10 pb-10 sm:pt-12 sm:pb-12 border-t ${isDark ? 'border-[#4A2C16]' : 'border-[#E4D4BC]'}`}>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-center">
             <div className="lg:col-span-8 space-y-3">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-amber-500/15 border border-amber-500/30 text-amber-500">
-                <Sparkles className="w-3.5 h-3.5" />
+                <Sparkles className="w-3.5 h-3.5 text-amber-500" />
                 <span>{isAmharic ? 'ልዩ የበዓልና የደስታ አገልግሎት' : 'Featured Celebration Service'}</span>
               </div>
               <h2 className="font-serif font-bold text-xl sm:text-3xl">
@@ -209,15 +206,19 @@ export const Services: React.FC = () => {
                   : 'Construct your own complete feast package combining Hen, Sheep, Goat, Ox or Meat in KG + Vintage Ethiopian Wines or Honey Tej + Fresh Farm Eggs + Celebration Flower Bouquets. Includes 100% Free Refrigerated Delivery and 50% Deposit Reservation!'}
               </p>
 
-              <div className="flex flex-wrap items-center gap-3 pt-2 text-xs">
-                <span className="flex items-center gap-1 font-semibold text-emerald-500">
-                  <Truck className="w-3.5 h-3.5" /> {isAmharic ? 'ነፃ ማድረሻ (ከ3+ ምድቦች)' : 'Free Delivery (3+ Categories)'}
+              {/* Benefit Badges with unified neutral style & consistent amber icons */}
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3 pt-2 text-xs">
+                <span className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border border-black/10 dark:border-white/15 bg-black/[0.03] dark:bg-white/[0.04] text-stone-700 dark:text-[#F4EAD9]">
+                  <Truck className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                  <span>{isAmharic ? 'ነፃ ማድረሻ (ከ3+ ምድቦች)' : 'Free Delivery (3+ Categories)'}</span>
                 </span>
-                <span className="flex items-center gap-1 font-semibold text-amber-500">
-                  <ShieldCheck className="w-3.5 h-3.5" /> {isAmharic ? '50% ቅድመ-ክፍያ ማስያዣ' : '50% Deposit Reservation'}
+                <span className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border border-black/10 dark:border-white/15 bg-black/[0.03] dark:bg-white/[0.04] text-stone-700 dark:text-[#F4EAD9]">
+                  <ShieldCheck className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                  <span>{isAmharic ? '50% ቅድመ-ክፍያ ማስያዣ' : '50% Deposit Reservation'}</span>
                 </span>
-                <span className="flex items-center gap-1 font-semibold text-purple-400">
-                  <Gift className="w-3.5 h-3.5" /> {isAmharic ? 'በየጥቅሌ ውስጥ አስቀምጥ' : 'Save to My Packages'}
+                <span className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border border-black/10 dark:border-white/15 bg-black/[0.03] dark:bg-white/[0.04] text-stone-700 dark:text-[#F4EAD9]">
+                  <Gift className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                  <span>{isAmharic ? 'በየጥቅሌ ውስጥ አስቀምጥ' : 'Save to My Packages'}</span>
                 </span>
               </div>
             </div>
@@ -225,7 +226,7 @@ export const Services: React.FC = () => {
             <div className="lg:col-span-4 flex flex-col sm:flex-row lg:flex-col gap-2.5">
               <Link
                 to="/packages"
-                className="w-full py-3.5 px-5 rounded-2xl bg-amber-500 hover:bg-amber-600 text-black font-bold text-xs sm:text-sm transition-all shadow-lg flex items-center justify-center gap-2"
+                className="w-full py-3.5 px-5 rounded-2xl bg-amber-500 hover:bg-amber-600 text-black font-bold text-xs sm:text-sm transition-all shadow-md flex items-center justify-center gap-2"
               >
                 <Sparkles className="w-4 h-4" />
                 <span>{isAmharic ? 'ጥቅል ማዘጋጃውን ይክፈቱ' : 'Open Package Builder'}</span>
@@ -236,7 +237,7 @@ export const Services: React.FC = () => {
                   isDark ? 'border-[#4A2C16] hover:bg-[#2A1A0D]' : 'border-[#E4D4BC] hover:bg-[#FAF7F0]'
                 }`}
               >
-                <ShieldCheck className="w-4 h-4 text-emerald-500" />
+                <ShieldCheck className="w-4 h-4 text-amber-500" />
                 <span>{isAmharic ? 'የያዝኳቸው ንቁ ጥቅሎች' : 'My Active Reservations'}</span>
               </Link>
             </div>
@@ -260,7 +261,7 @@ export const Services: React.FC = () => {
                 id={service.id}
                 className="py-7 sm:py-9 first:pt-4 last:pb-4 transition-colors"
               >
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
                   
                   {/* Left Column: Number & Icon & Title */}
                   <div className="lg:col-span-4 space-y-2">
@@ -292,7 +293,7 @@ export const Services: React.FC = () => {
                         {service.id === 'meat-by-kg' ? (
                           <Building2 className="w-3.5 h-3.5 text-amber-500" />
                         ) : service.id === 'slaughter-prep' ? (
-                          <UserCheck className="w-3.5 h-3.5 text-green-500" />
+                          <UserCheck className="w-3.5 h-3.5 text-amber-500" />
                         ) : (
                           <ShieldCheck className="w-3.5 h-3.5 text-amber-500" />
                         )}
@@ -301,8 +302,8 @@ export const Services: React.FC = () => {
                     )}
                   </div>
 
-                  {/* Middle Column: Detailed Description & Highlights */}
-                  <div className="lg:col-span-5 space-y-3">
+                  {/* Right Column: Detailed Description & Highlights */}
+                  <div className="lg:col-span-8 space-y-3">
                     <p
                       className={`text-xs sm:text-sm leading-relaxed ${
                         isDark ? 'text-[#D8C5A8]' : 'text-[#746556]'
@@ -324,17 +325,36 @@ export const Services: React.FC = () => {
                         </li>
                       ))}
                     </ul>
-                  </div>
 
-                  {/* Right Column: Key Details & Action Button */}
-                  <div className="lg:col-span-3 space-y-3">
-                    <Link
-                      to={`/services/${service.id}`}
-                      className="w-full py-3 rounded-2xl bg-amber-500/15 hover:bg-amber-500 text-amber-500 hover:text-black font-bold text-xs transition-colors flex items-center justify-center gap-1.5 border border-amber-500/30 shadow-xs"
-                    >
-                      <span>{isAmharic ? 'የአገልግሎቱን ዝርዝር ይመልከቱ' : 'Explore Service Details'}</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
-                    </Link>
+                    {/* Direct Contact Actions (No Form Required) */}
+                    <div className="flex flex-wrap items-center gap-2.5 pt-3">
+                      <a
+                        href={getWhatsAppLink(
+                          business.whatsapp,
+                          isAmharic
+                            ? `ሰላም ጆኒ ሌቭስቶክ፣ ስለ '${localizedTitle}' አገልግሎት ዝርዝር ማወቅና ማዘዝ ፈልጌ ነበር።`
+                            : `Hello Jonny Livestock, I would like to inquire about/order the '${service.title}' service.`
+                        )}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-sm transition-all active:scale-[0.98]"
+                      >
+                        <MessageSquare className="w-3.5 h-3.5 text-white" />
+                        <span>{isAmharic ? 'በዋትስአፕ ይጠይቁ / ይዘዙ' : 'Inquire on WhatsApp'}</span>
+                      </a>
+
+                      <a
+                        href={getPhoneCallLink(business.phone)}
+                        className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border text-xs font-semibold transition-all ${
+                          isDark
+                            ? 'border-[#4A2C16] text-[#D8C5A8] hover:bg-white/5'
+                            : 'border-[#E4D4BC] text-[#746556] hover:bg-black/5'
+                        }`}
+                      >
+                        <PhoneCall className="w-3.5 h-3.5 text-amber-500" />
+                        <span>{business.displayPhone}</span>
+                      </a>
+                    </div>
                   </div>
 
                 </div>

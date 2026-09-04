@@ -64,3 +64,21 @@ export function getPackageDescription(pkg: { description: string; amharicDescrip
   return cleanEnglishText(pkg.description);
 }
 
+/**
+ * Returns item description strictly according to active language
+ */
+export function getItemDisplayDescription(item: { description: string; amharicDescription?: string }, isAmharic: boolean): string {
+  if (!item) return '';
+  if (isAmharic && item.amharicDescription) return item.amharicDescription;
+  return cleanEnglishText(item.description);
+}
+
+/**
+ * Returns item unit strictly according to active language
+ */
+export function getItemDisplayUnit(item: { unit?: string; amharicUnit?: string }, isAmharic: boolean): string {
+  if (!item || !item.unit) return '';
+  if (isAmharic && item.amharicUnit) return item.amharicUnit;
+  return cleanEnglishText(item.unit);
+}
+

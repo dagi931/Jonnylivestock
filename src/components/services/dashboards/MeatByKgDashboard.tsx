@@ -1,15 +1,15 @@
 import React, { useState } from 'react';
 import { useTheme } from '../../../context/ThemeContext';
 import { business } from '../../../config/business';
-import { ethiopianMealPurposes } from '../../../data/services';
 import {
   Scale,
-  Building2,
-  Utensils,
   CheckCircle2,
   AlertCircle,
   MessageSquare,
-  PhoneCall
+  PhoneCall,
+  Beef,
+  Calculator,
+  ShieldCheck
 } from 'lucide-react';
 import { getPhoneCallLink } from '../../../utils/formatters';
 
@@ -17,16 +17,10 @@ export const MeatByKgDashboard: React.FC = () => {
   const { theme } = useTheme();
   const isDark = theme === 'design7';
 
-  const [animalSource, setAnimalSource] = useState<'sheep' | 'goat' | 'cow' | 'mixed'>('cow');
-  const [selectedMeals, setSelectedMeals] = useState<string[]>(['wot', 'tibs', 'kitfo']);
-  
-  // Single animal quantity
-  const [quantityKg, setQuantityKg] = useState('25');
-  
-  // Mixed meat individual quantities
-  const [sheepKg, setSheepKg] = useState('10');
-  const [goatKg, setGoatKg] = useState('10');
-  const [cowKg, setCowKg] = useState('20');
+  // Specific Cut Quantities (in KG)
+  const [kurtKg, setKurtKg] = useState('5');
+  const [kitfoKg, setKitfoKg] = useState('5');
+  const [wotKg, setWotKg] = useState('10');
 
   const [orderFrequency, setOrderFrequency] = useState<'one_time' | 'daily' | 'weekly'>('one_time');
   const [establishmentType, setEstablishmentType] = useState('hotel_restaurant');
@@ -39,32 +33,30 @@ export const MeatByKgDashboard: React.FC = () => {
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
 
-  const toggleMeal = (id: string) => {
-    if (selectedMeals.includes(id)) {
-      setSelectedMeals(selectedMeals.filter((m) => m !== id));
-    } else {
-      setSelectedMeals([...selectedMeals, id]);
-    }
+  // Prices per KG
+  const prices: Record<string, number> = {
+    kurt: 2800,
+    kitfo: 2200,
+    wot: 1800
   };
 
-  const getMealLabels = () => {
-    return selectedMeals
-      .map((id) => {
-        const found = ethiopianMealPurposes.find((m) => m.id === id);
-        return found ? `${found.amharicName} (${found.name})` : id;
-      })
-      .join(', ');
-  };
+  const parsedKurt = parseFloat(kurtKg) || 0;
+  const parsedKitfo = parseFloat(kitfoKg) || 0;
+  const parsedWot = parseFloat(wotKg) || 0;
 
-  // Calculate mixed total
-  const totalMixedKg =
-    (parseFloat(sheepKg) || 0) + (parseFloat(goatKg) || 0) + (parseFloat(cowKg) || 0);
+  const totalKg = parsedKurt + parsedKitfo + parsedWot;
 
-  const getQuantityDisplay = () => {
-    if (animalSource === 'mixed') {
-      return `Mixed Total: ${totalMixedKg} KG (Sheep: ${sheepKg || 0}kg, Goat: ${goatKg || 0}kg, Cow: ${cowKg || 0}kg)`;
-    }
-    return `${quantityKg} KG of ${animalSource.toUpperCase()} meat`;
+  const totalPrice =
+    parsedKurt * prices.kurt +
+    parsedKitfo * prices.kitfo +
+    parsedWot * prices.wot;
+
+  const getOrderSummaryText = () => {
+    const parts: string[] = [];
+    if (parsedKurt > 0) parts.push(`Kurt: ${parsedKurt}kg (@2,800)`);
+    if (parsedKitfo > 0) parts.push(`Kitfo: ${parsedKitfo}kg (@2,200)`);
+    if (parsedWot > 0) parts.push(`Wot: ${parsedWot}kg (@1,800)`);
+    return parts.join(', ') || 'None';
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -73,15 +65,23 @@ export const MeatByKgDashboard: React.FC = () => {
       setError('Please provide your name/business name, phone number, and kitchen delivery address.');
       return;
     }
-    if (animalSource === 'mixed' && totalMixedKg <= 0) {
-      setError('Please enter at least one kilogram amount for the mixed meats.');
+    if (totalKg <= 0) {
+      setError('Please enter at least one kilogram quantity for your beef order.');
       return;
     }
     setError('');
     setSubmitted(true);
   };
 
-  const whatsappMessage = `Hello ${business.name}, I would like to order MEAT IN KG (Wholesale/Commercial Supply). Order: [${getQuantityDisplay()}]. Meal Purposes: [${getMealLabels() || 'General Cuts'}]. Order Type: [${orderFrequency.toUpperCase()} for ${establishmentType}]. Customer/Business: ${businessName ? `${businessName} (${contactPerson})` : contactPerson} (Phone: ${phone}). Delivery Address: [${kitchenAddress}]. Delivery Date: ${deliveryDate || 'Earliest available'}. Cut Notes: ${cutInstructions || 'Standard portioning'}.`;
+  const whatsappMessage = `Hello ${business.name}, I would like to order PRIME BEEF IN KG (100% Beef from Oxen).
+Order Breakdown: [${getOrderSummaryText()}]
+Total Quantity: ${totalKg} KG
+Estimated Total: ${totalPrice.toLocaleString()} ETB
+Frequency: ${orderFrequency.toUpperCase()} for ${establishmentType}
+Customer/Business: ${businessName ? `${businessName} (${contactPerson})` : contactPerson} (Phone: ${phone})
+Delivery Address: ${kitchenAddress}
+Delivery Date: ${deliveryDate || 'Earliest available'}
+Cut Notes: ${cutInstructions || 'Standard portioning'}`;
 
   return (
     <div className="space-y-8 animate-in fade-in-50 duration-200">
@@ -97,14 +97,20 @@ export const MeatByKgDashboard: React.FC = () => {
               <Scale className="w-6 h-6" />
             </div>
             <div>
-              <span className="text-[11px] font-mono font-bold tracking-widest text-amber-500 uppercase">
-                Service Dashboard 04
-              </span>
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-[11px] font-mono font-bold tracking-widest text-amber-500 uppercase">
+                  Service Dashboard 04
+                </span>
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/15 text-amber-500 border border-amber-500/30">
+                  <Beef className="w-3 h-3" />
+                  <span>100% Prime Beef Only</span>
+                </span>
+              </div>
               <h2 className={`font-serif font-bold text-xl sm:text-2xl mt-0.5 ${isDark ? 'text-[#F4E8D0]' : 'text-[#2A1A0D]'}`}>
-                Meat Supply in KG (for Hotels, Restaurants & Catering)
+                Prime Beef Supply in KG (for Hotels, Restaurants & Catering)
               </h2>
               <p className={`text-xs sm:text-sm mt-1 max-w-xl ${isDark ? 'text-[#D8C5A8]' : 'text-[#746556]'}`}>
-                Fresh, hygienic meat extracted in kilograms from sheep, goats, or cows — customized for Ethiopian dishes like <strong>Kitfo (ክትፎ)</strong>, <strong>Tre Kurt (ጥሬ ቁርጥ)</strong>, <strong>Wot (ወጥ)</strong>, <strong>Tibs (ጥብስ)</strong>, and <strong>Dulet (ዱለት)</strong>.
+                Fresh, hygienic 100% prime Beef extracted in kilograms from fattened oxen — <strong>Kurt (2,800 ETB/kg)</strong>, <strong>Kitfo (2,200 ETB/kg)</strong>, <strong>Wot (1,800 ETB/kg)</strong>.
               </p>
             </div>
           </div>
@@ -137,16 +143,19 @@ export const MeatByKgDashboard: React.FC = () => {
               <div className="w-14 h-14 rounded-full bg-green-500/20 text-green-400 border border-green-500/30 flex items-center justify-center mx-auto">
                 <CheckCircle2 className="w-8 h-8" />
               </div>
-              <h3 className="font-serif font-bold text-xl">Meat in KG Order Received!</h3>
+              <h3 className="font-serif font-bold text-xl">Beef in KG Order Received!</h3>
               <p className="text-xs max-w-md mx-auto opacity-80">
-                Thank you <strong>{contactPerson}</strong>. Our butchery dispatch in Aware will contact you at <strong>{phone}</strong> to confirm wholesale pricing, kg weighing, and kitchen delivery.
+                Thank you <strong>{contactPerson}</strong>. Our butchery dispatch in Aware will contact you at <strong>{phone}</strong> to confirm wholesale pricing, kg weighing, and delivery.
               </p>
 
-              <div className={`p-4 rounded-2xl border text-left text-xs space-y-1.5 ${
+              <div className={`p-4 rounded-2xl border text-left text-xs space-y-2 ${
                 isDark ? 'bg-[#1B1208] border-[#4A2C16]' : 'bg-[#FAF7F0] border-[#E4D4BC]'
               }`}>
-                <div><strong>Quantity:</strong> {getQuantityDisplay()}</div>
-                <div><strong>Meal Purpose:</strong> {getMealLabels() || 'General'}</div>
+                <div><strong>Selected Cuts:</strong> {getOrderSummaryText()}</div>
+                <div><strong>Total Quantity:</strong> {totalKg} KG</div>
+                <div className="text-sm font-bold text-emerald-500">
+                  <strong>Estimated Total Price:</strong> {totalPrice.toLocaleString()} ETB
+                </div>
                 <div><strong>Delivery Address:</strong> {kitchenAddress}</div>
               </div>
 
@@ -165,7 +174,7 @@ export const MeatByKgDashboard: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setSubmitted(false)}
-                  className="px-4 py-2.5 rounded-xl text-xs font-semibold border opacity-75 hover:opacity-100"
+                  className="px-4 py-2.5 rounded-xl text-xs font-semibold border opacity-75 hover:opacity-100 cursor-pointer"
                 >
                   Modify Order
                 </button>
@@ -173,9 +182,16 @@ export const MeatByKgDashboard: React.FC = () => {
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
-              <h3 className={`font-serif font-bold text-base border-b pb-2.5 ${isDark ? 'border-[#4A2C16]' : 'border-[#E4D4BC]'}`}>
-                Configure Meat Type & Meal Purpose
-              </h3>
+              <div className="flex items-center justify-between border-b pb-2.5" style={{ borderColor: isDark ? '#4A2C16' : '#E4D4BC' }}>
+                <div>
+                  <h3 className="font-serif font-bold text-base">Beef Cuts & Kilogram Calculator</h3>
+                  <p className="text-[11px] opacity-70">Enter desired kilograms for each beef cut</p>
+                </div>
+                <span className="text-[11px] font-bold text-amber-500 flex items-center gap-1">
+                  <Calculator className="w-3.5 h-3.5" />
+                  <span>Live Calculator</span>
+                </span>
+              </div>
 
               {error && (
                 <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-500 text-xs flex items-center gap-2">
@@ -184,195 +200,78 @@ export const MeatByKgDashboard: React.FC = () => {
                 </div>
               )}
 
-              {/* 1. Animal Source Selector */}
-              <div>
-                <label className="block text-xs font-semibold mb-1.5 opacity-90">
-                  1. Select Meat Animal Source
+              {/* Cuts Grid */}
+              <div className="space-y-2">
+                <label className="block text-xs font-semibold uppercase tracking-wider opacity-90">
+                  1. Prime Beef Cuts & Kilograms (KG)
                 </label>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <div className="space-y-1.5">
                   {[
-                    { id: 'sheep', label: 'Sheep (የበግ ሥጋ)' },
-                    { id: 'goat', label: 'Goat (የፍየል ሥጋ)' },
-                    { id: 'cow', label: 'Cow / Beef (የበሬ ሥጋ)' },
-                    { id: 'mixed', label: 'Mixed Order (የተደባለቀ)' }
+                    { id: 'kurt', emoji: '🥩', name: 'Tre Kurt / Tere Siga (ጥሬ ቁርጥ)', desc: 'Prime tender raw cuts from oxen', price: 2800, val: kurtKg, set: setKurtKg, parsed: parsedKurt },
+                    { id: 'kitfo', emoji: '🍽️', name: 'Kitfo Cut (ክትፎ)', desc: 'Extra-lean red beef without sinew', price: 2200, val: kitfoKg, set: setKitfoKg, parsed: parsedKitfo },
+                    { id: 'wot', emoji: '🍲', name: 'Key / Alicha Wot (ወጥ)', desc: 'Rich stew chunks for family pots', price: 1800, val: wotKg, set: setWotKg, parsed: parsedWot }
                   ].map((item) => (
-                    <button
+                    <div
                       key={item.id}
-                      type="button"
-                      onClick={() => setAnimalSource(item.id as any)}
-                      className={`p-2.5 rounded-xl text-center font-bold border transition-all text-xs ${
-                        animalSource === item.id
-                          ? isDark
-                            ? 'bg-[#C58A3A] text-[#1B1208] border-[#C58A3A] shadow-xs'
-                            : 'bg-[#B8792F] text-[#FAF7F0] border-[#B8792F] shadow-xs'
-                          : isDark
-                          ? 'bg-[#1B1208] border-[#4A2C16] text-[#D8C5A8]'
-                          : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#746556]'
+                      className={`p-2.5 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 transition-colors ${
+                        isDark ? 'bg-[#1E1309]/70 border-[#452814]/70 hover:border-amber-500/30' : 'bg-[#FAF7F0] border-[#E8DAC6] hover:border-amber-500/30'
                       }`}
                     >
-                      {item.label}
-                    </button>
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <span className="text-base shrink-0 select-none">{item.emoji}</span>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="font-bold text-xs sm:text-sm">{item.name}</span>
+                            <span className="font-mono text-emerald-500 font-bold text-xs">
+                              {item.price.toLocaleString()} ETB/kg
+                            </span>
+                          </div>
+                          <p className="text-[10.5px] opacity-70 leading-tight truncate">{item.desc}</p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0">
+                        <div className="relative w-28 sm:w-24">
+                          <input
+                            type="number"
+                            min="0"
+                            step="0.5"
+                            placeholder="0"
+                            value={item.val}
+                            onChange={(e) => item.set(e.target.value)}
+                            className={`w-full px-2.5 py-1.5 rounded-lg text-xs font-bold border focus:outline-none ${
+                              isDark ? 'bg-[#2A1A0D] border-[#4A2C16] text-[#F4E8D0]' : 'bg-white border-[#E4D4BC] text-[#2A1A0D]'
+                            }`}
+                          />
+                          <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] font-bold opacity-60">KG</span>
+                        </div>
+                        <span className="font-mono text-xs opacity-80 min-w-[70px] text-right">
+                          {(item.parsed * item.price).toLocaleString()} ETB
+                        </span>
+                      </div>
+                    </div>
                   ))}
                 </div>
-              </div>
 
-              {/* 2. Ethiopian Meal Purpose Checklist */}
-              <div>
-                <label className="block text-xs font-semibold mb-1.5 opacity-90 flex items-center justify-between">
-                  <span>2. Select Meal Purpose / የሥጋው ዓይነት ለምን ምግብ:</span>
-                  <span className="text-[10px] opacity-60 font-normal">Select all needed</span>
-                </label>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                  {ethiopianMealPurposes.map((meal) => {
-                    const isChecked = selectedMeals.includes(meal.id);
-                    return (
-                      <button
-                        key={meal.id}
-                        type="button"
-                        onClick={() => toggleMeal(meal.id)}
-                        className={`p-2.5 rounded-xl text-left border transition-all flex flex-col justify-between ${
-                          isChecked
-                            ? isDark
-                              ? 'bg-[#4A2C16] border-[#C58A3A] text-[#F4E8D0] ring-1 ring-[#C58A3A]/40'
-                              : 'bg-[#F1E8D8] border-[#B8792F] text-[#2A1A0D] ring-1 ring-[#B8792F]/40'
-                            : isDark
-                            ? 'bg-[#1B1208] border-[#4A2C16] text-[#D8C5A8]/70 hover:text-[#F4E8D0]'
-                            : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#746556]/70 hover:text-[#2A1A0D]'
-                        }`}
-                      >
-                        <div className="flex items-center gap-1.5 font-bold text-xs">
-                          <Utensils className={`w-3 h-3 ${isChecked ? 'text-amber-500' : 'opacity-40'}`} />
-                          <span>{meal.amharicName}</span>
-                        </div>
-                        <span className="text-[10px] opacity-75 font-medium mt-0.5">{meal.name}</span>
-                      </button>
-                    );
-                  })}
+                {/* Live calculation bar */}
+                <div className={`p-3 rounded-2xl border flex items-center justify-between ${
+                  isDark ? 'bg-[#351E0E] border-amber-500/40 text-[#F4E8D0]' : 'bg-[#FAF3E8] border-amber-500/40 text-[#2A1A0D]'
+                }`}>
+                  <div>
+                    <span className="text-[11px] opacity-75 block">Total Weight:</span>
+                    <span className="font-bold font-mono">{totalKg} KG</span>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-[11px] opacity-75 block">Estimated Total:</span>
+                    <span className="font-bold font-mono text-emerald-500 text-base">
+                      {totalPrice.toLocaleString()} ETB
+                    </span>
+                  </div>
                 </div>
               </div>
 
-              {/* 3. Quantity in KG: Single vs Mixed Breakdown */}
-              {animalSource === 'mixed' ? (
-                <div
-                  className={`p-4 rounded-2xl border space-y-3 animate-in fade-in-50 duration-200 ${
-                    isDark ? 'bg-[#1B1208] border-[#C58A3A]/40' : 'bg-[#FAF7F0] border-[#B8792F]/40'
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-amber-500 uppercase tracking-wider">
-                      3. Mixed Order: Specify KG Amount for Each Meat Type
-                    </span>
-                    <span className="text-xs font-bold bg-amber-500/20 text-amber-500 px-2 py-0.5 rounded-md">
-                      Total: {totalMixedKg} KG
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    {/* Sheep KG */}
-                    <div>
-                      <label className="block text-xs font-semibold mb-1 opacity-90">
-                        Sheep / Lamb (በግ)
-                      </label>
-                      <div className="relative">
-                        <input
-                          type="number"
-                          min="0"
-                          step="0.5"
-                          placeholder="0"
-                          value={sheepKg}
-                          onChange={(e) => setSheepKg(e.target.value)}
-                          className={`w-full px-3 py-2 rounded-xl text-xs font-bold border focus:outline-none ${
-                            isDark ? 'bg-[#2A1A0D] border-[#4A2C16] text-[#F4E8D0]' : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#2A1A0D]'
-                          }`}
-                        />
-                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold opacity-60">KG</span>
-                      </div>
-                    </div>
-
-                    {/* Goat KG */}
-                    <div>
-                      <label className="block text-xs font-semibold mb-1 opacity-90">
-                        Goat (ፍየል)
-                      </label>
-                      <div className="relative">
-                        <input
-                          type="number"
-                          min="0"
-                          step="0.5"
-                          placeholder="0"
-                          value={goatKg}
-                          onChange={(e) => setGoatKg(e.target.value)}
-                          className={`w-full px-3 py-2 rounded-xl text-xs font-bold border focus:outline-none ${
-                            isDark ? 'bg-[#2A1A0D] border-[#4A2C16] text-[#F4E8D0]' : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#2A1A0D]'
-                          }`}
-                        />
-                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold opacity-60">KG</span>
-                      </div>
-                    </div>
-
-                    {/* Cow KG */}
-                    <div>
-                      <label className="block text-xs font-semibold mb-1 opacity-90">
-                        Cow / Beef (በሬ)
-                      </label>
-                      <div className="relative">
-                        <input
-                          type="number"
-                          min="0"
-                          step="0.5"
-                          placeholder="0"
-                          value={cowKg}
-                          onChange={(e) => setCowKg(e.target.value)}
-                          className={`w-full px-3 py-2 rounded-xl text-xs font-bold border focus:outline-none ${
-                            isDark ? 'bg-[#2A1A0D] border-[#4A2C16] text-[#F4E8D0]' : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#2A1A0D]'
-                          }`}
-                        />
-                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold opacity-60">KG</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                  <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider mb-1 opacity-90">
-                      3. Quantity in Kilograms (KG) <span className="text-red-500">*</span>
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="text"
-                        placeholder="e.g. 20 kg, 50 kg, 200 kg"
-                        value={quantityKg}
-                        onChange={(e) => setQuantityKg(e.target.value)}
-                        className={`w-full px-3.5 py-2 rounded-xl text-xs border focus:outline-none ${
-                          isDark ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0]' : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#2A1A0D]'
-                        }`}
-                      />
-                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold opacity-60">KG</span>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider mb-1 opacity-90">
-                      Supply Frequency
-                    </label>
-                    <select
-                      value={orderFrequency}
-                      onChange={(e) => setOrderFrequency(e.target.value as any)}
-                      className={`w-full px-3.5 py-2 rounded-xl text-xs border focus:outline-none ${
-                        isDark ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0]' : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#2A1A0D]'
-                      }`}
-                    >
-                      <option value="one_time">One-Time Order</option>
-                      <option value="weekly">Weekly Regular Delivery</option>
-                      <option value="daily">Daily Hotel Kitchen Supply</option>
-                    </select>
-                  </div>
-                </div>
-              )}
-
-              {/* If mixed, also show frequency below */}
-              {animalSource === 'mixed' && (
+              {/* Supply Frequency & Buyer Category */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-semibold uppercase tracking-wider mb-1 opacity-90">
                     Supply Frequency
@@ -380,7 +279,7 @@ export const MeatByKgDashboard: React.FC = () => {
                   <select
                     value={orderFrequency}
                     onChange={(e) => setOrderFrequency(e.target.value as any)}
-                    className={`w-full px-3.5 py-2 rounded-xl text-xs border focus:outline-none ${
+                    className={`w-full px-3 py-2 rounded-xl text-xs border focus:outline-none ${
                       isDark ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0]' : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#2A1A0D]'
                     }`}
                   >
@@ -389,10 +288,7 @@ export const MeatByKgDashboard: React.FC = () => {
                     <option value="daily">Daily Hotel Kitchen Supply</option>
                   </select>
                 </div>
-              )}
 
-              {/* 4. Business/Establishment & Contact */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
                   <label className="block text-xs font-semibold uppercase tracking-wider mb-1 opacity-90">
                     Buyer Category
@@ -400,7 +296,7 @@ export const MeatByKgDashboard: React.FC = () => {
                   <select
                     value={establishmentType}
                     onChange={(e) => setEstablishmentType(e.target.value)}
-                    className={`w-full px-3.5 py-2 rounded-xl text-xs border focus:outline-none ${
+                    className={`w-full px-3 py-2 rounded-xl text-xs border focus:outline-none ${
                       isDark ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0]' : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#2A1A0D]'
                     }`}
                   >
@@ -410,7 +306,10 @@ export const MeatByKgDashboard: React.FC = () => {
                     <option value="ceremony">Ceremony / Feast</option>
                   </select>
                 </div>
+              </div>
 
+              {/* Business Name & Contact */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-semibold uppercase tracking-wider mb-1 opacity-90">
                     Hotel / Business Name
@@ -420,7 +319,7 @@ export const MeatByKgDashboard: React.FC = () => {
                     placeholder="e.g. Bole Traditional Restaurant"
                     value={businessName}
                     onChange={(e) => setBusinessName(e.target.value)}
-                    className={`w-full px-3.5 py-2 rounded-xl text-xs border focus:outline-none ${
+                    className={`w-full px-3 py-2 rounded-xl text-xs border focus:outline-none ${
                       isDark ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0]' : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#2A1A0D]'
                     }`}
                   />
@@ -435,14 +334,14 @@ export const MeatByKgDashboard: React.FC = () => {
                     placeholder="e.g. Chef Dawit"
                     value={contactPerson}
                     onChange={(e) => setContactPerson(e.target.value)}
-                    className={`w-full px-3.5 py-2 rounded-xl text-xs border focus:outline-none ${
+                    className={`w-full px-3 py-2 rounded-xl text-xs border focus:outline-none ${
                       isDark ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0]' : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#2A1A0D]'
                     }`}
                   />
                 </div>
               </div>
 
-              {/* 5. Phone & Address */}
+              {/* Phone & Date */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-semibold uppercase tracking-wider mb-1 opacity-90">
@@ -453,7 +352,7 @@ export const MeatByKgDashboard: React.FC = () => {
                     placeholder="e.g. +251 91 123 4567"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    className={`w-full px-3.5 py-2 rounded-xl text-xs border focus:outline-none ${
+                    className={`w-full px-3 py-2 rounded-xl text-xs border focus:outline-none ${
                       isDark ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0]' : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#2A1A0D]'
                     }`}
                   />
@@ -467,13 +366,14 @@ export const MeatByKgDashboard: React.FC = () => {
                     type="date"
                     value={deliveryDate}
                     onChange={(e) => setDeliveryDate(e.target.value)}
-                    className={`w-full px-3.5 py-2 rounded-xl text-xs border focus:outline-none ${
+                    className={`w-full px-3 py-2 rounded-xl text-xs border focus:outline-none ${
                       isDark ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0]' : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#2A1A0D]'
                     }`}
                   />
                 </div>
               </div>
 
+              {/* Kitchen Address */}
               <div>
                 <label className="block text-xs font-semibold uppercase tracking-wider mb-1 opacity-90">
                   Kitchen / Delivery Address <span className="text-red-500">*</span>
@@ -483,22 +383,23 @@ export const MeatByKgDashboard: React.FC = () => {
                   placeholder="e.g. Addis Ababa, Bole near Atlas or Kazanchis"
                   value={kitchenAddress}
                   onChange={(e) => setKitchenAddress(e.target.value)}
-                  className={`w-full px-3.5 py-2 rounded-xl text-xs border focus:outline-none ${
+                  className={`w-full px-3 py-2 rounded-xl text-xs border focus:outline-none ${
                     isDark ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0]' : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#2A1A0D]'
                   }`}
                 />
               </div>
 
+              {/* Butchering Instructions */}
               <div>
                 <label className="block text-xs font-semibold uppercase tracking-wider mb-1 opacity-90">
                   Specific Cut & Butchering Instructions
                 </label>
                 <textarea
                   rows={2}
-                  placeholder="e.g. Remove sinew from kitfo portions, cut tibs in 2cm cubes, separate goden ribs into 4-rib racks..."
+                  placeholder="e.g. Fine trim without sinew for kitfo, thick prime portions for kurt, lean stew cubes for wot..."
                   value={cutInstructions}
                   onChange={(e) => setCutInstructions(e.target.value)}
-                  className={`w-full px-3.5 py-2 rounded-xl text-xs border focus:outline-none resize-none ${
+                  className={`w-full px-3 py-2 rounded-xl text-xs border focus:outline-none resize-none ${
                     isDark ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0]' : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#2A1A0D]'
                   }`}
                 />
@@ -507,11 +408,11 @@ export const MeatByKgDashboard: React.FC = () => {
               <div className="pt-2">
                 <button
                   type="submit"
-                  className={`w-full py-3 rounded-xl font-bold text-xs sm:text-sm transition-all shadow-sm ${
+                  className={`w-full py-3.5 rounded-xl font-bold text-xs sm:text-sm transition-all shadow-md cursor-pointer ${
                     isDark ? 'bg-[#C58A3A] hover:bg-[#E0B15A] text-[#1B1208]' : 'bg-[#B8792F] hover:bg-[#9E6523] text-[#FAF7F0]'
                   }`}
                 >
-                  Submit Meat in KG Order
+                  Submit Beef in KG Order
                 </button>
               </div>
             </form>
@@ -520,46 +421,53 @@ export const MeatByKgDashboard: React.FC = () => {
 
         {/* Right Info */}
         <div className="lg:col-span-5 space-y-4">
+          {/* Official Price Card */}
           <div
             className={`p-6 rounded-3xl border space-y-3.5 ${
               isDark ? 'bg-[#2A1A0D] border-[#4A2C16]' : 'bg-[#F1E8D8] border-[#E4D4BC]'
             }`}
           >
             <div className="flex items-center gap-2 text-xs font-bold text-amber-500 uppercase tracking-wider">
-              <Building2 className="w-4 h-4" />
-              <span>Hotel & Kitchen Wholesale Specs</span>
+              <Beef className="w-4 h-4" />
+              <span>Official Beef Prices per KG</span>
             </div>
-
-            <p className="text-xs opacity-85 leading-relaxed">
-              We process meat directly from verified healthy livestock at our Aware facility under strict sanitary conditions with precision weighing.
-            </p>
 
             <div className="space-y-2 pt-2 border-t text-xs opacity-90" style={{ borderColor: isDark ? '#4A2C16' : '#E4D4BC' }}>
-              <div className="flex items-center justify-between">
-                <span><strong>Kitfo Cuts:</strong></span>
-                <span className="opacity-75">100% lean red meat (ፍርምባ / ለጋ)</span>
+              <div className="flex items-center justify-between py-1 border-b border-black/5 dark:border-white/5">
+                <span><strong>🥩 Tre Kurt (ቁርጥ):</strong></span>
+                <span className="font-mono text-emerald-500 font-extrabold text-sm">2,800 ETB / kg</span>
               </div>
-              <div className="flex items-center justify-between">
-                <span><strong>Tre Kurt Cuts:</strong></span>
-                <span className="opacity-75">Prime tenderloin & loin (ኮስታላ / ሻንካ)</span>
+              <div className="flex items-center justify-between py-1 border-b border-black/5 dark:border-white/5">
+                <span><strong>🍽️ Kitfo Cut (ክትፎ):</strong></span>
+                <span className="font-mono text-emerald-500 font-extrabold text-sm">2,200 ETB / kg</span>
               </div>
-              <div className="flex items-center justify-between">
-                <span><strong>Wot Cuts:</strong></span>
-                <span className="opacity-75">Clean stew meat (የወጥ ሥጋ)</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span><strong>Tibs Cuts:</strong></span>
-                <span className="opacity-75">Tender meat & rib strips</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span><strong>Dulet Cuts:</strong></span>
-                <span className="opacity-75">Fresh liver, tripe & lean mince</span>
+              <div className="flex items-center justify-between py-1">
+                <span><strong>🍲 Wot Stew (ወጥ):</strong></span>
+                <span className="font-mono text-emerald-500 font-extrabold text-sm">1,800 ETB / kg</span>
               </div>
             </div>
 
-            <div className="pt-2 text-[11px] opacity-70">
-              * Certified scales used on all shipments. Recurring contracts receive discounted delivery rates.
+            <div className="pt-2 text-[11px] opacity-75">
+              * The seller currently provides 100% prime Beef (from fattened Debrebirhan & Arsi cattle). All orders measured on certified digital scales.
             </div>
+          </div>
+
+          {/* Quality Card */}
+          <div
+            className={`p-5 rounded-3xl border text-xs space-y-2.5 ${
+              isDark ? 'bg-[#1B1208] border-[#4A2C16]' : 'bg-[#FAF7F0] border-[#E4D4BC]'
+            }`}
+          >
+            <div className="flex items-center gap-1.5 font-bold text-amber-500 text-xs uppercase tracking-wider">
+              <ShieldCheck className="w-4 h-4" />
+              <span>Our Quality Guarantee</span>
+            </div>
+            <ul className="space-y-1.5 opacity-80 list-disc list-inside">
+              <li>Well-fattened prime healthy cattle</li>
+              <li>Hygienically slaughtered & vacuum packed</li>
+              <li>Refrigerated transit straight to your kitchen</li>
+              <li>Bulk discounts for recurring hotel contracts</li>
+            </ul>
           </div>
         </div>
 

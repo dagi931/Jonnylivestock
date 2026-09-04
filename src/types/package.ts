@@ -6,8 +6,10 @@ export interface PackageCatalogItem {
   name: string;
   amharicName?: string;
   description: string;
+  amharicDescription?: string;
   price: number; // in ETB
   unit?: string;
+  amharicUnit?: string;
   image: string;
   popular?: boolean;
 }
