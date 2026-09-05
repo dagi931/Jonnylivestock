@@ -414,7 +414,7 @@ export const PackageOrderModal: React.FC<PackageOrderModalProps> = ({
             <div>
               <h3 className="font-serif font-bold text-lg leading-tight">{packageName}</h3>
               <div className="flex items-center gap-2 text-xs opacity-75">
-                <span className="flex items-center gap-1 text-emerald-500 font-semibold">
+                <span className="flex items-center gap-1 text-amber-500 font-semibold">
                   <Truck className="w-3.5 h-3.5" /> {isFreeDeliveryEligible ? (isAmharic ? 'ነፃ ማድረሻ ተካቷል' : 'Free Delivery Included') : (isAmharic ? 'የበር ማድረሻ' : 'Doorstep Delivery')}
                 </span>
                 <span>•</span>
@@ -499,129 +499,137 @@ export const PackageOrderModal: React.FC<PackageOrderModalProps> = ({
 
               {/* Payment Mode Selector: 50% Reservation vs 100% Full */}
               <div className="space-y-2">
-                <label className="block text-xs font-bold uppercase tracking-wider opacity-80">
-                  {isAmharic ? 'የክፍያ አማራጭ ይምረጡ:' : 'Select Payment Option:'}
-                </label>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div
+                <div className="flex items-center justify-between">
+                  <label className="block text-xs font-bold uppercase tracking-wider opacity-80">
+                    {isAmharic ? 'የክፍያ አማራጭ ይምረጡ' : 'Select Payment Option'}
+                  </label>
+                  <span className="text-[11px] text-amber-500 font-medium">
+                    {paymentMode === 'deposit'
+                      ? (isAmharic ? '50% ቅድመ-ክፍያ' : '50% Deposit')
+                      : (isAmharic ? '100% ሙሉ ክፍያ' : '100% Full Payment')}
+                  </span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  <button
+                    type="button"
                     onClick={() => setPaymentMode('deposit')}
-                    className={`p-4 rounded-2xl border-2 cursor-pointer transition-all ${
+                    className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer relative ${
                       paymentMode === 'deposit'
-                        ? 'border-amber-500 bg-amber-500/10 shadow-md'
+                        ? 'border-amber-500 bg-amber-500/10 ring-1 ring-amber-500/30'
                         : isDark
-                          ? 'border-[#4A2C16] bg-[#24170D] opacity-70 hover:opacity-100'
-                          : 'border-[#E4D4BC] bg-[#FAF7F0] opacity-70 hover:opacity-100'
+                          ? 'border-white/10 bg-white/5 opacity-80 hover:opacity-100 hover:border-white/20'
+                          : 'border-neutral-200 bg-neutral-50/50 opacity-80 hover:opacity-100 hover:border-neutral-300'
                     }`}
                   >
                     <div className="flex items-center justify-between mb-1">
-                      <div className="font-bold text-sm flex items-center gap-1.5 text-amber-500">
-                        <ShieldCheck className="w-4 h-4" />
+                      <div className="font-bold text-xs flex items-center gap-1.5 text-amber-500">
+                        <ShieldCheck className="w-3.5 h-3.5" />
                         <span>{isAmharic ? '50% ቅድመ-ክፍያ (መያዣ)' : '50% Deposit (Reserve)'}</span>
                       </div>
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500 text-black">
+                      <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-amber-500 text-black">
                         {isAmharic ? 'ይመከራል' : 'Recommended'}
                       </span>
                     </div>
-                    <div className="font-serif font-bold text-lg text-amber-500">
+                    <div className="font-serif font-bold text-base text-amber-500">
                       {formatPrice(depositAmount)}
                     </div>
-                    <p className="text-[11px] opacity-70 mt-1">
+                    <p className="text-[11px] opacity-70 mt-0.5 leading-snug">
                       {isAmharic
-                        ? `በግማሽ ክፍያ አሁኑኑ ያስይዙ። ቀሪውን ${formatPrice(remainingAmount)} ከርክክብ በፊት ይክፈሉ።`
+                        ? `በግማሽ ክፍያ ያስይዙ። ቀሪውን ${formatPrice(remainingAmount)} ከርክክብ በፊት ይክፈሉ።`
                         : `Lock item now with half payment. Pay remaining ${formatPrice(remainingAmount)} before delivery.`}
                     </p>
-                  </div>
+                  </button>
 
-                  <div
+                  <button
+                    type="button"
                     onClick={() => setPaymentMode('full')}
-                    className={`p-4 rounded-2xl border-2 cursor-pointer transition-all ${
+                    className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer ${
                       paymentMode === 'full'
-                        ? 'border-amber-500 bg-amber-500/10 shadow-md'
+                        ? 'border-amber-500 bg-amber-500/10 ring-1 ring-amber-500/30'
                         : isDark
-                          ? 'border-[#4A2C16] bg-[#24170D] opacity-70 hover:opacity-100'
-                          : 'border-[#E4D4BC] bg-[#FAF7F0] opacity-70 hover:opacity-100'
+                          ? 'border-white/10 bg-white/5 opacity-80 hover:opacity-100 hover:border-white/20'
+                          : 'border-neutral-200 bg-neutral-50/50 opacity-80 hover:opacity-100 hover:border-neutral-300'
                     }`}
                   >
                     <div className="flex items-center justify-between mb-1">
-                      <div className="font-bold text-sm flex items-center gap-1.5">
-                        <Sparkles className="w-4 h-4 text-emerald-500" />
+                      <div className="font-bold text-xs flex items-center gap-1.5">
+                        <Sparkles className="w-3.5 h-3.5 text-amber-500" />
                         <span>{isAmharic ? '100% ሙሉ ክፍያ' : '100% Full Payment'}</span>
                       </div>
                     </div>
-                    <div className="font-serif font-bold text-lg">
+                    <div className="font-serif font-bold text-base">
                       {formatPrice(grandTotal)}
                     </div>
-                    <p className="text-[11px] opacity-70 mt-1">
+                    <p className="text-[11px] opacity-70 mt-0.5 leading-snug">
                       {isAmharic
                         ? 'ሙሉ ክፍያውን አስቀድመው ይፈጽሙ። ፈጣን እና ቀጥታ የበር ማድረስ።'
                         : 'Complete full transaction upfront. Seamless dispatch and door delivery.'}
                     </p>
-                  </div>
+                  </button>
                 </div>
               </div>
 
-              {/* Bank Accounts */}
-              <div
-                className={`p-4 rounded-2xl border space-y-3 ${
-                  isDark ? 'bg-[#24170D] border-[#4A2C16]' : 'bg-[#FAF7F0] border-[#E4D4BC]'
-                }`}
-              >
+              {/* Bank Transfer Details */}
+              <div className="space-y-2 pt-1">
                 <div className="flex items-center justify-between">
                   <div className="text-xs font-bold uppercase tracking-wider opacity-80 flex items-center gap-1.5">
                     <CreditCard className="w-3.5 h-3.5 text-amber-500" />
                     <span>{isAmharic ? `${formatPrice(currentPayAmount)} ወደሚከተሉት ባንኮች ያስተላልፉ፡` : `Transfer ${formatPrice(currentPayAmount)} To:`}</span>
                   </div>
-                  <div className="text-[11px] opacity-70">{isAmharic ? 'ሕጋዊ የንግድ ሒሳቦች' : 'Official Business Accounts'}</div>
+                  <div className="text-[11px] opacity-60">{isAmharic ? 'ሕጋዊ የንግድ ሒሳቦች' : 'Official Business Accounts'}</div>
                 </div>
 
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                {/* Bank Pills */}
+                <div className="flex flex-wrap gap-1.5">
                   {bankAccounts.map(b => (
                     <button
                       key={b.id}
                       type="button"
                       onClick={() => setSelectedBankId(b.id)}
-                      className={`p-2.5 rounded-xl border text-center transition-all cursor-pointer ${
+                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer border ${
                         selectedBankId === b.id
                           ? 'bg-amber-500 text-black font-bold border-amber-500 shadow-sm'
                           : isDark
-                            ? 'bg-[#1D130A] border-[#4A2C16] text-[#F4E8D0] hover:border-amber-500/50'
-                            : 'bg-white border-[#E4D4BC] text-[#241A12] hover:border-amber-500/50'
+                            ? 'bg-white/5 border-white/10 text-[#F4E8D0] hover:border-amber-500/40'
+                            : 'bg-neutral-50 border-neutral-200 text-[#241A12] hover:border-amber-500/40'
                       }`}
                     >
-                      <div className="text-xs font-bold truncate">{b.bankName}</div>
+                      {b.bankName}
                     </button>
                   ))}
                 </div>
 
+                {/* Direct Account Details without nested card boxes */}
                 {selectedBank && (
                   <div
-                    className={`p-3 rounded-xl border space-y-2 text-xs ${
-                      isDark ? 'bg-[#1B1208] border-[#4A2C16]' : 'bg-white border-[#E4D4BC]'
+                    className={`p-3 rounded-xl border text-xs space-y-1.5 ${
+                      isDark ? 'bg-white/5 border-white/10' : 'bg-neutral-50 border-neutral-200'
                     }`}
                   >
-                    <div className="flex justify-between items-center">
-                      <span className="opacity-70">{isAmharic ? 'የሒሳብ ስም:' : 'Account Name:'}</span>
-                      <span className="font-bold">{selectedBank.accountName}</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="opacity-70">{isAmharic ? 'የሒሳብ ቁጥር:' : 'Account Number:'}</span>
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div className="flex items-center gap-1.5">
+                        <span className="opacity-60">{isAmharic ? 'የሒሳብ ስም:' : 'Account Name:'}</span>
+                        <span className="font-semibold">{selectedBank.accountName}</span>
+                      </div>
                       <div className="flex items-center gap-2">
+                        <span className="opacity-60">{isAmharic ? 'የሒሳብ ቁጥር:' : 'Account Number:'}</span>
                         <span className="font-mono font-bold text-amber-500">{selectedBank.accountNumber}</span>
                         <button
                           type="button"
                           onClick={() => handleCopy(selectedBank.accountNumber, selectedBank.id)}
-                          className="p-1 rounded hover:bg-black/10 dark:hover:bg-white/10 cursor-pointer"
+                          className="p-1 rounded hover:bg-black/10 dark:hover:bg-white/10 cursor-pointer text-neutral-400 hover:text-amber-500 transition-colors"
+                          title={isAmharic ? 'ቁጥሩን ቅዳ' : 'Copy account number'}
                         >
                           {copiedBankId === selectedBank.id ? (
                             <Check className="w-3.5 h-3.5 text-emerald-500" />
                           ) : (
-                            <Copy className="w-3.5 h-3.5 opacity-60" />
+                            <Copy className="w-3.5 h-3.5" />
                           )}
                         </button>
                       </div>
                     </div>
                     {selectedBank.instructions && (
-                      <p className="text-[11px] opacity-75 italic pt-1 border-t border-black/10 dark:border-white/10">
+                      <p className="text-[11px] opacity-70 italic pt-1 border-t border-black/5 dark:border-white/5">
                         {selectedBank.instructions}
                       </p>
                     )}
@@ -629,47 +637,47 @@ export const PackageOrderModal: React.FC<PackageOrderModalProps> = ({
                 )}
               </div>
 
-              {/* Delivery Option */}
-              <div className="space-y-3">
+              {/* Delivery Preference */}
+              <div className="space-y-2.5 pt-1">
                 <label className="text-xs font-bold uppercase opacity-80 flex items-center gap-1.5">
                   <Truck className="w-3.5 h-3.5 text-amber-500" />
                   <span>{isAmharic ? 'የማድረሻ ምርጫ' : 'Delivery Preference'}</span>
                 </label>
 
-                <div className="grid grid-cols-2 gap-2.5">
+                <div className="grid grid-cols-2 gap-2">
                   <button
                     type="button"
                     onClick={() => setIsDelivery(true)}
-                    className={`p-3 rounded-2xl border text-left transition-all cursor-pointer flex items-center gap-3 ${
+                    className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer flex items-center gap-2.5 ${
                       isDelivery
-                        ? 'bg-amber-500/15 border-amber-500 text-amber-400'
+                        ? 'bg-amber-500/15 border-amber-500 text-amber-500 font-semibold'
                         : isDark
-                        ? 'bg-[#24170D] border-[#4A2C16]'
-                        : 'bg-[#FAF7F0] border-[#E4D4BC]'
+                          ? 'bg-transparent border-white/10 text-neutral-400 hover:border-white/20'
+                          : 'bg-transparent border-neutral-200 text-neutral-600 hover:border-neutral-300'
                     }`}
                   >
-                    <Truck className="w-5 h-5 shrink-0 text-amber-500" />
-                    <div>
-                      <div className="text-xs font-bold">{isAmharic ? 'በአድራሻዬ ይድረስ' : 'Doorstep Delivery'}</div>
-                      <div className="text-[10px] opacity-70">{isAmharic ? 'ወደ ቤትዎ ወይም ሬስቶራንትዎ' : 'Direct to your door'}</div>
+                    <Truck className="w-4 h-4 shrink-0" />
+                    <div className="min-w-0">
+                      <div className="text-xs font-bold truncate">{isAmharic ? 'በአድራሻዬ ይድረስ' : 'Doorstep Delivery'}</div>
+                      <div className="text-[10px] opacity-70 truncate">{isAmharic ? 'ወደ ቤትዎ ወይም ሬስቶራንትዎ' : 'Direct to your door'}</div>
                     </div>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => setIsDelivery(false)}
-                    className={`p-3 rounded-2xl border text-left transition-all cursor-pointer flex items-center gap-3 ${
+                    className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer flex items-center gap-2.5 ${
                       !isDelivery
-                        ? 'bg-amber-500/15 border-amber-500 text-amber-400'
+                        ? 'bg-amber-500/15 border-amber-500 text-amber-500 font-semibold'
                         : isDark
-                        ? 'bg-[#24170D] border-[#4A2C16]'
-                        : 'bg-[#FAF7F0] border-[#E4D4BC]'
+                          ? 'bg-transparent border-white/10 text-neutral-400 hover:border-white/20'
+                          : 'bg-transparent border-neutral-200 text-neutral-600 hover:border-neutral-300'
                     }`}
                   >
-                    <MapPin className="w-5 h-5 shrink-0 text-amber-500" />
-                    <div>
-                      <div className="text-xs font-bold">{isAmharic ? 'ከእርሻው መውሰድ (Pickup)' : 'Farm Pickup'}</div>
-                      <div className="text-[10px] opacity-70">Arat Kilo Farm Facility (Free)</div>
+                    <MapPin className="w-4 h-4 shrink-0" />
+                    <div className="min-w-0">
+                      <div className="text-xs font-bold truncate">{isAmharic ? 'ከእርሻው መውሰድ (Pickup)' : 'Farm Pickup'}</div>
+                      <div className="text-[10px] opacity-70 truncate">Arat Kilo Facility (Free)</div>
                     </div>
                   </button>
                 </div>
@@ -692,12 +700,12 @@ export const PackageOrderModal: React.FC<PackageOrderModalProps> = ({
 
               {/* Price Summary Banner */}
               <div
-                className={`p-4 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
-                  isDark ? 'bg-amber-500/10 border-amber-500/30' : 'bg-amber-50/80 border-amber-200'
+                className={`px-4 py-3 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 ${
+                  isDark ? 'bg-amber-500/10 border-amber-500/25' : 'bg-amber-50/70 border-amber-200/70'
                 }`}
               >
                 <div className="space-y-0.5 text-xs">
-                  <div className="font-bold flex items-center gap-1.5 text-amber-500">
+                  <div className="font-semibold flex items-center gap-1.5 text-amber-500">
                     <Sparkles className="w-3.5 h-3.5" />
                     <span>{packageName}</span>
                   </div>
@@ -717,7 +725,7 @@ export const PackageOrderModal: React.FC<PackageOrderModalProps> = ({
                   <div className="text-[10px] uppercase font-bold opacity-60">
                     {paymentMode === 'deposit' ? 'Payable Now (50%)' : 'Total Payable (100%)'}
                   </div>
-                  <div className="text-lg sm:text-xl font-mono font-black text-amber-500">
+                  <div className="text-lg font-mono font-black text-amber-500">
                     {formatPrice(currentPayAmount)}
                   </div>
                 </div>
@@ -807,14 +815,14 @@ export const PackageOrderModal: React.FC<PackageOrderModalProps> = ({
                   onDragLeave={() => setIsDragging(false)}
                   onDrop={handleDrop}
                   onClick={() => fileInputRef.current?.click()}
-                  className={`p-5 rounded-2xl border-2 border-dashed cursor-pointer text-center transition-all ${
+                  className={`p-4 rounded-xl border border-dashed cursor-pointer text-center transition-all ${
                     isDragging
                       ? 'border-amber-500 bg-amber-500/10'
                       : slipPreviewUrl
                         ? 'border-emerald-500 bg-emerald-500/5'
                         : isDark
-                          ? 'border-[#4A2C16] hover:border-amber-500/50 bg-[#24170D]'
-                          : 'border-[#E4D4BC] hover:border-amber-500/50 bg-[#FAF7F0]'
+                          ? 'border-white/20 hover:border-amber-500/50 bg-white/5'
+                          : 'border-neutral-300 hover:border-amber-500/50 bg-neutral-50'
                   }`}
                 >
                   <input
@@ -826,29 +834,31 @@ export const PackageOrderModal: React.FC<PackageOrderModalProps> = ({
                   />
 
                   {slipPreviewUrl ? (
-                    <div className="space-y-2">
+                    <div className="space-y-1.5">
                       <img
                         src={slipPreviewUrl}
                         alt="Payment Slip Preview"
-                        className="max-h-36 mx-auto rounded-xl shadow-md object-contain border"
+                        className="max-h-28 mx-auto rounded-lg shadow-sm object-contain border border-black/10 dark:border-white/10"
                       />
                       <div className="text-xs font-bold text-emerald-500 flex items-center justify-center gap-1">
-                        <CheckCircle2 className="w-4 h-4" /> {isAmharic ? `ደረሰኝ ተያይዟል (${slipFile?.name})` : `Slip Attached (${slipFile?.name})`}
+                        <CheckCircle2 className="w-3.5 h-3.5" /> {isAmharic ? `ደረሰኝ ተያይዟል (${slipFile?.name})` : `Slip Attached (${slipFile?.name})`}
                       </div>
-                      <p className="text-[11px] opacity-60">
+                      <p className="text-[10px] opacity-60">
                         {isAmharic ? 'ለመቀየር ይጫኑ ወይም ፋይል ይጎትቱ' : 'Click or drag to change receipt'}
                       </p>
                     </div>
                   ) : (
-                    <div className="space-y-1.5">
-                      <div className="w-10 h-10 rounded-full bg-amber-500/15 text-amber-500 flex items-center justify-center mx-auto">
-                        <UploadCloud className="w-5 h-5" />
+                    <div className="flex items-center justify-center gap-3 py-1">
+                      <div className="w-8 h-8 rounded-lg bg-amber-500/15 text-amber-500 flex items-center justify-center shrink-0">
+                        <UploadCloud className="w-4 h-4" />
                       </div>
-                      <div className="text-xs font-bold">
-                        {isAmharic ? 'የክፍያ ደረሰኝ ስክሪንሾት ለመምረጥ ይጫኑ' : 'Click to browse or drop your transfer screenshot'}
-                      </div>
-                      <div className="text-[11px] opacity-60">
-                        {isAmharic ? 'JPG, PNG, PDF ይደግፋል (የቴሌብር ወይም የባንክ መልእክት)' : 'Supports JPG, PNG, PDF (Telebirr or Bank SMS/Slip)'}
+                      <div className="text-left">
+                        <div className="text-xs font-bold">
+                          {isAmharic ? 'የክፍያ ደረሰኝ ስክሪንሾት ለመምረጥ ይጫኑ' : 'Click to browse or drop your transfer screenshot'}
+                        </div>
+                        <div className="text-[10px] opacity-60">
+                          {isAmharic ? 'JPG, PNG, PDF ይደግፋል (የቴሌብር ወይም የባንክ መልእክት)' : 'Supports JPG, PNG, PDF (Telebirr or Bank SMS/Slip)'}
+                        </div>
                       </div>
                     </div>
                   )}

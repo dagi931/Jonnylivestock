@@ -650,7 +650,7 @@
   "bankAccounts": [
     {
       "id": "BANK-TELEBIRR",
-      "bankName": "Telebirr (Mobile Money)",
+      "bankName": "Telebirr",
       "accountName": "Jonny Livestock Farm",
       "accountNumber": "0910194903",
       "instructions": "Transfer via Telebirr app or *127# using phone number 0910194903. Save transaction receipt screenshot and upload here.",

@@ -12,9 +12,11 @@ import {
   Mail,
   Maximize2,
   Minimize2,
-  ZoomIn
+  ZoomIn,
+  Eye
 } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
+import { useLanguage } from '../../context/LanguageContext';
 import { Order } from '../../services/api';
 import { formatPrice } from '../../utils/formatters';
 
@@ -48,6 +50,7 @@ export const SlipPreviewModal: React.FC<SlipPreviewModalProps> = ({
   isActionLoading = false
 }) => {
   const { theme } = useTheme();
+  const { isAmharic } = useLanguage();
   const isDark = theme === 'design7';
 
   // Toggle between Initial Deposit Slip and Final Payment Slip if both exist
@@ -108,7 +111,7 @@ export const SlipPreviewModal: React.FC<SlipPreviewModalProps> = ({
               <div className="flex flex-wrap items-center gap-2">
                 <ShieldCheck className="w-5 h-5 text-[#C18A45] shrink-0" />
                 <h3 className="text-sm sm:text-base font-bold font-serif truncate">
-                  Payment Review & Order Details
+                  {isAmharic ? 'የክፍያ ምርመራ እና የትዕዛዝ ዝርዝር' : 'Payment Review & Order Details'}
                 </h3>
                 {order && (
                   <span
@@ -130,19 +133,19 @@ export const SlipPreviewModal: React.FC<SlipPreviewModalProps> = ({
                         : 'bg-red-500/15 text-red-400 border border-red-500/30'
                     }`}
                   >
-                    {order.status === 'reservation_pending' && '50% Deposit Review'}
-                    {order.status === 'final_payment_pending' && 'Final 50% Slip Review'}
-                    {order.status === 'pending_verification' && 'Full Slip Review'}
-                    {order.status === 'reserved' && 'Reserved (50% Confirmed)'}
-                    {order.status === 'delivery_pending' && '🚀 Delivery In Transit'}
-                    {order.status === 'delivered' && '✓ Delivered to Doorstep'}
-                    {(order.status === 'completed' || order.status === 'verified') && '✓ Fully Settled & Sold'}
-                    {order.status === 'rejected' && 'Rejected'}
+                    {order.status === 'reservation_pending' && (isAmharic ? 'የ50% ቅድመ-ክፍያ ምርመራ' : '50% Deposit Review')}
+                    {order.status === 'final_payment_pending' && (isAmharic ? 'የቀሪ 50% ደረሰኝ ምርመራ' : 'Final 50% Slip Review')}
+                    {order.status === 'pending_verification' && (isAmharic ? 'የሙሉ ደረሰኝ ምርመራ' : 'Full Slip Review')}
+                    {order.status === 'reserved' && (isAmharic ? 'የተያዘ (50% የተረጋገጠ)' : 'Reserved (50% Confirmed)')}
+                    {order.status === 'delivery_pending' && (isAmharic ? 'ማድረሻ በጉዞ ላይ' : 'Delivery In Transit')}
+                    {order.status === 'delivered' && (isAmharic ? '✓ እስከ ደጃፍ ደርሷል' : '✓ Delivered to Doorstep')}
+                    {(order.status === 'completed' || order.status === 'verified') && (isAmharic ? '✓ ሙሉ በሙሉ የተጠናቀቀ እና የተሸጠ' : '✓ Fully Settled & Sold')}
+                    {order.status === 'rejected' && (isAmharic ? 'ውድቅ የተደረገ' : 'Rejected')}
                   </span>
                 )}
               </div>
               <p className="text-xs opacity-65 mt-0.5 font-mono truncate">
-                {currentOrderId ? `Order: #${currentOrderId}` : ''} {currentCustomer ? `• Customer: ${currentCustomer}` : ''}
+                {currentOrderId ? `${isAmharic ? 'የትዕዛዝ መለያ:' : 'Order:'} #${currentOrderId}` : ''} {currentCustomer ? `• ${isAmharic ? 'ደንበኛ:' : 'Customer:'} ${currentCustomer}` : ''}
               </p>
             </div>
 
@@ -170,7 +173,7 @@ export const SlipPreviewModal: React.FC<SlipPreviewModalProps> = ({
                   }`}
                 >
                   <div className="font-bold text-xs uppercase tracking-wider text-[#C18A45] pb-1 border-b border-black/5 dark:border-white/5 flex items-center justify-between">
-                    <span>Customer Details</span>
+                    <span>{isAmharic ? 'የደንበኛ መረጃ' : 'Customer Details'}</span>
                     <span className="font-mono text-[10px] opacity-60">#{currentOrderId}</span>
                   </div>
                   <div className="space-y-1.5">
@@ -208,14 +211,14 @@ export const SlipPreviewModal: React.FC<SlipPreviewModalProps> = ({
                     }`}
                   >
                     <div className="font-bold text-xs uppercase tracking-wider text-[#C18A45] pb-1 border-b border-black/5 dark:border-white/5 flex items-center justify-between">
-                      <span>Payment Breakdown</span>
+                      <span>{isAmharic ? 'የክፍያ ዝርዝር' : 'Payment Breakdown'}</span>
                       <span className="text-[10px] font-mono opacity-60">
-                        Method: {order.paymentMethod}
+                        {isAmharic ? 'ዘዴ:' : 'Method:'} {order.paymentMethod}
                       </span>
                     </div>
 
                     <div className="flex justify-between items-baseline pt-1">
-                      <span className="text-xs opacity-75 font-medium">Total Price:</span>
+                      <span className="text-xs opacity-75 font-medium">{isAmharic ? 'ጠቅላላ ዋጋ:' : 'Total Price:'}</span>
                       <span className="font-serif font-bold text-base text-[#C18A45]">
                         {formatPrice(order.totalAmount)}
                       </span>
@@ -224,11 +227,11 @@ export const SlipPreviewModal: React.FC<SlipPreviewModalProps> = ({
                     {isRes && (
                       <div className="p-2 rounded-xl bg-black/5 dark:bg-white/5 space-y-1 mt-1 border border-black/5 dark:border-white/5">
                         <div className="flex justify-between text-xs font-semibold text-emerald-500">
-                          <span>50% Reservation Deposit:</span>
+                          <span>{isAmharic ? '50% የቅድመ-ይዞታ ክፍያ:' : '50% Reservation Deposit:'}</span>
                           <span className="font-mono">{formatPrice(deposit)}</span>
                         </div>
                         <div className="flex justify-between text-xs font-semibold text-amber-500">
-                          <span>Remaining 50% Balance:</span>
+                          <span>{isAmharic ? 'ቀሪ 50% ሂሳብ:' : 'Remaining 50% Balance:'}</span>
                           <span className="font-mono">{formatPrice(remaining)}</span>
                         </div>
                       </div>
@@ -236,14 +239,14 @@ export const SlipPreviewModal: React.FC<SlipPreviewModalProps> = ({
 
                     {order.deliveryFee != null && Number(order.deliveryFee) > 0 && (
                       <div className="flex justify-between text-xs text-amber-500 pt-1 border-t border-black/5 dark:border-white/5">
-                        <span>Included Delivery Fee ({order.vehicleType || 'Vehicle'}):</span>
+                        <span>{isAmharic ? 'የተካተተ የማድረሻ ክፍያ' : 'Included Delivery Fee'} ({order.vehicleType || 'Vehicle'}):</span>
                         <span className="font-mono font-bold">{formatPrice(order.deliveryFee)}</span>
                       </div>
                     )}
 
                     {order.transactionReference && (
                       <div className="text-[11px] font-mono opacity-85 pt-1">
-                        <strong>Txn Reference:</strong> {order.transactionReference}
+                        <strong>{isAmharic ? 'የግብይት መለያ:' : 'Txn Reference:'}</strong> {order.transactionReference}
                       </div>
                     )}
 
@@ -265,7 +268,7 @@ export const SlipPreviewModal: React.FC<SlipPreviewModalProps> = ({
                     <div className="font-bold text-xs uppercase tracking-wider text-[#C18A45] pb-1 border-b border-black/5 dark:border-white/5 flex items-center justify-between">
                       <span className="flex items-center gap-1.5">
                         <MapPin className="w-3.5 h-3.5" />
-                        <span>Delivery & Dispatch Info</span>
+                        <span>{isAmharic ? 'የማድረሻ እና የመላኪያ መረጃ' : 'Delivery & Dispatch Info'}</span>
                       </span>
                       <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
                         order.status === 'delivered'
@@ -274,7 +277,7 @@ export const SlipPreviewModal: React.FC<SlipPreviewModalProps> = ({
                           ? 'bg-amber-500/20 text-amber-400'
                           : 'bg-black/10 dark:bg-white/10 opacity-75'
                       }`}>
-                        {order.status === 'delivered' ? '✓ Delivered' : order.status === 'delivery_pending' ? '🚀 Dispatched / In Transit' : 'Pending Dispatch'}
+                        {order.status === 'delivered' ? (isAmharic ? '✓ ደርሷል' : '✓ Delivered') : order.status === 'delivery_pending' ? (isAmharic ? 'የተላከ / በጉዞ ላይ' : 'Dispatched / In Transit') : (isAmharic ? 'መላክ የሚጠበቅበት' : 'Pending Dispatch')}
                       </span>
                     </div>
 
@@ -282,19 +285,19 @@ export const SlipPreviewModal: React.FC<SlipPreviewModalProps> = ({
                       <div className="flex items-start gap-2">
                         <MapPin className="w-3.5 h-3.5 text-[#C18A45] shrink-0 mt-0.5" />
                         <div>
-                          <span className="opacity-70 text-[11px]">Destination: </span>
-                          <span className="font-bold">{order.deliveryAddress || order.deliveryLocation || 'Farm Pickup (Arat Kilo)'}</span>
+                          <span className="opacity-70 text-[11px]">{isAmharic ? 'መዳረሻ:' : 'Destination:'} </span>
+                          <span className="font-bold">{order.deliveryAddress || order.deliveryLocation || (isAmharic ? 'የእርሻ መረከቢያ (አራት ኪሎ)' : 'Farm Pickup (Arat Kilo)')}</span>
                         </div>
                       </div>
 
                       <div className="grid grid-cols-2 gap-2 pt-1">
                         <div className="p-2 rounded-xl bg-black/5 dark:bg-white/5">
-                          <span className="text-[10px] opacity-60 block uppercase">Vehicle Assigned</span>
-                          <span className="font-bold uppercase text-amber-500">{order.vehicleType || 'Standard'}</span>
+                          <span className="text-[10px] opacity-60 block uppercase">{isAmharic ? 'የተመደበ ተሽከርካሪ' : 'Vehicle Assigned'}</span>
+                          <span className="font-bold uppercase text-[#C18A45]">{order.vehicleType || 'Standard'}</span>
                         </div>
 
                         <div className="p-2 rounded-xl bg-black/5 dark:bg-white/5">
-                          <span className="text-[10px] opacity-60 block uppercase">Distance & Fee</span>
+                          <span className="text-[10px] opacity-60 block uppercase">{isAmharic ? 'ርቀት & ዋጋ' : 'Distance & Fee'}</span>
                           <span className="font-bold font-mono">
                             {order.distanceKm ? `${order.distanceKm} km • ` : ''}{formatPrice(order.deliveryFee || 0)}
                           </span>
@@ -313,26 +316,26 @@ export const SlipPreviewModal: React.FC<SlipPreviewModalProps> = ({
                   }`}
                 >
                   <div className="w-full flex items-center justify-between text-xs font-bold uppercase tracking-wider text-[#C18A45] pb-1 border-b border-black/5 dark:border-white/5">
-                    <span>Payment Receipt</span>
+                    <span>{isAmharic ? 'የክፍያ ደረሰኝ' : 'Payment Receipt'}</span>
                     {hasMultipleSlips && (
                       <div className="flex gap-1">
                         <button
                           type="button"
                           onClick={() => setActiveSlipTab('initial')}
                           className={`px-2 py-0.5 rounded text-[9px] font-bold ${
-                            activeSlipTab === 'initial' ? 'bg-amber-500 text-black' : 'opacity-60 hover:opacity-100'
+                            activeSlipTab === 'initial' ? 'bg-[#C18A45] text-white' : 'opacity-60 hover:opacity-100'
                           }`}
                         >
-                          Deposit
+                          {isAmharic ? 'ቅድመ ክፍያ' : 'Deposit'}
                         </button>
                         <button
                           type="button"
                           onClick={() => setActiveSlipTab('final')}
                           className={`px-2 py-0.5 rounded text-[9px] font-bold ${
-                            activeSlipTab === 'final' ? 'bg-emerald-500 text-black' : 'opacity-60 hover:opacity-100'
+                            activeSlipTab === 'final' ? 'bg-emerald-500 text-white' : 'opacity-60 hover:opacity-100'
                           }`}
                         >
-                          Final
+                          {isAmharic ? 'የመጨረሻ' : 'Final'}
                         </button>
                       </div>
                     )}
@@ -342,12 +345,12 @@ export const SlipPreviewModal: React.FC<SlipPreviewModalProps> = ({
                     <div
                       onClick={() => setIsSlipExpanded(true)}
                       className="group relative w-full h-44 sm:h-52 rounded-xl overflow-hidden cursor-pointer border-2 border-dashed border-[#C18A45]/40 hover:border-[#C18A45] bg-black/40 flex items-center justify-center transition-all hover:shadow-xl"
-                      title="Click to expand slip to full screen"
+                      title={isAmharic ? 'ደረሰኙን በሙሉ ስክሪን ለማየት ይጫኑ' : 'Click to expand slip to full screen'}
                     >
                       {currentSlip.endsWith('.pdf') ? (
                         <div className="flex flex-col items-center gap-2 text-white">
                           <Maximize2 className="w-8 h-8 text-[#C18A45]" />
-                          <span className="text-xs font-bold">Click to view PDF Slip</span>
+                          <span className="text-xs font-bold">{isAmharic ? 'የPDF ደረሰኝ ለማየት ይጫኑ' : 'Click to view PDF Slip'}</span>
                         </div>
                       ) : (
                         <img
@@ -360,22 +363,23 @@ export const SlipPreviewModal: React.FC<SlipPreviewModalProps> = ({
                       {/* Hover Overlay with Expand Hint */}
                       <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-1.5 text-white p-2">
                         <ZoomIn className="w-6 h-6 text-[#C18A45] animate-bounce" />
-                        <span className="text-xs font-bold">Click Picture to Expand</span>
-                        <span className="text-[10px] opacity-75">View full high-res receipt</span>
+                        <span className="text-xs font-bold">{isAmharic ? 'ለማስፋት ፎቶውን ይጫኑ' : 'Click Picture to Expand'}</span>
+                        <span className="text-[10px] opacity-75">{isAmharic ? 'ሙሉ ጥራት ያለውን ደረሰኝ ይመልከቱ' : 'View full high-res receipt'}</span>
                       </div>
 
                       {/* Permanent Corner Badge */}
                       <div className="absolute bottom-2 right-2 px-2 py-1 rounded-lg bg-black/80 text-[10px] text-white flex items-center gap-1 shadow-md">
                         <Maximize2 className="w-3 h-3 text-[#C18A45]" />
-                        <span>Click to expand</span>
+                        <span>{isAmharic ? 'ለማስፋት ይጫኑ' : 'Click to expand'}</span>
                       </div>
                     </div>
                   ) : (
-                    <div className="py-12 opacity-50 text-xs">No slip attached</div>
+                    <div className="py-12 opacity-50 text-xs">{isAmharic ? 'ምንም ደረሰኝ አልተያያዘም' : 'No slip attached'}</div>
                   )}
 
-                  <p className="text-[11px] opacity-65 italic">
-                    💡 Click image above to zoom and expand to full size
+                  <p className="text-[11px] opacity-65 italic flex items-center justify-center gap-1">
+                    <Eye className="w-3.5 h-3.5 text-[#C18A45]" />
+                    <span>{isAmharic ? 'ደረሰኙን በከፍተኛ ጥራት ለማየት ከላይ ያለውን ምስል ይጫኑ' : 'Click image above to zoom and expand to full size'}</span>
                   </p>
                 </div>
               </div>
@@ -389,20 +393,20 @@ export const SlipPreviewModal: React.FC<SlipPreviewModalProps> = ({
                 }`}
               >
                 <div className="font-bold text-xs uppercase tracking-wider text-[#C18A45] pb-1 border-b border-black/5 dark:border-white/5 flex items-center justify-between">
-                  <span>Product / Package Details</span>
+                  <span>{isAmharic ? 'የምርት / የጥቅል ዝርዝር' : 'Product / Package Details'}</span>
                   <span className="text-[10px] font-mono opacity-60">
                     {new Date(order.createdAt).toLocaleDateString()}
                   </span>
                 </div>
 
                 <div className="font-bold text-sm flex items-center gap-2">
-                  <Package className="w-4 h-4 text-amber-500 shrink-0" />
-                  <span>{order.packageName || order.animalBreed || 'Livestock Product'}</span>
+                  <Package className="w-4 h-4 text-[#C18A45] shrink-0" />
+                  <span>{order.packageName || order.animalBreed || (isAmharic ? 'የከብት ምርት' : 'Livestock Product')}</span>
                 </div>
 
                 {order.animalId && (
                   <div className="text-[11px] font-mono opacity-70">
-                    Livestock ID: <strong>{order.animalId}</strong>
+                    {isAmharic ? 'የከብት መለያ:' : 'Livestock ID:'} <strong>{order.animalId}</strong>
                   </div>
                 )}
 
@@ -410,7 +414,7 @@ export const SlipPreviewModal: React.FC<SlipPreviewModalProps> = ({
                 {order.isPackage && packageItems.length > 0 && (
                   <div className="space-y-1.5 pt-1">
                     <div className="text-[10px] font-bold uppercase tracking-wider opacity-65">
-                      Included Package Items ({packageItems.length}):
+                      {isAmharic ? `በጥቅሉ ውስጥ የተካተቱ እቃዎች (${packageItems.length}):` : `Included Package Items (${packageItems.length}):`}
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 max-h-36 overflow-y-auto pr-1">
                       {packageItems.map((item, idx) => (
@@ -431,7 +435,7 @@ export const SlipPreviewModal: React.FC<SlipPreviewModalProps> = ({
                   <div className="pt-1 text-[11px] border-t border-black/5 dark:border-white/5 space-y-1">
                     <div className="font-semibold flex items-center gap-1 text-[#C18A45]">
                       <Sparkles className="w-3 h-3" />
-                      <span>Add-on Services:</span>
+                      <span>{isAmharic ? 'ተጨማሪ አገልግሎቶች:' : 'Add-on Services:'}</span>
                     </div>
                     <div className="flex flex-wrap gap-1">
                       {order.selectedServices.map((srv, i) => (
@@ -464,7 +468,7 @@ export const SlipPreviewModal: React.FC<SlipPreviewModalProps> = ({
                   className="w-full sm:flex-1 py-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-black font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                 >
                   <Check className="w-4 h-4" />
-                  <span>{isActionLoading ? 'Processing...' : 'Approve 50% Deposit & Lock Item'}</span>
+                  <span>{isActionLoading ? (isAmharic ? 'በማስኬድ ላይ...' : 'Processing...') : (isAmharic ? 'የ50% ቅድመ ክፍያን አጽድቅ & ከብቱን ያዝ' : 'Approve 50% Deposit & Lock Item')}</span>
                 </button>
                 {onReject && (
                   <button
@@ -474,7 +478,7 @@ export const SlipPreviewModal: React.FC<SlipPreviewModalProps> = ({
                     className="w-full sm:w-auto px-5 py-3 rounded-xl bg-red-500/15 hover:bg-red-500/25 text-red-400 font-bold text-xs transition-colors flex items-center justify-center gap-1.5"
                   >
                     <X className="w-4 h-4" />
-                    <span>Reject Slip</span>
+                    <span>{isAmharic ? 'ደረሰኝ ውድቅ አድርግ' : 'Reject Slip'}</span>
                   </button>
                 )}
               </div>
@@ -490,7 +494,7 @@ export const SlipPreviewModal: React.FC<SlipPreviewModalProps> = ({
                   className="w-full sm:flex-1 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                 >
                   <Check className="w-4 h-4" />
-                  <span>{isActionLoading ? 'Processing...' : 'Approve Final Balance & Mark SOLD'}</span>
+                  <span>{isActionLoading ? (isAmharic ? 'በማስኬድ ላይ...' : 'Processing...') : (isAmharic ? 'የመጨረሻ ክፍያን አጽድቅ & እንደተሸጠ ምልክት አድርግ' : 'Approve Final Balance & Mark SOLD')}</span>
                 </button>
                 {onReject && (
                   <button
@@ -500,7 +504,7 @@ export const SlipPreviewModal: React.FC<SlipPreviewModalProps> = ({
                     className="w-full sm:w-auto px-5 py-3 rounded-xl bg-red-500/15 hover:bg-red-500/25 text-red-400 font-bold text-xs transition-colors flex items-center justify-center gap-1.5"
                   >
                     <X className="w-4 h-4" />
-                    <span>Reject Slip</span>
+                    <span>{isAmharic ? 'ደረሰኝ ውድቅ አድርግ' : 'Reject Slip'}</span>
                   </button>
                 )}
               </div>
@@ -516,7 +520,7 @@ export const SlipPreviewModal: React.FC<SlipPreviewModalProps> = ({
                   className="w-full sm:flex-1 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                 >
                   <Check className="w-4 h-4" />
-                  <span>{isActionLoading ? 'Processing...' : 'Verify Full Payment & Mark SOLD'}</span>
+                  <span>{isActionLoading ? (isAmharic ? 'በማስኬድ ላይ...' : 'Processing...') : (isAmharic ? 'ሙሉ ክፍያን አረጋግጥ & እንደተሸጠ ምልክት አድርግ' : 'Verify Full Payment & Mark SOLD')}</span>
                 </button>
                 {onReject && (
                   <button
@@ -526,7 +530,7 @@ export const SlipPreviewModal: React.FC<SlipPreviewModalProps> = ({
                     className="w-full sm:w-auto px-5 py-3 rounded-xl bg-red-500/15 hover:bg-red-500/25 text-red-400 font-bold text-xs transition-colors flex items-center justify-center gap-1.5"
                   >
                     <X className="w-4 h-4" />
-                    <span>Reject Slip</span>
+                    <span>{isAmharic ? 'ደረሰኝ ውድቅ አድርግ' : 'Reject Slip'}</span>
                   </button>
                 )}
               </div>
@@ -537,7 +541,7 @@ export const SlipPreviewModal: React.FC<SlipPreviewModalProps> = ({
               <div className="pt-2 border-t border-black/10 dark:border-white/10 flex items-center justify-between gap-2">
                 <span className="text-xs font-bold text-[#C18A45] flex items-center gap-1">
                   <MapPin className="w-4 h-4" />
-                  <span>Logistics Action:</span>
+                  <span>{isAmharic ? 'የትራንስፖርት እርምጃ:' : 'Logistics Action:'}</span>
                 </span>
                 <div className="flex items-center gap-2">
                   {order.status !== 'delivery_pending' && (
@@ -547,7 +551,7 @@ export const SlipPreviewModal: React.FC<SlipPreviewModalProps> = ({
                       onClick={() => onApproveDelivery(order.id, 'delivery_pending')}
                       className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-black font-bold text-xs shadow transition-all flex items-center gap-1 cursor-pointer"
                     >
-                      <span>Approve & Dispatch Delivery</span>
+                      <span>{isAmharic ? 'አጽድቅ እና ለመላክ አዘጋጅ' : 'Approve & Dispatch Delivery'}</span>
                     </button>
                   )}
                   <button
@@ -557,7 +561,7 @@ export const SlipPreviewModal: React.FC<SlipPreviewModalProps> = ({
                     className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow transition-all flex items-center gap-1 cursor-pointer"
                   >
                     <Check className="w-3.5 h-3.5" />
-                    <span>Mark Delivered ✓</span>
+                    <span>{isAmharic ? 'ደርሷል ምልክት አድርግ ✓' : 'Mark Delivered ✓'}</span>
                   </button>
                 </div>
               </div>
@@ -567,14 +571,14 @@ export const SlipPreviewModal: React.FC<SlipPreviewModalProps> = ({
             {(order?.status === 'completed' || order?.status === 'verified') && !order.isDelivery && (
               <div className="p-2.5 rounded-xl bg-emerald-500/15 text-emerald-400 text-xs font-bold text-center flex items-center justify-center gap-2">
                 <CheckCircle2 className="w-4 h-4" />
-                <span>Order Fully Settled & Livestock Marked as Sold</span>
+                <span>{isAmharic ? 'ትዕዛዙ ሙሉ በሙሉ ተጠናቋል እና ከብቱ ተሽጧል' : 'Order Fully Settled & Livestock Marked as Sold'}</span>
               </div>
             )}
 
             {order?.status === 'reserved' && (
               <div className="p-2.5 rounded-xl bg-amber-500/15 text-amber-400 text-xs font-bold text-center flex items-center justify-center gap-2">
                 <ShieldCheck className="w-4 h-4" />
-                <span>50% Deposit Confirmed • Item Reserved For Customer</span>
+                <span>{isAmharic ? '50% ቅድመ ክፍያ ተረጋግጧል • ከብቱ ለደንበኛው ተይዟል' : '50% Deposit Confirmed • Item Reserved For Customer'}</span>
               </div>
             )}
           </div>
@@ -592,10 +596,12 @@ export const SlipPreviewModal: React.FC<SlipPreviewModalProps> = ({
               <ShieldCheck className="w-6 h-6 text-[#C18A45]" />
               <div>
                 <h4 className="font-bold text-sm sm:text-base font-serif">
-                  {activeSlipTab === 'final' ? 'Final 50% Payment Slip' : 'Initial 50% Deposit Slip'} (Full View)
+                  {isAmharic
+                    ? (activeSlipTab === 'final' ? 'የቀሪ 50% ክፍያ ደረሰኝ (ሙሉ እይታ)' : 'የ50% ቅድመ-ክፍያ ደረሰኝ (ሙሉ እይታ)')
+                    : `${activeSlipTab === 'final' ? 'Final 50% Payment Slip' : 'Initial 50% Deposit Slip'} (Full View)`}
                 </h4>
                 <p className="text-xs text-white/60 font-mono">
-                  {currentOrderId ? `#${currentOrderId}` : ''} {currentCustomer ? `• ${currentCustomer}` : ''}
+                  {currentOrderId ? `${isAmharic ? 'የትዕዛዝ መለያ:' : 'Order:'} #${currentOrderId}` : ''} {currentCustomer ? `• ${isAmharic ? 'ደንበኛ:' : 'Customer:'} ${currentCustomer}` : ''}
                 </p>
               </div>
             </div>
@@ -610,7 +616,7 @@ export const SlipPreviewModal: React.FC<SlipPreviewModalProps> = ({
                       activeSlipTab === 'initial' ? 'bg-amber-500 text-black' : 'text-white/70 hover:text-white'
                     }`}
                   >
-                    Deposit Slip
+                    {isAmharic ? 'የቅድመ ክፍያ ደረሰኝ' : 'Deposit Slip'}
                   </button>
                   <button
                     type="button"
@@ -619,7 +625,7 @@ export const SlipPreviewModal: React.FC<SlipPreviewModalProps> = ({
                       activeSlipTab === 'final' ? 'bg-emerald-500 text-black' : 'text-white/70 hover:text-white'
                     }`}
                   >
-                    Final Slip
+                    {isAmharic ? 'የመጨረሻ ደረሰኝ' : 'Final Slip'}
                   </button>
                 </div>
               )}
@@ -629,7 +635,7 @@ export const SlipPreviewModal: React.FC<SlipPreviewModalProps> = ({
                 target="_blank"
                 rel="noopener noreferrer"
                 className="p-2 rounded-xl bg-white/10 hover:bg-[#C18A45] hover:text-black text-white transition-colors"
-                title="Open original file in new tab"
+                title={isAmharic ? 'ኦሪጅናል ፋይሉን በአዲስ ገጽ ይክፈቱ' : 'Open original file in new tab'}
               >
                 <ExternalLink className="w-5 h-5" />
               </a>
@@ -638,10 +644,10 @@ export const SlipPreviewModal: React.FC<SlipPreviewModalProps> = ({
                 type="button"
                 onClick={() => setIsSlipExpanded(false)}
                 className="px-3.5 py-2 rounded-xl bg-white/15 hover:bg-white/25 text-white font-bold text-xs flex items-center gap-1.5 transition-colors"
-                title="Minimize / Return to details"
+                title={isAmharic ? 'ዝጋ' : 'Minimize / Return to details'}
               >
                 <Minimize2 className="w-4 h-4 text-[#C18A45]" />
-                <span>Close Zoom</span>
+                <span>{isAmharic ? 'ዝጋ' : 'Close Zoom'}</span>
               </button>
             </div>
           </div>

@@ -311,10 +311,7 @@ export const CelebrationPackagesSection: React.FC = () => {
 
         {/* Bottom Call to Action: "Prefer to build your own celebration hamper?" */}
         <AnimatedReveal direction="up" delay={150}>
-          <div
-            className={`mt-10 pt-8 border-t flex flex-col sm:flex-row items-center justify-between gap-4 ${isDark ? 'border-[#4A2C16]' : 'border-[#E4D4BC]'
-              }`}
-          >
+          <div className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-3 text-center sm:text-left">
               <Sparkles className="w-5 h-5 text-amber-500 shrink-0 hidden sm:block" />
               <div>

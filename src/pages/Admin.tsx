@@ -11,6 +11,7 @@ import { SlipPreviewModal } from '../components/modals/SlipPreviewModal';
 import { useRealtimeEvent } from '../context/RealtimeContext';
 import { ThemeToggle } from '../components/common/ThemeToggle';
 import { LanguageToggle } from '../components/common/LanguageToggle';
+import { useLanguage } from '../context/LanguageContext';
 import { ADDIS_ABABA_LOCATIONS } from '../data/addisLocations';
 import {
   DollarSign,
@@ -50,7 +51,9 @@ import {
   Navigation,
   Car,
   MapPin,
-  Sparkles
+  Sparkles,
+  Settings,
+  Filter
 } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { PreMadePackage, PackageCatalogItem } from '../types/package';
@@ -79,6 +82,7 @@ export const Admin: React.FC = () => {
   const { isAuthenticated: isUserAuth, user: currentUser, logout: userLogout } = useUserAuth();
   const { theme } = useTheme();
   const isDark = theme === 'design7';
+  const { isAmharic } = useLanguage();
 
   // Unified admin authentication state: Avoid prompting for password twice
   const isAuthenticated = Boolean(
@@ -179,7 +183,7 @@ export const Admin: React.FC = () => {
   const [newPkgName, setNewPkgName] = useState('');
   const [newPkgAmharicName, setNewPkgAmharicName] = useState('');
   const [newPkgTagline, setNewPkgTagline] = useState('');
-  const [newPkgBadge, setNewPkgBadge] = useState('⭐ Most Popular');
+  const [newPkgBadge, setNewPkgBadge] = useState('Most Popular');
   const [newPkgDescription, setNewPkgDescription] = useState('');
   const [newPkgImage, setNewPkgImage] = useState('');
   const [newPkgOriginalPrice, setNewPkgOriginalPrice] = useState<number>(18000);
@@ -299,6 +303,7 @@ export const Admin: React.FC = () => {
   const [simResult, setSimResult] = useState<any>(null);
   const [isSimulatingRoute, setIsSimulatingRoute] = useState(false);
   const [deliveryOrderFilter, setDeliveryOrderFilter] = useState<'all' | 'pending' | 'in_transit' | 'delivered'>('all');
+  const [deliverySubTab, setDeliverySubTab] = useState<'orders' | 'logistics'>('orders');
 
   const handleSaveDeliveryVehicles = async () => {
     setIsSavingDeliveryVehicles(true);
@@ -306,7 +311,7 @@ export const Admin: React.FC = () => {
       const activeToken = adminToken || localStorage.getItem('jonny_admin_token') || localStorage.getItem('jonny_user_token') || undefined;
       const res = await api.updateDeliveryConfig({ vehicles: deliveryVehicles }, activeToken);
       if (res.success) {
-        showAlert('success', '🚚 Delivery vehicle fleet rates and capacity settings saved successfully!');
+        showAlert('success', 'Delivery vehicle fleet rates and capacity settings saved successfully!');
         if (res.vehicles) setDeliveryVehicles(res.vehicles);
       } else {
         showAlert('error', res.error || 'Failed to save delivery vehicles');
@@ -324,7 +329,7 @@ export const Admin: React.FC = () => {
       const activeToken = adminToken || localStorage.getItem('jonny_admin_token') || localStorage.getItem('jonny_user_token') || undefined;
       const res = await api.updateDeliveryConfig({ settings: deliverySettings }, activeToken);
       if (res.success) {
-        showAlert('success', '📍 Farm facility location & max delivery radius saved successfully!');
+        showAlert('success', 'Farm facility location & max delivery radius saved successfully!');
         if (res.settings) setDeliverySettings(res.settings);
       } else {
         showAlert('error', res.error || 'Failed to save delivery settings');
@@ -383,7 +388,7 @@ export const Admin: React.FC = () => {
       const activeToken = adminToken || localStorage.getItem('jonny_admin_token') || localStorage.getItem('jonny_user_token') || undefined;
       const res = await api.updateMeatPricing(rawMeatPricing, activeToken);
       if (res.success) {
-        showAlert('success', '🥩 Raw meat pricing updated successfully! Live rates are now active.');
+        showAlert('success', 'Raw meat pricing updated successfully! Live rates are now active.');
       } else {
         showAlert('error', res.error || 'Failed to update meat pricing');
       }
@@ -459,7 +464,7 @@ export const Admin: React.FC = () => {
     }
   }, [isAuthenticated]);
 
-  // 🔔 Click Outside Handler: Close notification dropdown when clicking anywhere outside of its boundary
+  // Click Outside Handler: Close notification dropdown when clicking anywhere outside of its boundary
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent | TouchEvent) => {
       if (
@@ -481,7 +486,7 @@ export const Admin: React.FC = () => {
     };
   }, [isNotifDropdownOpen]);
 
-  // 🚀 REALTIME LISTENER: New Payment Slip Uploaded by Customer
+  // Realtime Listener: New Payment Slip Uploaded by Customer
   useRealtimeEvent<{ order: Order; notification: AdminNotification; animal: Animal | null }>('NEW_ORDER_SLIP', (data) => {
     if (!data || !data.order) return;
     
@@ -505,10 +510,10 @@ export const Admin: React.FC = () => {
       });
     }
 
-    showAlert('success', `🔔 New Payment Slip uploaded by ${data.order.customerName} for ${data.order.packageName || data.order.animalBreed} (${data.order.totalAmount.toLocaleString()} ETB)!`);
+    showAlert('success', `New Payment Slip uploaded by ${data.order.customerName} for ${data.order.packageName || data.order.animalBreed} (${data.order.totalAmount.toLocaleString()} ETB)!`);
   });
 
-  // 🚀 REALTIME LISTENER: New 50% Reservation Deposit Slip
+  // Realtime Listener: New 50% Reservation Deposit Slip
   useRealtimeEvent<{ order: Order; notification: AdminNotification; animal: Animal | null }>('NEW_RESERVATION_DEPOSIT', (data) => {
     if (!data || !data.order) return;
 
@@ -522,10 +527,10 @@ export const Admin: React.FC = () => {
       setUnreadNotifsCount(prev => prev + 1);
     }
 
-    showAlert('success', `🔔 New 50% Reservation Deposit submitted by ${data.order.customerName} for ${data.order.packageName || data.order.animalBreed} (${(data.order.depositAmount || data.order.totalAmount * 0.5).toLocaleString()} ETB)!`);
+    showAlert('success', `New 50% Reservation Deposit submitted by ${data.order.customerName} for ${data.order.packageName || data.order.animalBreed} (${(data.order.depositAmount || data.order.totalAmount * 0.5).toLocaleString()} ETB)!`);
   });
 
-  // 🚀 REALTIME LISTENER: Final 50% Payment Slip Submitted
+  // Realtime Listener: Final 50% Payment Slip Submitted
   useRealtimeEvent<{ order: Order; notification: AdminNotification }>('FINAL_PAYMENT_SLIP', (data) => {
     if (!data || !data.order) return;
 
@@ -542,10 +547,10 @@ export const Admin: React.FC = () => {
       setUnreadNotifsCount(prev => prev + 1);
     }
 
-    showAlert('success', `🔔 Final 50% Balance Slip submitted by ${data.order.customerName} for ${data.order.packageName || data.order.animalBreed}!`);
+    showAlert('success', `Final 50% Balance Slip submitted by ${data.order.customerName} for ${data.order.packageName || data.order.animalBreed}!`);
   });
 
-  // 🚀 REALTIME LISTENER: Reservation Approved
+  // Realtime Listener: Reservation Approved
   useRealtimeEvent<{ order: Order; animal: Animal | null; notification: AdminNotification }>('RESERVATION_APPROVED', (data) => {
     if (!data || !data.order) return;
 
@@ -568,7 +573,7 @@ export const Admin: React.FC = () => {
     }
   });
 
-  // 🚀 REALTIME LISTENER: Final Payment Approved (Completed / Sold)
+  // Realtime Listener: Final Payment Approved (Completed / Sold)
   useRealtimeEvent<{ order: Order; animal: Animal | null; notification: AdminNotification }>('FINAL_PAYMENT_APPROVED', (data) => {
     if (!data || !data.order) return;
 
@@ -591,7 +596,7 @@ export const Admin: React.FC = () => {
     }
   });
 
-  // 🚀 REALTIME LISTENER: Order Verified & Payment Approved
+  // Realtime Listener: Order Verified & Payment Approved
   useRealtimeEvent<{ order: Order; animal: Animal | null; notification: AdminNotification }>('ORDER_VERIFIED', (data) => {
     if (!data || !data.order) return;
 
@@ -619,7 +624,7 @@ export const Admin: React.FC = () => {
     }
   });
 
-  // 🚀 REALTIME LISTENER: Order Rejected
+  // Realtime Listener: Order Rejected
   useRealtimeEvent<{ order: Order; animal: Animal | null }>('ORDER_REJECTED', (data) => {
     if (!data || !data.order) return;
 
@@ -642,7 +647,7 @@ export const Admin: React.FC = () => {
     }
   });
 
-  // 🚀 REALTIME LISTENER: Live Animal Inventory Changes
+  // Realtime Listener: Live Animal Inventory Changes
   useRealtimeEvent<Animal>('ANIMAL_CREATED', (created) => {
     if (!created) return;
     setAnimalsList(prev => {
@@ -1066,7 +1071,7 @@ export const Admin: React.FC = () => {
         );
         showAlert(
           'success',
-          `🎉 Livestock "${animal.breed}" (${animal.id}) is now RELISTED and AVAILABLE on the marketplace! (Stock: ${Math.max(1, restockQuantity)} head)`
+          `Livestock "${animal.breed}" (${animal.id}) is now RELISTED and AVAILABLE on the marketplace! (Stock: ${Math.max(1, restockQuantity)} head)`
         );
       } else {
         showAlert('error', res.error || 'Failed to relist animal');
@@ -1353,7 +1358,7 @@ export const Admin: React.FC = () => {
       setNewPkgName('');
       setNewPkgAmharicName('');
       setNewPkgTagline('');
-      setNewPkgBadge('⭐ Most Popular');
+      setNewPkgBadge('Most Popular');
       setNewPkgDescription('');
       setNewPkgImage('');
       setNewPkgOriginalPrice(18000);
@@ -1562,39 +1567,28 @@ export const Admin: React.FC = () => {
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="font-bold text-sm sm:text-base">Jonny Admin Portal</span>
+                <span className="font-bold text-sm sm:text-base">
+                  {isAmharic ? 'የጆኒ አስተዳዳሪ ፖርታል' : 'Jonny Admin Portal'}
+                </span>
               </div>
               <p className="text-[11px] opacity-70">
-                Logged in as: <strong className="text-[#C18A45]">{user?.name}</strong> ({user?.email})
+                {isAmharic ? 'የገቡበት መለያ:' : 'Logged in as:'} <strong className="text-[#C18A45]">{user?.name}</strong> ({user?.email})
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
-
-            {/* Storefront / View Public Site Link */}
-            <Link
-              to="/"
-              className={`px-3 py-2 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition-colors ${
-                isDark ? 'bg-[#2A1A0D] border-[#4A2C16] hover:bg-[#3A2412]' : 'bg-white border-[#E4D4BC] hover:bg-[#EFE8DC]'
-              }`}
-              title="Return to Public Storefront"
-            >
-              <ShoppingBag className="w-3.5 h-3.5 text-[#C18A45]" />
-              <span className="hidden sm:inline">Storefront</span>
-            </Link>
-
             {/* Refresh Button */}
             <button
               onClick={loadDashboardData}
               disabled={isLoadingData}
-              className={`p-2 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition-colors ${
+              className={`p-2 sm:px-3 sm:py-2 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer ${
                 isDark ? 'bg-[#2A1A0D] border-[#4A2C16] hover:bg-[#3A2412]' : 'bg-white border-[#E4D4BC] hover:bg-[#EFE8DC]'
               }`}
-              title="Refresh Data"
+              title={isAmharic ? 'መረጃ አድስ' : 'Refresh Data'}
             >
               <RefreshCw className={`w-3.5 h-3.5 ${isLoadingData ? 'animate-spin text-[#C18A45]' : ''}`} />
-              <span className="hidden sm:inline">Refresh</span>
+              <span className="hidden sm:inline">{isAmharic ? 'አድስ' : 'Refresh'}</span>
             </button>
 
             {/* Notifications Dropdown Container */}
@@ -1693,23 +1687,23 @@ export const Admin: React.FC = () => {
                                   {n.type === 'OUT_OF_STOCK' ? (
                                     <AlertTriangle className="w-3 h-3 text-red-400 shrink-0" />
                                   ) : n.type === 'CONTACT_MESSAGE' ? (
-                                    <MessageSquare className="w-3 h-3 text-amber-500 shrink-0" />
+                                    <MessageSquare className="w-3 h-3 text-[#C18A45] shrink-0" />
                                   ) : isPendingReview ? (
-                                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0 animate-pulse" />
+                                    <span className="w-1.5 h-1.5 rounded-full bg-[#C18A45] shrink-0 animate-pulse" />
                                   ) : null}
                                   <span>{n.title}</span>
                                 </div>
                                 <div className="flex items-center gap-1 shrink-0">
                                   {n.type === 'OUT_OF_STOCK' ? (
                                     <span className="px-1.5 py-0.5 rounded-md text-[8.5px] font-bold bg-red-500/15 text-red-400 border border-red-500/30">
-                                      ⚠️ Stock Alert
+                                      Stock Alert
                                     </span>
                                   ) : n.type === 'CONTACT_MESSAGE' ? (
-                                    <span className="px-1.5 py-0.5 rounded-md text-[8.5px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30">
-                                      💬 Inquiry
+                                    <span className="px-1.5 py-0.5 rounded-md text-[8.5px] font-bold bg-[#C18A45]/15 text-[#C18A45] border border-[#C18A45]/30">
+                                      Inquiry
                                     </span>
                                   ) : isPendingReview ? (
-                                    <span className="px-1.5 py-0.5 rounded-md text-[8.5px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30">
+                                    <span className="px-1.5 py-0.5 rounded-md text-[8.5px] font-bold bg-[#C18A45]/15 text-[#C18A45] border border-[#C18A45]/30">
                                       Pending Approval
                                     </span>
                                   ) : relatedOrder?.status === 'completed' || relatedOrder?.status === 'verified' || relatedOrder?.status === 'delivered' ? (
@@ -1816,9 +1810,9 @@ export const Admin: React.FC = () => {
           <div className="p-4 sm:p-5 lg:sticky lg:top-20">
             <div className="hidden lg:flex items-center justify-between px-3 py-2 mb-3 rounded-xl bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5">
               <span className="text-[11px] font-bold uppercase tracking-wider text-[#C18A45]">
-                Admin Modules
+                {isAmharic ? 'የአስተዳዳሪ ክፍሎች' : 'Admin Modules'}
               </span>
-              <span className="text-[10px] font-mono opacity-50">6 Tabs</span>
+              <span className="text-[10px] font-mono opacity-50">{isAmharic ? '8 ክፍሎች' : '8 Modules'}</span>
             </div>
 
             <nav className="flex flex-row lg:flex-col gap-1.5 overflow-x-auto lg:overflow-visible pb-1 lg:pb-0 no-scrollbar">
@@ -1837,7 +1831,7 @@ export const Admin: React.FC = () => {
               >
                 <div className="flex items-center gap-2.5">
                   <LayoutDashboard className={`w-4 h-4 shrink-0 ${activeTab === 'overview' ? 'text-white' : 'text-[#C18A45]'}`} />
-                  <span>Overview</span>
+                  <span>{isAmharic ? 'አጠቃላይ ዳሽቦርድ' : 'Overview & Stats'}</span>
                 </div>
               </button>
 
@@ -1855,11 +1849,11 @@ export const Admin: React.FC = () => {
               >
                 <div className="flex items-center gap-2.5">
                   <CreditCard className={`w-4 h-4 shrink-0 ${activeTab === 'orders' ? 'text-white' : 'text-[#C18A45]'}`} />
-                  <span>Orders & Payment Slips</span>
+                  <span>{isAmharic ? 'ትዕዛዞች እና ደረሰኞች' : 'Orders & Payment Slips'}</span>
                 </div>
                 {stats.pendingOrdersCount > 0 ? (
                   <span className="px-2 py-0.5 rounded-md bg-amber-500 text-black text-[10px] font-black shrink-0 animate-pulse">
-                    {stats.pendingOrdersCount} new
+                    {stats.pendingOrdersCount} {isAmharic ? 'አዲስ' : 'new'}
                   </span>
                 ) : (
                   <span className={`px-2 py-0.5 rounded-md text-[10.5px] font-mono font-bold shrink-0 ${
@@ -1884,7 +1878,7 @@ export const Admin: React.FC = () => {
               >
                 <div className="flex items-center gap-2.5">
                   <Layers className={`w-4 h-4 shrink-0 ${activeTab === 'inventory' ? 'text-white' : 'text-[#C18A45]'}`} />
-                  <span>Livestock Inventory</span>
+                  <span>{isAmharic ? 'የከብቶች ዝርዝር' : 'Livestock Inventory'}</span>
                 </div>
                 <span className={`px-2 py-0.5 rounded-md text-[10.5px] font-mono font-bold shrink-0 ${
                   activeTab === 'inventory' ? 'bg-black/20 text-white' : 'bg-black/5 dark:bg-white/10 opacity-75'
@@ -1907,7 +1901,7 @@ export const Admin: React.FC = () => {
               >
                 <div className="flex items-center gap-2.5">
                   <Gift className={`w-4 h-4 shrink-0 ${activeTab === 'packages' ? 'text-white' : 'text-[#C18A45]'}`} />
-                  <span>Celebration Packages</span>
+                  <span>{isAmharic ? 'የበዓል ጥቅሎች' : 'Celebration Packages'}</span>
                 </div>
                 <span className={`px-2 py-0.5 rounded-md text-[10.5px] font-mono font-bold shrink-0 ${
                   activeTab === 'packages' ? 'bg-black/20 text-white' : 'bg-black/5 dark:bg-white/10 opacity-75'
@@ -1930,7 +1924,7 @@ export const Admin: React.FC = () => {
               >
                 <div className="flex items-center gap-2.5">
                   <Scale className={`w-4 h-4 shrink-0 ${activeTab === 'raw_meat' ? 'text-white' : 'text-[#C18A45]'}`} />
-                  <span>Raw Meat (በኪሎ ስጋ)</span>
+                  <span>{isAmharic ? 'በኪሎ ጥሬ ስጋ' : 'Raw Meat (በኪሎ ስጋ)'}</span>
                 </div>
                 <span className={`px-2 py-0.5 rounded-md text-[10.5px] font-mono font-bold shrink-0 ${
                   activeTab === 'raw_meat' ? 'bg-black/20 text-white' : 'bg-black/5 dark:bg-white/10 opacity-75'
@@ -1953,11 +1947,11 @@ export const Admin: React.FC = () => {
               >
                 <div className="flex items-center gap-2.5">
                   <Truck className={`w-4 h-4 shrink-0 ${activeTab === 'delivery' ? 'text-white' : 'text-[#C18A45]'}`} />
-                  <span>Delivery & Fleet</span>
+                  <span>{isAmharic ? 'ማድረሻ እና መኪኖች' : 'Delivery & Fleet'}</span>
                 </div>
                 {ordersList.filter(o => o.isDelivery && (o.status === 'pending_verification' || o.status === 'delivery_pending')).length > 0 ? (
                   <span className="px-2 py-0.5 rounded-md bg-amber-500 text-black text-[10px] font-black shrink-0 animate-pulse">
-                    {ordersList.filter(o => o.isDelivery && (o.status === 'pending_verification' || o.status === 'delivery_pending')).length} new
+                    {ordersList.filter(o => o.isDelivery && (o.status === 'pending_verification' || o.status === 'delivery_pending')).length} {isAmharic ? 'አዲስ' : 'new'}
                   </span>
                 ) : (
                   <span className={`px-2 py-0.5 rounded-md text-[10.5px] font-mono font-bold shrink-0 ${
@@ -1968,7 +1962,7 @@ export const Admin: React.FC = () => {
                 )}
               </button>
 
-              {/* 6. Demand & Metrics */}
+              {/* 7. Demand & Metrics */}
               <button
                 type="button"
                 onClick={() => setActiveTab('demand')}
@@ -1982,11 +1976,11 @@ export const Admin: React.FC = () => {
               >
                 <div className="flex items-center gap-2.5">
                   <BarChart3 className={`w-4 h-4 shrink-0 ${activeTab === 'demand' ? 'text-white' : 'text-[#C18A45]'}`} />
-                  <span>Demand & Metrics</span>
+                  <span>{isAmharic ? 'ትንታኔ እና ገበያ' : 'Demand & Metrics'}</span>
                 </div>
               </button>
 
-              {/* 6. Customer Inquiries */}
+              {/* 8. Customer Inquiries */}
               <button
                 type="button"
                 onClick={() => setActiveTab('messages')}
@@ -2000,11 +1994,11 @@ export const Admin: React.FC = () => {
               >
                 <div className="flex items-center gap-2.5">
                   <MessageSquare className={`w-4 h-4 shrink-0 ${activeTab === 'messages' ? 'text-white' : 'text-[#C18A45]'}`} />
-                  <span>Customer Inquiries</span>
+                  <span>{isAmharic ? 'የደንበኞች መልዕክቶች' : 'Customer Inquiries'}</span>
                 </div>
                 {unreadMessagesCount > 0 ? (
                   <span className="px-2 py-0.5 rounded-md bg-amber-500 text-black text-[10px] font-black animate-pulse shrink-0">
-                    {unreadMessagesCount} new
+                    {unreadMessagesCount} {isAmharic ? 'አዲስ' : 'new'}
                   </span>
                 ) : (
                   <span className={`px-2 py-0.5 rounded-md text-[10.5px] font-mono font-bold shrink-0 ${
@@ -2031,7 +2025,9 @@ export const Admin: React.FC = () => {
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               <div className={`p-4 sm:p-5 rounded-2xl border ${isDark ? 'bg-[#2A1A0D] border-[#4A2C16]' : 'bg-[#F1E8D8] border-[#E4D4BC]'}`}>
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-[11px] font-semibold uppercase tracking-wider opacity-70">Verified Revenue</span>
+                  <span className="text-[11px] font-semibold uppercase tracking-wider opacity-70">
+                    {isAmharic ? 'የተረጋገጠ ገቢ' : 'Verified Revenue'}
+                  </span>
                   <div className="w-8 h-8 rounded-xl bg-amber-500/10 text-[#C18A45] border border-amber-500/20 flex items-center justify-center">
                     <DollarSign className="w-4 h-4 text-[#C18A45]" />
                   </div>
@@ -2040,53 +2036,59 @@ export const Admin: React.FC = () => {
                   {formatPrice(stats.verifiedRevenue)}
                 </div>
                 <p className="text-[11px] opacity-70 mt-1">
-                  {stats.verifiedOrdersCount} Verified Payments
+                  {stats.verifiedOrdersCount} {isAmharic ? 'የተረጋገጡ ክፍያዎች' : 'Verified Payments'}
                 </p>
               </div>
 
               <div className={`p-4 sm:p-5 rounded-2xl border ${isDark ? 'bg-[#2A1A0D] border-[#4A2C16]' : 'bg-[#F1E8D8] border-[#E4D4BC]'}`}>
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-[11px] font-semibold uppercase tracking-wider opacity-70">Pending Slips</span>
+                  <span className="text-[11px] font-semibold uppercase tracking-wider opacity-70">
+                    {isAmharic ? 'የሚጠበቁ ደረሰኞች' : 'Pending Slips'}
+                  </span>
                   <div className="w-8 h-8 rounded-xl bg-amber-500/10 text-[#C18A45] border border-amber-500/20 flex items-center justify-center">
                     <Clock className="w-4 h-4 text-[#C18A45]" />
                   </div>
                 </div>
                 <div className="text-xl sm:text-2xl font-serif font-extrabold text-[#C18A45]">
-                  {stats.pendingOrdersCount} Slips
+                  {stats.pendingOrdersCount} {isAmharic ? 'ደረሰኞች' : 'Slips'}
                 </div>
                 <p className="text-[11px] opacity-70 mt-1">
-                  Awaiting your approval
+                  {isAmharic ? 'የእርስዎን ማረጋገጫ የሚጠብቁ' : 'Awaiting your approval'}
                 </p>
               </div>
 
               <div className={`p-4 sm:p-5 rounded-2xl border ${isDark ? 'bg-[#2A1A0D] border-[#4A2C16]' : 'bg-[#F1E8D8] border-[#E4D4BC]'}`}>
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-[11px] font-semibold uppercase tracking-wider opacity-70">Total Animals</span>
+                  <span className="text-[11px] font-semibold uppercase tracking-wider opacity-70">
+                    {isAmharic ? 'ጠቅላላ ከብቶች' : 'Total Animals'}
+                  </span>
                   <div className="w-8 h-8 rounded-xl bg-amber-500/10 text-[#C18A45] border border-amber-500/20 flex items-center justify-center">
                     <ShoppingBag className="w-4 h-4 text-[#C18A45]" />
                   </div>
                 </div>
                 <div className="text-xl sm:text-2xl font-serif font-extrabold">
-                  {stats.totalAnimals} Head
+                  {stats.totalAnimals} {isAmharic ? 'ራስ' : 'Head'}
                 </div>
                 <p className="text-[11px] opacity-70 mt-1">
-                  {stats.sheepCount} Sheep · {stats.goatsCount} Goats · {stats.cowsCount} Cows
+                  {stats.sheepCount} {isAmharic ? 'በጎች' : 'Sheep'} · {stats.goatsCount} {isAmharic ? 'ፍየሎች' : 'Goats'} · {stats.cowsCount} {isAmharic ? 'ላሞች' : 'Cows'}
                 </p>
               </div>
 
               <div className={`p-4 sm:p-5 rounded-2xl border ${isDark ? 'bg-[#2A1A0D] border-[#4A2C16]' : 'bg-[#F1E8D8] border-[#E4D4BC]'}`}>
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-[11px] font-semibold uppercase tracking-wider opacity-70">Inventory Status</span>
+                  <span className="text-[11px] font-semibold uppercase tracking-wider opacity-70">
+                    {isAmharic ? 'የክምችት ሁኔታ' : 'Inventory Status'}
+                  </span>
                   <div className="w-8 h-8 rounded-xl bg-amber-500/10 text-[#C18A45] border border-amber-500/20 flex items-center justify-center">
                     <CheckCircle2 className="w-4 h-4 text-[#C18A45]" />
                   </div>
                 </div>
                 <div className="flex items-center gap-1.5 text-xs font-semibold">
-                  <span className="text-emerald-500 font-bold">{stats.availableCount} Avail</span>
+                  <span className="text-emerald-500 font-bold">{stats.availableCount} {isAmharic ? 'ክፍት' : 'Avail'}</span>
                   <span>·</span>
-                  <span className="text-amber-500 font-bold">{stats.reservedCount} Hold</span>
+                  <span className="text-amber-500 font-bold">{stats.reservedCount} {isAmharic ? 'የተያዙ' : 'Hold'}</span>
                   <span>·</span>
-                  <span className="text-stone-400 font-bold">{stats.soldCount} Sold</span>
+                  <span className="text-stone-400 font-bold">{stats.soldCount} {isAmharic ? 'የተሸጡ' : 'Sold'}</span>
                 </div>
                 <div className="mt-2 w-full bg-stone-700/30 rounded-full h-1.5 overflow-hidden flex">
                   <div style={{ width: `${(stats.availableCount / (stats.totalAnimals || 1)) * 100}%` }} className="bg-emerald-500 h-full" />
@@ -2109,10 +2111,10 @@ export const Admin: React.FC = () => {
                   </div>
                   <div>
                     <h3 className="font-serif font-bold text-base text-[#C18A45]">
-                      {stats.pendingOrdersCount} Customer Payment Slips Awaiting Review
+                      {stats.pendingOrdersCount} {isAmharic ? 'የደንበኛ ክፍያ ደረሰኞች ምርመራ ይጠብቃሉ' : 'Customer Payment Slips Awaiting Review'}
                     </h3>
                     <p className="text-xs opacity-75">
-                      Verify transactions to automatically deduct inventory and mark livestock items as SOLD.
+                      {isAmharic ? 'ክፍያዎችን በማጽደቅ ከብቶቹ እንዲቀነሱ እና እንደተሸጡ ምልክት ያድርጉ።' : 'Verify transactions to automatically deduct inventory and mark livestock items as SOLD.'}
                     </p>
                   </div>
                 </div>
@@ -2120,7 +2122,7 @@ export const Admin: React.FC = () => {
                   onClick={() => setActiveTab('orders')}
                   className="px-5 py-2.5 rounded-xl bg-[#C18A45] hover:bg-[#A06E35] text-white font-bold text-xs shadow-md transition-all self-start sm:self-auto flex items-center gap-1.5 cursor-pointer"
                 >
-                  <span>Review Slips Now</span>
+                  <span>{isAmharic ? 'ደረሰኞችን አሁን መርምር' : 'Review Slips Now'}</span>
                   <ArrowUpRight className="w-4 h-4" />
                 </button>
               </div>
@@ -2135,15 +2137,19 @@ export const Admin: React.FC = () => {
           <div className="space-y-5 animate-in fade-in-50 duration-150">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
-                <h2 className="font-serif font-bold text-2xl">
-                  Customer Orders & Payment Slip Verification
+                <h2 className="text-xl sm:text-2xl font-serif font-bold">
+                  {isAmharic ? 'የትዕዛዞች እና የክፍያ ደረሰኞች ማረጋገጫ' : 'Customer Orders & Payment Slip Verification'}
                 </h2>
                 <p className="text-xs opacity-70">
-                  Inspect customer-uploaded transfer receipts and verify transactions. Once approved, the animal is automatically marked as SOLD.
+                  {isAmharic
+                    ? 'የደንበኞችን የባንክ ማስተላለፊያ ደረሰኞች በመመርመር ያጽድቁ። ሲጸድቅ ከብቱ በቀጥታ እንደተሸጠ ይመዘገባል።'
+                    : 'Inspect customer-uploaded transfer receipts and verify transactions. Once approved, the animal is automatically marked as SOLD.'}
                 </p>
               </div>
 
-              <div className="flex flex-wrap items-center gap-2">
+              {/* Status Filter */}
+              <div className="flex items-center gap-2">
+                <Filter className="w-3.5 h-3.5 opacity-60 text-[#C18A45]" />
                 <select
                   value={orderStatusFilter}
                   onChange={(e) => setOrderStatusFilter(e.target.value)}
@@ -2151,12 +2157,24 @@ export const Admin: React.FC = () => {
                     isDark ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0]' : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#2A1A0D]'
                   }`}
                 >
-                  <option value="all">All Orders & Reservations ({ordersList.length})</option>
-                  <option value="active_reservation">Active Reservation ({ordersList.filter(o => o.status === 'reserved' || o.status === 'reservation_pending').length})</option>
-                  <option value="sold">Sold ({ordersList.filter(o => o.status === 'completed' || o.status === 'verified').length})</option>
-                  <option value="delivery_pending">Delivery Pending ({ordersList.filter(o => o.status === 'delivery_pending' || ((o.status === 'completed' || o.status === 'verified') && Boolean(o.deliveryLocation))).length})</option>
-                  <option value="delivered">Delivered ({ordersList.filter(o => o.status === 'delivered').length})</option>
-                  <option value="rejected">Rejected ({ordersList.filter(o => o.status === 'rejected').length})</option>
+                  <option value="all">
+                    {isAmharic ? 'ሁሉም ትዕዛዞች እና ቅድመ-ይዞታዎች' : 'All Orders & Reservations'} ({ordersList.length})
+                  </option>
+                  <option value="active_reservation">
+                    {isAmharic ? 'የተያዙ (Reservations)' : 'Active Reservation'} ({ordersList.filter(o => o.status === 'reserved' || o.status === 'reservation_pending').length})
+                  </option>
+                  <option value="sold">
+                    {isAmharic ? 'የተሸጡ / የተጠናቀቁ' : 'Sold'} ({ordersList.filter(o => o.status === 'completed' || o.status === 'verified').length})
+                  </option>
+                  <option value="delivery_pending">
+                    {isAmharic ? 'ማድረሻ የሚጠብቁ' : 'Delivery Pending'} ({ordersList.filter(o => o.status === 'delivery_pending' || ((o.status === 'completed' || o.status === 'verified') && Boolean(o.deliveryLocation))).length})
+                  </option>
+                  <option value="delivered">
+                    {isAmharic ? 'የደረሱ' : 'Delivered'} ({ordersList.filter(o => o.status === 'delivered').length})
+                  </option>
+                  <option value="rejected">
+                    {isAmharic ? 'ውድቅ የተደረጉ' : 'Rejected'} ({ordersList.filter(o => o.status === 'rejected').length})
+                  </option>
                 </select>
               </div>
             </div>
@@ -2171,20 +2189,20 @@ export const Admin: React.FC = () => {
                 <table className="w-full text-left text-xs border-collapse">
                   <thead>
                     <tr className={`border-b ${isDark ? 'border-[#4A2C16] text-[#D8C5A8]' : 'border-[#E4D4BC] text-[#746556]'}`}>
-                      <th className="py-3.5 px-3.5 uppercase font-semibold">Order / Reservation ID</th>
-                      <th className="py-3.5 px-3.5 uppercase font-semibold">Customer</th>
-                      <th className="py-3.5 px-3.5 uppercase font-semibold">Item & Breakdown</th>
-                      <th className="py-3.5 px-3.5 uppercase font-semibold">Receipt Slips</th>
-                      <th className="py-3.5 px-3.5 uppercase font-semibold">Method & Txn</th>
-                      <th className="py-3.5 px-3.5 uppercase font-semibold">Status</th>
-                      <th className="py-3.5 px-3.5 uppercase font-semibold text-right">Verification Actions</th>
+                      <th className="py-3.5 px-3.5 uppercase font-semibold">{isAmharic ? 'የትዕዛዝ መለያ' : 'Order ID'}</th>
+                      <th className="py-3.5 px-3.5 uppercase font-semibold">{isAmharic ? 'ደንበኛ' : 'Customer'}</th>
+                      <th className="py-3.5 px-3.5 uppercase font-semibold">{isAmharic ? 'ዝርዝር & ክፍያ' : 'Item & Total'}</th>
+                      <th className="py-3.5 px-3.5 uppercase font-semibold">{isAmharic ? 'የክፍያ ደረሰኝ' : 'Receipt Slip'}</th>
+                      <th className="py-3.5 px-3.5 uppercase font-semibold">{isAmharic ? 'የክፍያ ዘዴ & መለያ' : 'Method & Txn'}</th>
+                      <th className="py-3.5 px-3.5 uppercase font-semibold">{isAmharic ? 'ሁኔታ' : 'Status'}</th>
+                      <th className="py-3.5 px-3.5 uppercase font-semibold text-right">{isAmharic ? 'የማረጋገጫ እርምጃዎች' : 'Verification Actions'}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y" style={{ borderColor: isDark ? '#4A2C16' : '#E4D4BC' }}>
                     {filteredOrders.length === 0 ? (
                       <tr>
                         <td colSpan={7} className="text-center py-8 opacity-60">
-                          No orders found matching filter
+                          {isAmharic ? 'ማጣሪያውን የሚያሟላ ትዕዛዝ አልተገኘም' : 'No orders found matching filter'}
                         </td>
                       </tr>
                     ) : (
@@ -2203,17 +2221,17 @@ export const Admin: React.FC = () => {
                               </span>
                               {order.isPackage && !(order.packageDetails as any)?.isMeatByKg && (
                                 <span className="inline-block px-1.5 py-0.5 mt-1 rounded-md text-[9.5px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30">
-                                  Package Order
+                                  {isAmharic ? 'የጥቅል ትዕዛዝ' : 'Package Order'}
                                 </span>
                               )}
                               {(order.packageDetails as any)?.isMeatByKg && (
                                 <span className="inline-block px-1.5 py-0.5 mt-1 rounded-md text-[9.5px] font-bold bg-rose-500/15 text-rose-400 border border-rose-500/30">
-                                  🥩 Meat in KG
+                                  {isAmharic ? 'ስጋ በኪሎ' : 'Meat in KG'}
                                 </span>
                               )}
                               {isRes && (
                                 <span className="inline-block px-1.5 py-0.5 mt-1 rounded-md text-[9.5px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 ml-1">
-                                  50% Reserve
+                                  {isAmharic ? '50% ቅድመ-ይዞታ' : '50% Reserve'}
                                 </span>
                               )}
                             </td>
@@ -2223,13 +2241,15 @@ export const Admin: React.FC = () => {
                               <strong className="block text-xs sm:text-sm font-semibold">{order.customerName}</strong>
                               <span className="text-[11px] opacity-70 block">{order.customerPhone}</span>
                               {order.deliveryLocation && (
-                                <span className="text-[10px] opacity-60 truncate max-w-[150px] block" title={order.deliveryLocation}>
-                                  📍 {order.deliveryLocation}
+                                <span className="text-[10px] opacity-60 truncate max-w-[150px] flex items-center gap-1 block" title={order.deliveryLocation}>
+                                  <MapPin className="w-2.5 h-2.5 shrink-0 text-[#C18A45]" />
+                                  <span>{order.deliveryLocation}</span>
                                 </span>
                               )}
                               {(order.packageDetails as any)?.isDelivery && (
-                                <span className="inline-block px-1.5 py-0.5 mt-0.5 rounded text-[9.5px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">
-                                  🚚 Doorstep Delivery
+                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 mt-0.5 rounded text-[9.5px] font-bold bg-[#C18A45]/10 text-[#C18A45] border border-[#C18A45]/20">
+                                  <Truck className="w-2.5 h-2.5" />
+                                  <span>{isAmharic ? 'እስከ ደጃፍ ማድረሻ' : 'Doorstep Delivery'}</span>
                                 </span>
                               )}
                             </td>
@@ -2239,10 +2259,10 @@ export const Admin: React.FC = () => {
                               <div className="font-semibold text-xs">
                                 {(order.packageDetails as any)?.isMeatByKg ? (
                                   <span className="text-rose-400 font-bold">
-                                    🥩 {(order.packageDetails as any).cut} ({(order.packageDetails as any).kg} KG)
+                                    {(order.packageDetails as any).cut} ({(order.packageDetails as any).kg} KG)
                                   </span>
                                 ) : (
-                                  order.packageName || order.animalBreed || 'Livestock Item'
+                                  order.packageName || order.animalBreed || (isAmharic ? 'የከብት አይነት' : 'Livestock Item')
                                 )}
                               </div>
                               {order.animalId && (
@@ -2250,16 +2270,16 @@ export const Admin: React.FC = () => {
                               )}
                               {(order.packageDetails as any)?.isMeatByKg && (
                                 <span className="text-[10px] font-mono opacity-70 block">
-                                  Rate: {formatPrice((order.packageDetails as any).pricePerKg)} / KG
+                                  {isAmharic ? 'የኪሎ ዋጋ' : 'Rate'}: {formatPrice((order.packageDetails as any).pricePerKg)} / KG
                                 </span>
                               )}
                               <div className={`font-bold text-xs sm:text-sm ${isDark ? 'text-[#E0B15A]' : 'text-[#B8792F]'}`}>
-                                Total: {formatPrice(order.totalAmount)}
+                                {isAmharic ? 'ድምር' : 'Total'}: {formatPrice(order.totalAmount)}
                               </div>
                               {isRes && (
                                 <div className="text-[10px] space-y-0.5 mt-0.5">
-                                  <span className="text-emerald-500 font-semibold block">50% Deposit: {formatPrice(deposit)}</span>
-                                  <span className="text-amber-500 font-semibold block">Remaining: {formatPrice(remaining)}</span>
+                                  <span className="text-emerald-500 font-semibold block">{isAmharic ? '50% ቅድመ ክፍያ' : '50% Deposit'}: {formatPrice(deposit)}</span>
+                                  <span className="text-amber-500 font-semibold block">{isAmharic ? 'ቀሪ ሂሳብ' : 'Remaining'}: {formatPrice(remaining)}</span>
                                 </div>
                               )}
                             </td>
@@ -2272,7 +2292,7 @@ export const Admin: React.FC = () => {
                                     type="button"
                                     onClick={() => setSelectedSlipOrder(order)}
                                     className="group relative inline-flex items-center gap-1.5 p-1 rounded-lg border border-[#C18A45]/30 hover:border-[#C18A45] transition-all bg-black/10 dark:bg-white/5 cursor-pointer"
-                                    title="Click to inspect initial slip"
+                                    title={isAmharic ? 'ደረሰኙን ለመመርመር ይጫኑ' : 'Click to inspect initial slip'}
                                   >
                                     <img
                                       src={order.paymentSlipUrl}
@@ -2280,11 +2300,11 @@ export const Admin: React.FC = () => {
                                       className="w-9 h-9 object-cover rounded-md"
                                     />
                                     <span className="text-[10px] font-bold text-[#C18A45] pr-1">
-                                      {isRes ? 'Deposit Slip' : 'Full Slip'}
+                                      {isRes ? (isAmharic ? 'የቅድመ-ክፍያ ደረሰኝ' : 'Deposit Slip') : (isAmharic ? 'ሙሉ ደረሰኝ' : 'Full Slip')}
                                     </span>
                                   </button>
                                 ) : (
-                                  <span className="text-[10px] opacity-40 block">No Deposit Slip</span>
+                                  <span className="text-[10px] opacity-40 block">{isAmharic ? 'ደረሰኝ አልተያያዘም' : 'No Deposit Slip'}</span>
                                 )}
 
                                 {order.finalPaymentSlipUrl && (
@@ -2295,7 +2315,7 @@ export const Admin: React.FC = () => {
                                       paymentSlipUrl: order.finalPaymentSlipUrl!
                                     })}
                                     className="group relative inline-flex items-center gap-1.5 p-1 rounded-lg border border-emerald-500/30 hover:border-emerald-500 transition-all bg-emerald-500/10 cursor-pointer"
-                                    title="Click to inspect final 50% balance slip"
+                                    title={isAmharic ? 'የቀሪ 50% ደረሰኝን ለመመርመር ይጫኑ' : 'Click to inspect final 50% balance slip'}
                                   >
                                     <img
                                       src={order.finalPaymentSlipUrl}
@@ -2303,7 +2323,7 @@ export const Admin: React.FC = () => {
                                       className="w-9 h-9 object-cover rounded-md"
                                     />
                                     <span className="text-[10px] font-bold text-emerald-400 pr-1">
-                                      Final Slip
+                                      {isAmharic ? 'የመጨረሻ ደረሰኝ' : 'Final Slip'}
                                     </span>
                                   </button>
                                 )}
@@ -2315,7 +2335,7 @@ export const Admin: React.FC = () => {
                               <div className="font-semibold text-xs">{order.paymentMethod}</div>
                               {order.transactionReference && (
                                 <span className="text-[10px] font-mono opacity-70 block">
-                                  Txn: {order.transactionReference}
+                                  {isAmharic ? 'መለያ' : 'Txn'}: {order.transactionReference}
                                 </span>
                               )}
                             </td>
@@ -2324,42 +2344,44 @@ export const Admin: React.FC = () => {
                             <td className="py-3 px-3.5">
                               {order.status === 'reservation_pending' && (
                                 <span className="inline-block px-2.5 py-1 rounded-md text-[10.5px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30 animate-pulse">
-                                  50% Deposit Review Pending
+                                  {isAmharic ? '50% ቅድመ-ክፍያ ምርመራ ይጠብቃል' : '50% Deposit Review Pending'}
                                 </span>
                               )}
                               {order.status === 'reserved' && (
                                 <span className="inline-block px-2.5 py-1 rounded-md text-[10.5px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30">
-                                  Active Reservation (50% Paid)
+                                  {isAmharic ? 'የተያዘ (50% የተከፈለ)' : 'Active Reservation (50% Paid)'}
                                 </span>
                               )}
                               {order.status === 'final_payment_pending' && (
                                 <span className="inline-block px-2.5 py-1 rounded-md text-[10.5px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30 animate-pulse">
-                                  Final 50% Slip Review Pending
+                                  {isAmharic ? 'የቀሪ 50% ደረሰኝ ምርመራ ይጠብቃል' : 'Final 50% Slip Review Pending'}
                                 </span>
                               )}
                               {order.status === 'pending_verification' && (
                                 <span className="inline-block px-2.5 py-1 rounded-md text-[10.5px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30 animate-pulse">
-                                  Full Slip Review Pending
+                                  {isAmharic ? 'የሙሉ ክፍያ ደረሰኝ ምርመራ ይጠብቃል' : 'Full Slip Review Pending'}
                                 </span>
                               )}
                               {order.status === 'delivery_pending' && (
-                                <span className="inline-block px-2.5 py-1 rounded-md text-[10.5px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30">
-                                  🚚 Delivery Pending
+                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[10.5px] font-bold bg-[#C18A45]/15 text-[#C18A45] border border-[#C18A45]/30">
+                                  <Truck className="w-3 h-3" />
+                                  <span>{isAmharic ? 'ማድረስ ይጠበቃል' : 'Delivery Pending'}</span>
                                 </span>
                               )}
                               {order.status === 'delivered' && (
-                                <span className="inline-block px-2.5 py-1 rounded-md text-[10.5px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
-                                  🏡 Delivered to Customer
+                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[10.5px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                                  <CheckCircle2 className="w-3 h-3" />
+                                  <span>{isAmharic ? 'ለደንበኛ ደርሷል' : 'Delivered to Customer'}</span>
                                 </span>
                               )}
                               {(order.status === 'completed' || order.status === 'verified') && (
                                 <span className="inline-block px-2.5 py-1 rounded-md text-[10.5px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
-                                  ✓ Sold
+                                  ✓ {isAmharic ? 'የተሸጠ' : 'Sold'}
                                 </span>
                               )}
                               {order.status === 'rejected' && (
                                 <span className="inline-block px-2.5 py-1 rounded-md text-[10.5px] font-bold bg-red-500/15 text-red-400 border border-red-500/30">
-                                  Rejected
+                                  {isAmharic ? 'ውድቅ ተደርጓል' : 'Rejected'}
                                 </span>
                               )}
                             </td>
@@ -2373,15 +2395,15 @@ export const Admin: React.FC = () => {
                                     <button
                                       onClick={() => handleVerifyReservation(order.id)}
                                       className="px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-black font-bold text-xs shadow transition-all flex items-center gap-1 cursor-pointer"
-                                      title="Approve 50% deposit and lock/reserve item"
+                                      title={isAmharic ? 'የ50% ቅድመ ክፍያን ያጽድቁ' : 'Approve 50% deposit and lock/reserve item'}
                                     >
                                       <Check className="w-3.5 h-3.5" />
-                                      <span>Approve 50% Deposit</span>
+                                      <span>{isAmharic ? '50% ቅድመ-ክፍያ አጽድቅ' : 'Approve 50% Deposit'}</span>
                                     </button>
                                     <button
                                       onClick={() => handleRejectOrder(order.id)}
                                       className="p-1.5 rounded-lg bg-red-500/15 hover:bg-red-500/25 text-red-400 transition-colors cursor-pointer"
-                                      title="Reject deposit slip"
+                                      title={isAmharic ? 'ደረሰኙን ውድቅ አድርግ' : 'Reject deposit slip'}
                                     >
                                       <X className="w-4 h-4" />
                                     </button>
@@ -2394,15 +2416,15 @@ export const Admin: React.FC = () => {
                                     <button
                                       onClick={() => handleVerifyFinalPayment(order.id)}
                                       className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow transition-all flex items-center gap-1 cursor-pointer"
-                                      title="Verify final balance and mark animal as SOLD"
+                                      title={isAmharic ? 'ቀሪውን 50% ክፍያ ያጽድቁ እና ከብቱን የተሸጠ ያድርጉ' : 'Verify final balance and mark animal as SOLD'}
                                     >
                                       <Check className="w-3.5 h-3.5" />
-                                      <span>Approve Final & Mark Sold</span>
+                                      <span>{isAmharic ? 'ቀሪውን አጽድቅ & ሸጥ' : 'Approve Final & Mark Sold'}</span>
                                     </button>
                                     <button
                                       onClick={() => handleRejectOrder(order.id)}
                                       className="p-1.5 rounded-lg bg-red-500/15 hover:bg-red-500/25 text-red-400 transition-colors cursor-pointer"
-                                      title="Reject final slip"
+                                      title={isAmharic ? 'የመጨረሻ ደረሰኙን ውድቅ አድርግ' : 'Reject final slip'}
                                     >
                                       <X className="w-4 h-4" />
                                     </button>
@@ -2415,15 +2437,15 @@ export const Admin: React.FC = () => {
                                     <button
                                       onClick={() => handleVerifyOrder(order.id)}
                                       className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow transition-all flex items-center gap-1 cursor-pointer"
-                                      title="Verify payment and mark animal as SOLD"
+                                      title={isAmharic ? 'ክፍያውን ያጽድቁ እና ከብቱን የተሸጠ ያድርጉ' : 'Verify payment and mark animal as SOLD'}
                                     >
                                       <Check className="w-3.5 h-3.5" />
-                                      <span>Verify & Mark Sold</span>
+                                      <span>{isAmharic ? 'አረጋግጥ & ሸጥ' : 'Verify & Mark Sold'}</span>
                                     </button>
                                     <button
                                       onClick={() => handleRejectOrder(order.id)}
                                       className="p-1.5 rounded-lg bg-red-500/15 hover:bg-red-500/25 text-red-400 transition-colors cursor-pointer"
-                                      title="Reject slip"
+                                      title={isAmharic ? 'ደረሰኙን ውድቅ አድርግ' : 'Reject slip'}
                                     >
                                       <X className="w-4 h-4" />
                                     </button>
@@ -2433,7 +2455,7 @@ export const Admin: React.FC = () => {
                                 {/* 4. Already Reserved */}
                                 {order.status === 'reserved' && (
                                   <span className="text-[11px] text-amber-500 font-medium">
-                                    Awaiting remaining {formatPrice(remaining)} from customer
+                                    {isAmharic ? `ቀሪውን ${formatPrice(remaining)} ከደንበኛ ይጠብቃል` : `Awaiting remaining ${formatPrice(remaining)} from customer`}
                                   </span>
                                 )}
 
@@ -2445,21 +2467,21 @@ export const Admin: React.FC = () => {
                                         <button
                                           onClick={() => handleUpdateOrderStatus(order.id, 'delivery_pending')}
                                           className="px-2.5 py-1 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 text-amber-400 font-bold text-[11px] border border-amber-500/30 transition-colors cursor-pointer"
-                                          title="Set order as Delivery Pending"
+                                          title={isAmharic ? 'ትዕዛዙን ማድረስ የሚጠብቅ ያድርጉ' : 'Set order as Delivery Pending'}
                                         >
-                                          Dispatch Delivery
+                                          {isAmharic ? 'ለመላክ አዘጋጅ' : 'Dispatch Delivery'}
                                         </button>
                                         <button
                                           onClick={() => handleUpdateOrderStatus(order.id, 'delivered')}
                                           className="px-2.5 py-1 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 font-bold text-[11px] border border-emerald-500/30 transition-colors cursor-pointer"
-                                          title="Mark as Delivered"
+                                          title={isAmharic ? 'ደርሷል ምልክት ያድርጉ' : 'Mark as Delivered'}
                                         >
-                                          Mark Delivered ✓
+                                          {isAmharic ? 'ደርሷል ✓' : 'Mark Delivered ✓'}
                                         </button>
                                       </>
                                     ) : (
                                       <span className="text-[11px] text-emerald-500 font-semibold">
-                                        ✓ Fully Paid & Sold
+                                        ✓ {isAmharic ? 'ሙሉ የተከፈለ & የተሸጠ' : 'Fully Paid & Sold'}
                                       </span>
                                     )}
                                   </div>
@@ -2471,10 +2493,10 @@ export const Admin: React.FC = () => {
                                     <button
                                       onClick={() => handleUpdateOrderStatus(order.id, 'delivered')}
                                       className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow transition-colors flex items-center gap-1 cursor-pointer"
-                                      title="Confirm delivery to customer"
+                                      title={isAmharic ? 'ለደንበኛ መድረሱን ያረጋግጡ' : 'Confirm delivery to customer'}
                                     >
                                       <Check className="w-3.5 h-3.5" />
-                                      <span>Mark Delivered</span>
+                                      <span>{isAmharic ? 'ደርሷል በል' : 'Mark Delivered'}</span>
                                     </button>
                                   </div>
                                 )}
@@ -2483,7 +2505,7 @@ export const Admin: React.FC = () => {
                                 {order.status === 'delivered' && (
                                   <span className="text-[11px] text-emerald-400 font-bold inline-flex items-center gap-1">
                                     <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                                    <span>Delivered & Closed</span>
+                                    <span>{isAmharic ? 'ደርሷል & ተዘግቷል' : 'Delivered & Closed'}</span>
                                   </span>
                                 )}
                               </div>
@@ -2507,27 +2529,29 @@ export const Admin: React.FC = () => {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
                 <h2 className="font-serif font-bold text-2xl">
-                  Livestock Inventory Manager
+                  {isAmharic ? 'የከብቶች ክምችት አስተዳደር' : 'Livestock Inventory Manager'}
                 </h2>
                 <p className="text-xs opacity-70">
-                  Search, inspect, toggle availability, and add new livestock listings.
+                  {isAmharic
+                    ? 'ከብቶችን ይፈልጉ፣ ይመልከቱ፣ የሽያጭ ሁኔታን ይቀይሩ እና አዳዲስ ከብቶችን ይጨምሩ።'
+                    : 'Search, inspect, toggle availability, and add new livestock listings.'}
                 </p>
               </div>
 
               <div className="flex flex-wrap items-center gap-2">
                 <button
                   onClick={() => setIsAddAnimalOpen(true)}
-                  className="px-3.5 py-1.5 rounded-xl bg-[#C18A45] hover:bg-[#A06E35] text-white text-xs font-bold shadow transition-colors flex items-center gap-1.5"
+                  className="px-3.5 py-1.5 rounded-xl bg-[#C18A45] hover:bg-[#A06E35] text-white text-xs font-bold shadow transition-colors flex items-center gap-1.5 cursor-pointer"
                 >
                   <Plus className="w-3.5 h-3.5" />
-                  <span>Add Animal</span>
+                  <span>{isAmharic ? 'አዲስ ከብት ጨምር' : 'Add Animal'}</span>
                 </button>
 
                 <div className="relative">
                   <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 opacity-60" />
                   <input
                     type="text"
-                    placeholder="Search ID, breed..."
+                    placeholder={isAmharic ? 'መለያ ወይም ዝርያ ፈልግ...' : 'Search ID, breed...'}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className={`pl-8 pr-3 py-1.5 rounded-xl text-xs border focus:outline-none ${
@@ -2543,10 +2567,10 @@ export const Admin: React.FC = () => {
                     isDark ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0]' : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#2A1A0D]'
                   }`}
                 >
-                  <option value="all">All Types</option>
-                  <option value="sheep">Sheep</option>
-                  <option value="goat">Goat</option>
-                  <option value="cow">Cow</option>
+                  <option value="all">{isAmharic ? 'ሁሉም አይነቶች' : 'All Types'}</option>
+                  <option value="sheep">{isAmharic ? 'በጎች' : 'Sheep'}</option>
+                  <option value="goat">{isAmharic ? 'ፍየሎች' : 'Goat'}</option>
+                  <option value="cow">{isAmharic ? 'ላሞች / በሬዎች' : 'Cow'}</option>
                 </select>
 
                 <select
@@ -2556,10 +2580,10 @@ export const Admin: React.FC = () => {
                     isDark ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0]' : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#2A1A0D]'
                   }`}
                 >
-                  <option value="all">All Statuses</option>
-                  <option value="available">Available</option>
-                  <option value="reserved">Reserved</option>
-                  <option value="sold">Sold</option>
+                  <option value="all">{isAmharic ? 'ሁሉም ሁኔታዎች' : 'All Statuses'}</option>
+                  <option value="available">{isAmharic ? 'ክፍት / ለሽያጭ' : 'Available'}</option>
+                  <option value="reserved">{isAmharic ? 'የተያዘ (Hold)' : 'Reserved'}</option>
+                  <option value="sold">{isAmharic ? 'የተሸጠ' : 'Sold'}</option>
                 </select>
               </div>
             </div>
@@ -2574,14 +2598,14 @@ export const Admin: React.FC = () => {
                 <table className="w-full text-left text-xs border-collapse">
                   <thead>
                     <tr className={`border-b ${isDark ? 'border-[#4A2C16] text-[#D8C5A8]' : 'border-[#E4D4BC] text-[#746556]'}`}>
-                      <th className="py-3 px-3.5 uppercase font-semibold">Animal ID</th>
-                      <th className="py-3 px-3.5 uppercase font-semibold">Breed & Type</th>
-                      <th className="py-3 px-3.5 uppercase font-semibold">Gender</th>
-                      <th className="py-3 px-3.5 uppercase font-semibold">Weight</th>
-                      <th className="py-3 px-3.5 uppercase font-semibold">Price</th>
-                      <th className="py-3 px-3.5 uppercase font-semibold">Stock</th>
-                      <th className="py-3 px-3.5 uppercase font-semibold">Status</th>
-                      <th className="py-3 px-3.5 uppercase font-semibold text-right">Actions</th>
+                      <th className="py-3 px-3.5 uppercase font-semibold">{isAmharic ? 'የከብት መለያ' : 'Animal ID'}</th>
+                      <th className="py-3 px-3.5 uppercase font-semibold">{isAmharic ? 'ዝርያ & አይነት' : 'Breed & Type'}</th>
+                      <th className="py-3 px-3.5 uppercase font-semibold">{isAmharic ? 'ፆታ' : 'Gender'}</th>
+                      <th className="py-3 px-3.5 uppercase font-semibold">{isAmharic ? 'ክብደት' : 'Weight'}</th>
+                      <th className="py-3 px-3.5 uppercase font-semibold">{isAmharic ? 'ዋጋ' : 'Price'}</th>
+                      <th className="py-3 px-3.5 uppercase font-semibold">{isAmharic ? 'ብዛት' : 'Stock'}</th>
+                      <th className="py-3 px-3.5 uppercase font-semibold">{isAmharic ? 'ሁኔታ' : 'Status'}</th>
+                      <th className="py-3 px-3.5 uppercase font-semibold text-right">{isAmharic ? 'እርምጃዎች' : 'Actions'}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y" style={{ borderColor: isDark ? '#4A2C16' : '#E4D4BC' }}>
@@ -2595,9 +2619,11 @@ export const Admin: React.FC = () => {
                         </td>
                         <td className="py-3 px-3.5">
                           <div className="capitalize font-semibold">{animal.breed}</div>
-                          <span className="text-[10px] uppercase opacity-70 tracking-wider">{animal.type}</span>
+                          <span className="text-[10px] uppercase opacity-70 tracking-wider">
+                            {animal.type === 'sheep' ? (isAmharic ? 'በግ' : 'Sheep') : animal.type === 'goat' ? (isAmharic ? 'ፍየል' : 'Goat') : (isAmharic ? 'ላም/በሬ' : 'Cow')}
+                          </span>
                         </td>
-                        <td className="py-3 px-3.5">{animal.gender}</td>
+                        <td className="py-3 px-3.5">{animal.gender === 'Male' ? (isAmharic ? 'ተባዕት' : 'Male') : (isAmharic ? 'አንስታይ' : 'Female')}</td>
                         <td className="py-3 px-3.5 font-bold">{formatWeight(animal.weight)}</td>
                         <td className={`py-3 px-3.5 font-bold ${isDark ? 'text-[#E0B15A]' : 'text-[#B8792F]'}`}>
                           {formatPrice(animal.price)}
@@ -2605,14 +2631,14 @@ export const Admin: React.FC = () => {
                         <td className="py-3 px-3.5 font-mono text-xs">
                           {animal.quantity !== undefined ? (
                             animal.quantity > 0 ? (
-                              <span className="text-emerald-500 font-bold">{animal.quantity} head</span>
+                              <span className="text-emerald-500 font-bold">{animal.quantity} {isAmharic ? 'ራስ' : 'head'}</span>
                             ) : (
                               <span className="text-red-400 font-bold px-1.5 py-0.5 rounded bg-red-500/10 border border-red-500/20 text-[10px]">
-                                0 (Sold Out)
+                                0 ({isAmharic ? 'አልቋል' : 'Sold Out'})
                               </span>
                             )
                           ) : (
-                            <span className="opacity-70 font-semibold">1 head</span>
+                            <span className="opacity-70 font-semibold">1 {isAmharic ? 'ራስ' : 'head'}</span>
                           )}
                         </td>
                         <td className="py-3 px-3.5">
@@ -2626,10 +2652,10 @@ export const Admin: React.FC = () => {
                                 type="button"
                                 onClick={() => handleRelistAnimal(animal)}
                                 className="px-2.5 py-1 rounded-lg text-[10.5px] font-bold bg-emerald-500 hover:bg-emerald-600 text-white shadow-xs flex items-center gap-1 cursor-pointer transition-all hover:scale-[1.02] active:scale-95"
-                                title="Restock this animal to 1 head and set status to Available immediately"
+                                title={isAmharic ? 'ከብቱን እንደገና ለሽያጭ ክፍት ያድርጉ' : 'Restock this animal to 1 head and set status to Available immediately'}
                               >
                                 <RotateCcw className="w-3 h-3" />
-                                <span>Make Available</span>
+                                <span>{isAmharic ? 'ለሽያጭ ክፈት' : 'Make Available'}</span>
                               </button>
                             )}
 
@@ -2638,10 +2664,10 @@ export const Admin: React.FC = () => {
                               type="button"
                               onClick={() => handleOpenEditAnimal(animal)}
                               className="px-2.5 py-1 rounded-lg text-[10.5px] font-bold bg-[#C18A45]/15 hover:bg-[#C18A45]/30 text-[#C18A45] border border-[#C18A45]/30 flex items-center gap-1 cursor-pointer transition-all hover:scale-[1.02] active:scale-95"
-                              title="Edit livestock details, weight, price, photo, or availability"
+                              title={isAmharic ? 'የከብቱን ዝርዝር፣ ክብደት፣ ዋጋ ወይም ፎቶ ያርትዑ' : 'Edit livestock details, weight, price, photo, or availability'}
                             >
                               <Edit3 className="w-3 h-3" />
-                              <span>Edit</span>
+                              <span>{isAmharic ? 'አርትዕ' : 'Edit'}</span>
                             </button>
 
                             {/* Quick status toggles */}
@@ -2651,27 +2677,27 @@ export const Admin: React.FC = () => {
                                 onClick={() => handleToggleStatus(animal.id, 'available')}
                                 disabled={animal.status === 'available'}
                                 className="px-1.5 py-0.5 rounded text-[9.5px] font-semibold bg-green-500/20 text-green-400 hover:bg-green-500/30 disabled:opacity-25 cursor-pointer"
-                                title="Set Available"
+                                title={isAmharic ? 'ለሽያጭ ክፍት አድርግ' : 'Set Available'}
                               >
-                                Avail
+                                {isAmharic ? 'ክፍት' : 'Avail'}
                               </button>
                               <button
                                 type="button"
                                 onClick={() => handleToggleStatus(animal.id, 'reserved')}
                                 disabled={animal.status === 'reserved'}
                                 className="px-1.5 py-0.5 rounded text-[9.5px] font-semibold bg-amber-500/20 text-amber-400 hover:bg-amber-500/30 disabled:opacity-25 cursor-pointer"
-                                title="Set Reserved (Hold)"
+                                title={isAmharic ? 'የተያዘ አድርግ' : 'Set Reserved (Hold)'}
                               >
-                                Hold
+                                {isAmharic ? 'የተያዘ' : 'Hold'}
                               </button>
                               <button
                                 type="button"
                                 onClick={() => handleToggleStatus(animal.id, 'sold')}
                                 disabled={animal.status === 'sold'}
                                 className="px-1.5 py-0.5 rounded text-[9.5px] font-semibold bg-stone-600/20 text-stone-400 hover:bg-stone-600/30 disabled:opacity-25 cursor-pointer"
-                                title="Set Sold"
+                                title={isAmharic ? 'የተሸጠ አድርግ' : 'Set Sold'}
                               >
-                                Sold
+                                {isAmharic ? 'የተሸጠ' : 'Sold'}
                               </button>
                             </div>
                           </div>
@@ -2696,20 +2722,24 @@ export const Admin: React.FC = () => {
             }`}>
               <div>
                 <div className="flex items-center gap-2 mb-1">
-                  <Gift className="w-5 h-5 text-amber-500" />
-                  <h3 className="font-serif font-bold text-lg sm:text-xl">Holiday & Celebration Packages ({packagesList.length})</h3>
+                  <Gift className="w-5 h-5 text-[#C18A45]" />
+                  <h3 className="font-serif font-bold text-lg sm:text-xl">
+                    {isAmharic ? 'የበዓላት እና የድግስ ጥቅሎች' : 'Holiday & Celebration Packages'} ({packagesList.length})
+                  </h3>
                 </div>
                 <p className="text-xs opacity-75 max-w-xl">
-                  Manage festive celebration bundles in the PostgreSQL database. Customers view these bundles on the homepage and can order or reserve them with a 50% deposit.
+                  {isAmharic
+                    ? 'በመረጃ ቋት ውስጥ ያሉ የበዓላት ጥቅሎችን ያስተዳድሩ። ደንበኞች በዋናው ገጽ ላይ አይተው በ50% ቅድመ-ክፍያ ማዘዝ ወይም መያዝ ይችላሉ።'
+                    : 'Manage festive celebration bundles in the PostgreSQL database. Customers view these bundles on the homepage and can order or reserve them with a 50% deposit.'}
                 </p>
               </div>
 
               <button
                 onClick={() => setIsAddPackageOpen(true)}
-                className="flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-black font-extrabold text-xs shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer whitespace-nowrap"
+                className="flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-[#C18A45] hover:bg-[#A06E35] text-white font-extrabold text-xs shadow-md transition-all cursor-pointer whitespace-nowrap"
               >
                 <Plus className="w-4 h-4 stroke-[3]" />
-                <span>Add New Celebration Package</span>
+                <span>{isAmharic ? 'አዲስ የበዓል ጥቅል ጨምር' : 'Add New Celebration Package'}</span>
               </button>
             </div>
 
@@ -2718,14 +2748,18 @@ export const Admin: React.FC = () => {
               <div className={`p-12 text-center rounded-3xl border ${
                 isDark ? 'bg-[#24170D] border-[#4A2C16]' : 'bg-white border-[#E4D4BC]'
               }`}>
-                <Gift className="w-12 h-12 text-amber-500/40 mx-auto mb-3" />
-                <h4 className="font-serif font-bold text-base mb-1">No Celebration Packages Found</h4>
-                <p className="text-xs opacity-60 mb-4">Click below to create your first holiday celebration package.</p>
+                <Gift className="w-12 h-12 text-[#C18A45]/40 mx-auto mb-3" />
+                <h4 className="font-serif font-bold text-base mb-1">
+                  {isAmharic ? 'ምንም የበዓል ጥቅሎች አልተገኙም' : 'No Celebration Packages Found'}
+                </h4>
+                <p className="text-xs opacity-60 mb-4">
+                  {isAmharic ? 'የመጀመሪያዎን የበዓል ጥቅል ለመፍጠር ከታች ያለውን ቁልፍ ይጫኑ።' : 'Click below to create your first holiday celebration package.'}
+                </p>
                 <button
                   onClick={() => setIsAddPackageOpen(true)}
-                  className="px-4 py-2 rounded-xl bg-amber-500 text-black font-bold text-xs"
+                  className="px-4 py-2 rounded-xl bg-[#C18A45] hover:bg-[#A06E35] text-white font-bold text-xs"
                 >
-                  + Add Package
+                  + {isAmharic ? 'ጥቅል ጨምር' : 'Add Package'}
                 </button>
               </div>
             ) : (
@@ -2753,14 +2787,14 @@ export const Admin: React.FC = () => {
                           
                           <div className="absolute top-2.5 left-2.5">
                             <span className="px-2.5 py-0.5 rounded-md text-[10.5px] font-bold bg-amber-500 text-black shadow-md">
-                              {pkg.badge || 'Holiday Package'}
+                              {pkg.badge || (isAmharic ? 'የበዓል ጥቅል' : 'Holiday Package')}
                             </span>
                           </div>
 
                           <div className="absolute top-2.5 right-2.5 flex flex-col items-end gap-1">
                             {pkg.featured && (
                               <span className="px-2 py-0.5 rounded-md text-[9.5px] font-bold bg-emerald-500 text-white shadow-md">
-                                ★ Featured
+                                {isAmharic ? 'ተመራጭ' : 'Featured'}
                               </span>
                             )}
                             {(() => {
@@ -2769,21 +2803,23 @@ export const Admin: React.FC = () => {
                               if (isOut) {
                                 return (
                                   <span className="px-2 py-0.5 rounded-md text-[9px] font-bold bg-red-600 text-white shadow-md animate-pulse">
-                                    OUT OF STOCK
+                                    {isAmharic ? 'አልቋል' : 'OUT OF STOCK'}
                                   </span>
                                 );
                               }
                               return (
                                 <span className="px-2 py-0.5 rounded-md text-[9px] font-bold bg-black/75 text-emerald-300 border border-emerald-500/30">
-                                  {avail} Slots Left
+                                  {avail} {isAmharic ? 'ክፍት ቦታ ቀርቷል' : 'Slots Left'}
                                 </span>
                               );
                             })()}
                           </div>
 
                           <div className="absolute bottom-2.5 left-2.5 right-2.5 text-white">
-                            <h4 className="font-serif font-bold text-sm sm:text-base line-clamp-1">{pkg.name}</h4>
-                            {pkg.amharicName && (
+                            <h4 className="font-serif font-bold text-sm sm:text-base line-clamp-1">
+                              {isAmharic && pkg.amharicName ? pkg.amharicName : pkg.name}
+                            </h4>
+                            {pkg.amharicName && !isAmharic && (
                               <div className="text-[11px] text-amber-300 font-serif opacity-90 line-clamp-1">{pkg.amharicName}</div>
                             )}
                           </div>
@@ -2818,8 +2854,8 @@ export const Admin: React.FC = () => {
                               }`}
                             >
                               <span className="flex items-center gap-1.5 font-bold">
-                                <span>Included Items ({pkg.items?.length || 0})</span>
-                                <span className="text-[10px] opacity-70 font-normal">• {pkg.categoryCount} Categories</span>
+                                <span>{isAmharic ? 'የተካተቱ ዕቃዎች' : 'Included Items'} ({pkg.items?.length || 0})</span>
+                                <span className="text-[10px] opacity-70 font-normal">• {pkg.categoryCount} {isAmharic ? 'ምድቦች' : 'Categories'}</span>
                               </span>
                               <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${
                                 isExpanded ? 'rotate-180 text-amber-500' : ''
@@ -2849,7 +2885,7 @@ export const Admin: React.FC = () => {
                     {/* Slots Control & Restock Action */}
                     <div className="px-4 sm:px-5 py-2.5 border-t flex items-center justify-between border-black/5 dark:border-white/5 bg-black/[0.02] dark:bg-white/[0.02]">
                       <div className="flex items-center gap-2">
-                        <span className="text-[11px] font-semibold opacity-70">Inventory Slots:</span>
+                        <span className="text-[11px] font-semibold opacity-70">{isAmharic ? 'የክምችት ክፍት ቦታዎች:' : 'Inventory Slots:'}</span>
                         <span className="font-mono font-bold text-xs text-amber-500">
                           {pkg.availableSlots !== undefined ? pkg.availableSlots : 10} / {pkg.totalSlots !== undefined ? pkg.totalSlots : 10}
                         </span>
@@ -2859,7 +2895,7 @@ export const Admin: React.FC = () => {
                         onClick={() => handleOpenRestockModal(pkg)}
                         className="px-2.5 py-1 rounded-lg text-[10.5px] font-bold bg-amber-500/10 text-amber-500 border border-amber-500/30 hover:bg-amber-500 hover:text-black transition-all cursor-pointer"
                       >
-                        Adjust / Restock
+                        {isAmharic ? 'ቦታዎችን አስተካክል' : 'Adjust / Restock'}
                       </button>
                     </div>
 
@@ -2878,7 +2914,7 @@ export const Admin: React.FC = () => {
                         </div>
                         {pkg.savings > 0 && (
                           <div className="text-[10px] text-emerald-500 font-bold">
-                            Save {formatPrice(pkg.savings)}
+                            {isAmharic ? `ቅናሽ ${formatPrice(pkg.savings)}` : `Save ${formatPrice(pkg.savings)}`}
                           </div>
                         )}
                       </div>
@@ -2887,7 +2923,7 @@ export const Admin: React.FC = () => {
                         type="button"
                         onClick={() => handleDeletePackage(pkg.id, pkg.name)}
                         className="p-2.5 rounded-xl text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer border border-red-500/20"
-                        title="Delete Package"
+                        title={isAmharic ? 'ጥቅሉን ሰርዝ' : 'Delete Package'}
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -2901,7 +2937,7 @@ export const Admin: React.FC = () => {
         )}
 
         {/* ============================================================ */}
-        {/* TAB: RAW MEAT (ስጋ በኪሎ) PRICING & ORDER MANAGEMENT */}
+        {/* TAB 5: RAW MEAT (ስጋ በኪሎ) PRICING & ORDER MANAGEMENT */}
         {/* ============================================================ */}
         {activeTab === 'raw_meat' && (
           <div className="space-y-6 animate-in fade-in-50 duration-150">
@@ -2909,10 +2945,13 @@ export const Admin: React.FC = () => {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
                 <h2 className="font-serif font-bold text-2xl flex items-center gap-2">
-                  <span>🥩 Raw Meat (የበሬ / ሰንጋ ስጋ በኪሎ) Administration</span>
+                  <Scale className="w-6 h-6 text-[#C18A45]" />
+                  <span>{isAmharic ? 'የስጋ በኪሎ ዋጋ እና ትዕዛዝ አስተዳደር' : 'Raw Meat (የበሬ / ሰንጋ ስጋ በኪሎ) Administration'}</span>
                 </h2>
                 <p className="text-xs opacity-70 mt-1">
-                  Configure official price per KG for Ox/Beef cuts. These rates apply directly to customer order calculations and checkout.
+                  {isAmharic
+                    ? 'ለተለያዩ የበሬ ስጋ አይነቶች ይፋዊ የኪሎ ዋጋ ያዘጋጁ። እነዚህ ዋጋዎች በደንበኞች ትዕዛዝ እና ክፍያ ላይ በቀጥታ ተግባራዊ ይሆናሉ።'
+                    : 'Configure official price per KG for Ox/Beef cuts. These rates apply directly to customer order calculations and checkout.'}
                 </p>
               </div>
 
@@ -2921,17 +2960,17 @@ export const Admin: React.FC = () => {
                   type="button"
                   onClick={handleSaveMeatPricing}
                   disabled={isSavingMeatPricing}
-                  className="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-black font-bold text-xs shadow-md transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                  className="px-5 py-2.5 rounded-xl bg-[#C18A45] hover:bg-[#A06E35] text-white font-bold text-xs shadow-md transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
                 >
                   {isSavingMeatPricing ? (
                     <>
                       <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                      <span>Saving Rates...</span>
+                      <span>{isAmharic ? 'ዋጋዎችን በማስቀመጥ ላይ...' : 'Saving Rates...'}</span>
                     </>
                   ) : (
                     <>
                       <Check className="w-3.5 h-3.5" />
-                      <span>Save & Publish Rates</span>
+                      <span>{isAmharic ? 'ዋጋዎችን አስቀምጥ & አትም' : 'Save & Publish Rates'}</span>
                     </>
                   )}
                 </button>
@@ -2941,26 +2980,32 @@ export const Admin: React.FC = () => {
             {/* Quick Metrics Bar */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               <div className={`p-4 rounded-2xl border ${isDark ? 'bg-[#2A1A0D] border-[#4A2C16]' : 'bg-[#F1E8D8] border-[#E4D4BC]'}`}>
-                <span className="text-[11px] font-semibold uppercase tracking-wider opacity-70 block mb-1">Meat Orders</span>
+                <span className="text-[11px] font-semibold uppercase tracking-wider opacity-70 block mb-1">
+                  {isAmharic ? 'የስጋ ትዕዛዞች' : 'Meat Orders'}
+                </span>
                 <div className="text-xl font-serif font-extrabold text-[#C18A45]">
-                  {ordersList.filter(o => (o.packageDetails as any)?.isMeatByKg).length} Orders
+                  {ordersList.filter(o => (o.packageDetails as any)?.isMeatByKg).length} {isAmharic ? 'ትዕዛዞች' : 'Orders'}
                 </div>
-                <span className="text-[10px] opacity-60">Submitted online</span>
+                <span className="text-[10px] opacity-60">{isAmharic ? 'በድረ-ገጽ የገቡ' : 'Submitted online'}</span>
               </div>
 
               <div className={`p-4 rounded-2xl border ${isDark ? 'bg-[#2A1A0D] border-[#4A2C16]' : 'bg-[#F1E8D8] border-[#E4D4BC]'}`}>
-                <span className="text-[11px] font-semibold uppercase tracking-wider opacity-70 block mb-1">Total KG Sold</span>
+                <span className="text-[11px] font-semibold uppercase tracking-wider opacity-70 block mb-1">
+                  {isAmharic ? 'የተሸጠ ጠቅላላ ኪሎ' : 'Total KG Sold'}
+                </span>
                 <div className="text-xl font-serif font-extrabold text-emerald-500">
                   {ordersList
                     .filter(o => (o.packageDetails as any)?.isMeatByKg)
                     .reduce((sum, o) => sum + ((o.packageDetails as any)?.kg || 0), 0)}{' '}
                   KG
                 </div>
-                <span className="text-[10px] opacity-60">Across all ox cuts</span>
+                <span className="text-[10px] opacity-60">{isAmharic ? 'በሁሉም የስጋ አይነቶች' : 'Across all ox cuts'}</span>
               </div>
 
               <div className={`p-4 rounded-2xl border ${isDark ? 'bg-[#2A1A0D] border-[#4A2C16]' : 'bg-[#F1E8D8] border-[#E4D4BC]'}`}>
-                <span className="text-[11px] font-semibold uppercase tracking-wider opacity-70 block mb-1">Meat Revenue</span>
+                <span className="text-[11px] font-semibold uppercase tracking-wider opacity-70 block mb-1">
+                  {isAmharic ? 'የስጋ ገቢ' : 'Meat Revenue'}
+                </span>
                 <div className="text-xl font-serif font-extrabold text-[#C18A45]">
                   {formatPrice(
                     ordersList
@@ -2968,22 +3013,24 @@ export const Admin: React.FC = () => {
                       .reduce((sum, o) => sum + (o.totalAmount || 0), 0)
                   )}
                 </div>
-                <span className="text-[10px] opacity-60">Verified sales</span>
+                <span className="text-[10px] opacity-60">{isAmharic ? 'የተረጋገጠ ሽያጭ' : 'Verified sales'}</span>
               </div>
 
               <div className={`p-4 rounded-2xl border ${isDark ? 'bg-[#2A1A0D] border-[#4A2C16]' : 'bg-[#F1E8D8] border-[#E4D4BC]'}`}>
-                <span className="text-[11px] font-semibold uppercase tracking-wider opacity-70 block mb-1">Service Status</span>
+                <span className="text-[11px] font-semibold uppercase tracking-wider opacity-70 block mb-1">
+                  {isAmharic ? 'የአገልግሎቱ ሁኔታ' : 'Service Status'}
+                </span>
                 <div className="text-lg font-bold">
                   {rawMeatPricing.available ? (
                     <span className="text-emerald-400 flex items-center gap-1.5">
                       <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-                      Accepting Orders
+                      {isAmharic ? 'ትዕዛዞችን ይቀበላል' : 'Accepting Orders'}
                     </span>
                   ) : (
-                    <span className="text-rose-400">Paused</span>
+                    <span className="text-rose-400">{isAmharic ? 'ለጊዜው ቆሟል' : 'Paused'}</span>
                   )}
                 </div>
-                <span className="text-[10px] opacity-60">Ox/Beef orders live</span>
+                <span className="text-[10px] opacity-60">{isAmharic ? 'የስጋ ትዕዛዝ መስኮት' : 'Ox/Beef orders live'}</span>
               </div>
             </div>
 
@@ -2991,9 +3038,11 @@ export const Admin: React.FC = () => {
             <div className={`p-6 rounded-3xl border ${isDark ? 'bg-[#2A1A0D] border-[#4A2C16]' : 'bg-[#F1E8D8] border-[#E4D4BC]'}`}>
               <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 mb-6 border-b" style={{ borderColor: isDark ? '#4A2C16' : '#E4D4BC' }}>
                 <div>
-                  <h3 className="font-serif font-bold text-lg">Ox / Beef Cut Rates (ዋጋ በኪሎ)</h3>
+                  <h3 className="font-serif font-bold text-lg">
+                    {isAmharic ? 'የበሬ ስጋ አይነቶች እና የኪሎ ዋጋ' : 'Ox / Beef Cut Rates (ዋጋ በኪሎ)'}
+                  </h3>
                   <p className="text-xs opacity-70">
-                    Configure the price per KG for each specific culinary cut.
+                    {isAmharic ? 'ለእያንዳንዱ የተለየ የስጋ አይነት የኪሎ ዋጋ ይወስኑ።' : 'Configure the price per KG for each specific culinary cut.'}
                   </p>
                 </div>
                 <button
@@ -3008,7 +3057,7 @@ export const Admin: React.FC = () => {
                   }}
                   className="text-xs font-semibold text-amber-500 hover:underline mt-2 sm:mt-0 cursor-pointer"
                 >
-                  Reset to Default Rates (2500 / 2200 / 1800)
+                  {isAmharic ? 'ወደ መደበኛ ዋጋዎች መልስ (2500 / 2200 / 1800)' : 'Reset to Default Rates (2500 / 2200 / 1800)'}
                 </button>
               </div>
 
@@ -3016,16 +3065,20 @@ export const Admin: React.FC = () => {
                 {/* 1. Kurt Cut */}
                 <div className={`p-5 rounded-2xl border ${isDark ? 'bg-[#1B1208] border-[#4A2C16]' : 'bg-white border-[#E4D4BC]'}`}>
                   <div className="flex items-center justify-between mb-3">
-                    <span className="text-xs font-bold uppercase tracking-wider text-rose-400">ለጥሬ (Kurt / Raw Cut)</span>
+                    <span className="text-xs font-bold uppercase tracking-wider text-rose-400">
+                      {isAmharic ? 'ለጥሬ (Kurt / Raw Cut)' : 'ለጥሬ (Kurt / Raw Cut)'}
+                    </span>
                     <span className="text-xs px-2 py-0.5 rounded-full bg-rose-500/10 text-rose-400 font-bold border border-rose-500/20">
-                      Top Grade
+                      {isAmharic ? 'የላቀ ጥራት' : 'Top Grade'}
                     </span>
                   </div>
                   <p className="text-xs opacity-70 mb-4 leading-relaxed">
-                    Ultra-fresh, tender, hand-selected ox beef cuts ideal for kurt connoisseurs and raw meat banquets.
+                    {isAmharic
+                      ? 'እጅግ ትኩስ፣ ለስላሳ እና ለጥሬ ስጋ አፍቃሪዎች በጥንቃቄ የተመረጠ የበሬ ስጋ።'
+                      : 'Ultra-fresh, tender, hand-selected ox beef cuts ideal for kurt connoisseurs and raw meat banquets.'}
                   </p>
                   <label className="block text-[11px] font-semibold opacity-80 mb-1.5">
-                    Price per KG (ETB / ብር)
+                    {isAmharic ? 'ዋጋ በኪሎ (ብር)' : 'Price per KG (ETB / ብር)'}
                   </label>
                   <div className="relative">
                     <input
@@ -3050,16 +3103,20 @@ export const Admin: React.FC = () => {
                 {/* 2. Kitfo Cut */}
                 <div className={`p-5 rounded-2xl border ${isDark ? 'bg-[#1B1208] border-[#4A2C16]' : 'bg-white border-[#E4D4BC]'}`}>
                   <div className="flex items-center justify-between mb-3">
-                    <span className="text-xs font-bold uppercase tracking-wider text-amber-400">ለክትፎ (Kitfo Cut)</span>
+                    <span className="text-xs font-bold uppercase tracking-wider text-amber-400">
+                      {isAmharic ? 'ለክትፎ (Kitfo Cut)' : 'ለክትፎ (Kitfo Cut)'}
+                    </span>
                     <span className="text-xs px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 font-bold border border-amber-500/20">
-                      Lean & Mince
+                      {isAmharic ? 'ቀይ ሙዳ ስጋ' : 'Lean & Mince'}
                     </span>
                   </div>
                   <p className="text-xs opacity-70 mb-4 leading-relaxed">
-                    Lean red meat without fat or sinew, minced fresh or prepped for traditional kitfo and dulet banquets.
+                    {isAmharic
+                      ? 'ስብ የሌለው ቀይ ሙዳ ስጋ፣ ለባህላዊ ክትፎ እና ዱለት ድግስ የተዘጋጀ።'
+                      : 'Lean red meat without fat or sinew, minced fresh or prepped for traditional kitfo and dulet banquets.'}
                   </p>
                   <label className="block text-[11px] font-semibold opacity-80 mb-1.5">
-                    Price per KG (ETB / ብር)
+                    {isAmharic ? 'ዋጋ በኪሎ (ብር)' : 'Price per KG (ETB / ብር)'}
                   </label>
                   <div className="relative">
                     <input
@@ -3084,16 +3141,20 @@ export const Admin: React.FC = () => {
                 {/* 3. Tibs & Wot Cut */}
                 <div className={`p-5 rounded-2xl border ${isDark ? 'bg-[#1B1208] border-[#4A2C16]' : 'bg-white border-[#E4D4BC]'}`}>
                   <div className="flex items-center justify-between mb-3">
-                    <span className="text-xs font-bold uppercase tracking-wider text-emerald-400">ለጥብስ እና ወጥ (Tibs & Wot Cut)</span>
+                    <span className="text-xs font-bold uppercase tracking-wider text-emerald-400">
+                      {isAmharic ? 'ለጥብስ እና ወጥ (Tibs & Wot Cut)' : 'ለጥብስ እና ወጥ (Tibs & Wot Cut)'}
+                    </span>
                     <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 font-bold border border-emerald-500/20">
-                      Stew & Grill
+                      {isAmharic ? 'ለወጥ & ጥብስ' : 'Stew & Grill'}
                     </span>
                   </div>
                   <p className="text-xs opacity-70 mb-4 leading-relaxed">
-                    Succulent cuts with balanced marbling, diced for traditional Ethiopian wots, tibs, and catering feasts.
+                    {isAmharic
+                      ? 'መጠነኛ ስብ ያለው ለባህላዊ የኢትዮጵያ ወጦች፣ ጥብስ እና ለድግስ ማዕድ የተቆራረጠ ስጋ።'
+                      : 'Succulent cuts with balanced marbling, diced for traditional Ethiopian wots, tibs, and catering feasts.'}
                   </p>
                   <label className="block text-[11px] font-semibold opacity-80 mb-1.5">
-                    Price per KG (ETB / ብር)
+                    {isAmharic ? 'ዋጋ በኪሎ (ብር)' : 'Price per KG (ETB / ብር)'}
                   </label>
                   <div className="relative">
                     <input
@@ -3119,7 +3180,9 @@ export const Admin: React.FC = () => {
               {/* General Settings */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6 pt-6 border-t" style={{ borderColor: isDark ? '#4A2C16' : '#E4D4BC' }}>
                 <div>
-                  <label className="block text-xs font-bold mb-2">Quality Guarantee & Service Notes</label>
+                  <label className="block text-xs font-bold mb-2">
+                    {isAmharic ? 'የጥራት ዋስትና እና የአገልግሎት ማስታወሻዎች' : 'Quality Guarantee & Service Notes'}
+                  </label>
                   <textarea
                     rows={2}
                     value={rawMeatPricing.notes || ''}
@@ -3129,7 +3192,7 @@ export const Admin: React.FC = () => {
                         notes: e.target.value
                       })
                     }
-                    placeholder="E.g., 100% Guaranteed Fresh Addis Ababa grass-fed fattened ox beef cuts prepared to order."
+                    placeholder={isAmharic ? 'ለምሳሌ: 100% ዋስትና ያለው ትኩስ የአዲስ አበባ ሰንጋ ስጋ በትዕዛዝዎ መሰረት ተዘጋጅቶ ይቀርባል።' : 'E.g., 100% Guaranteed Fresh Addis Ababa grass-fed fattened ox beef cuts prepared to order.'}
                     className={`w-full px-3.5 py-2.5 rounded-xl text-xs border focus:outline-none focus:ring-2 focus:ring-amber-500 ${
                       isDark ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0]' : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#2A1A0D]'
                     }`}
@@ -3138,7 +3201,9 @@ export const Admin: React.FC = () => {
 
                 <div className="flex flex-col justify-between">
                   <div>
-                    <label className="block text-xs font-bold mb-2">Service Availability</label>
+                    <label className="block text-xs font-bold mb-2">
+                      {isAmharic ? 'የአገልግሎት አቅርቦት ሁኔታ' : 'Service Availability'}
+                    </label>
                     <div className="flex items-center gap-3">
                       <input
                         type="checkbox"
@@ -3153,7 +3218,7 @@ export const Admin: React.FC = () => {
                         className="w-4 h-4 rounded text-amber-500 focus:ring-amber-500 cursor-pointer"
                       />
                       <label htmlFor="meatAvailableCheck" className="text-xs font-semibold cursor-pointer">
-                        Accept Raw Meat Online Orders (Show order button to customers)
+                        {isAmharic ? 'የስጋ በኪሎ የበይነመረብ ትዕዛዞችን ተቀበል (ለደንበኞች የማዘዣ ቁልፍ አሳይ)' : 'Accept Raw Meat Online Orders (Show order button to customers)'}
                       </label>
                     </div>
                   </div>
@@ -3168,12 +3233,12 @@ export const Admin: React.FC = () => {
                       {isSavingMeatPricing ? (
                         <>
                           <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                          <span>Saving...</span>
+                          <span>{isAmharic ? 'በማስቀመጥ ላይ...' : 'Saving...'}</span>
                         </>
                       ) : (
                         <>
                           <Check className="w-3.5 h-3.5" />
-                          <span>Save Pricing</span>
+                          <span>{isAmharic ? 'ዋጋዎችን አስቀምጥ' : 'Save Pricing'}</span>
                         </>
                       )}
                     </button>
@@ -3186,15 +3251,17 @@ export const Admin: React.FC = () => {
             <div className={`p-6 rounded-3xl border ${isDark ? 'bg-[#2A1A0D] border-[#4A2C16]' : 'bg-[#F1E8D8] border-[#E4D4BC]'}`}>
               <div className="flex items-center justify-between pb-3 mb-4 border-b" style={{ borderColor: isDark ? '#4A2C16' : '#E4D4BC' }}>
                 <div className="flex items-center gap-2">
-                  <Scale className="w-4 h-4 text-amber-500" />
-                  <h3 className="font-serif font-bold text-base">Live Customer Calculation Simulator</h3>
+                  <Scale className="w-4 h-4 text-[#C18A45]" />
+                  <h3 className="font-serif font-bold text-base">
+                    {isAmharic ? 'የደንበኛ ሂሳብ ማስያ ማስመሰያ (Simulator)' : 'Live Customer Calculation Simulator'}
+                  </h3>
                 </div>
-                <span className="text-[11px] opacity-70">Verify what customers will be charged</span>
+                <span className="text-[11px] opacity-70">{isAmharic ? 'ደንበኞች ምን ያህል እንደሚከፍሉ ይመልከቱ' : 'Verify what customers will be charged'}</span>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
                 <div>
-                  <label className="block text-[11px] font-semibold opacity-80 mb-1">Select Cut</label>
+                  <label className="block text-[11px] font-semibold opacity-80 mb-1">{isAmharic ? 'የስጋ አይነት ምረጥ' : 'Select Cut'}</label>
                   <select
                     value={testMeatCut}
                     onChange={(e) => setTestMeatCut(e.target.value as any)}
@@ -3202,14 +3269,14 @@ export const Admin: React.FC = () => {
                       isDark ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0]' : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#2A1A0D]'
                     }`}
                   >
-                    <option value="kurt">ለጥሬ ({formatPrice(rawMeatPricing.kurtPrice)} / KG)</option>
-                    <option value="kitfo">ለክትፎ ({formatPrice(rawMeatPricing.kitfoPrice)} / KG)</option>
-                    <option value="tibs_wot">ለጥብስ እና ወጥ ({formatPrice(rawMeatPricing.tibsWotPrice)} / KG)</option>
+                    <option value="kurt">{isAmharic ? 'ለጥሬ' : 'Kurt'} ({formatPrice(rawMeatPricing.kurtPrice)} / KG)</option>
+                    <option value="kitfo">{isAmharic ? 'ለክትፎ' : 'Kitfo'} ({formatPrice(rawMeatPricing.kitfoPrice)} / KG)</option>
+                    <option value="tibs_wot">{isAmharic ? 'ለጥብስ እና ወጥ' : 'Tibs & Wot'} ({formatPrice(rawMeatPricing.tibsWotPrice)} / KG)</option>
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-semibold opacity-80 mb-1">Quantity in KG</label>
+                  <label className="block text-[11px] font-semibold opacity-80 mb-1">{isAmharic ? 'መጠን በኪሎ' : 'Quantity in KG'}</label>
                   <input
                     type="number"
                     min={1}
@@ -3223,7 +3290,7 @@ export const Admin: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-semibold opacity-80 mb-1">Fulfillment</label>
+                  <label className="block text-[11px] font-semibold opacity-80 mb-1">{isAmharic ? 'አቅርቦት' : 'Fulfillment'}</label>
                   <div className="flex items-center gap-2 pt-1.5">
                     <input
                       type="checkbox"
@@ -3233,7 +3300,7 @@ export const Admin: React.FC = () => {
                       className="w-4 h-4 rounded text-amber-500 cursor-pointer"
                     />
                     <label htmlFor="testDeliveryToggle" className="text-xs cursor-pointer">
-                      Doorstep Delivery
+                      {isAmharic ? 'እስከ ደጃፍ ማድረሻ' : 'Doorstep Delivery'}
                     </label>
                   </div>
                 </div>
@@ -3241,7 +3308,7 @@ export const Admin: React.FC = () => {
                 <div className={`p-4 rounded-xl border text-center ${
                   isDark ? 'bg-[#1B1208] border-[#4A2C16]' : 'bg-white border-[#E4D4BC]'
                 }`}>
-                  <span className="text-[10px] uppercase font-bold tracking-wider opacity-60 block">Calculated Total</span>
+                  <span className="text-[10px] uppercase font-bold tracking-wider opacity-60 block">{isAmharic ? 'የተሰላ ጠቅላላ ዋጋ' : 'Calculated Total'}</span>
                   <div className="text-xl font-mono font-extrabold text-amber-500">
                     {formatPrice(
                       (testMeatCut === 'kurt'
@@ -3270,8 +3337,8 @@ export const Admin: React.FC = () => {
             }`}>
               <div className="p-4 border-b flex items-center justify-between" style={{ borderColor: isDark ? '#4A2C16' : '#E4D4BC' }}>
                 <div>
-                  <h3 className="font-serif font-bold text-base">Recent Raw Meat Orders</h3>
-                  <p className="text-xs opacity-70">Customers who ordered beef cuts by KG with uploaded payment slips.</p>
+                  <h3 className="font-serif font-bold text-base">{isAmharic ? 'የቅርብ ጊዜ የስጋ ትዕዛዞች' : 'Recent Raw Meat Orders'}</h3>
+                  <p className="text-xs opacity-70">{isAmharic ? 'የበሬ ስጋ በኪሎ ያዘዙ እና ደረሰኝ ያስገቡ ደንበኞች።' : 'Customers who ordered beef cuts by KG with uploaded payment slips.'}</p>
                 </div>
                 <button
                   type="button"
@@ -3281,26 +3348,28 @@ export const Admin: React.FC = () => {
                   }}
                   className="text-xs font-bold text-amber-500 hover:underline cursor-pointer"
                 >
-                  View All Orders →
+                  {isAmharic ? 'ሁሉንም ትዕዛዞች ይመልከቱ →' : 'View All Orders →'}
                 </button>
               </div>
 
               {ordersList.filter(o => (o.packageDetails as any)?.isMeatByKg).length === 0 ? (
                 <div className="p-8 text-center opacity-60 text-xs">
-                  No raw meat orders received yet. When customers order ox cuts by KG, they will appear here and in the Orders tab.
+                  {isAmharic
+                    ? 'ምንም የስጋ በኪሎ ትዕዛዝ አልተገኘም። ደንበኞች ስጋ በኪሎ ሲያዙ እዚህ እና በትዕዛዞች ገጽ ላይ ይታያሉ።'
+                    : 'No raw meat orders received yet. When customers order ox cuts by KG, they will appear here and in the Orders tab.'}
                 </div>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-xs border-collapse">
                     <thead>
                       <tr className={`border-b ${isDark ? 'border-[#4A2C16] text-[#D8C5A8]' : 'border-[#E4D4BC] text-[#746556]'}`}>
-                        <th className="py-3 px-3.5 uppercase font-semibold">Order ID</th>
-                        <th className="py-3 px-3.5 uppercase font-semibold">Customer</th>
-                        <th className="py-3 px-3.5 uppercase font-semibold">Cut & KG</th>
-                        <th className="py-3 px-3.5 uppercase font-semibold">Total Amount</th>
-                        <th className="py-3 px-3.5 uppercase font-semibold">Slip</th>
-                        <th className="py-3 px-3.5 uppercase font-semibold">Status</th>
-                        <th className="py-3 px-3.5 uppercase font-semibold text-right">Action</th>
+                        <th className="py-3 px-3.5 uppercase font-semibold">{isAmharic ? 'የትዕዛዝ መለያ' : 'Order ID'}</th>
+                        <th className="py-3 px-3.5 uppercase font-semibold">{isAmharic ? 'ደንበኛ' : 'Customer'}</th>
+                        <th className="py-3 px-3.5 uppercase font-semibold">{isAmharic ? 'የስጋ አይነት & ኪሎ' : 'Cut & KG'}</th>
+                        <th className="py-3 px-3.5 uppercase font-semibold">{isAmharic ? 'ጠቅላላ ክፍያ' : 'Total Amount'}</th>
+                        <th className="py-3 px-3.5 uppercase font-semibold">{isAmharic ? 'ደረሰኝ' : 'Slip'}</th>
+                        <th className="py-3 px-3.5 uppercase font-semibold">{isAmharic ? 'ሁኔታ' : 'Status'}</th>
+                        <th className="py-3 px-3.5 uppercase font-semibold text-right">{isAmharic ? 'እርምጃ' : 'Action'}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y" style={{ borderColor: isDark ? '#4A2C16' : '#E4D4BC' }}>
@@ -3320,18 +3389,21 @@ export const Admin: React.FC = () => {
                                 <strong className="block">{order.customerName}</strong>
                                 <span className="text-[11px] opacity-70 block">{order.customerPhone}</span>
                                 {order.deliveryLocation && (
-                                  <span className="text-[10px] opacity-60 block">📍 {order.deliveryLocation}</span>
+                                  <span className="text-[10px] opacity-60 flex items-center gap-1 mt-0.5">
+                                    <MapPin className="w-2.5 h-2.5 text-[#C18A45] shrink-0" />
+                                    <span className="truncate">{order.deliveryLocation}</span>
+                                  </span>
                                 )}
                               </td>
                               <td className="py-3 px-3.5">
                                 <span className="font-bold text-rose-400 block">
-                                  🥩 {details.cut || 'Ox Cut'}
+                                  {details.cut || (isAmharic ? 'የበሬ ስጋ' : 'Ox Cut')}
                                 </span>
                                 <span className="font-mono text-[11px] opacity-75">
-                                  {details.kg || 0} KG @ {formatPrice(details.pricePerKg || 0)}
+                                  {details.weightKg || details.kg || 1} kg
                                 </span>
                               </td>
-                              <td className="py-3 px-3.5 font-mono font-bold text-amber-400">
+                              <td className="py-3 px-3.5 font-mono font-bold text-[#C18A45]">
                                 {formatPrice(order.totalAmount)}
                               </td>
                               <td className="py-3 px-3.5">
@@ -3339,58 +3411,83 @@ export const Admin: React.FC = () => {
                                   <button
                                     type="button"
                                     onClick={() => setSelectedSlipOrder(order)}
-                                    className="inline-flex items-center gap-1.5 p-1 rounded-lg border border-amber-500/30 hover:border-amber-500 cursor-pointer"
+                                    className="px-2 py-1 rounded bg-[#C18A45]/15 text-[#C18A45] font-bold text-[10px] hover:bg-[#C18A45]/25 flex items-center gap-1 cursor-pointer"
                                   >
-                                    <img
-                                      src={order.paymentSlipUrl}
-                                      alt="Slip"
-                                      className="w-8 h-8 object-cover rounded"
-                                    />
-                                    <span className="text-[10px] font-bold text-amber-400">Inspect</span>
+                                    <Eye className="w-3 h-3" />
+                                    <span>{isAmharic ? 'ደረሰኝ' : 'Slip'}</span>
                                   </button>
                                 ) : (
-                                  <span className="text-[10px] opacity-40">No Slip</span>
+                                  <span className="opacity-40 text-[11px]">-</span>
                                 )}
                               </td>
                               <td className="py-3 px-3.5">
-                                {order.status === 'pending_verification' && (
-                                  <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30 animate-pulse">
-                                    Slip Pending
+                                {order.status === 'delivered' ? (
+                                  <span className="text-emerald-400 bg-emerald-500/15 border border-emerald-500/25 px-2 py-0.5 rounded text-[10px] font-bold inline-flex items-center gap-1">
+                                    <CheckCircle2 className="w-3 h-3" />
+                                    <span>{isAmharic ? 'ደርሷል' : 'Delivered'}</span>
                                   </span>
-                                )}
-                                {(order.status === 'completed' || order.status === 'verified') && (
-                                  <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
-                                    Verified & Sold
+                                ) : order.status === 'delivery_pending' ? (
+                                  <span className="text-purple-400 bg-purple-500/15 border border-purple-500/25 px-2 py-0.5 rounded text-[10px] font-bold inline-flex items-center gap-1">
+                                    <Truck className="w-3 h-3" />
+                                    <span>{isAmharic ? 'በጉዞ ላይ' : 'In Transit'}</span>
                                   </span>
-                                )}
-                                {order.status === 'rejected' && (
-                                  <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-rose-500/15 text-rose-400 border border-rose-500/30">
-                                    Rejected
+                                ) : order.status === 'verified' ? (
+                                  <span className="text-blue-400 bg-blue-500/15 border border-blue-500/25 px-2 py-0.5 rounded text-[10px] font-bold">
+                                    {isAmharic ? 'የተረጋገጠ' : 'Verified'}
+                                  </span>
+                                ) : order.status === 'rejected' ? (
+                                  <span className="text-red-400 bg-red-500/15 border border-red-500/25 px-2 py-0.5 rounded text-[10px] font-bold">
+                                    {isAmharic ? 'ውድቅ የተደረገ' : 'Rejected'}
+                                  </span>
+                                ) : (
+                                  <span className="text-amber-400 bg-amber-500/15 border border-amber-500/25 px-2 py-0.5 rounded text-[10px] font-bold animate-pulse">
+                                    {isAmharic ? 'በመጠባበቅ ላይ' : 'Pending'}
                                   </span>
                                 )}
                               </td>
                               <td className="py-3 px-3.5 text-right">
-                                {order.status === 'pending_verification' && (
-                                  <div className="inline-flex items-center gap-1.5">
+                                <div className="inline-flex items-center justify-end gap-1.5">
+                                  {order.status === 'pending_verification' && (
                                     <button
                                       type="button"
                                       onClick={() => handleVerifyOrder(order.id)}
-                                      className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow transition-all flex items-center gap-1 cursor-pointer"
-                                      title="Approve slip and confirm meat order"
+                                      className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] shadow transition-all flex items-center gap-1 cursor-pointer"
                                     >
                                       <Check className="w-3 h-3" />
-                                      <span>Approve</span>
+                                      <span>{isAmharic ? 'አጽድቅ' : 'Approve'}</span>
                                     </button>
+                                  )}
+                                  {order.status === 'verified' && (
                                     <button
                                       type="button"
-                                      onClick={() => handleRejectOrder(order.id)}
-                                      className="p-1 rounded-lg bg-red-500/15 hover:bg-red-500/25 text-red-400 cursor-pointer"
-                                      title="Reject slip"
+                                      onClick={() => handleApproveDelivery(order.id, 'delivery_pending')}
+                                      className="px-2.5 py-1 rounded-lg bg-amber-500 hover:bg-amber-600 text-black font-bold text-[11px] shadow transition-all flex items-center gap-1 cursor-pointer"
                                     >
-                                      <X className="w-3.5 h-3.5" />
+                                      <Truck className="w-3 h-3" />
+                                      <span>{isAmharic ? 'ላክ' : 'Dispatch'}</span>
                                     </button>
-                                  </div>
-                                )}
+                                  )}
+                                  {order.status === 'delivery_pending' && (
+                                    <button
+                                      type="button"
+                                      onClick={() => handleApproveDelivery(order.id, 'delivered')}
+                                      className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] shadow transition-all flex items-center gap-1 cursor-pointer"
+                                    >
+                                      <Check className="w-3 h-3" />
+                                      <span>{isAmharic ? 'ደርሷል' : 'Delivered'}</span>
+                                    </button>
+                                  )}
+                                  {order.paymentSlipUrl && (
+                                    <button
+                                      type="button"
+                                      onClick={() => setSelectedSlipOrder(order)}
+                                      className="p-1 rounded-lg bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-[11px] font-bold transition-colors cursor-pointer"
+                                      title={isAmharic ? 'የክፍያ ደረሰኝ ይመልከቱ' : 'View payment slip'}
+                                    >
+                                      <Eye className="w-3.5 h-3.5" />
+                                    </button>
+                                  )}
+                                </div>
                               </td>
                             </tr>
                           );
@@ -3407,17 +3504,27 @@ export const Admin: React.FC = () => {
         {/* TAB 6: DELIVERY & FLEET LOGISTICS */}
         {/* ============================================================ */}
         {activeTab === 'delivery' && (
-          <div className="space-y-8 animate-in fade-in-50 duration-150">
-            {/* 1. Header & Live Metrics */}
+          <div className="space-y-6 animate-in fade-in-50 duration-150">
+            {/* 1. Header & Live Refresh */}
             <div className="space-y-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
                   <h2 className="text-xl sm:text-2xl font-bold font-serif flex items-center gap-2">
                     <Truck className="w-6 h-6 text-[#C18A45]" />
-                    <span>Delivery & Fleet Logistics Management</span>
+                    <span>
+                      {deliverySubTab === 'orders'
+                        ? (isAmharic ? 'የማድረሻ ትዕዛዞች እና መላኪያ ቁጥጥር' : 'Delivery Orders Queue & Dispatch Control')
+                        : (isAmharic ? 'የማድረሻ እና የትራንስፖርት መርከብ አስተዳደር' : 'Delivery & Fleet Logistics Management')}
+                    </span>
                   </h2>
                   <p className="text-xs opacity-75 mt-0.5">
-                    Live road distance calculation (OSRM engine), vehicle capacity validation, dynamic rates, and direct order dispatch.
+                    {deliverySubTab === 'orders'
+                      ? (isAmharic
+                          ? 'የደንበኞች የእስከ ደጃፍ ማድረሻ ትዕዛዞች፣ የጉዞ መስመር ክትትል፣ የደረሰኝ ምርመራ እና የተሽከርካሪ መላኪያ።'
+                          : 'Live doorstep customer delivery orders queue, route tracking, payment slip reviews, and vehicle dispatching.')
+                      : (isAmharic
+                          ? 'የመንገድ ርቀት ስሌት (OSRM ሞተር)፣ የተሽከርካሪ አቅም ማረጋገጫ፣ ተለዋዋጭ ዋጋዎች እና የእርሻ መላኪያ ማዕከል ቅንብሮች።'
+                          : 'Live road distance calculation (OSRM engine), vehicle capacity validation, dynamic rates, and farm origin settings.')}
                   </p>
                 </div>
 
@@ -3428,754 +3535,888 @@ export const Admin: React.FC = () => {
                     className="px-3.5 py-2 rounded-xl border border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
                   >
                     <RefreshCw className="w-3.5 h-3.5 text-[#C18A45]" />
-                    <span>Refresh Data</span>
+                    <span>{isAmharic ? 'መረጃ አድስ' : 'Refresh Data'}</span>
                   </button>
                 </div>
               </div>
 
-              {/* 4 KPIs Metric Cards */}
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
-                <div className={`p-4 rounded-2xl border ${isDark ? 'bg-[#24170D] border-[#4A2C16]' : 'bg-[#FAF7F0] border-[#E4D4BC]'}`}>
-                  <div className="flex items-center justify-between text-xs opacity-70 mb-1">
-                    <span>Pending Dispatch</span>
-                    <Clock className="w-4 h-4 text-amber-500" />
-                  </div>
-                  <div className="text-2xl font-serif font-bold text-amber-500">
-                    {ordersList.filter(o => o.isDelivery && (o.status === 'pending_verification' || o.status === 'verified')).length}
-                  </div>
-                  <p className="text-[10px] opacity-60 mt-1">Awaiting vehicle dispatch</p>
-                </div>
-
-                <div className={`p-4 rounded-2xl border ${isDark ? 'bg-[#24170D] border-[#4A2C16]' : 'bg-[#FAF7F0] border-[#E4D4BC]'}`}>
-                  <div className="flex items-center justify-between text-xs opacity-70 mb-1">
-                    <span>In Transit / Dispatched</span>
-                    <Truck className="w-4 h-4 text-blue-400" />
-                  </div>
-                  <div className="text-2xl font-serif font-bold text-blue-400">
-                    {ordersList.filter(o => o.isDelivery && o.status === 'delivery_pending').length}
-                  </div>
-                  <p className="text-[10px] opacity-60 mt-1">Vehicles en route</p>
-                </div>
-
-                <div className={`p-4 rounded-2xl border ${isDark ? 'bg-[#24170D] border-[#4A2C16]' : 'bg-[#FAF7F0] border-[#E4D4BC]'}`}>
-                  <div className="flex items-center justify-between text-xs opacity-70 mb-1">
-                    <span>Delivered</span>
-                    <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-                  </div>
-                  <div className="text-2xl font-serif font-bold text-emerald-500">
-                    {ordersList.filter(o => o.isDelivery && o.status === 'delivered').length}
-                  </div>
-                  <p className="text-[10px] opacity-60 mt-1">Completed door deliveries</p>
-                </div>
-
-                <div className={`p-4 rounded-2xl border ${isDark ? 'bg-[#24170D] border-[#4A2C16]' : 'bg-[#FAF7F0] border-[#E4D4BC]'}`}>
-                  <div className="flex items-center justify-between text-xs opacity-70 mb-1">
-                    <span>Delivery Revenue</span>
-                    <DollarSign className="w-4 h-4 text-[#C18A45]" />
-                  </div>
-                  <div className="text-2xl font-mono font-bold text-[#C18A45]">
-                    {formatPrice(
-                      ordersList
-                        .filter(o => o.isDelivery && o.status !== 'rejected')
-                        .reduce((sum, o) => sum + (Number(o.deliveryFee) || 0), 0)
-                    )}
-                  </div>
-                  <p className="text-[10px] opacity-60 mt-1">Total collected delivery fees</p>
-                </div>
-              </div>
-            </div>
-
-            {/* 2. Fleet Vehicle Rates & Capacity Limits (Editable Config Table) */}
-            <div className={`p-5 sm:p-6 rounded-3xl border space-y-4 ${isDark ? 'bg-[#1E140A] border-[#3D2513]' : 'bg-white border-[#E8DCCB]'}`}>
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-black/10 dark:border-white/10">
-                <div>
-                  <h3 className="text-base font-serif font-bold flex items-center gap-2">
-                    <Car className="w-4 h-4 text-[#C18A45]" />
-                    <span>Fleet Vehicle Types, Rates & Load Limits</span>
-                  </h3>
-                  <p className="text-xs opacity-70 mt-0.5">
-                    Multi-product capacity rules: Cattle, sheep, chickens, and KG limits with automated vehicle recommendation.
-                  </p>
-                </div>
-
+              {/* Top Category Switcher: Two Separate Dashboards */}
+              <div
+                className={`inline-flex p-1 rounded-xl border items-center gap-1 w-full sm:w-auto ${
+                  isDark ? 'bg-[#1E140A] border-[#3D2513]' : 'bg-[#F4ECE1] border-[#E4D4BC]'
+                }`}
+              >
                 <button
                   type="button"
-                  disabled={isSavingDeliveryVehicles}
-                  onClick={handleSaveDeliveryVehicles}
-                  className="px-4 py-2 rounded-xl bg-[#C18A45] hover:bg-[#A06E35] disabled:opacity-50 text-white font-bold text-xs shadow transition-all flex items-center gap-1.5 cursor-pointer self-start sm:self-auto"
-                >
-                  {isSavingDeliveryVehicles ? (
-                    <>
-                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                      <span>Saving Fleet Rates...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Check className="w-3.5 h-3.5" />
-                      <span>Save Vehicle Fleet Rates</span>
-                    </>
-                  )}
-                </button>
-              </div>
-
-              {/* Responsive Vehicle Config Table */}
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
-                  <thead>
-                    <tr className="border-b border-black/10 dark:border-white/10 text-[11px] uppercase tracking-wider opacity-60">
-                      <th className="pb-3 pr-3">Vehicle</th>
-                      <th className="pb-3 px-2">Base Fee (ETB)</th>
-                      <th className="pb-3 px-2">Rate (ETB / KM)</th>
-                      <th className="pb-3 px-2">Max Sheep / Goats</th>
-                      <th className="pb-3 px-2">Max Cattle / Ox</th>
-                      <th className="pb-3 px-2">Max Chickens</th>
-                      <th className="pb-3 px-2">Max Weight (KG)</th>
-                      <th className="pb-3 pl-2 text-right">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-black/5 dark:divide-white/5">
-                    {deliveryVehicles.map((veh, idx) => (
-                      <tr key={veh.id} className="hover:bg-black/[0.02] dark:hover:bg-white/[0.02]">
-                        <td className="py-3.5 pr-3">
-                          <div className="font-bold text-sm flex items-center gap-2">
-                            <span>{veh.name}</span>
-                            <span className="text-[10px] font-mono opacity-60 uppercase bg-black/10 dark:bg-white/10 px-1.5 py-0.5 rounded">
-                              {veh.id}
-                            </span>
-                          </div>
-                          <div className="text-[11px] opacity-70 mt-0.5">{veh.amharicName}</div>
-                          <div className="text-[10px] opacity-50 mt-0.5 line-clamp-1">{veh.description}</div>
-                        </td>
-
-                        {/* Base Fee Input */}
-                        <td className="py-3.5 px-2">
-                          <div className="flex items-center gap-1">
-                            <input
-                              type="number"
-                              min="0"
-                              value={veh.baseFee}
-                              onChange={(e) => {
-                                const val = Number(e.target.value) || 0;
-                                setDeliveryVehicles((prev) =>
-                                  prev.map((v, i) => (i === idx ? { ...v, baseFee: val } : v))
-                                );
-                              }}
-                              className="w-20 px-2 py-1.5 rounded-lg border font-mono font-bold bg-transparent text-xs focus:outline-none focus:border-[#C18A45]"
-                            />
-                            <span className="text-[10px] opacity-60">ETB</span>
-                          </div>
-                        </td>
-
-                        {/* Price per KM Input */}
-                        <td className="py-3.5 px-2">
-                          <div className="flex items-center gap-1">
-                            <input
-                              type="number"
-                              min="0"
-                              value={veh.pricePerKm}
-                              onChange={(e) => {
-                                const val = Number(e.target.value) || 0;
-                                setDeliveryVehicles((prev) =>
-                                  prev.map((v, i) => (i === idx ? { ...v, pricePerKm: val } : v))
-                                );
-                              }}
-                              className="w-20 px-2 py-1.5 rounded-lg border font-mono font-bold bg-transparent text-xs focus:outline-none focus:border-[#C18A45]"
-                            />
-                            <span className="text-[10px] opacity-60">ETB/km</span>
-                          </div>
-                        </td>
-
-                        {/* Max Sheep */}
-                        <td className="py-3.5 px-2">
-                          <input
-                            type="number"
-                            min="0"
-                            value={veh.maxSheep ?? 0}
-                            onChange={(e) => {
-                              const val = Number(e.target.value) || 0;
-                              setDeliveryVehicles((prev) =>
-                                prev.map((v, i) => (i === idx ? { ...v, maxSheep: val } : v))
-                              );
-                            }}
-                            className="w-16 px-2 py-1.5 rounded-lg border font-mono text-xs bg-transparent focus:outline-none focus:border-[#C18A45]"
-                          />
-                        </td>
-
-                        {/* Max Cattle */}
-                        <td className="py-3.5 px-2">
-                          <input
-                            type="number"
-                            min="0"
-                            value={veh.maxCattle ?? 0}
-                            onChange={(e) => {
-                              const val = Number(e.target.value) || 0;
-                              setDeliveryVehicles((prev) =>
-                                prev.map((v, i) => (i === idx ? { ...v, maxCattle: val } : v))
-                              );
-                            }}
-                            className="w-16 px-2 py-1.5 rounded-lg border font-mono text-xs bg-transparent focus:outline-none focus:border-[#C18A45]"
-                          />
-                        </td>
-
-                        {/* Max Chickens */}
-                        <td className="py-3.5 px-2">
-                          <input
-                            type="number"
-                            min="0"
-                            value={veh.maxChickens ?? 0}
-                            onChange={(e) => {
-                              const val = Number(e.target.value) || 0;
-                              setDeliveryVehicles((prev) =>
-                                prev.map((v, i) => (i === idx ? { ...v, maxChickens: val } : v))
-                              );
-                            }}
-                            className="w-16 px-2 py-1.5 rounded-lg border font-mono text-xs bg-transparent focus:outline-none focus:border-[#C18A45]"
-                          />
-                        </td>
-
-                        {/* Max Weight */}
-                        <td className="py-3.5 px-2">
-                          <div className="flex items-center gap-1">
-                            <input
-                              type="number"
-                              min="0"
-                              value={veh.maxWeightKg ?? 0}
-                              onChange={(e) => {
-                                const val = Number(e.target.value) || 0;
-                                setDeliveryVehicles((prev) =>
-                                  prev.map((v, i) => (i === idx ? { ...v, maxWeightKg: val } : v))
-                                );
-                              }}
-                              className="w-20 px-2 py-1.5 rounded-lg border font-mono text-xs bg-transparent focus:outline-none focus:border-[#C18A45]"
-                            />
-                            <span className="text-[10px] opacity-60">KG</span>
-                          </div>
-                        </td>
-
-                        {/* Active Toggle */}
-                        <td className="py-3.5 pl-2 text-right">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setDeliveryVehicles((prev) =>
-                                prev.map((v, i) => (i === idx ? { ...v, active: !v.active } : v))
-                              );
-                            }}
-                            className={`px-2.5 py-1 rounded-full text-[10px] font-bold transition-all ${
-                              veh.active !== false
-                                ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
-                                : 'bg-red-500/15 text-red-400 border border-red-500/30'
-                            }`}
-                          >
-                            {veh.active !== false ? 'Active' : 'Disabled'}
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            {/* 3. Farm Origin Facility & Global Logistics Settings */}
-            <div className={`p-5 sm:p-6 rounded-3xl border space-y-4 ${isDark ? 'bg-[#1E140A] border-[#3D2513]' : 'bg-white border-[#E8DCCB]'}`}>
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-black/10 dark:border-white/10">
-                <div>
-                  <h3 className="text-base font-serif font-bold flex items-center gap-2">
-                    <MapPin className="w-4 h-4 text-[#C18A45]" />
-                    <span>Aware Farm Dispatch Hub & Boundary Settings</span>
-                  </h3>
-                  <p className="text-xs opacity-70 mt-0.5">
-                    Origin coordinates where livestock are loaded and max driving radius cutoff for Addis Ababa.
-                  </p>
-                </div>
-
-                <button
-                  type="button"
-                  disabled={isSavingDeliverySettings}
-                  onClick={handleSaveDeliverySettings}
-                  className="px-4 py-2 rounded-xl bg-[#C18A45] hover:bg-[#A06E35] disabled:opacity-50 text-white font-bold text-xs shadow transition-all flex items-center gap-1.5 cursor-pointer self-start sm:self-auto"
-                >
-                  {isSavingDeliverySettings ? (
-                    <>
-                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                      <span>Saving Facility Hub...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Check className="w-3.5 h-3.5" />
-                      <span>Save Facility Hub</span>
-                    </>
-                  )}
-                </button>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
-                <div>
-                  <label className="block text-[11px] font-bold uppercase mb-1 opacity-70">
-                    Dispatch Facility Name
-                  </label>
-                  <input
-                    type="text"
-                    value={deliverySettings.pickupAddress || deliverySettings.defaultOriginName || ''}
-                    onChange={(e) =>
-                      setDeliverySettings((prev: any) => ({
-                        ...prev,
-                        pickupAddress: e.target.value,
-                        defaultOriginName: e.target.value
-                      }))
-                    }
-                    className="w-full px-3 py-2 rounded-xl border text-xs bg-transparent focus:outline-none focus:border-[#C18A45]"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-[11px] font-bold uppercase mb-1 opacity-70">
-                    Farm Latitude (GPS)
-                  </label>
-                  <input
-                    type="number"
-                    step="any"
-                    value={deliverySettings.pickupLatitude ?? deliverySettings.defaultOriginLat ?? 9.0182}
-                    onChange={(e) =>
-                      setDeliverySettings((prev: any) => ({
-                        ...prev,
-                        pickupLatitude: Number(e.target.value),
-                        defaultOriginLat: Number(e.target.value)
-                      }))
-                    }
-                    className="w-full px-3 py-2 rounded-xl border text-xs font-mono bg-transparent focus:outline-none focus:border-[#C18A45]"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-[11px] font-bold uppercase mb-1 opacity-70">
-                    Farm Longitude (GPS)
-                  </label>
-                  <input
-                    type="number"
-                    step="any"
-                    value={deliverySettings.pickupLongitude ?? deliverySettings.defaultOriginLng ?? 38.7750}
-                    onChange={(e) =>
-                      setDeliverySettings((prev: any) => ({
-                        ...prev,
-                        pickupLongitude: Number(e.target.value),
-                        defaultOriginLng: Number(e.target.value)
-                      }))
-                    }
-                    className="w-full px-3 py-2 rounded-xl border text-xs font-mono bg-transparent focus:outline-none focus:border-[#C18A45]"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-[11px] font-bold uppercase mb-1 opacity-70">
-                    Max Delivery Radius (KM)
-                  </label>
-                  <input
-                    type="number"
-                    min="1"
-                    max="100"
-                    value={deliverySettings.maxDistanceKm ?? 30}
-                    onChange={(e) =>
-                      setDeliverySettings((prev: any) => ({ ...prev, maxDistanceKm: Number(e.target.value) }))
-                    }
-                    className="w-full px-3 py-2 rounded-xl border text-xs font-mono bg-transparent focus:outline-none focus:border-[#C18A45]"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* 4. Interactive Live Route & Capacity Simulator Sandbox */}
-            <div className={`p-5 sm:p-6 rounded-3xl border space-y-4 ${isDark ? 'bg-[#1E140A] border-[#3D2513]' : 'bg-white border-[#E8DCCB]'}`}>
-              <div className="pb-3 border-b border-black/10 dark:border-white/10">
-                <h3 className="text-base font-serif font-bold flex items-center gap-2">
-                  <Navigation className="w-4 h-4 text-[#C18A45]" />
-                  <span>Interactive Route & Vehicle Load Simulator</span>
-                </h3>
-                <p className="text-xs opacity-70 mt-0.5">
-                  Test actual road distance calculations, duration, multi-item loads, and capacity enforcement in real time.
-                </p>
-              </div>
-
-              {/* Simulator Input Grid */}
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3.5">
-                {/* Destination Dropdown */}
-                <div className="col-span-2 md:col-span-3 lg:col-span-2">
-                  <label className="block text-[11px] font-bold uppercase mb-1 opacity-70">
-                    Select Addis Ababa Destination
-                  </label>
-                  <select
-                    value={simSelectedLocId}
-                    onChange={(e) => {
-                      const locId = e.target.value;
-                      setSimSelectedLocId(locId);
-                      const loc = ADDIS_ABABA_LOCATIONS.find((l) => l.id === locId);
-                      if (loc) {
-                        setSimDestLat(loc.lat);
-                        setSimDestLng(loc.lng);
-                        setSimDestAddress(`${loc.name} (${loc.subCity} Sub-City)`);
-                      }
-                    }}
-                    className={`w-full px-3 py-2 rounded-xl border text-xs focus:outline-none ${
-                      isDark ? 'bg-[#24170D] border-[#4A2C16]' : 'bg-white border-[#E4D4BC]'
-                    }`}
-                  >
-                    {ADDIS_ABABA_LOCATIONS.map((loc) => (
-                      <option key={loc.id} value={loc.id}>
-                        {loc.name} — {loc.subCity} ({loc.amharicName})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Sheep / Goats */}
-                <div>
-                  <label className="block text-[11px] font-bold uppercase mb-1 opacity-70">Sheep / Goats</label>
-                  <input
-                    type="number"
-                    min="0"
-                    value={simSheep}
-                    onChange={(e) => setSimSheep(Math.max(0, Number(e.target.value) || 0))}
-                    className="w-full px-3 py-2 rounded-xl border text-xs font-mono bg-transparent focus:outline-none"
-                  />
-                </div>
-
-                {/* Cattle / Oxen */}
-                <div>
-                  <label className="block text-[11px] font-bold uppercase mb-1 opacity-70">Cattle / Oxen</label>
-                  <input
-                    type="number"
-                    min="0"
-                    value={simCattle}
-                    onChange={(e) => setSimCattle(Math.max(0, Number(e.target.value) || 0))}
-                    className="w-full px-3 py-2 rounded-xl border text-xs font-mono bg-transparent focus:outline-none"
-                  />
-                </div>
-
-                {/* Chickens */}
-                <div>
-                  <label className="block text-[11px] font-bold uppercase mb-1 opacity-70">Chickens</label>
-                  <input
-                    type="number"
-                    min="0"
-                    value={simChickens}
-                    onChange={(e) => setSimChickens(Math.max(0, Number(e.target.value) || 0))}
-                    className="w-full px-3 py-2 rounded-xl border text-xs font-mono bg-transparent focus:outline-none"
-                  />
-                </div>
-
-                {/* Raw Meat KG */}
-                <div>
-                  <label className="block text-[11px] font-bold uppercase mb-1 opacity-70">Beef / Meat (KG)</label>
-                  <input
-                    type="number"
-                    min="0"
-                    value={simMeatKg}
-                    onChange={(e) => setSimMeatKg(Math.max(0, Number(e.target.value) || 0))}
-                    className="w-full px-3 py-2 rounded-xl border text-xs font-mono bg-transparent focus:outline-none"
-                  />
-                </div>
-              </div>
-
-              {/* Simulation Trigger Button */}
-              <div className="flex items-center gap-3">
-                <button
-                  type="button"
-                  disabled={isSimulatingRoute}
-                  onClick={handleRunSimulator}
-                  className="px-5 py-2.5 rounded-xl bg-[#C18A45] hover:bg-[#A06E35] disabled:opacity-50 text-white font-bold text-xs shadow transition-all flex items-center gap-2 cursor-pointer"
-                >
-                  {isSimulatingRoute ? (
-                    <>
-                      <RefreshCw className="w-4 h-4 animate-spin" />
-                      <span>Calculating Driving Route...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="w-4 h-4" />
-                      <span>Simulate Route & Check Vehicle Capacity</span>
-                    </>
-                  )}
-                </button>
-              </div>
-
-              {/* Simulation Results Display */}
-              {simResult && (
-                <div
-                  className={`p-4 rounded-2xl border space-y-3 animate-in fade-in-50 duration-200 ${
-                    isDark ? 'bg-black/20 border-[#4A2C16]' : 'bg-[#FAF7F0] border-[#E4D4BC]'
+                  onClick={() => setDeliverySubTab('orders')}
+                  className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    deliverySubTab === 'orders'
+                      ? 'bg-[#C18A45] text-white shadow-xs font-bold'
+                      : isDark
+                      ? 'hover:bg-black/20 text-[#D8C5A8] opacity-80 hover:opacity-100'
+                      : 'hover:bg-white/60 text-[#746556] opacity-80 hover:opacity-100'
                   }`}
                 >
-                  <div className="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-black/10 dark:border-white/10">
-                    <div className="flex items-center gap-2 text-xs">
-                      <span className="font-bold">🛣️ Road Distance:</span>
-                      <span className="px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-400 font-mono font-bold">
-                        {simResult.distanceKm} KM
-                      </span>
-                      <span className="opacity-60">•</span>
-                      <span>Est. {simResult.estimatedDurationMinutes} mins drive</span>
-                      <span className="opacity-60">•</span>
-                      <span className="opacity-80">Category: {simResult.distanceCategoryLabel}</span>
-                    </div>
-
-                    <div className="text-[10px] font-mono opacity-60">
-                      Engine: {simResult.routeSource || 'OSRM Driving Router'}
-                    </div>
-                  </div>
-
-                  {/* Vehicle Cards */}
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    {simResult.vehicles?.map((v: any) => (
-                      <div
-                        key={v.id}
-                        className={`p-3 rounded-xl border text-xs space-y-1.5 ${
-                          v.isSuitable
-                            ? 'bg-emerald-500/10 border-emerald-500/30'
-                            : 'bg-red-500/10 border-red-500/30 opacity-70'
-                        }`}
-                      >
-                        <div className="flex items-center justify-between font-bold">
-                          <span>{v.name}</span>
-                          {v.isRecommended && (
-                            <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-emerald-500 text-black font-black">
-                              Best Choice
-                            </span>
-                          )}
-                        </div>
-                        <div className="text-lg font-mono font-bold text-[#C18A45]">
-                          {formatPrice(v.deliveryFee)}
-                        </div>
-                        <div className="text-[10px] opacity-75">
-                          Base: {v.baseFee} ETB + {v.pricePerKm} ETB/km
-                        </div>
-                        <div className="pt-1 border-t border-black/5 dark:border-white/5">
-                          {v.isSuitable ? (
-                            <span className="text-emerald-400 font-semibold flex items-center gap-1">
-                              <CheckCircle2 className="w-3.5 h-3.5" />
-                              <span>Suitable for this load</span>
-                            </span>
-                          ) : (
-                            <span className="text-red-400 font-semibold block leading-tight">
-                              ⚠️ {v.unsuitabilityReason || 'Exceeds capacity'}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* 5. Live Delivery Orders Dispatch Queue */}
-            <div className={`p-5 sm:p-6 rounded-3xl border space-y-4 ${isDark ? 'bg-[#1E140A] border-[#3D2513]' : 'bg-white border-[#E8DCCB]'}`}>
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-black/10 dark:border-white/10">
-                <div>
-                  <h3 className="text-base font-serif font-bold flex items-center gap-2">
-                    <Truck className="w-4 h-4 text-[#C18A45]" />
-                    <span>Delivery Orders Queue & Dispatch Control</span>
-                  </h3>
-                  <p className="text-xs opacity-70 mt-0.5">
-                    Orders with customer doorstep delivery requests and assigned vehicles.
-                  </p>
-                </div>
-
-                {/* Filter Pills */}
-                <div className="flex items-center gap-1.5 p-1 rounded-xl bg-black/5 dark:bg-white/5 self-start sm:self-auto">
-                  {(['all', 'pending', 'in_transit', 'delivered'] as const).map((filterKey) => (
-                    <button
-                      key={filterKey}
-                      type="button"
-                      onClick={() => setDeliveryOrderFilter(filterKey)}
-                      className={`px-3 py-1 rounded-lg text-xs font-bold transition-all capitalize cursor-pointer ${
-                        deliveryOrderFilter === filterKey
-                          ? 'bg-[#C18A45] text-white shadow-xs'
-                          : 'opacity-70 hover:opacity-100'
-                      }`}
-                    >
-                      {filterKey === 'all'
-                        ? 'All'
-                        : filterKey === 'pending'
-                        ? 'Pending'
-                        : filterKey === 'in_transit'
-                        ? 'In Transit'
-                        : 'Delivered'}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Delivery Orders Table */}
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
-                  <thead>
-                    <tr className="border-b border-black/10 dark:border-white/10 text-[11px] uppercase tracking-wider opacity-60">
-                      <th className="pb-3 pr-2">Order ID & Date</th>
-                      <th className="pb-3 px-2">Customer</th>
-                      <th className="pb-3 px-2">Destination Address</th>
-                      <th className="pb-3 px-2">Assigned Vehicle</th>
-                      <th className="pb-3 px-2">Delivery Fee</th>
-                      <th className="pb-3 px-2">Status</th>
-                      <th className="pb-3 pl-2 text-right">Dispatch Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-black/5 dark:divide-white/5">
-                    {ordersList
-                      .filter((o) => {
-                        const hasDelivery = Boolean(
+                  <Truck className="w-3.5 h-3.5 shrink-0" />
+                  <span>{isAmharic ? 'የማድረሻ ትዕዛዞች እና መላኪያ' : 'Delivery Orders Queue & Dispatch'}</span>
+                  <span
+                    className={`ml-1.5 px-1.5 py-0.5 rounded text-[10px] font-mono font-bold shrink-0 ${
+                      deliverySubTab === 'orders'
+                        ? 'bg-black/25 text-white'
+                        : 'bg-black/5 dark:bg-white/10 opacity-75'
+                    }`}
+                  >
+                    {
+                      ordersList.filter(
+                        (o) =>
                           o.isDelivery ||
                           o.deliveryAddress ||
                           (o.deliveryLocation && !o.deliveryLocation.includes('Self Pickup'))
-                        );
-                        if (!hasDelivery) return false;
+                      ).length
+                    }
+                  </span>
+                </button>
 
-                        if (deliveryOrderFilter === 'pending') {
-                          return o.status === 'pending_verification' || o.status === 'verified';
-                        } else if (deliveryOrderFilter === 'in_transit') {
-                          return o.status === 'delivery_pending';
-                        } else if (deliveryOrderFilter === 'delivered') {
-                          return o.status === 'delivered';
-                        }
-                        return true;
-                      })
-                      .map((order) => (
-                        <tr key={order.id} className="hover:bg-black/[0.02] dark:hover:bg-white/[0.02]">
-                          <td className="py-3 pr-2">
-                            <div className="font-mono font-bold text-xs text-[#C18A45]">#{order.id}</div>
-                            <div className="text-[10px] opacity-60 mt-0.5">
-                              {new Date(order.createdAt).toLocaleDateString()}
-                            </div>
-                          </td>
-
-                          <td className="py-3 px-2">
-                            <div className="font-bold">{order.customerName}</div>
-                            {order.customerPhone && (
-                              <a
-                                href={`tel:${order.customerPhone}`}
-                                className="text-[11px] opacity-75 hover:underline font-mono"
-                              >
-                                {order.customerPhone}
-                              </a>
-                            )}
-                          </td>
-
-                          <td className="py-3 px-2 max-w-[200px]">
-                            <div className="truncate font-medium" title={order.deliveryAddress || order.deliveryLocation}>
-                              📍 {order.deliveryAddress || order.deliveryLocation || 'Addis Ababa'}
-                            </div>
-                            {order.distanceKm && (
-                              <div className="text-[10px] opacity-60 font-mono">
-                                Road Distance: {order.distanceKm} KM
-                              </div>
-                            )}
-                          </td>
-
-                          <td className="py-3 px-2">
-                            <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-amber-500/15 text-amber-400 border border-amber-500/25">
-                              {order.vehicleType || 'Car / Pickup'}
-                            </span>
-                          </td>
-
-                          <td className="py-3 px-2 font-mono font-bold text-[#C18A45]">
-                            {formatPrice(order.deliveryFee || 0)}
-                          </td>
-
-                          <td className="py-3 px-2">
-                            {order.status === 'pending_verification' && (
-                              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/25 animate-pulse">
-                                Slip Review
-                              </span>
-                            )}
-                            {order.status === 'verified' && (
-                              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-500/15 text-blue-400 border border-blue-500/25">
-                                Ready to Dispatch
-                              </span>
-                            )}
-                            {order.status === 'delivery_pending' && (
-                              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-500/15 text-purple-400 border border-purple-500/25">
-                                🚀 In Transit
-                              </span>
-                            )}
-                            {order.status === 'delivered' && (
-                              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/25">
-                                ✓ Delivered
-                              </span>
-                            )}
-                          </td>
-
-                          <td className="py-3 pl-2 text-right">
-                            <div className="inline-flex items-center justify-end gap-1.5">
-                              {order.status !== 'delivery_pending' && order.status !== 'delivered' && (
-                                <button
-                                  type="button"
-                                  onClick={() => handleApproveDelivery(order.id, 'delivery_pending')}
-                                  className="px-2.5 py-1 rounded-lg bg-amber-500 hover:bg-amber-600 text-black font-bold text-[11px] shadow transition-all flex items-center gap-1 cursor-pointer"
-                                  title="Approve and mark order as out for delivery"
-                                >
-                                  <Truck className="w-3 h-3" />
-                                  <span>Dispatch</span>
-                                </button>
-                              )}
-
-                              {order.status !== 'delivered' && (
-                                <button
-                                  type="button"
-                                  onClick={() => handleApproveDelivery(order.id, 'delivered')}
-                                  className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] shadow transition-all flex items-center gap-1 cursor-pointer"
-                                  title="Confirm delivery to customer door"
-                                >
-                                  <Check className="w-3 h-3" />
-                                  <span>Delivered</span>
-                                </button>
-                              )}
-
-                              {order.paymentSlipUrl && (
-                                <button
-                                  type="button"
-                                  onClick={() => setSelectedSlipOrder(order)}
-                                  className="p-1 rounded-lg bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-[11px] font-bold transition-colors cursor-pointer"
-                                  title="View payment slip"
-                                >
-                                  <Eye className="w-3.5 h-3.5" />
-                                </button>
-                              )}
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                  </tbody>
-                </table>
+                <button
+                  type="button"
+                  onClick={() => setDeliverySubTab('logistics')}
+                  className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    deliverySubTab === 'logistics'
+                      ? 'bg-[#C18A45] text-white shadow-xs font-bold'
+                      : isDark
+                      ? 'hover:bg-black/20 text-[#D8C5A8] opacity-80 hover:opacity-100'
+                      : 'hover:bg-white/60 text-[#746556] opacity-80 hover:opacity-100'
+                  }`}
+                >
+                  <Settings className="w-3.5 h-3.5 shrink-0" />
+                  <span>{isAmharic ? 'የትራንስፖርት መርከብ እና ዋጋዎች' : 'Fleet Logistics & Rates Management'}</span>
+                  <span
+                    className={`ml-1.5 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider shrink-0 ${
+                      deliverySubTab === 'logistics'
+                        ? 'bg-black/25 text-white'
+                        : 'bg-black/5 dark:bg-white/10 opacity-75'
+                    }`}
+                  >
+                    {deliveryVehicles.filter((v) => v.active !== false).length} {isAmharic ? 'ተሽከርካሪዎች' : 'Vehicles'}
+                  </span>
+                </button>
               </div>
             </div>
+
+            {/* ============================================================ */}
+            {/* SUB-DASHBOARD 1: DELIVERY ORDERS QUEUE & DISPATCH CONTROL */}
+            {/* ============================================================ */}
+            {deliverySubTab === 'orders' && (
+              <div className="space-y-6 animate-in fade-in-50 duration-150">
+                {/* 4 KPIs Metric Cards */}
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
+                  <div
+                    className={`p-4 rounded-2xl border ${
+                      isDark ? 'bg-[#24170D] border-[#4A2C16]' : 'bg-[#FAF7F0] border-[#E4D4BC]'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between text-xs opacity-70 mb-1">
+                      <span>{isAmharic ? 'መላክ የሚጠበቅባቸው' : 'Pending Dispatch'}</span>
+                      <Clock className="w-4 h-4 text-[#C18A45]" />
+                    </div>
+                    <div className="text-2xl font-serif font-bold text-[#C18A45]">
+                      {
+                        ordersList.filter(
+                          (o) =>
+                            o.isDelivery &&
+                            (o.status === 'pending_verification' || o.status === 'verified')
+                        ).length
+                      }
+                    </div>
+                    <p className="text-[10px] opacity-60 mt-1">{isAmharic ? 'ተሽከርካሪ የሚጠብቁ' : 'Awaiting vehicle dispatch'}</p>
+                  </div>
+
+                  <div
+                    className={`p-4 rounded-2xl border ${
+                      isDark ? 'bg-[#24170D] border-[#4A2C16]' : 'bg-[#FAF7F0] border-[#E4D4BC]'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between text-xs opacity-70 mb-1">
+                      <span>{isAmharic ? 'በጉዞ ላይ / የተላኩ' : 'In Transit / Dispatched'}</span>
+                      <Truck className="w-4 h-4 text-[#C18A45]" />
+                    </div>
+                    <div className="text-2xl font-serif font-bold text-[#C18A45]">
+                      {ordersList.filter((o) => o.isDelivery && o.status === 'delivery_pending').length}
+                    </div>
+                    <p className="text-[10px] opacity-60 mt-1">{isAmharic ? 'በመንገድ ላይ ያሉ ተሽከርካሪዎች' : 'Vehicles en route'}</p>
+                  </div>
+
+                  <div
+                    className={`p-4 rounded-2xl border ${
+                      isDark ? 'bg-[#24170D] border-[#4A2C16]' : 'bg-[#FAF7F0] border-[#E4D4BC]'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between text-xs opacity-70 mb-1">
+                      <span>{isAmharic ? 'የደረሱ' : 'Delivered'}</span>
+                      <CheckCircle2 className="w-4 h-4 text-[#C18A45]" />
+                    </div>
+                    <div className="text-2xl font-serif font-bold text-[#C18A45]">
+                      {ordersList.filter((o) => o.isDelivery && o.status === 'delivered').length}
+                    </div>
+                    <p className="text-[10px] opacity-60 mt-1">{isAmharic ? 'የተጠናቀቁ ማድረሻዎች' : 'Completed door deliveries'}</p>
+                  </div>
+
+                  <div
+                    className={`p-4 rounded-2xl border ${
+                      isDark ? 'bg-[#24170D] border-[#4A2C16]' : 'bg-[#FAF7F0] border-[#E4D4BC]'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between text-xs opacity-70 mb-1">
+                      <span>{isAmharic ? 'የማድረሻ ገቢ' : 'Delivery Revenue'}</span>
+                      <DollarSign className="w-4 h-4 text-[#C18A45]" />
+                    </div>
+                    <div className="text-2xl font-mono font-bold text-[#C18A45]">
+                      {formatPrice(
+                        ordersList
+                          .filter((o) => o.isDelivery && o.status !== 'rejected')
+                          .reduce((sum, o) => sum + (Number(o.deliveryFee) || 0), 0)
+                      )}
+                    </div>
+                    <p className="text-[10px] opacity-60 mt-1">{isAmharic ? 'የተሰበሰበ የማድረሻ ክፍያ' : 'Total collected delivery fees'}</p>
+                  </div>
+                </div>
+
+                {/* Live Delivery Orders Dispatch Queue */}
+                <div
+                  className={`p-5 sm:p-6 rounded-3xl border space-y-4 ${
+                    isDark ? 'bg-[#1E140A] border-[#3D2513]' : 'bg-white border-[#E8DCCB]'
+                  }`}
+                >
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-black/10 dark:border-white/10">
+                    <div>
+                      <h3 className="text-base font-serif font-bold flex items-center gap-2">
+                        <Truck className="w-4 h-4 text-[#C18A45]" />
+                        <span>{isAmharic ? 'የማድረሻ ትዕዛዞች እና መላኪያ ቁጥጥር' : 'Delivery Orders Queue & Dispatch Control'}</span>
+                      </h3>
+                      <p className="text-xs opacity-70 mt-0.5">
+                        {isAmharic
+                          ? 'የእስከ ደጃፍ ማድረሻ የተጠየቀባቸው ትዕዛዞች እና የተመደቡ ተሽከርካሪዎች።'
+                          : 'Orders with customer doorstep delivery requests and assigned vehicles.'}
+                      </p>
+                    </div>
+
+                    {/* Filter Pills */}
+                    <div className="flex items-center gap-1.5 p-1 rounded-xl bg-black/5 dark:bg-white/5 self-start sm:self-auto">
+                      {(['all', 'pending', 'in_transit', 'delivered'] as const).map((filterKey) => (
+                        <button
+                          key={filterKey}
+                          type="button"
+                          onClick={() => setDeliveryOrderFilter(filterKey)}
+                          className={`px-3 py-1 rounded-lg text-xs font-bold transition-all capitalize cursor-pointer ${
+                            deliveryOrderFilter === filterKey
+                              ? 'bg-[#C18A45] text-white shadow-xs'
+                              : 'opacity-70 hover:opacity-100'
+                          }`}
+                        >
+                          {filterKey === 'all'
+                            ? (isAmharic ? 'ሁሉም' : 'All')
+                            : filterKey === 'pending'
+                            ? (isAmharic ? 'የሚጠበቁ' : 'Pending')
+                            : filterKey === 'in_transit'
+                            ? (isAmharic ? 'በጉዞ ላይ' : 'In Transit')
+                            : (isAmharic ? 'የደረሱ' : 'Delivered')}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Delivery Orders Table */}
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-xs">
+                      <thead>
+                        <tr className="border-b border-black/10 dark:border-white/10 text-[11px] uppercase tracking-wider opacity-60">
+                          <th className="pb-3 pr-2">{isAmharic ? 'የትዕዛዝ መለያ & ቀን' : 'Order ID & Date'}</th>
+                          <th className="pb-3 px-2">{isAmharic ? 'ደንበኛ' : 'Customer'}</th>
+                          <th className="pb-3 px-2">{isAmharic ? 'የማድረሻ አድራሻ' : 'Destination Address'}</th>
+                          <th className="pb-3 px-2">{isAmharic ? 'የተመደበ ተሽከርካሪ' : 'Assigned Vehicle'}</th>
+                          <th className="pb-3 px-2">{isAmharic ? 'የማድረሻ ክፍያ' : 'Delivery Fee'}</th>
+                          <th className="pb-3 px-2">{isAmharic ? 'ሁኔታ' : 'Status'}</th>
+                          <th className="pb-3 pl-2 text-right">{isAmharic ? 'የመላክ እርምጃዎች' : 'Dispatch Actions'}</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-black/5 dark:divide-white/5">
+                        {ordersList
+                          .filter((o) => {
+                            const hasDelivery = Boolean(
+                              o.isDelivery ||
+                                o.deliveryAddress ||
+                                (o.deliveryLocation && !o.deliveryLocation.includes('Self Pickup'))
+                            );
+                            if (!hasDelivery) return false;
+
+                            if (deliveryOrderFilter === 'pending') {
+                              return o.status === 'pending_verification' || o.status === 'verified';
+                            } else if (deliveryOrderFilter === 'in_transit') {
+                              return o.status === 'delivery_pending';
+                            } else if (deliveryOrderFilter === 'delivered') {
+                              return o.status === 'delivered';
+                            }
+                            return true;
+                          })
+                          .map((order) => (
+                            <tr key={order.id} className="hover:bg-black/[0.02] dark:hover:bg-white/[0.02]">
+                              <td className="py-3 pr-2">
+                                <div className="font-mono font-bold text-xs text-[#C18A45]">#{order.id}</div>
+                                <div className="text-[10px] opacity-60 mt-0.5">
+                                  {new Date(order.createdAt).toLocaleDateString()}
+                                </div>
+                              </td>
+
+                              <td className="py-3 px-2">
+                                <div className="font-bold">{order.customerName}</div>
+                                {order.customerPhone && (
+                                  <a
+                                    href={`tel:${order.customerPhone}`}
+                                    className="text-[11px] opacity-75 hover:underline font-mono"
+                                  >
+                                    {order.customerPhone}
+                                  </a>
+                                )}
+                              </td>
+
+                              <td className="py-3 px-2 max-w-[200px]">
+                                <div
+                                  className="truncate font-medium flex items-center gap-1"
+                                  title={order.deliveryAddress || order.deliveryLocation}
+                                >
+                                  <MapPin className="w-3 h-3 text-[#C18A45] shrink-0" />
+                                  <span className="truncate">
+                                    {order.deliveryAddress || order.deliveryLocation || (isAmharic ? 'አዲስ አበባ' : 'Addis Ababa')}
+                                  </span>
+                                </div>
+                                {order.distanceKm && (
+                                  <div className="text-[10px] opacity-60 font-mono">
+                                    {isAmharic ? 'የመንገድ ርቀት' : 'Road Distance'}: {order.distanceKm} KM
+                                  </div>
+                                )}
+                              </td>
+
+                              <td className="py-3 px-2">
+                                <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-amber-500/15 text-amber-400 border border-amber-500/25">
+                                  {order.vehicleType || (isAmharic ? 'መኪና / ፒክአፕ' : 'Car / Pickup')}
+                                </span>
+                              </td>
+
+                              <td className="py-3 px-2 font-mono font-bold text-[#C18A45]">
+                                {formatPrice(order.deliveryFee || 0)}
+                              </td>
+
+                              <td className="py-3 px-2">
+                                {order.status === 'pending_verification' && (
+                                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/25 animate-pulse">
+                                    {isAmharic ? 'ደረሰኝ መመርመር' : 'Slip Review'}
+                                  </span>
+                                )}
+                                {order.status === 'verified' && (
+                                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-500/15 text-blue-400 border border-blue-500/25">
+                                    {isAmharic ? 'ለመላክ ዝግጁ' : 'Ready to Dispatch'}
+                                  </span>
+                                )}
+                                {order.status === 'delivery_pending' && (
+                                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-500/15 text-purple-400 border border-purple-500/25 inline-flex items-center gap-1">
+                                    <Truck className="w-3 h-3" />
+                                    <span>{isAmharic ? 'በጉዞ ላይ' : 'In Transit'}</span>
+                                  </span>
+                                )}
+                                {order.status === 'delivered' && (
+                                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/25 inline-flex items-center gap-1">
+                                    <CheckCircle2 className="w-3 h-3" />
+                                    <span>{isAmharic ? 'ደርሷል' : 'Delivered'}</span>
+                                  </span>
+                                )}
+                              </td>
+
+                              <td className="py-3 pl-2 text-right">
+                                <div className="inline-flex items-center justify-end gap-1.5">
+                                  {order.status !== 'delivery_pending' && order.status !== 'delivered' && (
+                                    <button
+                                      type="button"
+                                      onClick={() => handleApproveDelivery(order.id, 'delivery_pending')}
+                                      className="px-2.5 py-1 rounded-lg bg-amber-500 hover:bg-amber-600 text-black font-bold text-[11px] shadow transition-all flex items-center gap-1 cursor-pointer"
+                                      title={isAmharic ? 'አጽድቅ እና ለመላክ አዘጋጅ' : 'Approve and mark order as out for delivery'}
+                                    >
+                                      <Truck className="w-3 h-3" />
+                                      <span>{isAmharic ? 'ላክ' : 'Dispatch'}</span>
+                                    </button>
+                                  )}
+
+                                  {order.status !== 'delivered' && (
+                                    <button
+                                      type="button"
+                                      onClick={() => handleApproveDelivery(order.id, 'delivered')}
+                                      className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] shadow transition-all flex items-center gap-1 cursor-pointer"
+                                      title={isAmharic ? 'ለደንበኛ መድረሱን ያረጋግጡ' : 'Confirm delivery to customer door'}
+                                    >
+                                      <Check className="w-3 h-3" />
+                                      <span>{isAmharic ? 'ደርሷል' : 'Delivered'}</span>
+                                    </button>
+                                  )}
+
+                                  {order.paymentSlipUrl && (
+                                    <button
+                                      type="button"
+                                      onClick={() => setSelectedSlipOrder(order)}
+                                      className="p-1 rounded-lg bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-[11px] font-bold transition-colors cursor-pointer"
+                                      title={isAmharic ? 'የክፍያ ደረሰኝ ይመልከቱ' : 'View payment slip'}
+                                    >
+                                      <Eye className="w-3.5 h-3.5" />
+                                    </button>
+                                  )}
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ============================================================ */}
+            {/* SUB-DASHBOARD 2: DELIVERY & FLEET LOGISTICS MANAGEMENT */}
+            {/* ============================================================ */}
+            {deliverySubTab === 'logistics' && (
+              <div className="space-y-8 animate-in fade-in-50 duration-150">
+                {/* 1. Fleet Vehicle Rates & Capacity Limits (Editable Config Table) */}
+                <div
+                  className={`p-5 sm:p-6 rounded-3xl border space-y-4 ${
+                    isDark ? 'bg-[#1E140A] border-[#3D2513]' : 'bg-white border-[#E8DCCB]'
+                  }`}
+                >
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-black/10 dark:border-white/10">
+                    <div>
+                      <h3 className="text-base font-serif font-bold flex items-center gap-2">
+                        <Car className="w-4 h-4 text-[#C18A45]" />
+                        <span>{isAmharic ? 'የተሽከርካሪ ዓይነቶች፣ ዋጋዎች እና የመጫን አቅም' : 'Fleet Vehicle Types, Rates & Load Limits'}</span>
+                      </h3>
+                      <p className="text-xs opacity-70 mt-0.5">
+                        {isAmharic
+                          ? 'የተለያዩ ምርቶች የመጫን ደንቦች፡ ከብት፣ በግ፣ ዶሮ እና የኪሎ ገደብ ከራስ-ሰር የተሽከርካሪ ምክር ጋር።'
+                          : 'Multi-product capacity rules: Cattle, sheep, chickens, and KG limits with automated vehicle recommendation.'}
+                      </p>
+                    </div>
+
+                    <button
+                      type="button"
+                      disabled={isSavingDeliveryVehicles}
+                      onClick={handleSaveDeliveryVehicles}
+                      className="px-4 py-2 rounded-xl bg-[#C18A45] hover:bg-[#A06E35] disabled:opacity-50 text-white font-bold text-xs shadow transition-all flex items-center gap-1.5 cursor-pointer self-start sm:self-auto"
+                    >
+                      {isSavingDeliveryVehicles ? (
+                        <>
+                          <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                          <span>{isAmharic ? 'የመርከብ ዋጋዎችን በማስቀመጥ ላይ...' : 'Saving Fleet Rates...'}</span>
+                        </>
+                      ) : (
+                        <>
+                          <Check className="w-3.5 h-3.5" />
+                          <span>{isAmharic ? 'የተሽከርካሪ መርከብ ዋጋዎችን መዝግብ' : 'Save Vehicle Fleet Rates'}</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+
+                  {/* Responsive Vehicle Config Table */}
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-xs">
+                      <thead>
+                        <tr className="border-b border-black/10 dark:border-white/10 text-[11px] uppercase tracking-wider opacity-60">
+                          <th className="pb-3 pr-3">{isAmharic ? 'ተሽከርካሪ' : 'Vehicle'}</th>
+                          <th className="pb-3 px-2">{isAmharic ? 'መነሻ ክፍያ (ብር)' : 'Base Fee (ETB)'}</th>
+                          <th className="pb-3 px-2">{isAmharic ? 'ተመን (ብር / ኪ.ሜ)' : 'Rate (ETB / KM)'}</th>
+                          <th className="pb-3 px-2">{isAmharic ? 'ከፍተኛ በግ / ፍየል' : 'Max Sheep / Goats'}</th>
+                          <th className="pb-3 px-2">{isAmharic ? 'ከፍተኛ በሬ / ከብት' : 'Max Cattle / Ox'}</th>
+                          <th className="pb-3 px-2">{isAmharic ? 'ከፍተኛ ዶሮ' : 'Max Chickens'}</th>
+                          <th className="pb-3 px-2">{isAmharic ? 'ከፍተኛ ክብደት (ኪሎ)' : 'Max Weight (KG)'}</th>
+                          <th className="pb-3 pl-2 text-right">{isAmharic ? 'ሁኔታ' : 'Status'}</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-black/5 dark:divide-white/5">
+                        {deliveryVehicles.map((veh, idx) => (
+                          <tr key={veh.id} className="hover:bg-black/[0.02] dark:hover:bg-white/[0.02]">
+                            <td className="py-3.5 pr-3">
+                              <div className="font-bold text-sm flex items-center gap-2">
+                                <span>{isAmharic ? (veh.amharicName || veh.name) : veh.name}</span>
+                                <span className="text-[10px] font-mono opacity-60 uppercase bg-black/10 dark:bg-white/10 px-1.5 py-0.5 rounded">
+                                  {veh.id}
+                                </span>
+                              </div>
+                              <div className="text-[11px] opacity-70 mt-0.5">{isAmharic ? veh.name : veh.amharicName}</div>
+                              <div className="text-[10px] opacity-50 mt-0.5 line-clamp-1">{veh.description}</div>
+                            </td>
+
+                            {/* Base Fee Input */}
+                            <td className="py-3.5 px-2">
+                              <div className="flex items-center gap-1">
+                                <input
+                                  type="number"
+                                  min="0"
+                                  value={veh.baseFee}
+                                  onChange={(e) => {
+                                    const val = Number(e.target.value) || 0;
+                                    setDeliveryVehicles((prev) =>
+                                      prev.map((v, i) => (i === idx ? { ...v, baseFee: val } : v))
+                                    );
+                                  }}
+                                  className="w-20 px-2 py-1.5 rounded-lg border font-mono font-bold bg-transparent text-xs focus:outline-none focus:border-[#C18A45]"
+                                />
+                                <span className="text-[10px] opacity-60">{isAmharic ? 'ብር' : 'ETB'}</span>
+                              </div>
+                            </td>
+
+                            {/* Price per KM Input */}
+                            <td className="py-3.5 px-2">
+                              <div className="flex items-center gap-1">
+                                <input
+                                  type="number"
+                                  min="0"
+                                  value={veh.pricePerKm}
+                                  onChange={(e) => {
+                                    const val = Number(e.target.value) || 0;
+                                    setDeliveryVehicles((prev) =>
+                                      prev.map((v, i) => (i === idx ? { ...v, pricePerKm: val } : v))
+                                    );
+                                  }}
+                                  className="w-20 px-2 py-1.5 rounded-lg border font-mono font-bold bg-transparent text-xs focus:outline-none focus:border-[#C18A45]"
+                                />
+                                <span className="text-[10px] opacity-60">{isAmharic ? 'ብር/ኪ.ሜ' : 'ETB/km'}</span>
+                              </div>
+                            </td>
+
+                            {/* Max Sheep */}
+                            <td className="py-3.5 px-2">
+                              <input
+                                type="number"
+                                min="0"
+                                value={veh.maxSheep ?? 0}
+                                onChange={(e) => {
+                                  const val = Number(e.target.value) || 0;
+                                  setDeliveryVehicles((prev) =>
+                                    prev.map((v, i) => (i === idx ? { ...v, maxSheep: val } : v))
+                                  );
+                                }}
+                                className="w-16 px-2 py-1.5 rounded-lg border font-mono text-xs bg-transparent focus:outline-none focus:border-[#C18A45]"
+                              />
+                            </td>
+
+                            {/* Max Cattle */}
+                            <td className="py-3.5 px-2">
+                              <input
+                                type="number"
+                                min="0"
+                                value={veh.maxCattle ?? 0}
+                                onChange={(e) => {
+                                  const val = Number(e.target.value) || 0;
+                                  setDeliveryVehicles((prev) =>
+                                    prev.map((v, i) => (i === idx ? { ...v, maxCattle: val } : v))
+                                  );
+                                }}
+                                className="w-16 px-2 py-1.5 rounded-lg border font-mono text-xs bg-transparent focus:outline-none focus:border-[#C18A45]"
+                              />
+                            </td>
+
+                            {/* Max Chickens */}
+                            <td className="py-3.5 px-2">
+                              <input
+                                type="number"
+                                min="0"
+                                value={veh.maxChickens ?? 0}
+                                onChange={(e) => {
+                                  const val = Number(e.target.value) || 0;
+                                  setDeliveryVehicles((prev) =>
+                                    prev.map((v, i) => (i === idx ? { ...v, maxChickens: val } : v))
+                                  );
+                                }}
+                                className="w-16 px-2 py-1.5 rounded-lg border font-mono text-xs bg-transparent focus:outline-none focus:border-[#C18A45]"
+                              />
+                            </td>
+
+                            {/* Max Weight */}
+                            <td className="py-3.5 px-2">
+                              <div className="flex items-center gap-1">
+                                <input
+                                  type="number"
+                                  min="0"
+                                  value={veh.maxWeightKg ?? 0}
+                                  onChange={(e) => {
+                                    const val = Number(e.target.value) || 0;
+                                    setDeliveryVehicles((prev) =>
+                                      prev.map((v, i) => (i === idx ? { ...v, maxWeightKg: val } : v))
+                                    );
+                                  }}
+                                  className="w-20 px-2 py-1.5 rounded-lg border font-mono text-xs bg-transparent focus:outline-none focus:border-[#C18A45]"
+                                />
+                                <span className="text-[10px] opacity-60">{isAmharic ? 'ኪሎ' : 'KG'}</span>
+                              </div>
+                            </td>
+
+                            {/* Active Toggle */}
+                            <td className="py-3.5 pl-2 text-right">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setDeliveryVehicles((prev) =>
+                                    prev.map((v, i) => (i === idx ? { ...v, active: !v.active } : v))
+                                  );
+                                }}
+                                className={`px-2.5 py-1 rounded-full text-[10px] font-bold transition-all ${
+                                  veh.active !== false
+                                    ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
+                                    : 'bg-red-500/15 text-red-400 border border-red-500/30'
+                                }`}
+                              >
+                                {veh.active !== false ? (isAmharic ? 'ንቁ' : 'Active') : (isAmharic ? 'የቦዘነ' : 'Disabled')}
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* 2. Farm Origin Facility & Global Logistics Settings */}
+                <div
+                  className={`p-5 sm:p-6 rounded-3xl border space-y-4 ${
+                    isDark ? 'bg-[#1E140A] border-[#3D2513]' : 'bg-white border-[#E8DCCB]'
+                  }`}
+                >
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-black/10 dark:border-white/10">
+                    <div>
+                      <h3 className="text-base font-serif font-bold flex items-center gap-2">
+                        <MapPin className="w-4 h-4 text-[#C18A45]" />
+                        <span>{isAmharic ? 'የአዋሬ እርሻ መላኪያ ማዕከል እና የወሰን ቅንብሮች' : 'Aware Farm Dispatch Hub & Boundary Settings'}</span>
+                      </h3>
+                      <p className="text-xs opacity-70 mt-0.5">
+                        {isAmharic
+                          ? 'የከብቶች መጫኛ መነሻ መጋጠሚያዎች እና ለአዲስ አበባ ከፍተኛ የማድረሻ ርቀት ገደብ።'
+                          : 'Origin coordinates where livestock are loaded and max driving radius cutoff for Addis Ababa.'}
+                      </p>
+                    </div>
+
+                    <button
+                      type="button"
+                      disabled={isSavingDeliverySettings}
+                      onClick={handleSaveDeliverySettings}
+                      className="px-4 py-2 rounded-xl bg-[#C18A45] hover:bg-[#A06E35] disabled:opacity-50 text-white font-bold text-xs shadow transition-all flex items-center gap-1.5 cursor-pointer self-start sm:self-auto"
+                    >
+                      {isSavingDeliverySettings ? (
+                        <>
+                          <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                          <span>{isAmharic ? 'ማዕከሉን በማስቀመጥ ላይ...' : 'Saving Facility Hub...'}</span>
+                        </>
+                      ) : (
+                        <>
+                          <Check className="w-3.5 h-3.5" />
+                          <span>{isAmharic ? 'የመላኪያ ማዕከሉን መዝግብ' : 'Save Facility Hub'}</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+                    <div>
+                      <label className="block text-[11px] font-bold uppercase mb-1 opacity-70">
+                        {isAmharic ? 'የመላኪያ ማዕከል ስም' : 'Dispatch Facility Name'}
+                      </label>
+                      <input
+                        type="text"
+                        value={deliverySettings.pickupAddress || deliverySettings.defaultOriginName || ''}
+                        onChange={(e) =>
+                          setDeliverySettings((prev: any) => ({
+                            ...prev,
+                            pickupAddress: e.target.value,
+                            defaultOriginName: e.target.value
+                          }))
+                        }
+                        className="w-full px-3 py-2 rounded-xl border text-xs bg-transparent focus:outline-none focus:border-[#C18A45]"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-bold uppercase mb-1 opacity-70">
+                        {isAmharic ? 'የእርሻ ላቲቲዩድ (GPS)' : 'Farm Latitude (GPS)'}
+                      </label>
+                      <input
+                        type="number"
+                        step="any"
+                        value={deliverySettings.pickupLatitude ?? deliverySettings.defaultOriginLat ?? 9.0182}
+                        onChange={(e) =>
+                          setDeliverySettings((prev: any) => ({
+                            ...prev,
+                            pickupLatitude: Number(e.target.value),
+                            defaultOriginLat: Number(e.target.value)
+                          }))
+                        }
+                        className="w-full px-3 py-2 rounded-xl border text-xs font-mono bg-transparent focus:outline-none focus:border-[#C18A45]"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-bold uppercase mb-1 opacity-70">
+                        {isAmharic ? 'የእርሻ ሎንጊቲዩድ (GPS)' : 'Farm Longitude (GPS)'}
+                      </label>
+                      <input
+                        type="number"
+                        step="any"
+                        value={deliverySettings.pickupLongitude ?? deliverySettings.defaultOriginLng ?? 38.7750}
+                        onChange={(e) =>
+                          setDeliverySettings((prev: any) => ({
+                            ...prev,
+                            pickupLongitude: Number(e.target.value),
+                            defaultOriginLng: Number(e.target.value)
+                          }))
+                        }
+                        className="w-full px-3 py-2 rounded-xl border text-xs font-mono bg-transparent focus:outline-none focus:border-[#C18A45]"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-bold uppercase mb-1 opacity-70">
+                        {isAmharic ? 'ከፍተኛ የማድረሻ ርቀት (ኪ.ሜ)' : 'Max Delivery Radius (KM)'}
+                      </label>
+                      <input
+                        type="number"
+                        min="1"
+                        max="100"
+                        value={deliverySettings.maxDistanceKm ?? 30}
+                        onChange={(e) =>
+                          setDeliverySettings((prev: any) => ({ ...prev, maxDistanceKm: Number(e.target.value) }))
+                        }
+                        className="w-full px-3 py-2 rounded-xl border text-xs font-mono bg-transparent focus:outline-none focus:border-[#C18A45]"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* 3. Interactive Live Route & Capacity Simulator Sandbox */}
+                <div
+                  className={`p-5 sm:p-6 rounded-3xl border space-y-4 ${
+                    isDark ? 'bg-[#1E140A] border-[#3D2513]' : 'bg-white border-[#E8DCCB]'
+                  }`}
+                >
+                  <div className="pb-3 border-b border-black/10 dark:border-white/10">
+                    <h3 className="text-base font-serif font-bold flex items-center gap-2">
+                      <Navigation className="w-4 h-4 text-[#C18A45]" />
+                      <span>{isAmharic ? 'የቀጥታ መንገድ እና የተሽከርካሪ ጭነት አስመሳይ' : 'Interactive Route & Vehicle Load Simulator'}</span>
+                    </h3>
+                    <p className="text-xs opacity-70 mt-0.5">
+                      {isAmharic
+                        ? 'የእውነተኛ የመንገድ ርቀት፣ የጉዞ ጊዜ፣ የተደባለቁ ጭነቶች እና የተሽከርካሪ አቅም ማረጋገጫን ይሞክሩ።'
+                        : 'Test actual road distance calculations, duration, multi-item loads, and capacity enforcement in real time.'}
+                    </p>
+                  </div>
+
+                  {/* Simulator Input Grid */}
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3.5">
+                    {/* Destination Dropdown */}
+                    <div className="col-span-2 md:col-span-3 lg:col-span-2">
+                      <label className="block text-[11px] font-bold uppercase mb-1 opacity-70">
+                        {isAmharic ? 'የአዲስ አበባ መዳረሻ ይምረጡ' : 'Select Addis Ababa Destination'}
+                      </label>
+                      <select
+                        value={simSelectedLocId}
+                        onChange={(e) => {
+                          const locId = e.target.value;
+                          setSimSelectedLocId(locId);
+                          const loc = ADDIS_ABABA_LOCATIONS.find((l) => l.id === locId);
+                          if (loc) {
+                            setSimDestLat(loc.lat);
+                            setSimDestLng(loc.lng);
+                            setSimDestAddress(`${loc.name} (${loc.subCity} Sub-City)`);
+                          }
+                        }}
+                        className={`w-full px-3 py-2 rounded-xl border text-xs focus:outline-none ${
+                          isDark ? 'bg-[#24170D] border-[#4A2C16]' : 'bg-white border-[#E4D4BC]'
+                        }`}
+                      >
+                        {ADDIS_ABABA_LOCATIONS.map((loc) => (
+                          <option key={loc.id} value={loc.id}>
+                            {loc.name} — {loc.subCity} ({loc.amharicName})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Sheep / Goats */}
+                    <div>
+                      <label className="block text-[11px] font-bold uppercase mb-1 opacity-70">{isAmharic ? 'በጎች / ፍየሎች' : 'Sheep / Goats'}</label>
+                      <input
+                        type="number"
+                        min="0"
+                        value={simSheep}
+                        onChange={(e) => setSimSheep(Math.max(0, Number(e.target.value) || 0))}
+                        className="w-full px-3 py-2 rounded-xl border text-xs font-mono bg-transparent focus:outline-none"
+                      />
+                    </div>
+
+                    {/* Cattle / Oxen */}
+                    <div>
+                      <label className="block text-[11px] font-bold uppercase mb-1 opacity-70">{isAmharic ? 'በሬዎች / ከብቶች' : 'Cattle / Oxen'}</label>
+                      <input
+                        type="number"
+                        min="0"
+                        value={simCattle}
+                        onChange={(e) => setSimCattle(Math.max(0, Number(e.target.value) || 0))}
+                        className="w-full px-3 py-2 rounded-xl border text-xs font-mono bg-transparent focus:outline-none"
+                      />
+                    </div>
+
+                    {/* Chickens */}
+                    <div>
+                      <label className="block text-[11px] font-bold uppercase mb-1 opacity-70">{isAmharic ? 'ዶሮዎች' : 'Chickens'}</label>
+                      <input
+                        type="number"
+                        min="0"
+                        value={simChickens}
+                        onChange={(e) => setSimChickens(Math.max(0, Number(e.target.value) || 0))}
+                        className="w-full px-3 py-2 rounded-xl border text-xs font-mono bg-transparent focus:outline-none"
+                      />
+                    </div>
+
+                    {/* Raw Meat KG */}
+                    <div>
+                      <label className="block text-[11px] font-bold uppercase mb-1 opacity-70">{isAmharic ? 'የበሬ ስጋ (ኪሎ)' : 'Beef / Meat (KG)'}</label>
+                      <input
+                        type="number"
+                        min="0"
+                        value={simMeatKg}
+                        onChange={(e) => setSimMeatKg(Math.max(0, Number(e.target.value) || 0))}
+                        className="w-full px-3 py-2 rounded-xl border text-xs font-mono bg-transparent focus:outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Simulation Trigger Button */}
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      disabled={isSimulatingRoute}
+                      onClick={handleRunSimulator}
+                      className="px-5 py-2.5 rounded-xl bg-[#C18A45] hover:bg-[#A06E35] disabled:opacity-50 text-white font-bold text-xs shadow transition-all flex items-center gap-2 cursor-pointer"
+                    >
+                      {isSimulatingRoute ? (
+                        <>
+                          <RefreshCw className="w-4 h-4 animate-spin" />
+                          <span>{isAmharic ? 'የመንገድ ርቀት በማስላት ላይ...' : 'Calculating Driving Route...'}</span>
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="w-4 h-4" />
+                          <span>{isAmharic ? 'መንገድ እና የተሽከርካሪ አቅም አስመስክር' : 'Simulate Route & Check Vehicle Capacity'}</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+
+                  {/* Simulation Results Display */}
+                  {simResult && (
+                    <div
+                      className={`p-4 rounded-2xl border space-y-3 animate-in fade-in-50 duration-200 ${
+                        isDark ? 'bg-black/20 border-[#4A2C16]' : 'bg-[#FAF7F0] border-[#E4D4BC]'
+                      }`}
+                    >
+                      <div className="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-black/10 dark:border-white/10">
+                        <div className="flex items-center gap-2 text-xs">
+                          <div className="flex items-center gap-1.5 font-bold">
+                            <Navigation className="w-3.5 h-3.5 text-[#C18A45]" />
+                            <span>{isAmharic ? 'የመንገድ ርቀት:' : 'Road Distance:'}</span>
+                          </div>
+                          <span className="px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-400 font-mono font-bold">
+                            {simResult.distanceKm} {isAmharic ? 'ኪ.ሜ' : 'KM'}
+                          </span>
+                          <span className="opacity-60">•</span>
+                          <span>{isAmharic ? `የሚፈጀው ጊዜ ~${simResult.estimatedDurationMinutes} ደቂቃ` : `Est. ${simResult.estimatedDurationMinutes} mins drive`}</span>
+                          <span className="opacity-60">•</span>
+                          <span className="opacity-80">{isAmharic ? 'ምድብ:' : 'Category:'} {simResult.distanceCategoryLabel}</span>
+                        </div>
+
+                        <div className="text-[10px] font-mono opacity-60">
+                          {isAmharic ? 'ሞተር:' : 'Engine:'} {simResult.routeSource || 'OSRM Driving Router'}
+                        </div>
+                      </div>
+
+                      {/* Vehicle Cards */}
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        {simResult.vehicles?.map((v: any) => (
+                          <div
+                            key={v.id}
+                            className={`p-3 rounded-xl border text-xs space-y-1.5 ${
+                              v.isSuitable
+                                ? 'bg-emerald-500/10 border-emerald-500/30'
+                                : 'bg-red-500/10 border-red-500/30 opacity-70'
+                            }`}
+                          >
+                            <div className="flex items-center justify-between font-bold">
+                              <span>{isAmharic ? (v.amharicName || v.name) : v.name}</span>
+                              {v.isRecommended && (
+                                <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-emerald-500 text-black font-black">
+                                  {isAmharic ? 'ምርጥ ምርጫ' : 'Best Choice'}
+                                </span>
+                              )}
+                            </div>
+                            <div className="text-lg font-mono font-bold text-[#C18A45]">
+                              {formatPrice(v.deliveryFee)}
+                            </div>
+                            <div className="text-[10px] opacity-75">
+                              {isAmharic ? 'መነሻ:' : 'Base:'} {v.baseFee} {isAmharic ? 'ብር' : 'ETB'} + {v.pricePerKm} {isAmharic ? 'ብር/ኪ.ሜ' : 'ETB/km'}
+                            </div>
+                            <div className="pt-1 border-t border-black/5 dark:border-white/5">
+                              {v.isSuitable ? (
+                                <span className="text-emerald-400 font-semibold flex items-center gap-1">
+                                  <CheckCircle2 className="w-3.5 h-3.5" />
+                                  <span>{isAmharic ? 'ለዚህ ጭነት ተስማሚ' : 'Suitable for this load'}</span>
+                                </span>
+                              ) : (
+                                <span className="text-red-400 font-semibold flex items-center gap-1 leading-tight">
+                                  <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+                                  <span>{v.unsuitabilityReason || (isAmharic ? 'ከአቅም በላይ ነው' : 'Exceeds capacity')}</span>
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
         {/* ============================================================ */}
-        {/* TAB 5: DEMAND & METRICS */}
+        {/* TAB 7: DEMAND & METRICS */}
         {/* ============================================================ */}
         {activeTab === 'demand' && (
           <div className="space-y-6 animate-in fade-in-50 duration-150">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
               <div className={`p-5 rounded-2xl border ${isDark ? 'bg-[#2A1A0D] border-[#4A2C16]' : 'bg-[#F1E8D8] border-[#E4D4BC]'}`}>
                 <div className="flex items-center justify-between pb-2.5 border-b" style={{ borderColor: isDark ? '#4A2C16' : '#E4D4BC' }}>
-                  <strong className="font-serif text-sm">Sheep Inventory Valuation</strong>
-                  <span className="text-[11px] font-mono opacity-70">{stats.sheepCount} Head</span>
+                  <strong className="font-serif text-sm">{isAmharic ? 'የበጎች የገበያ ዋጋ ግምት' : 'Sheep Inventory Valuation'}</strong>
+                  <span className="text-[11px] font-mono opacity-70">{stats.sheepCount} {isAmharic ? 'ራስ' : 'Head'}</span>
                 </div>
                 <div className="pt-2.5 text-lg font-bold text-[#C18A45]">{formatPrice(stats.sheepValue)}</div>
               </div>
 
               <div className={`p-5 rounded-2xl border ${isDark ? 'bg-[#2A1A0D] border-[#4A2C16]' : 'bg-[#F1E8D8] border-[#E4D4BC]'}`}>
                 <div className="flex items-center justify-between pb-2.5 border-b" style={{ borderColor: isDark ? '#4A2C16' : '#E4D4BC' }}>
-                  <strong className="font-serif text-sm">Goats Inventory Valuation</strong>
-                  <span className="text-[11px] font-mono opacity-70">{stats.goatsCount} Head</span>
+                  <strong className="font-serif text-sm">{isAmharic ? 'የፍየሎች የገበያ ዋጋ ግምት' : 'Goats Inventory Valuation'}</strong>
+                  <span className="text-[11px] font-mono opacity-70">{stats.goatsCount} {isAmharic ? 'ራስ' : 'Head'}</span>
                 </div>
                 <div className="pt-2.5 text-lg font-bold text-[#C18A45]">{formatPrice(stats.goatValue)}</div>
               </div>
 
               <div className={`p-5 rounded-2xl border ${isDark ? 'bg-[#2A1A0D] border-[#4A2C16]' : 'bg-[#F1E8D8] border-[#E4D4BC]'}`}>
                 <div className="flex items-center justify-between pb-2.5 border-b" style={{ borderColor: isDark ? '#4A2C16' : '#E4D4BC' }}>
-                  <strong className="font-serif text-sm">Cows Inventory Valuation</strong>
-                  <span className="text-[11px] font-mono opacity-70">{stats.cowsCount} Head</span>
+                  <strong className="font-serif text-sm">{isAmharic ? 'የከብቶች የገበያ ዋጋ ግምት' : 'Cows Inventory Valuation'}</strong>
+                  <span className="text-[11px] font-mono opacity-70">{stats.cowsCount} {isAmharic ? 'ራስ' : 'Head'}</span>
                 </div>
                 <div className="pt-2.5 text-lg font-bold text-[#C18A45]">{formatPrice(stats.cowValue)}</div>
               </div>
@@ -4184,7 +4425,7 @@ export const Admin: React.FC = () => {
         )}
 
         {/* ============================================================ */}
-        {/* TAB 6: CUSTOMER INQUIRIES & CONTACT MESSAGES */}
+        {/* TAB 8: CUSTOMER INQUIRIES & CONTACT MESSAGES */}
         {/* ============================================================ */}
         {activeTab === 'messages' && (
           <div className="space-y-6 animate-in fade-in-50 duration-150">
@@ -4195,13 +4436,15 @@ export const Admin: React.FC = () => {
               <div>
                 <h3 className="font-serif font-bold text-xl flex items-center gap-2">
                   <MessageSquare className="w-5 h-5 text-[#C18A45]" />
-                  <span>Customer Inquiries & Messages</span>
+                  <span>{isAmharic ? 'የደንበኞች ጥያቄዎች እና መልዕክቶች' : 'Customer Inquiries & Messages'}</span>
                   <span className="text-xs px-2 py-0.5 rounded-md font-sans font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30">
-                    {contactMessages.length} Total
+                    {contactMessages.length} {isAmharic ? 'ጠቅላላ' : 'Total'}
                   </span>
                 </h3>
                 <p className="text-xs opacity-75 mt-0.5">
-                  Inquiries submitted via the Contact Us page. Reply directly through phone call or WhatsApp.
+                  {isAmharic
+                    ? 'በእውቂያ ገጽ በኩል የተላኩ ጥያቄዎች። በቀጥታ በስልክ ጥሪ ወይም በዋትስአፕ ምላሽ ይስጡ።'
+                    : 'Inquiries submitted via the Contact Us page. Reply directly through phone call or WhatsApp.'}
                 </p>
               </div>
 
@@ -4210,7 +4453,7 @@ export const Admin: React.FC = () => {
                   <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 opacity-50" />
                   <input
                     type="text"
-                    placeholder="Search sender, phone..."
+                    placeholder={isAmharic ? 'በስም ወይም በስልክ ይፈልጉ...' : 'Search sender, phone...'}
                     value={messageSearch}
                     onChange={(e) => setMessageSearch(e.target.value)}
                     className="w-full pl-8 pr-3 py-1.5 rounded-xl text-xs border bg-transparent"
@@ -4227,7 +4470,7 @@ export const Admin: React.FC = () => {
                         : 'opacity-70 hover:opacity-100'
                     }`}
                   >
-                    All ({contactMessages.length})
+                    {isAmharic ? 'ሁሉም' : 'All'} ({contactMessages.length})
                   </button>
                   <button
                     type="button"
@@ -4238,7 +4481,7 @@ export const Admin: React.FC = () => {
                         : 'opacity-70 hover:opacity-100'
                     }`}
                   >
-                    Unread ({unreadMessagesCount})
+                    {isAmharic ? 'ያልተነበቡ' : 'Unread'} ({unreadMessagesCount})
                   </button>
                   <button
                     type="button"
@@ -4249,7 +4492,7 @@ export const Admin: React.FC = () => {
                         : 'opacity-70 hover:opacity-100'
                     }`}
                   >
-                    Read ({contactMessages.length - unreadMessagesCount})
+                    {isAmharic ? 'የተነበቡ' : 'Read'} ({contactMessages.length - unreadMessagesCount})
                   </button>
                 </div>
               </div>
@@ -4277,11 +4520,11 @@ export const Admin: React.FC = () => {
                     isDark ? 'bg-[#2A1A0D]/40 border-[#4A2C16]' : 'bg-[#F1E8D8]/40 border-[#E4D4BC]'
                   }`}>
                     <MessageSquare className="w-12 h-12 mx-auto mb-3 opacity-30 text-[#C18A45]" />
-                    <p className="font-semibold text-sm">No customer inquiries found</p>
+                    <p className="font-semibold text-sm">{isAmharic ? 'ምንም የደንበኛ መልዕክት አልተገኘም' : 'No customer inquiries found'}</p>
                     <p className="text-xs opacity-60 mt-1">
                       {messageSearch || messageFilter !== 'all'
-                        ? 'Try adjusting your search query or filter.'
-                        : 'Customer messages from the Contact Us form will appear here in real time.'}
+                        ? (isAmharic ? 'የፍለጋ ቃልዎን ወይም ማጣሪያዎን ያስተካክሉ።' : 'Try adjusting your search query or filter.')
+                        : (isAmharic ? 'ከደንበኞች የሚላኩ መልዕክቶች በቀጥታ እዚህ ይታያሉ።' : 'Customer messages from the Contact Us form will appear here in real time.')}
                     </p>
                   </div>
                 );
@@ -4309,16 +4552,16 @@ export const Admin: React.FC = () => {
                             <span className="font-bold text-sm sm:text-base">{msg.name}</span>
                             {!msg.read ? (
                               <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30">
-                                Unread
+                                {isAmharic ? 'ያልተነበበ' : 'Unread'}
                               </span>
                             ) : (
                               <span className="px-2 py-0.5 rounded-md text-[10px] font-medium opacity-60 border border-black/10 dark:border-white/10">
-                                Read
+                                {isAmharic ? 'የተነበበ' : 'Read'}
                               </span>
                             )}
                           </div>
                           <div className="text-[11px] opacity-60 font-mono mt-0.5">
-                            Received {new Date(msg.createdAt).toLocaleString()}
+                            {isAmharic ? 'የደረሰው:' : 'Received'} {new Date(msg.createdAt).toLocaleString()}
                           </div>
                         </div>
 
@@ -4327,10 +4570,10 @@ export const Admin: React.FC = () => {
                           <a
                             href={getPhoneCallLink(msg.phone)}
                             className="px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500 hover:text-black transition-all flex items-center gap-1.5"
-                            title="Call Customer directly"
+                            title={isAmharic ? 'ለደንበኛው በቀጥታ ይደውሉ' : 'Call Customer directly'}
                           >
                             <Phone className="w-3.5 h-3.5" />
-                            <span>Call {msg.phone}</span>
+                            <span>{isAmharic ? 'ይደውሉ' : 'Call'} {msg.phone}</span>
                           </a>
 
                           <a
@@ -4338,7 +4581,7 @@ export const Admin: React.FC = () => {
                             target="_blank"
                             rel="noopener noreferrer"
                             className="px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-600 text-white hover:bg-emerald-700 transition-all flex items-center gap-1.5 shadow-xs"
-                            title="Chat on WhatsApp"
+                            title={isAmharic ? 'በዋትስአፕ ያውሩ' : 'Chat on WhatsApp'}
                           >
                             <span>WhatsApp</span>
                           </a>
@@ -4359,7 +4602,7 @@ export const Admin: React.FC = () => {
                               onClick={() => handleMarkMessageRead(msg.id)}
                               className="px-2.5 py-1.5 rounded-xl text-xs font-semibold bg-amber-500/10 text-amber-500 border border-amber-500/30 hover:bg-amber-500 hover:text-black transition-all cursor-pointer"
                             >
-                              Mark Read
+                              {isAmharic ? 'እንደተነበበ ምልክት አድርግ' : 'Mark Read'}
                             </button>
                           )}
 
@@ -4367,7 +4610,7 @@ export const Admin: React.FC = () => {
                             type="button"
                             onClick={() => handleDeleteMessage(msg.id)}
                             className="p-1.5 rounded-xl text-red-400 hover:bg-red-500/10 border border-red-500/20 transition-all cursor-pointer"
-                            title="Delete Inquiry"
+                            title={isAmharic ? 'መልዕክቱን ሰርዝ' : 'Delete Inquiry'}
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
@@ -4379,12 +4622,12 @@ export const Admin: React.FC = () => {
                         <div className="flex flex-wrap items-center gap-2 pt-2.5">
                           {msg.serviceNeeded && msg.serviceNeeded !== 'No Service' && (
                             <span className="px-2 py-0.5 rounded-lg text-[10.5px] font-semibold bg-amber-500/15 text-amber-400 border border-amber-500/25">
-                              Service: {msg.serviceNeeded}
+                              {isAmharic ? 'አገልግሎት:' : 'Service:'} {msg.serviceNeeded}
                             </span>
                           )}
                           {msg.animalId && (
                             <span className="px-2 py-0.5 rounded-lg text-[10.5px] font-mono font-semibold bg-black/10 dark:bg-white/10">
-                              Animal ID: {msg.animalId}
+                              {isAmharic ? 'የከብት መለያ:' : 'Animal ID:'} {msg.animalId}
                             </span>
                           )}
                         </div>
@@ -4455,25 +4698,25 @@ export const Admin: React.FC = () => {
 
             <h3 className="font-serif font-bold text-xl mb-4 flex items-center gap-2">
               <Plus className="w-5 h-5 text-[#C18A45]" />
-              <span>Add New Livestock Listing</span>
+              <span>{isAmharic ? 'አዲስ የከብት ዝርዝር መዝግብ' : 'Add New Livestock Listing'}</span>
             </h3>
 
             <form onSubmit={handleAddAnimalSubmit} className="space-y-4">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold uppercase mb-1 opacity-80">Type *</label>
+                  <label className="block text-xs font-semibold uppercase mb-1 opacity-80">{isAmharic ? 'ዓይነት *' : 'Type *'}</label>
                   <select
                     value={newAnimalType}
                     onChange={(e) => setNewAnimalType(e.target.value as AnimalType)}
                     className="w-full px-3 py-2 rounded-xl text-xs border bg-transparent"
                   >
-                    <option value="sheep" className="text-black">Sheep</option>
-                    <option value="goat" className="text-black">Goat</option>
-                    <option value="cow" className="text-black">Cow</option>
+                    <option value="sheep" className="text-black">{isAmharic ? 'በግ' : 'Sheep'}</option>
+                    <option value="goat" className="text-black">{isAmharic ? 'ፍየል' : 'Goat'}</option>
+                    <option value="cow" className="text-black">{isAmharic ? 'ላም / በሬ' : 'Cow'}</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold uppercase mb-1 opacity-80">Breed *</label>
+                  <label className="block text-xs font-semibold uppercase mb-1 opacity-80">{isAmharic ? 'ዝርያ *' : 'Breed *'}</label>
                   <input
                     type="text"
                     required
@@ -4487,7 +4730,7 @@ export const Admin: React.FC = () => {
 
               <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold uppercase mb-1 opacity-80">Weight (kg) *</label>
+                  <label className="block text-xs font-semibold uppercase mb-1 opacity-80">{isAmharic ? 'ክብደት (ኪሎ) *' : 'Weight (kg) *'}</label>
                   <input
                     type="number"
                     required
@@ -4497,7 +4740,7 @@ export const Admin: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold uppercase mb-1 opacity-80">Price (ETB) *</label>
+                  <label className="block text-xs font-semibold uppercase mb-1 opacity-80">{isAmharic ? 'ዋጋ (ብር) *' : 'Price (ETB) *'}</label>
                   <input
                     type="number"
                     required
@@ -4507,7 +4750,7 @@ export const Admin: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold uppercase mb-1 opacity-80">Color</label>
+                  <label className="block text-xs font-semibold uppercase mb-1 opacity-80">{isAmharic ? 'ቀለም' : 'Color'}</label>
                   <input
                     type="text"
                     placeholder="Solid White"
@@ -4519,10 +4762,10 @@ export const Admin: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold uppercase mb-1 opacity-80">Description</label>
+                <label className="block text-xs font-semibold uppercase mb-1 opacity-80">{isAmharic ? 'መግለጫ' : 'Description'}</label>
                 <textarea
                   rows={2}
-                  placeholder="Prime meat conformation, organic grazing history..."
+                  placeholder={isAmharic ? 'ስለ ከብቱ ጥራት፣ የጤና ሁኔታ እና ዝርዝር...' : 'Prime meat conformation, organic grazing history...'}
                   value={newAnimalDesc}
                   onChange={(e) => setNewAnimalDesc(e.target.value)}
                   className="w-full px-3 py-2 rounded-xl text-xs border bg-transparent"
@@ -4533,7 +4776,7 @@ export const Admin: React.FC = () => {
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <label className="block text-xs font-semibold uppercase opacity-80">
-                    Animal Photo (Drag & Drop or File)
+                    {isAmharic ? 'የከብቱ ፎቶ (በመጎተት ወይም ፋይል በመምረጥ)' : 'Animal Photo (Drag & Drop or File)'}
                   </label>
                   <div className="flex items-center gap-1 text-[10px]">
                     <button
@@ -4545,7 +4788,7 @@ export const Admin: React.FC = () => {
                           : 'opacity-60 hover:opacity-100'
                       }`}
                     >
-                      Drag & Drop
+                      {isAmharic ? 'በመጎተት' : 'Drag & Drop'}
                     </button>
                     <button
                       type="button"
@@ -4556,7 +4799,7 @@ export const Admin: React.FC = () => {
                           : 'opacity-60 hover:opacity-100'
                       }`}
                     >
-                      Paste URL
+                      {isAmharic ? 'የሊንክ አድራሻ' : 'Paste URL'}
                     </button>
                   </div>
                 </div>
@@ -4598,11 +4841,11 @@ export const Admin: React.FC = () => {
                         <div className="flex-1 min-w-0 pr-1">
                           <div className="flex items-center gap-1.5">
                             <span className="text-xs font-bold text-[#C18A45]">
-                              {isUploadingImage ? 'Uploading image...' : '✓ Image Attached'}
+                              {isUploadingImage ? (isAmharic ? 'ምስል በመጫን ላይ...' : 'Uploading image...') : (isAmharic ? '✓ ፎቶው ተያይዟል' : '✓ Image Attached')}
                             </span>
                           </div>
                           <p className="text-[10px] opacity-60 truncate mt-0.5">
-                            {newAnimalImage.startsWith('data:') ? 'Local preview ready' : newAnimalImage}
+                            {newAnimalImage.startsWith('data:') ? (isAmharic ? 'የተመረጠው ፎቶ ዝግጁ ነው' : 'Local preview ready') : newAnimalImage}
                           </p>
                           <div className="mt-2.5 flex items-center gap-2">
                             <button
@@ -4610,7 +4853,7 @@ export const Admin: React.FC = () => {
                               onClick={() => animalImageInputRef.current?.click()}
                               className="text-[11px] font-semibold text-[#C18A45] hover:underline cursor-pointer"
                             >
-                              Choose Another
+                              {isAmharic ? 'ሌላ ምረጥ' : 'Choose Another'}
                             </button>
                             <span className="opacity-30">•</span>
                             <button
@@ -4619,7 +4862,7 @@ export const Admin: React.FC = () => {
                               className="text-[11px] font-semibold text-red-400 hover:underline inline-flex items-center gap-0.5 cursor-pointer"
                             >
                               <Trash2 className="w-3 h-3" />
-                              <span>Remove</span>
+                              <span>{isAmharic ? 'አስወግድ' : 'Remove'}</span>
                             </button>
                           </div>
                         </div>
@@ -4652,16 +4895,16 @@ export const Admin: React.FC = () => {
                           <div>
                             <p className="text-xs font-bold">
                               {isDraggingImage ? (
-                                <span className="text-[#C18A45]">Drop image here!</span>
+                                <span className="text-[#C18A45]">{isAmharic ? 'ምስሉን እዚህ ይልቀቁት!' : 'Drop image here!'}</span>
                               ) : (
                                 <span>
-                                  Drag and drop animal photo here, or{' '}
-                                  <span className="text-[#C18A45] underline font-bold">browse</span>
+                                  {isAmharic ? 'የከብቱን ፎቶ እዚህ ይጎትቱ ወይም ' : 'Drag and drop animal photo here, or '}
+                                  <span className="text-[#C18A45] underline font-bold">{isAmharic ? 'ይምረጡ' : 'browse'}</span>
                                 </span>
                               )}
                             </p>
                             <p className="text-[10px] opacity-60 mt-0.5">
-                              Supports JPG, PNG, WEBP, GIF (up to 10 MB)
+                              JPG, PNG, WEBP, GIF (እስከ 10 MB)
                             </p>
                           </div>
                         </div>
@@ -4687,7 +4930,7 @@ export const Admin: React.FC = () => {
                             (e.target as HTMLElement).style.display = 'none';
                           }}
                         />
-                        <span className="text-[10px] opacity-60">URL preview</span>
+                        <span className="text-[10px] opacity-60">{isAmharic ? 'የሊንክ ቅድመ እይታ' : 'URL preview'}</span>
                       </div>
                     )}
                   </div>
@@ -4696,9 +4939,9 @@ export const Admin: React.FC = () => {
 
               <button
                 type="submit"
-                className="w-full py-3 rounded-xl bg-[#C18A45] hover:bg-[#A06E35] text-white font-bold text-xs shadow transition-all"
+                className="w-full py-3 rounded-xl bg-[#C18A45] hover:bg-[#A06E35] text-white font-bold text-xs shadow transition-all cursor-pointer"
               >
-                Create Listing
+                {isAmharic ? 'ከብቱን መዝግብ' : 'Create Listing'}
               </button>
             </form>
           </div>
@@ -4727,7 +4970,7 @@ export const Admin: React.FC = () => {
               </div>
               <div>
                 <h3 className="font-serif font-bold text-xl leading-tight">
-                  Edit Livestock Listing
+                  {isAmharic ? 'የከብት ዝርዝርን አርትዕ' : 'Edit Livestock Listing'}
                 </h3>
                 <span className="text-[11px] font-mono text-[#C18A45] font-bold">
                   ID: {editingAnimal.id}
@@ -4741,10 +4984,12 @@ export const Admin: React.FC = () => {
                 <div>
                   <div className="flex items-center gap-1.5 font-bold text-amber-500">
                     <AlertTriangle className="w-4 h-4 shrink-0" />
-                    <span>Currently Marked as SOLD</span>
+                    <span>{isAmharic ? 'በአሁኑ ጊዜ እንደተሸጠ ተመዝግቧል' : 'Currently Marked as SOLD'}</span>
                   </div>
                   <p className="text-[11px] opacity-75 mt-0.5">
-                    Click the button to restock 1 head and make it available on the market immediately.
+                    {isAmharic
+                      ? '1 ራስ ከብት ወደ ክምችት ለመመለስ እና በገበያ ላይ እንዲታይ ለማድረግ ከታች ያለውን ይጫኑ።'
+                      : 'Click the button to restock 1 head and make it available on the market immediately.'}
                   </p>
                 </div>
                 <button
@@ -4756,7 +5001,7 @@ export const Admin: React.FC = () => {
                   className="px-3 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm transition-all cursor-pointer whitespace-nowrap self-start sm:self-auto"
                 >
                   <RotateCcw className="w-3.5 h-3.5" />
-                  <span>Set Available (Stock: 1)</span>
+                  <span>{isAmharic ? 'ክምችት 1 አድርግ & ለሽያጭ አቅርብ' : 'Set Available (Stock: 1)'}</span>
                 </button>
               </div>
             )}
@@ -4764,19 +5009,19 @@ export const Admin: React.FC = () => {
             <form onSubmit={handleEditAnimalSubmit} className="space-y-4">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold uppercase mb-1 opacity-80">Type *</label>
+                  <label className="block text-xs font-semibold uppercase mb-1 opacity-80">{isAmharic ? 'ዓይነት *' : 'Type *'}</label>
                   <select
                     value={editAnimalType}
                     onChange={(e) => setEditAnimalType(e.target.value as AnimalType)}
                     className="w-full px-3 py-2 rounded-xl text-xs border bg-transparent"
                   >
-                    <option value="sheep" className="text-black">Sheep</option>
-                    <option value="goat" className="text-black">Goat</option>
-                    <option value="cow" className="text-black">Cow</option>
+                    <option value="sheep" className="text-black">{isAmharic ? 'በግ' : 'Sheep'}</option>
+                    <option value="goat" className="text-black">{isAmharic ? 'ፍየል' : 'Goat'}</option>
+                    <option value="cow" className="text-black">{isAmharic ? 'ላም / በሬ' : 'Cow'}</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold uppercase mb-1 opacity-80">Breed *</label>
+                  <label className="block text-xs font-semibold uppercase mb-1 opacity-80">{isAmharic ? 'ዝርያ *' : 'Breed *'}</label>
                   <input
                     type="text"
                     required
@@ -4789,18 +5034,18 @@ export const Admin: React.FC = () => {
 
               <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold uppercase mb-1 opacity-80">Gender</label>
+                  <label className="block text-xs font-semibold uppercase mb-1 opacity-80">{isAmharic ? 'ጾታ' : 'Gender'}</label>
                   <select
                     value={editAnimalGender}
                     onChange={(e) => setEditAnimalGender(e.target.value as 'Male' | 'Female')}
                     className="w-full px-3 py-2 rounded-xl text-xs border bg-transparent"
                   >
-                    <option value="Male" className="text-black">Male</option>
-                    <option value="Female" className="text-black">Female</option>
+                    <option value="Male" className="text-black">{isAmharic ? 'ተባዕት' : 'Male'}</option>
+                    <option value="Female" className="text-black">{isAmharic ? 'አንስታይ' : 'Female'}</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold uppercase mb-1 opacity-80">Status *</label>
+                  <label className="block text-xs font-semibold uppercase mb-1 opacity-80">{isAmharic ? 'ሁኔታ *' : 'Status *'}</label>
                   <select
                     value={editAnimalStatus}
                     onChange={(e) => {
@@ -4818,13 +5063,13 @@ export const Admin: React.FC = () => {
                         : 'text-stone-400'
                     }`}
                   >
-                    <option value="available" className="text-emerald-600 font-bold">Available</option>
-                    <option value="reserved" className="text-amber-600 font-bold">Reserved (Hold)</option>
-                    <option value="sold" className="text-stone-600 font-bold">Sold Out</option>
+                    <option value="available" className="text-emerald-600 font-bold">{isAmharic ? 'ለሽያጭ የቀረበ' : 'Available'}</option>
+                    <option value="reserved" className="text-amber-600 font-bold">{isAmharic ? 'የተያዘ (Hold)' : 'Reserved (Hold)'}</option>
+                    <option value="sold" className="text-stone-600 font-bold">{isAmharic ? 'ተሽጦ ያለቀ' : 'Sold Out'}</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold uppercase mb-1 opacity-80">Stock (Head) *</label>
+                  <label className="block text-xs font-semibold uppercase mb-1 opacity-80">{isAmharic ? 'ክምችት (ራስ) *' : 'Stock (Head) *'}</label>
                   <input
                     type="number"
                     min="0"
@@ -4838,7 +5083,7 @@ export const Admin: React.FC = () => {
 
               <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold uppercase mb-1 opacity-80">Weight (kg) *</label>
+                  <label className="block text-xs font-semibold uppercase mb-1 opacity-80">{isAmharic ? 'ክብደት (ኪሎ) *' : 'Weight (kg) *'}</label>
                   <input
                     type="number"
                     required
@@ -4848,7 +5093,7 @@ export const Admin: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold uppercase mb-1 opacity-80">Price (ETB) *</label>
+                  <label className="block text-xs font-semibold uppercase mb-1 opacity-80">{isAmharic ? 'ዋጋ (ብር) *' : 'Price (ETB) *'}</label>
                   <input
                     type="number"
                     required
@@ -4858,7 +5103,7 @@ export const Admin: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold uppercase mb-1 opacity-80">Color</label>
+                  <label className="block text-xs font-semibold uppercase mb-1 opacity-80">{isAmharic ? 'ቀለም' : 'Color'}</label>
                   <input
                     type="text"
                     value={editAnimalColor}
@@ -4869,7 +5114,7 @@ export const Admin: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold uppercase mb-1 opacity-80">Location</label>
+                <label className="block text-xs font-semibold uppercase mb-1 opacity-80">{isAmharic ? 'መገኛ ቦታ' : 'Location'}</label>
                 <input
                   type="text"
                   value={editAnimalLocation}
@@ -4879,7 +5124,7 @@ export const Admin: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold uppercase mb-1 opacity-80">Description</label>
+                <label className="block text-xs font-semibold uppercase mb-1 opacity-80">{isAmharic ? 'መግለጫ' : 'Description'}</label>
                 <textarea
                   rows={2}
                   value={editAnimalDesc}
@@ -4891,8 +5136,8 @@ export const Admin: React.FC = () => {
               {/* Photo Upload & Preview */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <label className="block text-xs font-semibold uppercase opacity-80">Photo</label>
-                  <span className="text-[10.5px] opacity-60">Upload local image or paste image link</span>
+                  <label className="block text-xs font-semibold uppercase opacity-80">{isAmharic ? 'ፎቶ' : 'Photo'}</label>
+                  <span className="text-[10.5px] opacity-60">{isAmharic ? 'የኮምፒውተር ፎቶ ይምረጡ ወይም ሊንክ ያስገቡ' : 'Upload local image or paste image link'}</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <input
@@ -4937,7 +5182,7 @@ export const Admin: React.FC = () => {
                         disabled={isUploadingEditImage}
                         className="font-semibold text-[#C18A45] hover:underline cursor-pointer disabled:opacity-50"
                       >
-                        {isUploadingEditImage ? 'Uploading...' : '📁 Upload Local File'}
+                        {isUploadingEditImage ? (isAmharic ? 'በመጫን ላይ...' : 'Uploading...') : (isAmharic ? 'ፎቶ ምረጥ' : 'Upload Local File')}
                       </button>
                       {editAnimalImage && (
                         <>
@@ -4947,7 +5192,7 @@ export const Admin: React.FC = () => {
                             onClick={() => setEditAnimalImage('')}
                             className="font-semibold text-red-400 hover:underline cursor-pointer"
                           >
-                            Remove
+                            {isAmharic ? 'አስወግድ' : 'Remove'}
                           </button>
                         </>
                       )}
@@ -4965,7 +5210,7 @@ export const Admin: React.FC = () => {
                   className="rounded border-[#C18A45] text-[#C18A45] focus:ring-[#C18A45]"
                 />
                 <label htmlFor="editAnimalFeatured" className="text-xs font-semibold cursor-pointer">
-                  Feature this animal on the Homepage
+                  {isAmharic ? 'ይህንን ከብት በመነሻ ገጽ ላይ በጉልህ አሳይ' : 'Feature this animal on the Homepage'}
                 </label>
               </div>
 
@@ -4975,7 +5220,7 @@ export const Admin: React.FC = () => {
                   onClick={() => setEditingAnimal(null)}
                   className="flex-1 py-2.5 rounded-xl border text-xs font-bold hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer"
                 >
-                  Cancel
+                  {isAmharic ? 'ሰርዝ' : 'Cancel'}
                 </button>
                 <button
                   type="submit"
@@ -4983,7 +5228,7 @@ export const Admin: React.FC = () => {
                   className="flex-1 py-2.5 rounded-xl bg-[#C18A45] hover:bg-[#A06E35] text-white font-bold text-xs shadow transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center gap-1.5"
                 >
                   {isUpdatingAnimal && <RefreshCw className="w-3.5 h-3.5 animate-spin" />}
-                  <span>Save Changes</span>
+                  <span>{isAmharic ? 'ለውጦችን መዝግብ' : 'Save Changes'}</span>
                 </button>
               </div>
             </form>
@@ -4991,7 +5236,6 @@ export const Admin: React.FC = () => {
         </div>
       )}
 
-      {/* Add Celebration Package Modal */}
       {/* Add Celebration Package Modal */}
       {isAddPackageOpen && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
@@ -5007,8 +5251,8 @@ export const Admin: React.FC = () => {
                   <Gift className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="font-serif font-bold text-base sm:text-lg leading-tight">Create Celebration Package</h3>
-                  <p className="text-[11px] opacity-70">Add bundle directly to PostgreSQL</p>
+                  <h3 className="font-serif font-bold text-base sm:text-lg leading-tight">{isAmharic ? 'የበዓል ጥቅል ፍጠር' : 'Create Celebration Package'}</h3>
+                  <p className="text-[11px] opacity-70">{isAmharic ? 'ጥቅሉን በቀጥታ ወደ ዳታቤዝ ያስገቡ' : 'Add bundle directly to database'}</p>
                 </div>
               </div>
               <button
@@ -5027,7 +5271,7 @@ export const Admin: React.FC = () => {
                 {/* Package Titles */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                   <div>
-                    <label className="block text-[11px] font-bold uppercase mb-1 opacity-80">Name (English) *</label>
+                    <label className="block text-[11px] font-bold uppercase mb-1 opacity-80">{isAmharic ? 'ስም (በእንግሊዝኛ) *' : 'Name (English) *'}</label>
                     <input
                       type="text"
                       required
@@ -5038,7 +5282,7 @@ export const Admin: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-[11px] font-bold uppercase mb-1 opacity-80">Name (Amharic)</label>
+                    <label className="block text-[11px] font-bold uppercase mb-1 opacity-80">{isAmharic ? 'ስም (በአማርኛ)' : 'Name (Amharic)'}</label>
                     <input
                       type="text"
                       placeholder="የእንቁጣጣሽ ድግስ ጥቅል"
@@ -5052,7 +5296,7 @@ export const Admin: React.FC = () => {
                 {/* Tagline & Badge */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                   <div>
-                    <label className="block text-[11px] font-bold uppercase mb-1 opacity-80">Tagline / Subtitle</label>
+                    <label className="block text-[11px] font-bold uppercase mb-1 opacity-80">{isAmharic ? 'ንዑስ ርዕስ / መግለጫ' : 'Tagline / Subtitle'}</label>
                     <input
                       type="text"
                       placeholder="e.g. Holiday Feast for 15-20 Guests"
@@ -5062,10 +5306,10 @@ export const Admin: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-[11px] font-bold uppercase mb-1 opacity-80">Badge Label</label>
+                    <label className="block text-[11px] font-bold uppercase mb-1 opacity-80">{isAmharic ? 'የባጅ ምልክት' : 'Badge Label'}</label>
                     <input
                       type="text"
-                      placeholder="e.g. ⭐ Most Popular, 🎉 Special"
+                      placeholder="e.g. Most Popular, Holiday Special"
                       value={newPkgBadge}
                       onChange={(e) => setNewPkgBadge(e.target.value)}
                       className="w-full px-3 py-1.5 rounded-xl text-xs border bg-transparent"
@@ -5075,7 +5319,7 @@ export const Admin: React.FC = () => {
 
                 {/* Description */}
                 <div>
-                  <label className="block text-[11px] font-bold uppercase mb-1 opacity-80">Description *</label>
+                  <label className="block text-[11px] font-bold uppercase mb-1 opacity-80">{isAmharic ? 'መግለጫ *' : 'Description *'}</label>
                   <textarea
                     rows={2}
                     required
@@ -5089,7 +5333,7 @@ export const Admin: React.FC = () => {
                 {/* Pricing & Featured */}
                 <div className="grid grid-cols-3 gap-2.5">
                   <div>
-                    <label className="block text-[11px] font-bold uppercase mb-1 opacity-80">Selling Price *</label>
+                    <label className="block text-[11px] font-bold uppercase mb-1 opacity-80">{isAmharic ? 'የመሸጫ ዋጋ *' : 'Selling Price *'}</label>
                     <input
                       type="number"
                       required
@@ -5100,7 +5344,7 @@ export const Admin: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-[11px] font-bold uppercase mb-1 opacity-80">Original Price *</label>
+                    <label className="block text-[11px] font-bold uppercase mb-1 opacity-80">{isAmharic ? 'የቀድሞ ዋጋ *' : 'Original Price *'}</label>
                     <input
                       type="number"
                       required
@@ -5118,7 +5362,7 @@ export const Admin: React.FC = () => {
                         onChange={(e) => setNewPkgFeatured(e.target.checked)}
                         className="w-3.5 h-3.5 rounded text-amber-500"
                       />
-                      <span className="text-[11px]">Featured</span>
+                      <span className="text-[11px]">{isAmharic ? 'በጉልህ የሚታይ' : 'Featured'}</span>
                     </label>
                   </div>
                 </div>
@@ -5126,7 +5370,7 @@ export const Admin: React.FC = () => {
                 {/* Slots Capacity */}
                 <div className="grid grid-cols-2 gap-2.5">
                   <div>
-                    <label className="block text-[11px] font-bold uppercase mb-1 opacity-80">Available Slots *</label>
+                    <label className="block text-[11px] font-bold uppercase mb-1 opacity-80">{isAmharic ? 'ያሉ ክፍት ቦታዎች (Slots) *' : 'Available Slots *'}</label>
                     <input
                       type="number"
                       required
@@ -5137,7 +5381,7 @@ export const Admin: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-[11px] font-bold uppercase mb-1 opacity-80">Total Cap *</label>
+                    <label className="block text-[11px] font-bold uppercase mb-1 opacity-80">{isAmharic ? 'ጠቅላላ ገደብ *' : 'Total Cap *'}</label>
                     <input
                       type="number"
                       required
@@ -5152,9 +5396,9 @@ export const Admin: React.FC = () => {
                 {/* Real-time Savings Banner */}
                 {newPkgOriginalPrice > newPkgPackagePrice && (
                   <div className="p-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs flex items-center justify-between">
-                    <span className="text-[11px]">Savings Discount:</span>
+                    <span className="text-[11px]">{isAmharic ? 'የቅናሽ ቁጠባ:' : 'Savings Discount:'}</span>
                     <span className="font-mono font-bold text-[11px]">
-                      Save {formatPrice(newPkgOriginalPrice - newPkgPackagePrice)} ({Math.round(((newPkgOriginalPrice - newPkgPackagePrice) / newPkgOriginalPrice) * 100)}% OFF)
+                      {isAmharic ? `${formatPrice(newPkgOriginalPrice - newPkgPackagePrice)} ይቆጥቡ` : `Save ${formatPrice(newPkgOriginalPrice - newPkgPackagePrice)}`} ({Math.round(((newPkgOriginalPrice - newPkgPackagePrice) / newPkgOriginalPrice) * 100)}% {isAmharic ? 'ቅናሽ' : 'OFF'})
                     </span>
                   </div>
                 )}
@@ -5163,7 +5407,7 @@ export const Admin: React.FC = () => {
                 <div className="space-y-2 pt-1">
                   <div className="flex items-center justify-between">
                     <label className="block text-xs font-bold uppercase opacity-90">
-                      Package Cover Photo *
+                      {isAmharic ? 'የጥቅሉ ሽፋን ፎቶ *' : 'Package Cover Photo *'}
                     </label>
                     <div className="flex items-center gap-1 text-[10px]">
                       <button
@@ -5173,7 +5417,7 @@ export const Admin: React.FC = () => {
                           pkgImageUploadMode === 'upload' ? 'bg-amber-500 text-black shadow-sm' : 'opacity-60 hover:opacity-100'
                         }`}
                       >
-                        File Upload
+                        {isAmharic ? 'ፋይል ምረጥ' : 'File Upload'}
                       </button>
                       <button
                         type="button"
@@ -5182,7 +5426,7 @@ export const Admin: React.FC = () => {
                           pkgImageUploadMode === 'url' ? 'bg-amber-500 text-black shadow-sm' : 'opacity-60 hover:opacity-100'
                         }`}
                       >
-                        Paste URL
+                        {isAmharic ? 'የሊንክ አድራሻ' : 'Paste URL'}
                       </button>
                     </div>
                   </div>
@@ -5210,27 +5454,27 @@ export const Admin: React.FC = () => {
                           <img src={newPkgImage} alt="Package Preview" className="w-full h-full object-cover" />
                           {isUploadingPkgImage && (
                             <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                              <RefreshCw className="w-6 h-6 text-amber-500 animate-spin" />
+                              <RefreshCw className="w-6 h-6 text-[#C18A45] animate-spin" />
                             </div>
                           )}
                         </div>
 
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-1.5">
-                            <span className="text-xs sm:text-sm font-bold text-amber-500">
-                              {isUploadingPkgImage ? 'Uploading image...' : '✓ High-Res Photo Attached'}
+                            <span className="text-xs sm:text-sm font-bold text-[#C18A45]">
+                              {isUploadingPkgImage ? (isAmharic ? 'ምስል በመጫን ላይ...' : 'Uploading image...') : (isAmharic ? '✓ ፎቶው ተያይዟል' : '✓ High-Res Photo Attached')}
                             </span>
                           </div>
                           <p className="text-[11px] opacity-60 truncate mt-1">
-                            {newPkgImage.startsWith('data:') ? 'Ready for publishing' : newPkgImage}
+                            {newPkgImage.startsWith('data:') ? (isAmharic ? 'ለህትመት ዝግጁ' : 'Ready for publishing') : newPkgImage}
                           </p>
                           <div className="mt-3 flex items-center gap-3">
                             <button
                               type="button"
                               onClick={() => pkgImageInputRef.current?.click()}
-                              className="px-3 py-1 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 text-amber-500 text-xs font-bold transition-all cursor-pointer"
+                              className="px-3 py-1 rounded-lg bg-[#C18A45]/15 hover:bg-[#C18A45]/25 text-[#C18A45] text-xs font-bold transition-all cursor-pointer"
                             >
-                              Change Photo
+                              {isAmharic ? 'ፎቶ ቀይር' : 'Change Photo'}
                             </button>
                             <button
                               type="button"
@@ -5238,7 +5482,7 @@ export const Admin: React.FC = () => {
                               className="text-xs font-semibold text-red-400 hover:underline inline-flex items-center gap-1 cursor-pointer"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
-                              <span>Remove</span>
+                              <span>{isAmharic ? 'አስወግድ' : 'Remove'}</span>
                             </button>
                           </div>
                         </div>
@@ -5263,10 +5507,11 @@ export const Admin: React.FC = () => {
                           </div>
                           <div>
                             <p className="text-xs sm:text-sm font-bold">
-                              Drag & drop high-resolution photo here, or <span className="text-amber-500 underline">browse files</span>
+                              {isAmharic ? 'የጥቅሉን ፎቶ እዚህ ይጎትቱ ወይም ' : 'Drag & drop high-resolution photo here, or '}
+                              <span className="text-amber-500 underline">{isAmharic ? 'ፋይል ይምረጡ' : 'browse files'}</span>
                             </p>
                             <p className="text-[11px] opacity-60 mt-0.5">
-                              Supports JPG, PNG, WEBP, GIF up to 50MB
+                              JPG, PNG, WEBP, GIF (እስከ 50MB)
                             </p>
                           </div>
                         </div>
@@ -5291,7 +5536,7 @@ export const Admin: React.FC = () => {
                               (e.target as HTMLElement).style.display = 'none';
                             }}
                           />
-                          <span className="text-xs opacity-70">URL preview attached</span>
+                          <span className="text-xs opacity-70">{isAmharic ? 'የሊንክ ቅድመ እይታ' : 'URL preview attached'}</span>
                         </div>
                       )}
                     </div>
@@ -5302,9 +5547,9 @@ export const Admin: React.FC = () => {
                 <div className="space-y-2 pt-2 border-t border-black/10 dark:border-white/10">
                   <div className="flex items-center justify-between">
                     <label className="block text-[11px] font-bold uppercase tracking-wider opacity-90">
-                      Included Items ({newPkgSelectedItems.length} selected) *
+                      {isAmharic ? `የተካተቱ እቃዎች (${newPkgSelectedItems.length} ተመርጠዋል) *` : `Included Items (${newPkgSelectedItems.length} selected) *`}
                     </label>
-                    <span className="text-[10.5px] text-amber-500 font-semibold">Click to select</span>
+                    <span className="text-[10.5px] text-amber-500 font-semibold">{isAmharic ? 'ለመምረጥ ይጫኑ' : 'Click to select'}</span>
                   </div>
 
                   {/* Available Catalog Items */}
@@ -5338,7 +5583,7 @@ export const Admin: React.FC = () => {
                   <div className="pt-1 flex flex-col sm:flex-row gap-1.5 items-center">
                     <input
                       type="text"
-                      placeholder="Custom item (e.g. 5kg Extra Berbere)"
+                      placeholder={isAmharic ? 'ብጁ እቃ (ለምሳሌ፦ 5 ኪሎ በርበሬ)' : 'Custom item (e.g. 5kg Extra Berbere)'}
                       value={customItemName}
                       onChange={(e) => setCustomItemName(e.target.value)}
                       className="flex-1 w-full px-2.5 py-1.5 rounded-xl text-xs border bg-transparent"
@@ -5348,17 +5593,17 @@ export const Admin: React.FC = () => {
                       onChange={(e) => setCustomItemCategory(e.target.value as any)}
                       className="w-full sm:w-32 px-2 py-1.5 rounded-xl text-xs border bg-transparent"
                     >
-                      <option value="meat_livestock" className="text-black">Meat</option>
-                      <option value="wine" className="text-black">Wine, Whiskies &amp; Tej</option>
-                      <option value="eggs" className="text-black">Farm Eggs</option>
-                      <option value="flowers" className="text-black">Flowers</option>
+                      <option value="meat_livestock" className="text-black">{isAmharic ? 'ስጋ' : 'Meat'}</option>
+                      <option value="wine" className="text-black">{isAmharic ? 'ወይን፣ ውስኪ & ጠጅ' : 'Wine, Whiskies & Tej'}</option>
+                      <option value="eggs" className="text-black">{isAmharic ? 'የእርሻ እንቁላል' : 'Farm Eggs'}</option>
+                      <option value="flowers" className="text-black">{isAmharic ? 'አበቦች' : 'Flowers'}</option>
                     </select>
                     <button
                       type="button"
                       onClick={handleAddCustomItem}
                       className="w-full sm:w-auto px-3 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-500 text-xs font-bold transition-colors whitespace-nowrap cursor-pointer"
                     >
-                      + Add
+                      {isAmharic ? '+ አክል' : '+ Add'}
                     </button>
                   </div>
                 </div>
@@ -5372,13 +5617,13 @@ export const Admin: React.FC = () => {
                   onClick={() => setIsAddPackageOpen(false)}
                   className="w-1/3 py-2.5 rounded-xl border text-xs font-semibold hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer"
                 >
-                  Cancel
+                  {isAmharic ? 'ሰርዝ' : 'Cancel'}
                 </button>
                 <button
                   type="submit"
                   className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-black font-extrabold text-xs shadow-md hover:scale-[1.01] active:scale-[0.99] transition-all cursor-pointer"
                 >
-                  Publish Celebration Package
+                  {isAmharic ? 'የበዓል ጥቅሉን ይፋ አድርግ' : 'Publish Celebration Package'}
                 </button>
               </div>
             </form>
@@ -5402,17 +5647,17 @@ export const Admin: React.FC = () => {
             </button>
 
             <h3 className="font-serif font-bold text-xl mb-1 flex items-center gap-2">
-              <Gift className="w-5 h-5 text-amber-500" />
-              <span>Adjust Package Inventory Slots</span>
+              <Gift className="w-5 h-5 text-[#C18A45]" />
+              <span>{isAmharic ? 'የጥቅል ክምችት ቦታዎችን ያስተካክሉ' : 'Adjust Package Inventory Slots'}</span>
             </h3>
             <p className="text-xs opacity-70 mb-4">
-              Set the available access slots for <strong>{restockModalPackage.name}</strong>.
+              {isAmharic ? 'ክፍት የትዕዛዝ ቦታዎችን ለ ' : 'Set the available access slots for '}<strong>{restockModalPackage.name}</strong>.
             </p>
 
             <form onSubmit={handleSaveRestockSlots} className="space-y-4">
               <div>
                 <label className="block text-xs font-semibold uppercase mb-1.5 opacity-80">
-                  Available Slots Remaining *
+                  {isAmharic ? 'ቀሪ ክፍት ቦታዎች (Slots) *' : 'Available Slots Remaining *'}
                 </label>
                 <input
                   type="number"
@@ -5423,13 +5668,15 @@ export const Admin: React.FC = () => {
                   className="w-full px-3.5 py-2.5 rounded-xl text-sm border bg-transparent font-mono font-bold"
                 />
                 <p className="text-[11px] opacity-60 mt-1">
-                  Decreases on every order/reservation. If set to 0, package will be marked as OUT OF STOCK.
+                  {isAmharic
+                    ? 'በትዕዛዝ ጊዜ ይቀንሳል። 0 ሲሆን ጥቅሉ ተሽጦ እንዳለቀ ይታያል።'
+                    : 'Decreases on every order/reservation. If set to 0, package will be marked as OUT OF STOCK.'}
                 </p>
               </div>
 
               <div>
                 <label className="block text-xs font-semibold uppercase mb-1.5 opacity-80">
-                  Total Slots (Cap)
+                  {isAmharic ? 'ጠቅላላ ገደብ (Cap)' : 'Total Slots (Cap)'}
                 </label>
                 <input
                   type="number"
@@ -5447,14 +5694,14 @@ export const Admin: React.FC = () => {
                   onClick={() => setRestockModalPackage(null)}
                   className="flex-1 py-2.5 rounded-xl border text-xs font-semibold hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer"
                 >
-                  Cancel
+                  {isAmharic ? 'ሰርዝ' : 'Cancel'}
                 </button>
                 <button
                   type="submit"
                   disabled={isRestocking}
                   className="flex-1 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-black font-bold text-xs shadow-md disabled:opacity-50 cursor-pointer"
                 >
-                  {isRestocking ? 'Saving...' : 'Save & Update Slots'}
+                  {isRestocking ? (isAmharic ? 'በማስቀመጥ ላይ...' : 'Saving...') : (isAmharic ? 'ቦታዎችን መዝግብ & አድስ' : 'Save & Update Slots')}
                 </button>
               </div>
             </form>

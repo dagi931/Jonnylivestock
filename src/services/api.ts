@@ -464,7 +464,7 @@ class ApiService {
               this.createLocalAdminNotification({
                 id: `NOTIF-${Date.now().toString().slice(-6)}`,
                 type: 'OUT_OF_STOCK',
-                title: '⚠️ Package Out of Stock',
+                title: 'Package Out of Stock',
                 message: `Package "${pkg.name}" has reached 0 available slots and is now completely OUT OF STOCK!`,
                 read: false,
                 createdAt: new Date().toISOString()
@@ -748,8 +748,8 @@ class ApiService {
       this.createLocalAdminNotification({
         id: `NOTIF-${Date.now().toString().slice(-6)}`,
         type: 'CONTACT_MESSAGE',
-        title: '💬 New Contact Message Received',
-        message: `Inquiry from ${data.name} (📞 ${data.phone}): "${data.message.slice(0, 75)}..."`,
+        title: 'New Contact Message Received',
+        message: `Inquiry from ${data.name} (${data.phone}): "${data.message.slice(0, 75)}..."`,
         read: false,
         createdAt: new Date().toISOString()
       });

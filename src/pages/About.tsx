@@ -269,46 +269,36 @@ export const About: React.FC = () => {
           </div>
         </div>
 
-        {/* Location & CTA Banner */}
-        <div
-          className={`p-6 sm:p-10 rounded-3xl border text-center max-w-3xl mx-auto ${
-            isDark ? 'bg-[#2A1A0D] border-[#4A2C16]' : 'bg-[#F1E8D8] border-[#E4D4BC]'
-          }`}
-        >
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider mb-3 border" style={{ borderColor: isDark ? '#4A2C16' : '#E4D4BC' }}>
-            <MapPin className="w-3.5 h-3.5 text-amber-500" />
+        {/* Location & CTA Section (Open layout without card/container) */}
+        <div className="py-10 text-center max-w-3xl mx-auto space-y-4">
+          <div className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-amber-500">
+            <MapPin className="w-3.5 h-3.5" />
             <span>{t.aboutPage.ctaLocation}: {business.location}</span>
           </div>
 
-          <h2 className={`font-serif font-bold text-xl sm:text-2xl mb-2 ${isDark ? 'text-[#F4E8D0]' : 'text-[#241A12]'}`}>
+          <h2 className={`font-serif font-bold text-2xl sm:text-3xl tracking-tight ${isDark ? 'text-[#F4E8D0]' : 'text-[#241A12]'}`}>
             {t.aboutPage.ctaTitle}
           </h2>
-          <p className={`text-xs sm:text-sm max-w-lg mx-auto mb-6 ${isDark ? 'text-[#D8C5A8]' : 'text-[#746556]'}`}>
+
+          <p className={`text-xs sm:text-sm max-w-xl mx-auto leading-relaxed ${isDark ? 'text-[#D8C5A8]' : 'text-[#746556]'}`}>
             {t.aboutPage.ctaSubtext}
           </p>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+          <div className="flex flex-wrap items-center justify-center gap-6 pt-2 text-xs sm:text-sm font-bold">
             <Link
               to="/contact"
-              className={`w-full sm:w-auto px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all shadow-sm ${
-                isDark
-                  ? 'bg-[#C58A3A] hover:bg-[#E0B15A] text-[#1B1208]'
-                  : 'bg-[#B8792F] hover:bg-[#9E6523] text-[#FAF7F0]'
-              }`}
+              className="text-amber-500 hover:text-amber-400 hover:underline transition-colors"
             >
               {t.aboutPage.getInTouch}
             </Link>
 
+            <span className="opacity-30">•</span>
+
             <Link
               to="/services"
-              className={`w-full sm:w-auto px-5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold border transition-colors flex items-center justify-center gap-1.5 ${
-                isDark
-                  ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0] hover:text-[#E0B15A]'
-                  : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#241A12] hover:text-[#B8792F]'
-              }`}
+              className="text-amber-500 hover:text-amber-400 hover:underline transition-colors"
             >
-              <Truck className="w-4 h-4" />
-              <span>{t.aboutPage.exploreServices}</span>
+              {t.aboutPage.exploreServices}
             </Link>
           </div>
         </div>
