@@ -38,7 +38,7 @@ interface PlaceSearchResult {
   lng: number;
 }
 
-// Client-side Haversine Geodesic Distance with 1.32x Urban Ethiopian Road Tortuosity Factor
+// Client-side Haversine Geodesic Road Distance Formula
 function calculateHaversineRoadKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const R = 6371; // Earth radius in km
   const dLat = ((lat2 - lat1) * Math.PI) / 180;
@@ -72,7 +72,6 @@ export const DeliveryLocationModal: React.FC<DeliveryLocationModalProps> = ({
   const userMarkerRef = useRef<L.Marker | null>(null);
   const farmMarkerRef = useRef<L.Marker | null>(null);
   const polylineRef = useRef<L.Polyline | null>(null);
-  const prevIsOpenRef = useRef(false);
 
   // Search & Geolocation states
   const [searchQuery, setSearchQuery] = useState('');
@@ -107,40 +106,14 @@ export const DeliveryLocationModal: React.FC<DeliveryLocationModalProps> = ({
   const [isWithinRange, setIsWithinRange] = useState<boolean>(true);
   const [isRouting, setIsRouting] = useState<boolean>(false);
 
-  // Stable persistent coordinate ref to prevent loss on zoom/re-render
-  const pinnedCoordRef = useRef<{ lat: number; lng: number }>({
+  // Persistent reference for active coordinates (prevents any loss during renders)
+  const activeCoordsRef = useRef<{ lat: number; lng: number }>({
     lat: activeSelected?.lat || 8.9984,
     lng: activeSelected?.lng || 38.7877
   });
 
-  // Only sync state when modal transitions from closed (false) to open (true)
-  useEffect(() => {
-    if (isOpen && !prevIsOpenRef.current) {
-      const initLat = activeSelected?.lat || 8.9984;
-      const initLng = activeSelected?.lng || 38.7877;
-      const initAddr = activeSelected?.address || 'Bole Medhanialem / Edna Mall, Addis Ababa';
-
-      pinnedCoordRef.current = { lat: initLat, lng: initLng };
-      setCurrentLat(initLat);
-      setCurrentLng(initLng);
-      setResolvedAddress(initAddr);
-      setGeoError(null);
-      setGpsSuccess(null);
-      setSearchQuery('');
-      setShowSearchResults(false);
-
-      const initDist = calculateHaversineRoadKm(
-        AWARE_FARM_LOCATION.lat,
-        AWARE_FARM_LOCATION.lng,
-        initLat,
-        initLng
-      );
-      setRoadDistanceKm(initDist);
-      setRoadDurationMins(Math.max(10, Math.round((initDist / 22) * 60) + 8));
-      setIsWithinRange(initDist <= 30);
-    }
-    prevIsOpenRef.current = isOpen;
-  }, [isOpen, activeSelected]);
+  // Track modal open/close transitions so we only initialize when opening
+  const prevIsOpenRef = useRef<boolean>(false);
 
   // Perform reverse geocoding on coordinates
   const performReverseGeocode = useCallback(async (lat: number, lng: number) => {
@@ -221,7 +194,7 @@ export const DeliveryLocationModal: React.FC<DeliveryLocationModalProps> = ({
   // Central function to update pin, coordinates, route, and address
   const updatePinAndLocation = useCallback(
     (lat: number, lng: number, label?: string, shouldFly: boolean = false) => {
-      pinnedCoordRef.current = { lat, lng };
+      activeCoordsRef.current = { lat, lng };
       setCurrentLat(lat);
       setCurrentLng(lng);
 
@@ -243,6 +216,41 @@ export const DeliveryLocationModal: React.FC<DeliveryLocationModalProps> = ({
     },
     [performReverseGeocode, fetchRoadRoute]
   );
+
+  // Store updatePinAndLocation in a stable ref for Leaflet event callbacks
+  const updatePinRef = useRef(updatePinAndLocation);
+  useEffect(() => {
+    updatePinRef.current = updatePinAndLocation;
+  }, [updatePinAndLocation]);
+
+  // Sync state ONLY when modal transitions from closed (false) to open (true)
+  useEffect(() => {
+    if (isOpen && !prevIsOpenRef.current) {
+      const initLat = activeSelected?.lat || 8.9984;
+      const initLng = activeSelected?.lng || 38.7877;
+      const initAddr = activeSelected?.address || 'Bole Medhanialem / Edna Mall, Addis Ababa';
+
+      activeCoordsRef.current = { lat: initLat, lng: initLng };
+      setCurrentLat(initLat);
+      setCurrentLng(initLng);
+      setResolvedAddress(initAddr);
+      setGeoError(null);
+      setGpsSuccess(null);
+      setSearchQuery('');
+      setShowSearchResults(false);
+
+      const initDist = calculateHaversineRoadKm(
+        AWARE_FARM_LOCATION.lat,
+        AWARE_FARM_LOCATION.lng,
+        initLat,
+        initLng
+      );
+      setRoadDistanceKm(initDist);
+      setRoadDurationMins(Math.max(10, Math.round((initDist / 22) * 60) + 8));
+      setIsWithinRange(initDist <= 30);
+    }
+    prevIsOpenRef.current = isOpen;
+  }, [isOpen, activeSelected]);
 
   // Debounced Comprehensive Place & Hotel Search
   useEffect(() => {
@@ -299,18 +307,18 @@ export const DeliveryLocationModal: React.FC<DeliveryLocationModalProps> = ({
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  // Initialize Leaflet Map (Run once when modal opens)
+  // Initialize Leaflet Map (Run STRICTLY ONCE per modal open)
   useEffect(() => {
     if (!isOpen || !mapContainerRef.current) return;
 
-    // Destroy existing map instance if any
+    // If map already exists and valid, just invalidate size and return
     if (mapInstanceRef.current) {
-      mapInstanceRef.current.remove();
-      mapInstanceRef.current = null;
+      mapInstanceRef.current.invalidateSize();
+      return;
     }
 
-    const initLat = pinnedCoordRef.current.lat || 8.9984;
-    const initLng = pinnedCoordRef.current.lng || 38.7877;
+    const initLat = activeCoordsRef.current.lat || 8.9984;
+    const initLng = activeCoordsRef.current.lng || 38.7877;
 
     const map = L.map(mapContainerRef.current, {
       center: [initLat, initLng],
@@ -326,7 +334,7 @@ export const DeliveryLocationModal: React.FC<DeliveryLocationModalProps> = ({
       subdomains: ['a', 'b', 'c']
     }).addTo(map);
 
-    // Custom Aware Farm HQ Icon
+    // Custom Seller / Farm Main Facility HQ Icon
     const farmIcon = L.divIcon({
       className: 'custom-farm-pin',
       html: `
@@ -399,14 +407,18 @@ export const DeliveryLocationModal: React.FC<DeliveryLocationModalProps> = ({
     // Marker Drag Listener: locks position and updates route
     userMarker.on('dragend', () => {
       const pos = userMarker.getLatLng();
-      updatePinAndLocation(pos.lat, pos.lng);
+      if (updatePinRef.current) {
+        updatePinRef.current(pos.lat, pos.lng);
+      }
     });
 
     // Map Click Listener: places pin directly at clicked coordinates
     map.on('click', (e: L.LeafletMouseEvent) => {
       const { lat, lng } = e.latlng;
       userMarker.setLatLng([lat, lng]);
-      updatePinAndLocation(lat, lng);
+      if (updatePinRef.current) {
+        updatePinRef.current(lat, lng);
+      }
     });
 
     mapInstanceRef.current = map;
@@ -419,19 +431,22 @@ export const DeliveryLocationModal: React.FC<DeliveryLocationModalProps> = ({
       if (mapInstanceRef.current) mapInstanceRef.current.invalidateSize();
     }, 450);
 
-    // Cleanup on unmount or modal close
+    // Cleanup ONLY when modal completely closes
     return () => {
       clearTimeout(t1);
       clearTimeout(t2);
       map.remove();
       mapInstanceRef.current = null;
+      userMarkerRef.current = null;
+      farmMarkerRef.current = null;
+      polylineRef.current = null;
     };
-  }, [isOpen, updatePinAndLocation, fetchRoadRoute]);
+  }, [isOpen]); // ONLY depends on isOpen! Never tears down during active interactions!
 
   // Recenter map on active pin
   const handleRecenter = () => {
     if (mapInstanceRef.current) {
-      mapInstanceRef.current.flyTo([pinnedCoordRef.current.lat, pinnedCoordRef.current.lng], 15, {
+      mapInstanceRef.current.flyTo([activeCoordsRef.current.lat, activeCoordsRef.current.lng], 15, {
         duration: 0.6
       });
     }
