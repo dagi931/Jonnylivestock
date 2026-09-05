@@ -64,6 +64,8 @@ const ScrollToTop: React.FC = () => {
 const AppContent: React.FC = () => {
   const { theme } = useTheme();
   const isDark = theme === 'design7';
+  const location = useLocation();
+  const isAdminPage = location.pathname.startsWith('/admin');
 
   return (
     <div
@@ -71,7 +73,7 @@ const AppContent: React.FC = () => {
         }`}
     >
       <ScrollToTop />
-      <Navbar />
+      {!isAdminPage && <Navbar />}
       <UserAuthModal />
       <main className="flex-1">
         <Routes>
@@ -96,7 +98,7 @@ const AppContent: React.FC = () => {
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
-      <Footer />
+      {!isAdminPage && <Footer />}
     </div>
   );
 };

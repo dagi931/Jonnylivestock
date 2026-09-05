@@ -1572,6 +1572,18 @@ export const Admin: React.FC = () => {
 
           <div className="flex items-center gap-2">
 
+            {/* Storefront / View Public Site Link */}
+            <Link
+              to="/"
+              className={`px-3 py-2 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition-colors ${
+                isDark ? 'bg-[#2A1A0D] border-[#4A2C16] hover:bg-[#3A2412]' : 'bg-white border-[#E4D4BC] hover:bg-[#EFE8DC]'
+              }`}
+              title="Return to Public Storefront"
+            >
+              <ShoppingBag className="w-3.5 h-3.5 text-[#C18A45]" />
+              <span className="hidden sm:inline">Storefront</span>
+            </Link>
+
             {/* Refresh Button */}
             <button
               onClick={loadDashboardData}
