@@ -26,6 +26,7 @@ export const UserAuthModal: React.FC = () => {
     isAuthModalOpen,
     closeAuthModal,
     authModalMode,
+    authPromptMessage,
     login,
     sendRegistrationOtp,
     verifyAndRegister,
@@ -311,7 +312,7 @@ export const UserAuthModal: React.FC = () => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/80 backdrop-blur-md p-3 sm:p-4 md:p-6">
+    <div className="fixed inset-0 z-[100] overflow-y-auto bg-black/80 backdrop-blur-md p-3 sm:p-4 md:p-6">
       <div className="min-h-full flex items-center justify-center py-4 sm:py-6">
         <div className="fixed inset-0" onClick={closeAuthModal} aria-hidden="true" />
         <div
@@ -332,6 +333,23 @@ export const UserAuthModal: React.FC = () => {
           >
             <X className="w-5 h-5" />
           </button>
+
+          {/* Prompt Message Banner (e.g. Account Required for Ordering) */}
+          {authPromptMessage && (
+            <div className="mb-5 p-3.5 rounded-2xl bg-amber-500/15 border-2 border-amber-500/40 text-amber-500 flex items-start gap-3 shadow-md animate-in fade-in slide-in-from-top-2">
+              <div className="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-500 flex items-center justify-center shrink-0 mt-0.5">
+                <AlertCircle className="w-5 h-5" />
+              </div>
+              <div className="flex-1">
+                <h4 className="font-bold text-xs uppercase tracking-wide text-amber-500">
+                  {isAmharic ? 'ትዕዛዝ ለማስገባት መለያ ያስፈልጋል' : 'Account Required to Order'}
+                </h4>
+                <p className={`text-xs mt-0.5 font-medium leading-relaxed ${isDark ? 'text-[#F4E8D0]' : 'text-[#2A1A0D]'}`}>
+                  {authPromptMessage}
+                </p>
+              </div>
+            </div>
+          )}
 
           {/* ========================================================== */}
           {/* VIEW: FORGOT PASSWORD FLOW */}

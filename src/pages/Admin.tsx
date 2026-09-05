@@ -11,6 +11,7 @@ import { SlipPreviewModal } from '../components/modals/SlipPreviewModal';
 import { useRealtimeEvent } from '../context/RealtimeContext';
 import { ThemeToggle } from '../components/common/ThemeToggle';
 import { LanguageToggle } from '../components/common/LanguageToggle';
+import { ADDIS_ABABA_LOCATIONS } from '../data/addisLocations';
 import {
   DollarSign,
   ShoppingBag,
@@ -44,12 +45,17 @@ import {
   ChevronDown,
   Edit3,
   RotateCcw,
-  Scale
+  Scale,
+  Truck,
+  Navigation,
+  Car,
+  MapPin,
+  Sparkles
 } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { PreMadePackage, PackageCatalogItem } from '../types/package';
 
-type AdminTab = 'overview' | 'orders' | 'inventory' | 'packages' | 'raw_meat' | 'demand' | 'messages' | 'settings';
+type AdminTab = 'overview' | 'orders' | 'inventory' | 'packages' | 'raw_meat' | 'delivery' | 'demand' | 'messages' | 'settings';
 
 const getAnimalFirstImage = (animal: Animal | null | undefined): string => {
   if (!animal) return '';
@@ -222,6 +228,155 @@ export const Admin: React.FC = () => {
   const [testMeatKg, setTestMeatKg] = useState<number>(5);
   const [testIncludeDelivery, setTestIncludeDelivery] = useState<boolean>(false);
 
+  // Delivery Fleet & Logistics Settings State
+  const [deliveryVehicles, setDeliveryVehicles] = useState<any[]>([
+    {
+      id: 'car',
+      name: 'Standard Car / Sedan',
+      amharicName: 'መደበኛ መኪና (Car)',
+      icon: 'car',
+      baseFee: 100,
+      pricePerKm: 22,
+      maxWeightKg: 60,
+      maxSheep: 2,
+      maxCattle: 0,
+      maxChickens: 20,
+      description: 'Small orders, 1-2 sheep/goats, chickens, eggs, or meat up to 60 KG',
+      active: true
+    },
+    {
+      id: 'pickup',
+      name: 'Medium Pickup Truck',
+      amharicName: 'ፒካፕ መኪና (Pickup)',
+      icon: 'truck',
+      baseFee: 150,
+      pricePerKm: 26,
+      maxWeightKg: 600,
+      maxSheep: 10,
+      maxCattle: 0,
+      maxChickens: 100,
+      description: 'Up to 10 sheep/goats, mixed packages, and bulk meat up to 600 KG',
+      active: true
+    },
+    {
+      id: 'large_pickup',
+      name: 'Large Pickup / Van',
+      amharicName: 'ትልቅ ፒካፕ / ቫን (Large Pickup)',
+      icon: 'van',
+      baseFee: 200,
+      pricePerKm: 36,
+      maxWeightKg: 2000,
+      maxSheep: 35,
+      maxCattle: 2,
+      maxChickens: 500,
+      description: 'Heavy duty vehicle for live cattle (1-2 oxen), up to 35 sheep, or bulk cargo up to 2,000 KG',
+      active: true
+    }
+  ]);
+
+  const [deliverySettings, setDeliverySettings] = useState<any>({
+    defaultOriginLat: 9.0314,
+    defaultOriginLng: 38.7725,
+    defaultOriginName: 'Jonny Livestock Main Facility (Arat Kilo / Belay Zeleke)',
+    pickupLatitude: 9.0314,
+    pickupLongitude: 38.7725,
+    pickupAddress: 'Arat Kilo / Belay Zeleke Street, Addis Ababa',
+    maxDistanceKm: 30,
+    windingFactor: 1.28
+  });
+  const [isSavingDeliveryVehicles, setIsSavingDeliveryVehicles] = useState(false);
+  const [isSavingDeliverySettings, setIsSavingDeliverySettings] = useState(false);
+
+  // Delivery Simulator State
+  const [simSelectedLocId, setSimSelectedLocId] = useState<string>('kazanchis');
+  const [simDestLat, setSimDestLat] = useState<number>(9.0175);
+  const [simDestLng, setSimDestLng] = useState<number>(38.7690);
+  const [simDestAddress, setSimDestAddress] = useState<string>('Kazanchis / UNECA Area');
+  const [simSheep, setSimSheep] = useState<number>(2);
+  const [simCattle, setSimCattle] = useState<number>(0);
+  const [simChickens, setSimChickens] = useState<number>(0);
+  const [simMeatKg, setSimMeatKg] = useState<number>(5);
+  const [simResult, setSimResult] = useState<any>(null);
+  const [isSimulatingRoute, setIsSimulatingRoute] = useState(false);
+  const [deliveryOrderFilter, setDeliveryOrderFilter] = useState<'all' | 'pending' | 'in_transit' | 'delivered'>('all');
+
+  const handleSaveDeliveryVehicles = async () => {
+    setIsSavingDeliveryVehicles(true);
+    try {
+      const activeToken = adminToken || localStorage.getItem('jonny_admin_token') || localStorage.getItem('jonny_user_token') || undefined;
+      const res = await api.updateDeliveryConfig({ vehicles: deliveryVehicles }, activeToken);
+      if (res.success) {
+        showAlert('success', '🚚 Delivery vehicle fleet rates and capacity settings saved successfully!');
+        if (res.vehicles) setDeliveryVehicles(res.vehicles);
+      } else {
+        showAlert('error', res.error || 'Failed to save delivery vehicles');
+      }
+    } catch (err: any) {
+      showAlert('error', err.message || 'Error saving delivery vehicles');
+    } finally {
+      setIsSavingDeliveryVehicles(false);
+    }
+  };
+
+  const handleSaveDeliverySettings = async () => {
+    setIsSavingDeliverySettings(true);
+    try {
+      const activeToken = adminToken || localStorage.getItem('jonny_admin_token') || localStorage.getItem('jonny_user_token') || undefined;
+      const res = await api.updateDeliveryConfig({ settings: deliverySettings }, activeToken);
+      if (res.success) {
+        showAlert('success', '📍 Farm facility location & max delivery radius saved successfully!');
+        if (res.settings) setDeliverySettings(res.settings);
+      } else {
+        showAlert('error', res.error || 'Failed to save delivery settings');
+      }
+    } catch (err: any) {
+      showAlert('error', err.message || 'Error saving delivery settings');
+    } finally {
+      setIsSavingDeliverySettings(false);
+    }
+  };
+
+  const handleRunSimulator = async () => {
+    setIsSimulatingRoute(true);
+    setSimResult(null);
+    try {
+      const loadItems: Array<{ type: string; quantity: number; weightKg?: number }> = [];
+      if (simSheep > 0) loadItems.push({ type: 'sheep', quantity: simSheep });
+      if (simCattle > 0) loadItems.push({ type: 'cow', quantity: simCattle });
+      if (simChickens > 0) loadItems.push({ type: 'chicken', quantity: simChickens });
+      if (simMeatKg > 0) loadItems.push({ type: 'kg', quantity: 1, weightKg: simMeatKg });
+      if (loadItems.length === 0) loadItems.push({ type: 'general', quantity: 1 });
+
+      const quote = await api.getDeliveryQuote({
+        deliveryAddress: simDestAddress,
+        deliveryLat: simDestLat,
+        deliveryLng: simDestLng,
+        items: loadItems
+      });
+
+      setSimResult(quote);
+    } catch (err: any) {
+      showAlert('error', err.message || 'Error running delivery simulation');
+    } finally {
+      setIsSimulatingRoute(false);
+    }
+  };
+
+  const handleApproveDelivery = async (orderId: string, status: 'delivery_pending' | 'delivered' = 'delivery_pending') => {
+    try {
+      const activeToken = adminToken || localStorage.getItem('jonny_admin_token') || localStorage.getItem('jonny_user_token') || undefined;
+      const res = await api.approveDelivery(orderId, status, 'Approved via Delivery module', activeToken);
+      if (res.success) {
+        showAlert('success', status === 'delivered' ? `✓ Order ${orderId} marked as DELIVERED!` : `✓ Order ${orderId} delivery approved & dispatched!`);
+        loadDashboardData();
+      } else {
+        showAlert('error', res.error || 'Failed to update delivery status');
+      }
+    } catch (err: any) {
+      showAlert('error', err.message || 'Error updating delivery status');
+    }
+  };
+
   const handleSaveMeatPricing = async () => {
     setIsSavingMeatPricing(true);
     try {
@@ -244,13 +399,14 @@ export const Admin: React.FC = () => {
     setIsLoadingData(true);
     try {
       const activeToken = adminToken || localStorage.getItem('jonny_admin_token') || localStorage.getItem('jonny_user_token') || undefined;
-      const [fetchedAnimals, fetchedOrders, notifRes, pkgRes, fetchedMsgs, meatPricingRes] = await Promise.all([
+      const [fetchedAnimals, fetchedOrders, notifRes, pkgRes, fetchedMsgs, meatPricingRes, deliveryConfigRes] = await Promise.all([
         api.getAnimals(),
         api.getAllOrders(activeToken),
         api.getNotifications(activeToken),
         api.getPackagesData(),
         api.getContactMessages(),
-        api.getMeatPricing()
+        api.getMeatPricing(),
+        api.getDeliveryConfig()
       ]);
 
       if (fetchedAnimals && fetchedAnimals.length > 0) {
@@ -275,6 +431,14 @@ export const Admin: React.FC = () => {
           available: meatPricingRes.available ?? true,
           notes: (meatPricingRes as any).notes ?? ''
         });
+      }
+      if (deliveryConfigRes && deliveryConfigRes.success) {
+        if (deliveryConfigRes.vehicles && deliveryConfigRes.vehicles.length > 0) {
+          setDeliveryVehicles(deliveryConfigRes.vehicles);
+        }
+        if (deliveryConfigRes.settings) {
+          setDeliverySettings(deliveryConfigRes.settings);
+        }
       }
     } catch (err) {
       console.error('Failed to load backend data:', err);
@@ -1763,6 +1927,35 @@ export const Admin: React.FC = () => {
                 </span>
               </button>
 
+              {/* 6. Delivery & Fleet Logistics */}
+              <button
+                type="button"
+                onClick={() => setActiveTab('delivery')}
+                className={`flex items-center justify-between gap-2.5 px-3.5 py-3 rounded-xl text-xs font-bold transition-all text-left whitespace-nowrap lg:whitespace-normal cursor-pointer ${
+                  activeTab === 'delivery'
+                    ? 'bg-[#C18A45] text-white shadow-sm font-extrabold'
+                    : isDark
+                    ? 'hover:bg-[#2A1A0D] text-[#D8C5A8]'
+                    : 'hover:bg-[#F1E8D8] text-[#746556]'
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <Truck className={`w-4 h-4 shrink-0 ${activeTab === 'delivery' ? 'text-white' : 'text-[#C18A45]'}`} />
+                  <span>Delivery & Fleet</span>
+                </div>
+                {ordersList.filter(o => o.isDelivery && (o.status === 'pending_verification' || o.status === 'delivery_pending')).length > 0 ? (
+                  <span className="px-2 py-0.5 rounded-md bg-amber-500 text-black text-[10px] font-black shrink-0 animate-pulse">
+                    {ordersList.filter(o => o.isDelivery && (o.status === 'pending_verification' || o.status === 'delivery_pending')).length} new
+                  </span>
+                ) : (
+                  <span className={`px-2 py-0.5 rounded-md text-[10.5px] font-mono font-bold shrink-0 ${
+                    activeTab === 'delivery' ? 'bg-black/20 text-white' : 'bg-black/5 dark:bg-white/10 opacity-75'
+                  }`}>
+                    {ordersList.filter(o => o.isDelivery).length}
+                  </span>
+                )}
+              </button>
+
               {/* 6. Demand & Metrics */}
               <button
                 type="button"
@@ -3199,6 +3392,753 @@ export const Admin: React.FC = () => {
         )}
 
         {/* ============================================================ */}
+        {/* TAB 6: DELIVERY & FLEET LOGISTICS */}
+        {/* ============================================================ */}
+        {activeTab === 'delivery' && (
+          <div className="space-y-8 animate-in fade-in-50 duration-150">
+            {/* 1. Header & Live Metrics */}
+            <div className="space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <h2 className="text-xl sm:text-2xl font-bold font-serif flex items-center gap-2">
+                    <Truck className="w-6 h-6 text-[#C18A45]" />
+                    <span>Delivery & Fleet Logistics Management</span>
+                  </h2>
+                  <p className="text-xs opacity-75 mt-0.5">
+                    Live road distance calculation (OSRM engine), vehicle capacity validation, dynamic rates, and direct order dispatch.
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={loadDashboardData}
+                    className="px-3.5 py-2 rounded-xl border border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <RefreshCw className="w-3.5 h-3.5 text-[#C18A45]" />
+                    <span>Refresh Data</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* 4 KPIs Metric Cards */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
+                <div className={`p-4 rounded-2xl border ${isDark ? 'bg-[#24170D] border-[#4A2C16]' : 'bg-[#FAF7F0] border-[#E4D4BC]'}`}>
+                  <div className="flex items-center justify-between text-xs opacity-70 mb-1">
+                    <span>Pending Dispatch</span>
+                    <Clock className="w-4 h-4 text-amber-500" />
+                  </div>
+                  <div className="text-2xl font-serif font-bold text-amber-500">
+                    {ordersList.filter(o => o.isDelivery && (o.status === 'pending_verification' || o.status === 'verified')).length}
+                  </div>
+                  <p className="text-[10px] opacity-60 mt-1">Awaiting vehicle dispatch</p>
+                </div>
+
+                <div className={`p-4 rounded-2xl border ${isDark ? 'bg-[#24170D] border-[#4A2C16]' : 'bg-[#FAF7F0] border-[#E4D4BC]'}`}>
+                  <div className="flex items-center justify-between text-xs opacity-70 mb-1">
+                    <span>In Transit / Dispatched</span>
+                    <Truck className="w-4 h-4 text-blue-400" />
+                  </div>
+                  <div className="text-2xl font-serif font-bold text-blue-400">
+                    {ordersList.filter(o => o.isDelivery && o.status === 'delivery_pending').length}
+                  </div>
+                  <p className="text-[10px] opacity-60 mt-1">Vehicles en route</p>
+                </div>
+
+                <div className={`p-4 rounded-2xl border ${isDark ? 'bg-[#24170D] border-[#4A2C16]' : 'bg-[#FAF7F0] border-[#E4D4BC]'}`}>
+                  <div className="flex items-center justify-between text-xs opacity-70 mb-1">
+                    <span>Delivered</span>
+                    <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                  </div>
+                  <div className="text-2xl font-serif font-bold text-emerald-500">
+                    {ordersList.filter(o => o.isDelivery && o.status === 'delivered').length}
+                  </div>
+                  <p className="text-[10px] opacity-60 mt-1">Completed door deliveries</p>
+                </div>
+
+                <div className={`p-4 rounded-2xl border ${isDark ? 'bg-[#24170D] border-[#4A2C16]' : 'bg-[#FAF7F0] border-[#E4D4BC]'}`}>
+                  <div className="flex items-center justify-between text-xs opacity-70 mb-1">
+                    <span>Delivery Revenue</span>
+                    <DollarSign className="w-4 h-4 text-[#C18A45]" />
+                  </div>
+                  <div className="text-2xl font-mono font-bold text-[#C18A45]">
+                    {formatPrice(
+                      ordersList
+                        .filter(o => o.isDelivery && o.status !== 'rejected')
+                        .reduce((sum, o) => sum + (Number(o.deliveryFee) || 0), 0)
+                    )}
+                  </div>
+                  <p className="text-[10px] opacity-60 mt-1">Total collected delivery fees</p>
+                </div>
+              </div>
+            </div>
+
+            {/* 2. Fleet Vehicle Rates & Capacity Limits (Editable Config Table) */}
+            <div className={`p-5 sm:p-6 rounded-3xl border space-y-4 ${isDark ? 'bg-[#1E140A] border-[#3D2513]' : 'bg-white border-[#E8DCCB]'}`}>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-black/10 dark:border-white/10">
+                <div>
+                  <h3 className="text-base font-serif font-bold flex items-center gap-2">
+                    <Car className="w-4 h-4 text-[#C18A45]" />
+                    <span>Fleet Vehicle Types, Rates & Load Limits</span>
+                  </h3>
+                  <p className="text-xs opacity-70 mt-0.5">
+                    Multi-product capacity rules: Cattle, sheep, chickens, and KG limits with automated vehicle recommendation.
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  disabled={isSavingDeliveryVehicles}
+                  onClick={handleSaveDeliveryVehicles}
+                  className="px-4 py-2 rounded-xl bg-[#C18A45] hover:bg-[#A06E35] disabled:opacity-50 text-white font-bold text-xs shadow transition-all flex items-center gap-1.5 cursor-pointer self-start sm:self-auto"
+                >
+                  {isSavingDeliveryVehicles ? (
+                    <>
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                      <span>Saving Fleet Rates...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Check className="w-3.5 h-3.5" />
+                      <span>Save Vehicle Fleet Rates</span>
+                    </>
+                  )}
+                </button>
+              </div>
+
+              {/* Responsive Vehicle Config Table */}
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead>
+                    <tr className="border-b border-black/10 dark:border-white/10 text-[11px] uppercase tracking-wider opacity-60">
+                      <th className="pb-3 pr-3">Vehicle</th>
+                      <th className="pb-3 px-2">Base Fee (ETB)</th>
+                      <th className="pb-3 px-2">Rate (ETB / KM)</th>
+                      <th className="pb-3 px-2">Max Sheep / Goats</th>
+                      <th className="pb-3 px-2">Max Cattle / Ox</th>
+                      <th className="pb-3 px-2">Max Chickens</th>
+                      <th className="pb-3 px-2">Max Weight (KG)</th>
+                      <th className="pb-3 pl-2 text-right">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-black/5 dark:divide-white/5">
+                    {deliveryVehicles.map((veh, idx) => (
+                      <tr key={veh.id} className="hover:bg-black/[0.02] dark:hover:bg-white/[0.02]">
+                        <td className="py-3.5 pr-3">
+                          <div className="font-bold text-sm flex items-center gap-2">
+                            <span>{veh.name}</span>
+                            <span className="text-[10px] font-mono opacity-60 uppercase bg-black/10 dark:bg-white/10 px-1.5 py-0.5 rounded">
+                              {veh.id}
+                            </span>
+                          </div>
+                          <div className="text-[11px] opacity-70 mt-0.5">{veh.amharicName}</div>
+                          <div className="text-[10px] opacity-50 mt-0.5 line-clamp-1">{veh.description}</div>
+                        </td>
+
+                        {/* Base Fee Input */}
+                        <td className="py-3.5 px-2">
+                          <div className="flex items-center gap-1">
+                            <input
+                              type="number"
+                              min="0"
+                              value={veh.baseFee}
+                              onChange={(e) => {
+                                const val = Number(e.target.value) || 0;
+                                setDeliveryVehicles((prev) =>
+                                  prev.map((v, i) => (i === idx ? { ...v, baseFee: val } : v))
+                                );
+                              }}
+                              className="w-20 px-2 py-1.5 rounded-lg border font-mono font-bold bg-transparent text-xs focus:outline-none focus:border-[#C18A45]"
+                            />
+                            <span className="text-[10px] opacity-60">ETB</span>
+                          </div>
+                        </td>
+
+                        {/* Price per KM Input */}
+                        <td className="py-3.5 px-2">
+                          <div className="flex items-center gap-1">
+                            <input
+                              type="number"
+                              min="0"
+                              value={veh.pricePerKm}
+                              onChange={(e) => {
+                                const val = Number(e.target.value) || 0;
+                                setDeliveryVehicles((prev) =>
+                                  prev.map((v, i) => (i === idx ? { ...v, pricePerKm: val } : v))
+                                );
+                              }}
+                              className="w-20 px-2 py-1.5 rounded-lg border font-mono font-bold bg-transparent text-xs focus:outline-none focus:border-[#C18A45]"
+                            />
+                            <span className="text-[10px] opacity-60">ETB/km</span>
+                          </div>
+                        </td>
+
+                        {/* Max Sheep */}
+                        <td className="py-3.5 px-2">
+                          <input
+                            type="number"
+                            min="0"
+                            value={veh.maxSheep ?? 0}
+                            onChange={(e) => {
+                              const val = Number(e.target.value) || 0;
+                              setDeliveryVehicles((prev) =>
+                                prev.map((v, i) => (i === idx ? { ...v, maxSheep: val } : v))
+                              );
+                            }}
+                            className="w-16 px-2 py-1.5 rounded-lg border font-mono text-xs bg-transparent focus:outline-none focus:border-[#C18A45]"
+                          />
+                        </td>
+
+                        {/* Max Cattle */}
+                        <td className="py-3.5 px-2">
+                          <input
+                            type="number"
+                            min="0"
+                            value={veh.maxCattle ?? 0}
+                            onChange={(e) => {
+                              const val = Number(e.target.value) || 0;
+                              setDeliveryVehicles((prev) =>
+                                prev.map((v, i) => (i === idx ? { ...v, maxCattle: val } : v))
+                              );
+                            }}
+                            className="w-16 px-2 py-1.5 rounded-lg border font-mono text-xs bg-transparent focus:outline-none focus:border-[#C18A45]"
+                          />
+                        </td>
+
+                        {/* Max Chickens */}
+                        <td className="py-3.5 px-2">
+                          <input
+                            type="number"
+                            min="0"
+                            value={veh.maxChickens ?? 0}
+                            onChange={(e) => {
+                              const val = Number(e.target.value) || 0;
+                              setDeliveryVehicles((prev) =>
+                                prev.map((v, i) => (i === idx ? { ...v, maxChickens: val } : v))
+                              );
+                            }}
+                            className="w-16 px-2 py-1.5 rounded-lg border font-mono text-xs bg-transparent focus:outline-none focus:border-[#C18A45]"
+                          />
+                        </td>
+
+                        {/* Max Weight */}
+                        <td className="py-3.5 px-2">
+                          <div className="flex items-center gap-1">
+                            <input
+                              type="number"
+                              min="0"
+                              value={veh.maxWeightKg ?? 0}
+                              onChange={(e) => {
+                                const val = Number(e.target.value) || 0;
+                                setDeliveryVehicles((prev) =>
+                                  prev.map((v, i) => (i === idx ? { ...v, maxWeightKg: val } : v))
+                                );
+                              }}
+                              className="w-20 px-2 py-1.5 rounded-lg border font-mono text-xs bg-transparent focus:outline-none focus:border-[#C18A45]"
+                            />
+                            <span className="text-[10px] opacity-60">KG</span>
+                          </div>
+                        </td>
+
+                        {/* Active Toggle */}
+                        <td className="py-3.5 pl-2 text-right">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setDeliveryVehicles((prev) =>
+                                prev.map((v, i) => (i === idx ? { ...v, active: !v.active } : v))
+                              );
+                            }}
+                            className={`px-2.5 py-1 rounded-full text-[10px] font-bold transition-all ${
+                              veh.active !== false
+                                ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
+                                : 'bg-red-500/15 text-red-400 border border-red-500/30'
+                            }`}
+                          >
+                            {veh.active !== false ? 'Active' : 'Disabled'}
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* 3. Farm Origin Facility & Global Logistics Settings */}
+            <div className={`p-5 sm:p-6 rounded-3xl border space-y-4 ${isDark ? 'bg-[#1E140A] border-[#3D2513]' : 'bg-white border-[#E8DCCB]'}`}>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-black/10 dark:border-white/10">
+                <div>
+                  <h3 className="text-base font-serif font-bold flex items-center gap-2">
+                    <MapPin className="w-4 h-4 text-[#C18A45]" />
+                    <span>Aware Farm Dispatch Hub & Boundary Settings</span>
+                  </h3>
+                  <p className="text-xs opacity-70 mt-0.5">
+                    Origin coordinates where livestock are loaded and max driving radius cutoff for Addis Ababa.
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  disabled={isSavingDeliverySettings}
+                  onClick={handleSaveDeliverySettings}
+                  className="px-4 py-2 rounded-xl bg-[#C18A45] hover:bg-[#A06E35] disabled:opacity-50 text-white font-bold text-xs shadow transition-all flex items-center gap-1.5 cursor-pointer self-start sm:self-auto"
+                >
+                  {isSavingDeliverySettings ? (
+                    <>
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                      <span>Saving Facility Hub...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Check className="w-3.5 h-3.5" />
+                      <span>Save Facility Hub</span>
+                    </>
+                  )}
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+                <div>
+                  <label className="block text-[11px] font-bold uppercase mb-1 opacity-70">
+                    Dispatch Facility Name
+                  </label>
+                  <input
+                    type="text"
+                    value={deliverySettings.pickupAddress || deliverySettings.defaultOriginName || ''}
+                    onChange={(e) =>
+                      setDeliverySettings((prev: any) => ({
+                        ...prev,
+                        pickupAddress: e.target.value,
+                        defaultOriginName: e.target.value
+                      }))
+                    }
+                    className="w-full px-3 py-2 rounded-xl border text-xs bg-transparent focus:outline-none focus:border-[#C18A45]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold uppercase mb-1 opacity-70">
+                    Farm Latitude (GPS)
+                  </label>
+                  <input
+                    type="number"
+                    step="any"
+                    value={deliverySettings.pickupLatitude ?? deliverySettings.defaultOriginLat ?? 9.0182}
+                    onChange={(e) =>
+                      setDeliverySettings((prev: any) => ({
+                        ...prev,
+                        pickupLatitude: Number(e.target.value),
+                        defaultOriginLat: Number(e.target.value)
+                      }))
+                    }
+                    className="w-full px-3 py-2 rounded-xl border text-xs font-mono bg-transparent focus:outline-none focus:border-[#C18A45]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold uppercase mb-1 opacity-70">
+                    Farm Longitude (GPS)
+                  </label>
+                  <input
+                    type="number"
+                    step="any"
+                    value={deliverySettings.pickupLongitude ?? deliverySettings.defaultOriginLng ?? 38.7750}
+                    onChange={(e) =>
+                      setDeliverySettings((prev: any) => ({
+                        ...prev,
+                        pickupLongitude: Number(e.target.value),
+                        defaultOriginLng: Number(e.target.value)
+                      }))
+                    }
+                    className="w-full px-3 py-2 rounded-xl border text-xs font-mono bg-transparent focus:outline-none focus:border-[#C18A45]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold uppercase mb-1 opacity-70">
+                    Max Delivery Radius (KM)
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="100"
+                    value={deliverySettings.maxDistanceKm ?? 30}
+                    onChange={(e) =>
+                      setDeliverySettings((prev: any) => ({ ...prev, maxDistanceKm: Number(e.target.value) }))
+                    }
+                    className="w-full px-3 py-2 rounded-xl border text-xs font-mono bg-transparent focus:outline-none focus:border-[#C18A45]"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* 4. Interactive Live Route & Capacity Simulator Sandbox */}
+            <div className={`p-5 sm:p-6 rounded-3xl border space-y-4 ${isDark ? 'bg-[#1E140A] border-[#3D2513]' : 'bg-white border-[#E8DCCB]'}`}>
+              <div className="pb-3 border-b border-black/10 dark:border-white/10">
+                <h3 className="text-base font-serif font-bold flex items-center gap-2">
+                  <Navigation className="w-4 h-4 text-[#C18A45]" />
+                  <span>Interactive Route & Vehicle Load Simulator</span>
+                </h3>
+                <p className="text-xs opacity-70 mt-0.5">
+                  Test actual road distance calculations, duration, multi-item loads, and capacity enforcement in real time.
+                </p>
+              </div>
+
+              {/* Simulator Input Grid */}
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3.5">
+                {/* Destination Dropdown */}
+                <div className="col-span-2 md:col-span-3 lg:col-span-2">
+                  <label className="block text-[11px] font-bold uppercase mb-1 opacity-70">
+                    Select Addis Ababa Destination
+                  </label>
+                  <select
+                    value={simSelectedLocId}
+                    onChange={(e) => {
+                      const locId = e.target.value;
+                      setSimSelectedLocId(locId);
+                      const loc = ADDIS_ABABA_LOCATIONS.find((l) => l.id === locId);
+                      if (loc) {
+                        setSimDestLat(loc.lat);
+                        setSimDestLng(loc.lng);
+                        setSimDestAddress(`${loc.name} (${loc.subCity} Sub-City)`);
+                      }
+                    }}
+                    className={`w-full px-3 py-2 rounded-xl border text-xs focus:outline-none ${
+                      isDark ? 'bg-[#24170D] border-[#4A2C16]' : 'bg-white border-[#E4D4BC]'
+                    }`}
+                  >
+                    {ADDIS_ABABA_LOCATIONS.map((loc) => (
+                      <option key={loc.id} value={loc.id}>
+                        {loc.name} — {loc.subCity} ({loc.amharicName})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Sheep / Goats */}
+                <div>
+                  <label className="block text-[11px] font-bold uppercase mb-1 opacity-70">Sheep / Goats</label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={simSheep}
+                    onChange={(e) => setSimSheep(Math.max(0, Number(e.target.value) || 0))}
+                    className="w-full px-3 py-2 rounded-xl border text-xs font-mono bg-transparent focus:outline-none"
+                  />
+                </div>
+
+                {/* Cattle / Oxen */}
+                <div>
+                  <label className="block text-[11px] font-bold uppercase mb-1 opacity-70">Cattle / Oxen</label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={simCattle}
+                    onChange={(e) => setSimCattle(Math.max(0, Number(e.target.value) || 0))}
+                    className="w-full px-3 py-2 rounded-xl border text-xs font-mono bg-transparent focus:outline-none"
+                  />
+                </div>
+
+                {/* Chickens */}
+                <div>
+                  <label className="block text-[11px] font-bold uppercase mb-1 opacity-70">Chickens</label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={simChickens}
+                    onChange={(e) => setSimChickens(Math.max(0, Number(e.target.value) || 0))}
+                    className="w-full px-3 py-2 rounded-xl border text-xs font-mono bg-transparent focus:outline-none"
+                  />
+                </div>
+
+                {/* Raw Meat KG */}
+                <div>
+                  <label className="block text-[11px] font-bold uppercase mb-1 opacity-70">Beef / Meat (KG)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={simMeatKg}
+                    onChange={(e) => setSimMeatKg(Math.max(0, Number(e.target.value) || 0))}
+                    className="w-full px-3 py-2 rounded-xl border text-xs font-mono bg-transparent focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              {/* Simulation Trigger Button */}
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  disabled={isSimulatingRoute}
+                  onClick={handleRunSimulator}
+                  className="px-5 py-2.5 rounded-xl bg-[#C18A45] hover:bg-[#A06E35] disabled:opacity-50 text-white font-bold text-xs shadow transition-all flex items-center gap-2 cursor-pointer"
+                >
+                  {isSimulatingRoute ? (
+                    <>
+                      <RefreshCw className="w-4 h-4 animate-spin" />
+                      <span>Calculating Driving Route...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-4 h-4" />
+                      <span>Simulate Route & Check Vehicle Capacity</span>
+                    </>
+                  )}
+                </button>
+              </div>
+
+              {/* Simulation Results Display */}
+              {simResult && (
+                <div
+                  className={`p-4 rounded-2xl border space-y-3 animate-in fade-in-50 duration-200 ${
+                    isDark ? 'bg-black/20 border-[#4A2C16]' : 'bg-[#FAF7F0] border-[#E4D4BC]'
+                  }`}
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-black/10 dark:border-white/10">
+                    <div className="flex items-center gap-2 text-xs">
+                      <span className="font-bold">🛣️ Road Distance:</span>
+                      <span className="px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-400 font-mono font-bold">
+                        {simResult.distanceKm} KM
+                      </span>
+                      <span className="opacity-60">•</span>
+                      <span>Est. {simResult.estimatedDurationMinutes} mins drive</span>
+                      <span className="opacity-60">•</span>
+                      <span className="opacity-80">Category: {simResult.distanceCategoryLabel}</span>
+                    </div>
+
+                    <div className="text-[10px] font-mono opacity-60">
+                      Engine: {simResult.routeSource || 'OSRM Driving Router'}
+                    </div>
+                  </div>
+
+                  {/* Vehicle Cards */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    {simResult.vehicles?.map((v: any) => (
+                      <div
+                        key={v.id}
+                        className={`p-3 rounded-xl border text-xs space-y-1.5 ${
+                          v.isSuitable
+                            ? 'bg-emerald-500/10 border-emerald-500/30'
+                            : 'bg-red-500/10 border-red-500/30 opacity-70'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between font-bold">
+                          <span>{v.name}</span>
+                          {v.isRecommended && (
+                            <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-emerald-500 text-black font-black">
+                              Best Choice
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-lg font-mono font-bold text-[#C18A45]">
+                          {formatPrice(v.deliveryFee)}
+                        </div>
+                        <div className="text-[10px] opacity-75">
+                          Base: {v.baseFee} ETB + {v.pricePerKm} ETB/km
+                        </div>
+                        <div className="pt-1 border-t border-black/5 dark:border-white/5">
+                          {v.isSuitable ? (
+                            <span className="text-emerald-400 font-semibold flex items-center gap-1">
+                              <CheckCircle2 className="w-3.5 h-3.5" />
+                              <span>Suitable for this load</span>
+                            </span>
+                          ) : (
+                            <span className="text-red-400 font-semibold block leading-tight">
+                              ⚠️ {v.unsuitabilityReason || 'Exceeds capacity'}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* 5. Live Delivery Orders Dispatch Queue */}
+            <div className={`p-5 sm:p-6 rounded-3xl border space-y-4 ${isDark ? 'bg-[#1E140A] border-[#3D2513]' : 'bg-white border-[#E8DCCB]'}`}>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-black/10 dark:border-white/10">
+                <div>
+                  <h3 className="text-base font-serif font-bold flex items-center gap-2">
+                    <Truck className="w-4 h-4 text-[#C18A45]" />
+                    <span>Delivery Orders Queue & Dispatch Control</span>
+                  </h3>
+                  <p className="text-xs opacity-70 mt-0.5">
+                    Orders with customer doorstep delivery requests and assigned vehicles.
+                  </p>
+                </div>
+
+                {/* Filter Pills */}
+                <div className="flex items-center gap-1.5 p-1 rounded-xl bg-black/5 dark:bg-white/5 self-start sm:self-auto">
+                  {(['all', 'pending', 'in_transit', 'delivered'] as const).map((filterKey) => (
+                    <button
+                      key={filterKey}
+                      type="button"
+                      onClick={() => setDeliveryOrderFilter(filterKey)}
+                      className={`px-3 py-1 rounded-lg text-xs font-bold transition-all capitalize cursor-pointer ${
+                        deliveryOrderFilter === filterKey
+                          ? 'bg-[#C18A45] text-white shadow-xs'
+                          : 'opacity-70 hover:opacity-100'
+                      }`}
+                    >
+                      {filterKey === 'all'
+                        ? 'All'
+                        : filterKey === 'pending'
+                        ? 'Pending'
+                        : filterKey === 'in_transit'
+                        ? 'In Transit'
+                        : 'Delivered'}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Delivery Orders Table */}
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead>
+                    <tr className="border-b border-black/10 dark:border-white/10 text-[11px] uppercase tracking-wider opacity-60">
+                      <th className="pb-3 pr-2">Order ID & Date</th>
+                      <th className="pb-3 px-2">Customer</th>
+                      <th className="pb-3 px-2">Destination Address</th>
+                      <th className="pb-3 px-2">Assigned Vehicle</th>
+                      <th className="pb-3 px-2">Delivery Fee</th>
+                      <th className="pb-3 px-2">Status</th>
+                      <th className="pb-3 pl-2 text-right">Dispatch Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-black/5 dark:divide-white/5">
+                    {ordersList
+                      .filter((o) => {
+                        const hasDelivery = Boolean(
+                          o.isDelivery ||
+                          o.deliveryAddress ||
+                          (o.deliveryLocation && !o.deliveryLocation.includes('Self Pickup'))
+                        );
+                        if (!hasDelivery) return false;
+
+                        if (deliveryOrderFilter === 'pending') {
+                          return o.status === 'pending_verification' || o.status === 'verified';
+                        } else if (deliveryOrderFilter === 'in_transit') {
+                          return o.status === 'delivery_pending';
+                        } else if (deliveryOrderFilter === 'delivered') {
+                          return o.status === 'delivered';
+                        }
+                        return true;
+                      })
+                      .map((order) => (
+                        <tr key={order.id} className="hover:bg-black/[0.02] dark:hover:bg-white/[0.02]">
+                          <td className="py-3 pr-2">
+                            <div className="font-mono font-bold text-xs text-[#C18A45]">#{order.id}</div>
+                            <div className="text-[10px] opacity-60 mt-0.5">
+                              {new Date(order.createdAt).toLocaleDateString()}
+                            </div>
+                          </td>
+
+                          <td className="py-3 px-2">
+                            <div className="font-bold">{order.customerName}</div>
+                            {order.customerPhone && (
+                              <a
+                                href={`tel:${order.customerPhone}`}
+                                className="text-[11px] opacity-75 hover:underline font-mono"
+                              >
+                                {order.customerPhone}
+                              </a>
+                            )}
+                          </td>
+
+                          <td className="py-3 px-2 max-w-[200px]">
+                            <div className="truncate font-medium" title={order.deliveryAddress || order.deliveryLocation}>
+                              📍 {order.deliveryAddress || order.deliveryLocation || 'Addis Ababa'}
+                            </div>
+                            {order.distanceKm && (
+                              <div className="text-[10px] opacity-60 font-mono">
+                                Road Distance: {order.distanceKm} KM
+                              </div>
+                            )}
+                          </td>
+
+                          <td className="py-3 px-2">
+                            <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-amber-500/15 text-amber-400 border border-amber-500/25">
+                              {order.vehicleType || 'Car / Pickup'}
+                            </span>
+                          </td>
+
+                          <td className="py-3 px-2 font-mono font-bold text-[#C18A45]">
+                            {formatPrice(order.deliveryFee || 0)}
+                          </td>
+
+                          <td className="py-3 px-2">
+                            {order.status === 'pending_verification' && (
+                              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/25 animate-pulse">
+                                Slip Review
+                              </span>
+                            )}
+                            {order.status === 'verified' && (
+                              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-500/15 text-blue-400 border border-blue-500/25">
+                                Ready to Dispatch
+                              </span>
+                            )}
+                            {order.status === 'delivery_pending' && (
+                              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-500/15 text-purple-400 border border-purple-500/25">
+                                🚀 In Transit
+                              </span>
+                            )}
+                            {order.status === 'delivered' && (
+                              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/25">
+                                ✓ Delivered
+                              </span>
+                            )}
+                          </td>
+
+                          <td className="py-3 pl-2 text-right">
+                            <div className="inline-flex items-center justify-end gap-1.5">
+                              {order.status !== 'delivery_pending' && order.status !== 'delivered' && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleApproveDelivery(order.id, 'delivery_pending')}
+                                  className="px-2.5 py-1 rounded-lg bg-amber-500 hover:bg-amber-600 text-black font-bold text-[11px] shadow transition-all flex items-center gap-1 cursor-pointer"
+                                  title="Approve and mark order as out for delivery"
+                                >
+                                  <Truck className="w-3 h-3" />
+                                  <span>Dispatch</span>
+                                </button>
+                              )}
+
+                              {order.status !== 'delivered' && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleApproveDelivery(order.id, 'delivered')}
+                                  className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] shadow transition-all flex items-center gap-1 cursor-pointer"
+                                  title="Confirm delivery to customer door"
+                                >
+                                  <Check className="w-3 h-3" />
+                                  <span>Delivered</span>
+                                </button>
+                              )}
+
+                              {order.paymentSlipUrl && (
+                                <button
+                                  type="button"
+                                  onClick={() => setSelectedSlipOrder(order)}
+                                  className="p-1 rounded-lg bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-[11px] font-bold transition-colors cursor-pointer"
+                                  title="View payment slip"
+                                >
+                                  <Eye className="w-3.5 h-3.5" />
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ============================================================ */}
         {/* TAB 5: DEMAND & METRICS */}
         {/* ============================================================ */}
         {activeTab === 'demand' && (
@@ -3473,6 +4413,10 @@ export const Admin: React.FC = () => {
           }}
           onApproveOrder={async (id) => {
             await handleVerifyOrder(id);
+            setSelectedSlipOrder(null);
+          }}
+          onApproveDelivery={async (id, status) => {
+            await handleApproveDelivery(id, status);
             setSelectedSlipOrder(null);
           }}
           onReject={async (id) => {

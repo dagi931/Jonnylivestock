@@ -1,4 +1,4 @@
-﻿# 🐂 Jonny Livestock (ጆኒ ከብት እርባታ)
+# 🐂 Jonny Livestock (ጆኒ ከብት እርባታ)
 
 > **Your One-Stop Livestock Shop · የታመነ የቀንድ ከብትና የበግ እርባታ**  
 > Direct farm-to-doorstep livestock sales, fresh meat cuts, celebration packages, and butcher preparation services in Addis Ababa, Ethiopia.
@@ -57,7 +57,7 @@
 ### Backend & Database
 - **Runtime**: [Node.js](https://nodejs.org/) (ES Modules)
 - **Server Framework**: [Express.js](https://expressjs.com/) with TypeScript
-- **Database**: [PostgreSQL](https://www.postgresql.org/) hosted on [Supabase](https://supabase.com/)
+- **Database**: [PostgreSQL](https://www.postgresql.org/) (Local PostgreSQL / Cloud PostgreSQL)
 - **ORM**: [Prisma ORM v6](https://www.prisma.io/)
 - **Security & Rate Limiting**: `express-rate-limit`, `bcryptjs`, `jsonwebtoken`
 - **File Uploads**: `multer`
@@ -135,15 +135,15 @@ Create a `.env` file inside the `server/` directory:
 ```env
 PORT=5000
 JWT_SECRET=your_super_secret_jwt_key
-DATABASE_URL="postgresql://user:password@host:6543/postgres?pgbouncer=true"
-DIRECT_URL="postgresql://user:password@host:5432/postgres"
+DATABASE_URL="postgresql://postgres:1234@localhost:5432/jonny_livestock"
+DIRECT_URL="postgresql://postgres:1234@localhost:5432/jonny_livestock"
 BREVO_API_KEY="your_brevo_api_key"
 BREVO_SENDER_EMAIL="info@jonnylivestock.com"
 BREVO_SENDER_NAME="Jonny Livestock"
 ```
 
 ### 4. Seed Database (Optional)
-To seed initial animals, bank accounts, and packages to Supabase PostgreSQL:
+To seed initial animals, bank accounts, settings, and celebration packages to PostgreSQL:
 
 ```bash
 cd server

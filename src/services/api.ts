@@ -887,6 +887,169 @@ class ApiService {
       return { success: false, error: error.message || 'Failed to update meat pricing' };
     }
   }
+
+  // ==================== DELIVERY & LOGISTICS ====================
+  async getDeliveryQuote(params: {
+    deliveryAddress?: string;
+    deliveryLat: number;
+    deliveryLng: number;
+    items: Array<{ type: string; name?: string; quantity: number; weightKg?: number }>;
+  }): Promise<any> {
+    try {
+      const res = await fetch(`${API_BASE}/delivery/quote`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(params)
+      });
+      return await res.json();
+    } catch (error: any) {
+      console.error('Error fetching delivery quote:', error);
+      return {
+        success: false,
+        error: error.message || 'Failed to calculate delivery quote'
+      };
+    }
+  }
+
+  async getDeliveryConfig(): Promise<{
+    success: boolean;
+    settings?: any;
+    vehicles?: any[];
+    error?: string;
+  }> {
+    try {
+      const res = await fetch(`${API_BASE}/delivery/config`);
+      if (!res.ok) throw new Error('Failed to fetch delivery config');
+      return await res.json();
+    } catch (error: any) {
+      console.error('Error fetching delivery config:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  async updateDeliveryConfig(
+    data: { settings?: any; vehicles?: any[] },
+    token?: string
+  ): Promise<{ success: boolean; message?: string; settings?: any; vehicles?: any[]; error?: string }> {
+    try {
+      const res = await fetch(`${API_BASE}/delivery/config`, {
+        method: 'PUT',
+        headers: this.getHeaders(token),
+        body: JSON.stringify(data)
+      });
+      return await res.json();
+    } catch (error: any) {
+      return { success: false, error: error.message || 'Failed to update delivery config' };
+    }
+  }
+
+  async testDeliveryRoute(
+    pickupLat: number,
+    pickupLng: number,
+    deliveryLat: number,
+    deliveryLng: number,
+    token?: string
+  ): Promise<any> {
+    try {
+      const res = await fetch(`${API_BASE}/delivery/test-route`, {
+        method: 'POST',
+        headers: this.getHeaders(token),
+        body: JSON.stringify({ pickupLat, pickupLng, deliveryLat, deliveryLng })
+      });
+      return await res.json();
+    } catch (error: any) {
+      return { success: false, error: error.message };
+    }
+  }
+
+  async approveDelivery(
+    orderId: string,
+    status: 'delivery_pending' | 'delivered' = 'delivery_pending',
+    adminNotes?: string,
+    token?: string
+  ): Promise<{ success: boolean; message?: string; order?: Order; error?: string }> {
+    try {
+      const res = await fetch(`${API_BASE}/orders/${orderId}/approve-delivery`, {
+        method: 'POST',
+        headers: this.getHeaders(token),
+        body: JSON.stringify({ status, adminNotes })
+      });
+      return await res.json();
+    } catch (error: any) {
+      return { success: false, error: error.message || 'Failed to approve delivery' };
+    }
+  }
+
+  async reverseGeocode(lat: number, lng: number): Promise<{
+    success: boolean;
+    data?: {
+      address: string;
+      subCity?: string;
+      road?: string;
+      neighborhood?: string;
+      display_name?: string;
+    };
+    error?: string;
+  }> {
+    try {
+      const res = await fetch(`${API_BASE}/delivery/reverse-geocode?lat=${lat}&lng=${lng}`);
+      if (!res.ok) throw new Error('Failed to reverse geocode location');
+      return await res.json();
+    } catch (error: any) {
+      console.error('Error reverse geocoding:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  async searchPlaces(query: string): Promise<{
+    success: boolean;
+    data?: Array<{
+      name: string;
+      address: string;
+      subCity?: string;
+      lat: number;
+      lng: number;
+    }>;
+    error?: string;
+  }> {
+    try {
+      const res = await fetch(`${API_BASE}/delivery/search-places?q=${encodeURIComponent(query)}`);
+      if (!res.ok) throw new Error('Failed to search places');
+      return await res.json();
+    } catch (error: any) {
+      console.error('Error searching places:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  async getDeliveryRoute(lat: number, lng: number): Promise<{
+    success: boolean;
+    data?: {
+      distanceKm: number;
+      estimatedDurationMinutes: number;
+      isFallback: boolean;
+      routeCoordinates?: [number, number][];
+      isWithinRange: boolean;
+      distanceCategory: string;
+      distanceCategoryLabel: string;
+      amharicCategoryLabel: string;
+      pickupLocation: {
+        lat: number;
+        lng: number;
+        address: string;
+      };
+    };
+    error?: string;
+  }> {
+    try {
+      const res = await fetch(`${API_BASE}/delivery/route?lat=${lat}&lng=${lng}`);
+      if (!res.ok) throw new Error('Failed to fetch driving route');
+      return await res.json();
+    } catch (error: any) {
+      console.error('Error fetching delivery route:', error);
+      return { success: false, error: error.message };
+    }
+  }
 }
 
 export const api = new ApiService();

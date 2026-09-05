@@ -67,6 +67,24 @@ model Order {
   finalVerifiedAt      DateTime?
   finalVerifiedBy      String?
 
+  // Delivery fields
+  isDelivery           Boolean   @default(false)
+  deliveryAddress      String?
+  deliveryLatitude     Float?
+  deliveryLongitude    Float?
+  pickupAddress        String?
+  pickupLatitude       Float?
+  pickupLongitude      Float?
+  distanceKm           Float?
+  distanceCategory     String?   // 'short' | 'medium' | 'long'
+  vehicleType          String?   // 'car' | 'pickup' | 'large_pickup'
+  vehicleName          String?
+  deliveryFee          Float     @default(0)
+  estimatedDurationMinutes Int?
+  deliveryApprovedAt   DateTime?
+  deliveryApprovedBy   String?
+  deliveredAt          DateTime?
+
   selectedServices     String[]
   servicesFee          Float     @default(0)
   totalAmount          Float
@@ -76,13 +94,43 @@ model Order {
   transactionReference String?
   customerNotes        String?
   status               String    @default("pending_verification") 
-  // 'pending_verification' | 'reservation_pending' | 'reserved' | 'final_payment_pending' | 'verified' | 'completed' | 'rejected'
+  // 'pending_verification' | 'reservation_pending' | 'reserved' | 'final_payment_pending' | 'verified' | 'completed' | 'delivery_pending' | 'delivered' | 'rejected'
   
   adminNotes           String?
   verifiedAt           DateTime?
   verifiedBy           String?
   createdAt            DateTime  @default(now())
   updatedAt            DateTime  @updatedAt
+}
+
+model DeliveryVehicleConfig {
+  id                 String   @id // 'car' | 'pickup' | 'large_pickup'
+  name               String
+  amharicName        String?
+  description        String
+  amharicDescription String?
+  icon               String   @default("car")
+  baseFee            Float    @default(100)
+  pricePerKm         Float    @default(22)
+  maxSheep           Int      @default(2)
+  maxGoats           Int      @default(2)
+  maxCattle          Int      @default(0)
+  maxChickens        Int      @default(20)
+  maxWeightKg        Float    @default(60)
+  isActive           Boolean  @default(true)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+model DeliverySetting {
+  id                 String   @id @default("default")
+  pickupAddress      String   @default("Aware Farm, Addis Ababa")
+  pickupLatitude     Float    @default(9.0182)
+  pickupLongitude    Float    @default(38.7750)
+  maxDistanceKm      Float    @default(30.0)
+  shortDistanceMaxKm Float    @default(10.0)
+  mediumDistanceMaxKm Float   @default(20.0)
+  updatedAt          DateTime @updatedAt
 }
 
 model SavedPackage {

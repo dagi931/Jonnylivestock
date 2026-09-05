@@ -28,6 +28,7 @@ interface SlipPreviewModalProps {
   onApproveReservation?: (id: string) => void;
   onApproveFinal?: (id: string) => void;
   onApproveOrder?: (id: string) => void;
+  onApproveDelivery?: (id: string, status?: 'delivery_pending' | 'delivered') => void;
   onReject?: (id: string) => void;
   isActionLoading?: boolean;
 }
@@ -42,6 +43,7 @@ export const SlipPreviewModal: React.FC<SlipPreviewModalProps> = ({
   onApproveReservation,
   onApproveFinal,
   onApproveOrder,
+  onApproveDelivery,
   onReject,
   isActionLoading = false
 }) => {
@@ -119,6 +121,10 @@ export const SlipPreviewModal: React.FC<SlipPreviewModalProps> = ({
                         ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30 animate-pulse'
                         : order.status === 'reserved'
                         ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
+                        : order.status === 'delivery_pending'
+                        ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30'
+                        : order.status === 'delivered'
+                        ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
                         : order.status === 'completed' || order.status === 'verified'
                         ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
                         : 'bg-red-500/15 text-red-400 border border-red-500/30'
@@ -128,6 +134,8 @@ export const SlipPreviewModal: React.FC<SlipPreviewModalProps> = ({
                     {order.status === 'final_payment_pending' && 'Final 50% Slip Review'}
                     {order.status === 'pending_verification' && 'Full Slip Review'}
                     {order.status === 'reserved' && 'Reserved (50% Confirmed)'}
+                    {order.status === 'delivery_pending' && '🚀 Delivery In Transit'}
+                    {order.status === 'delivered' && '✓ Delivered to Doorstep'}
                     {(order.status === 'completed' || order.status === 'verified') && '✓ Fully Settled & Sold'}
                     {order.status === 'rejected' && 'Rejected'}
                   </span>
@@ -226,6 +234,13 @@ export const SlipPreviewModal: React.FC<SlipPreviewModalProps> = ({
                       </div>
                     )}
 
+                    {order.deliveryFee != null && Number(order.deliveryFee) > 0 && (
+                      <div className="flex justify-between text-xs text-amber-500 pt-1 border-t border-black/5 dark:border-white/5">
+                        <span>Included Delivery Fee ({order.vehicleType || 'Vehicle'}):</span>
+                        <span className="font-mono font-bold">{formatPrice(order.deliveryFee)}</span>
+                      </div>
+                    )}
+
                     {order.transactionReference && (
                       <div className="text-[11px] font-mono opacity-85 pt-1">
                         <strong>Txn Reference:</strong> {order.transactionReference}
@@ -237,6 +252,55 @@ export const SlipPreviewModal: React.FC<SlipPreviewModalProps> = ({
                         "{order.customerNotes}"
                       </div>
                     )}
+                  </div>
+                )}
+
+                {/* Delivery & Logistics Details Card */}
+                {(order?.isDelivery || order?.deliveryLocation || order?.vehicleType) && (
+                  <div
+                    className={`p-3.5 rounded-2xl border text-xs space-y-2 ${
+                      isDark ? 'bg-[#24170D] border-[#4A2C16]' : 'bg-[#FAF7F0] border-[#E4D4BC]'
+                    }`}
+                  >
+                    <div className="font-bold text-xs uppercase tracking-wider text-[#C18A45] pb-1 border-b border-black/5 dark:border-white/5 flex items-center justify-between">
+                      <span className="flex items-center gap-1.5">
+                        <MapPin className="w-3.5 h-3.5" />
+                        <span>Delivery & Dispatch Info</span>
+                      </span>
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                        order.status === 'delivered'
+                          ? 'bg-emerald-500/20 text-emerald-400'
+                          : order.status === 'delivery_pending'
+                          ? 'bg-amber-500/20 text-amber-400'
+                          : 'bg-black/10 dark:bg-white/10 opacity-75'
+                      }`}>
+                        {order.status === 'delivered' ? '✓ Delivered' : order.status === 'delivery_pending' ? '🚀 Dispatched / In Transit' : 'Pending Dispatch'}
+                      </span>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <div className="flex items-start gap-2">
+                        <MapPin className="w-3.5 h-3.5 text-[#C18A45] shrink-0 mt-0.5" />
+                        <div>
+                          <span className="opacity-70 text-[11px]">Destination: </span>
+                          <span className="font-bold">{order.deliveryAddress || order.deliveryLocation || 'Aware Farm Pickup'}</span>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2 pt-1">
+                        <div className="p-2 rounded-xl bg-black/5 dark:bg-white/5">
+                          <span className="text-[10px] opacity-60 block uppercase">Vehicle Assigned</span>
+                          <span className="font-bold uppercase text-amber-500">{order.vehicleType || 'Standard'}</span>
+                        </div>
+
+                        <div className="p-2 rounded-xl bg-black/5 dark:bg-white/5">
+                          <span className="text-[10px] opacity-60 block uppercase">Distance & Fee</span>
+                          <span className="font-bold font-mono">
+                            {order.distanceKm ? `${order.distanceKm} km • ` : ''}{formatPrice(order.deliveryFee || 0)}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>
@@ -387,7 +451,7 @@ export const SlipPreviewModal: React.FC<SlipPreviewModalProps> = ({
 
           {/* Modal Sticky Footer: Direct Verification Buttons */}
           <div
-            className="p-4 border-t sticky bottom-0 z-20 backdrop-blur-md bg-inherit shrink-0"
+            className="p-4 border-t sticky bottom-0 z-20 backdrop-blur-md bg-inherit shrink-0 space-y-2.5"
             style={{ borderColor: isDark ? '#4A2C16' : '#E4D4BC' }}
           >
             {/* 1. Pending 50% Deposit Approval */}
@@ -468,8 +532,39 @@ export const SlipPreviewModal: React.FC<SlipPreviewModalProps> = ({
               </div>
             )}
 
+            {/* 4. Delivery / Logistics Actions */}
+            {order?.isDelivery && onApproveDelivery && (order.status === 'verified' || order.status === 'completed' || order.status === 'delivery_pending') && (
+              <div className="pt-2 border-t border-black/10 dark:border-white/10 flex items-center justify-between gap-2">
+                <span className="text-xs font-bold text-[#C18A45] flex items-center gap-1">
+                  <MapPin className="w-4 h-4" />
+                  <span>Logistics Action:</span>
+                </span>
+                <div className="flex items-center gap-2">
+                  {order.status !== 'delivery_pending' && (
+                    <button
+                      type="button"
+                      disabled={isActionLoading}
+                      onClick={() => onApproveDelivery(order.id, 'delivery_pending')}
+                      className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-black font-bold text-xs shadow transition-all flex items-center gap-1 cursor-pointer"
+                    >
+                      <span>Approve & Dispatch Delivery</span>
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    disabled={isActionLoading}
+                    onClick={() => onApproveDelivery(order.id, 'delivered')}
+                    className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow transition-all flex items-center gap-1 cursor-pointer"
+                  >
+                    <Check className="w-3.5 h-3.5" />
+                    <span>Mark Delivered ✓</span>
+                  </button>
+                </div>
+              </div>
+            )}
+
             {/* Confirmed States */}
-            {(order?.status === 'completed' || order?.status === 'verified') && (
+            {(order?.status === 'completed' || order?.status === 'verified') && !order.isDelivery && (
               <div className="p-2.5 rounded-xl bg-emerald-500/15 text-emerald-400 text-xs font-bold text-center flex items-center justify-center gap-2">
                 <CheckCircle2 className="w-4 h-4" />
                 <span>Order Fully Settled & Livestock Marked as Sold</span>

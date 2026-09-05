@@ -129,11 +129,29 @@ export const PackageBuilder: React.FC = () => {
   };
 
   const handleOrderPreMade = (pkg: PreMadePackage) => {
+    if (!isAuthenticated) {
+      openAuthModal(
+        'register',
+        isAmharic
+          ? `የበዓል ጥቅል "${pkg.name}" ለማዘዝ እባክዎ መጀመሪያ ይመዝገቡ ወይም ይግቡ።`
+          : `To order celebration package "${pkg.name}", please create an account or sign in first.`
+      );
+      return;
+    }
     setSelectedPreMade(pkg);
     setIsOrderModalOpen(true);
   };
 
   const handleOrderCustom = () => {
+    if (!isAuthenticated) {
+      openAuthModal(
+        'register',
+        isAmharic
+          ? 'ያዘጋጁትን ልዩ የበዓል ጥቅል ለማዘዝ እባክዎ መጀመሪያ ይመዝገቡ ወይም ይግቡ።'
+          : 'To order your custom celebration bundle, please create an account or sign in first.'
+      );
+      return;
+    }
     if (!isEligible) return;
     setSelectedPreMade(null);
     setIsOrderModalOpen(true);
@@ -575,16 +593,17 @@ export const PackageBuilder: React.FC = () => {
                       <span>{isAmharic ? `የምድብ መስፈርት፡ ${categoryCount} / 3` : `Category Requirement: ${categoryCount} / 3`}</span>
                     </div>
                     {isEligible && (
-                      <span className="text-[10px] uppercase font-bold bg-emerald-500 text-black px-2 py-0.5 rounded-full">
-                        {isAmharic ? 'ነፃ ማድረሻ ተፈቅዷል' : 'Free Delivery Ready'}
+                      <span className="text-[10px] uppercase font-bold bg-emerald-500 text-black px-2 py-0.5 rounded-full flex items-center gap-1 shadow-xs">
+                        <Truck className="w-3 h-3" />
+                        {isAmharic ? '100% ነፃ ማድረሻ ተፈቅዷል' : '100% Free Delivery Ready'}
                       </span>
                     )}
                   </div>
 
                   <p className="text-[11px] opacity-80 leading-tight">
                     {isEligible
-                      ? (isAmharic ? '✓ ጥቅልዎ የ3 ምድቦችን መስፈርት ስላሟላ ነፃ ማድረሻና የ50% ቅድመ ክፍያ ማስያዝ ይችላሉ!' : '✓ Package meets the 3-category rule and qualifies for complimentary VIP delivery and 50% reservation!')
-                      : (isAmharic ? '⚠️ የጥቅል ጥቅማጥቅሞችን ለማግኘት ቢያንስ ከ3 የተለያዩ ምድቦች (ሥጋ፣ ወይን፣ እንቁላል፣ አበባ) ይምረጡ።' : '⚠️ Choose items from at least 3 distinct categories (Meat, Wine, Eggs, Flowers) to unlock package benefits.')}
+                      ? (isAmharic ? '🎉 እንኳን ደስ አለዎት! ጥቅልዎ የ3 ምድቦችን መስፈርት ስላሟላ 100% ነፃ የበር ማድረሻ (0 ETB) እና የ50% ቅድመ ክፍያ ማስያዣ ተፈቅዷል!' : '🎉 Congratulations! Your package fulfills the 3-category rule and qualifies for 100% FREE Doorstep Delivery (0 ETB) & 50% reservation deposit!')
+                      : (isAmharic ? '⚠️ 100% ነፃ የበር ማድረሻ ለማግኘት ቢያንስ ከ3 የተለያዩ ምድቦች (ሥጋ/ከብት፣ ወይን/መጠጥ፣ እንቁላል፣ አበባ) ይምረጡ።' : '⚠️ Select items from at least 3 distinct categories (Livestock/Meat, Wine/Drinks, Eggs, Flowers) to unlock 100% Free Delivery.')}
                   </p>
 
                   {/* Checklist */}

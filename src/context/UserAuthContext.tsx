@@ -12,10 +12,11 @@ interface UserAuthContextType {
   sendForgotPasswordOtp: (email: string) => Promise<{ success: boolean; message?: string; error?: string }>;
   resetPasswordWithOtp: (data: { email: string; otp: string; newPassword: string }) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
-  openAuthModal: (mode?: 'login' | 'register' | 'forgot_password') => void;
+  openAuthModal: (mode?: 'login' | 'register' | 'forgot_password', message?: string) => void;
   closeAuthModal: () => void;
   isAuthModalOpen: boolean;
   authModalMode: 'login' | 'register' | 'forgot_password';
+  authPromptMessage: string | null;
 }
 
 const UserAuthContext = createContext<UserAuthContextType | undefined>(undefined);
@@ -32,6 +33,7 @@ export const UserAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authModalMode, setAuthModalMode] = useState<'login' | 'register' | 'forgot_password'>('login');
+  const [authPromptMessage, setAuthPromptMessage] = useState<string | null>(null);
 
   const isAuthenticated = Boolean(token && user);
 
@@ -70,6 +72,7 @@ export const UserAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
       window.dispatchEvent(new Event('auth_change'));
       setIsAuthModalOpen(false);
+      setAuthPromptMessage(null);
       return { success: true, user: res.user };
     }
     return { success: false, error: res.error || 'Invalid credentials' };
@@ -84,6 +87,7 @@ export const UserAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       localStorage.setItem('jonny_user_profile', JSON.stringify(res.user));
       window.dispatchEvent(new Event('auth_change'));
       setIsAuthModalOpen(false);
+      setAuthPromptMessage(null);
       return { success: true };
     }
     return { success: false, error: res.error || 'Registration failed' };
@@ -108,6 +112,7 @@ export const UserAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       localStorage.setItem('jonny_user_profile', JSON.stringify(res.user));
       window.dispatchEvent(new Event('auth_change'));
       setIsAuthModalOpen(false);
+      setAuthPromptMessage(null);
       return { success: true };
     }
     return { success: false, error: res.error || 'Verification failed' };
@@ -138,6 +143,7 @@ export const UserAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
       window.dispatchEvent(new Event('auth_change'));
       setIsAuthModalOpen(false);
+      setAuthPromptMessage(null);
       return { success: true };
     }
     return { success: false, error: res.error || 'Password reset failed' };
@@ -155,13 +161,15 @@ export const UserAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     window.location.href = '/';
   };
 
-  const openAuthModal = (mode: 'login' | 'register' | 'forgot_password' = 'login') => {
+  const openAuthModal = (mode: 'login' | 'register' | 'forgot_password' = 'login', message?: string) => {
     setAuthModalMode(mode);
+    setAuthPromptMessage(message || null);
     setIsAuthModalOpen(true);
   };
 
   const closeAuthModal = () => {
     setIsAuthModalOpen(false);
+    setAuthPromptMessage(null);
   };
 
   return (
@@ -180,7 +188,8 @@ export const UserAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         openAuthModal,
         closeAuthModal,
         isAuthModalOpen,
-        authModalMode
+        authModalMode,
+        authPromptMessage
       }}
     >
       {children}

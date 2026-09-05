@@ -2,17 +2,18 @@ import { Router, Response } from 'express';
 import { PostgresDB } from '../db/postgresDb.js';
 import { authenticateToken, requireAdmin, optionalAuth, AuthRequest } from '../middleware/auth.middleware.js';
 import { uploadSlip } from '../middleware/upload.middleware.js';
-import { Order } from '../types/index.js';
+import { Order, DeliveryLoadItem } from '../types/index.js';
+import { DeliveryService } from '../services/delivery.service.js';
 import { realtimeService } from '../services/realtime.service.js';
 import { orderContactLimiter } from '../middleware/rateLimit.middleware.js';
 
 const router = Router();
 
-// ==================== CREATE ORDER / RESERVATION (Animal or Package) ====================
+// ==================== CREATE ORDER / RESERVATION (Animal, Meat, or Package) ====================
 router.post(
   '/',
   orderContactLimiter,
-  optionalAuth,
+  authenticateToken,
   uploadSlip.single('paymentSlip'),
   async (req: AuthRequest, res: Response): Promise<void> => {
     try {
@@ -21,6 +22,10 @@ router.post(
         customerPhone,
         customerEmail,
         deliveryLocation,
+        deliveryAddress,
+        deliveryLatitude,
+        deliveryLongitude,
+        vehicleType,
         animalId,
         isPackage,
         packageName,
@@ -56,10 +61,11 @@ router.post(
       }
 
       let animalData: any = null;
-      let calculatedTotal = 0;
+      let baseTotal = 0;
       let animalBreed = '';
       let animalType = '';
       let animalPrice = 0;
+      const loadItems: DeliveryLoadItem[] = [];
 
       if (animalId) {
         animalData = await PostgresDB.getAnimalById(animalId);
@@ -76,14 +82,29 @@ router.post(
         animalBreed = animalData.breed;
         animalType = animalData.type;
         animalPrice = animalData.price;
-        calculatedTotal = animalData.price;
+        baseTotal = animalData.price;
+
+        loadItems.push({
+          type: animalData.type as any,
+          name: animalData.breed,
+          quantity: 1,
+          weightKg: animalData.weight
+        });
       } else if (isMeat) {
         animalType = 'cow';
         const cutName = req.body.meatCut || 'Prime Cut';
         const kgVal = Number(req.body.meatKg) || 1;
+        const pricePerKg = Number(req.body.pricePerKg) || 2500;
         animalBreed = `Raw Ox Beef (${cutName}) - ${kgVal} KG`;
-        animalPrice = Number(totalAmount) || 0;
-        calculatedTotal = Number(totalAmount) || 0;
+        animalPrice = kgVal * pricePerKg;
+        baseTotal = animalPrice;
+
+        loadItems.push({
+          type: 'meat',
+          name: animalBreed,
+          quantity: 1,
+          weightKg: kgVal
+        });
       }
 
       // Parse services array
@@ -98,8 +119,8 @@ router.post(
         parsedServices = selectedServices;
       }
 
-      const fee = Number(servicesFee) || 0;
-      calculatedTotal += fee;
+      const otherServicesFee = Number(servicesFee) || 0;
+      baseTotal += otherServicesFee;
 
       // Parse package details
       let parsedPackageDetails: any = null;
@@ -115,7 +136,25 @@ router.post(
         }
 
         if (totalAmount) {
-          calculatedTotal = Number(totalAmount);
+          baseTotal = Number(totalAmount);
+        }
+
+        if (parsedPackageDetails && Array.isArray(parsedPackageDetails.items)) {
+          for (const item of parsedPackageDetails.items) {
+            loadItems.push({
+              type: item.category === 'meat_livestock' ? 'meat' : (item.category as any) || 'package',
+              name: item.name,
+              quantity: 1,
+              weightKg: item.weightKg || 5
+            });
+          }
+        } else {
+          loadItems.push({
+            type: 'package',
+            name: packageName || 'Celebration Package',
+            quantity: 1,
+            weightKg: 30
+          });
         }
       } else if (isMeat) {
         parsedPackageDetails = {
@@ -125,12 +164,60 @@ router.post(
           kg: Number(req.body.meatKg) || 1,
           pricePerKg: Number(req.body.pricePerKg) || 2500,
           isDelivery: Boolean(req.body.isDelivery === true || req.body.isDelivery === 'true'),
-          deliveryAddress: deliveryLocation || undefined
+          deliveryAddress: deliveryAddress || deliveryLocation || undefined
         };
-        if (totalAmount) {
-          calculatedTotal = Number(totalAmount);
-        }
       }
+
+      // Check if delivery requested
+      const wantsDelivery = Boolean(
+        req.body.isDelivery === true ||
+        req.body.isDelivery === 'true' ||
+        parsedServices.includes('delivery') ||
+        Boolean(deliveryAddress && deliveryAddress.trim()) ||
+        Boolean(deliveryLatitude && deliveryLongitude)
+      );
+
+      // Free delivery check for celebration packages fulfilling the >= 3 categories requirement
+      const isFreeDelivery = Boolean(
+        req.body.isFreeDelivery === true ||
+        req.body.isFreeDelivery === 'true' ||
+        (isPkg && (
+          (parsedPackageDetails?.categoriesCount && Number(parsedPackageDetails.categoriesCount) >= 3) ||
+          (parsedPackageDetails?.categoryCount && Number(parsedPackageDetails.categoryCount) >= 3) ||
+          (parsedPackageDetails?.items && new Set(parsedPackageDetails.items.map((i: any) => i.category)).size >= 3) ||
+          (!parsedPackageDetails?.items) // Default pre-made celebration bundle
+        ))
+      );
+
+      let authoritativeDelivery: any = null;
+      let deliveryFee = 0;
+
+      if (wantsDelivery) {
+        const destAddress = (deliveryAddress || deliveryLocation || 'Customer Selected Address').trim();
+        const dLat = deliveryLatitude !== undefined ? Number(deliveryLatitude) : undefined;
+        const dLng = deliveryLongitude !== undefined ? Number(deliveryLongitude) : undefined;
+
+        authoritativeDelivery = await DeliveryService.validateAndCalculateAuthoritativeDelivery({
+          deliveryAddress: destAddress,
+          deliveryLat: dLat,
+          deliveryLng: dLng,
+          vehicleType: vehicleType,
+          items: loadItems
+        });
+
+        if (!authoritativeDelivery.isValid) {
+          res.status(400).json({
+            success: false,
+            error: authoritativeDelivery.error || 'Delivery cannot be fulfilled for the chosen destination or vehicle.'
+          });
+          return;
+        }
+
+        // Waive delivery fee if customer package fulfills free delivery rule
+        deliveryFee = isFreeDelivery ? 0 : authoritativeDelivery.deliveryFee;
+      }
+
+      const calculatedGrandTotal = baseTotal + deliveryFee;
 
       // Handle slip file path or URL
       let slipUrl = '';
@@ -141,8 +228,8 @@ router.post(
       }
 
       const orderId = `ORD-${Date.now().toString().slice(-6)}`;
-      const depositAmt = isRes ? calculatedTotal * 0.5 : calculatedTotal;
-      const remainingAmt = isRes ? calculatedTotal * 0.5 : 0;
+      const depositAmt = isRes ? Math.round(calculatedGrandTotal * 0.5) : calculatedGrandTotal;
+      const remainingAmt = isRes ? calculatedGrandTotal - depositAmt : 0;
 
       const resolvedPhone = customerPhone && customerPhone.trim()
         ? customerPhone.trim()
@@ -161,7 +248,23 @@ router.post(
         customerName: customerName.trim(),
         customerPhone: resolvedPhone,
         customerEmail: customerEmail ? customerEmail.trim() : (req.user ? req.user.email : undefined),
-        deliveryLocation: deliveryLocation ? deliveryLocation.trim() : undefined,
+        deliveryLocation: deliveryAddress || deliveryLocation ? (deliveryAddress || deliveryLocation).trim() : undefined,
+        
+        // Authoritative delivery details
+        isDelivery: wantsDelivery,
+        deliveryAddress: wantsDelivery && authoritativeDelivery ? (deliveryAddress || deliveryLocation).trim() : undefined,
+        deliveryLatitude: wantsDelivery && authoritativeDelivery ? Number(deliveryLatitude) : undefined,
+        deliveryLongitude: wantsDelivery && authoritativeDelivery ? Number(deliveryLongitude) : undefined,
+        pickupAddress: wantsDelivery && authoritativeDelivery ? authoritativeDelivery.pickupAddress : undefined,
+        pickupLatitude: wantsDelivery && authoritativeDelivery ? authoritativeDelivery.pickupLatitude : undefined,
+        pickupLongitude: wantsDelivery && authoritativeDelivery ? authoritativeDelivery.pickupLongitude : undefined,
+        distanceKm: wantsDelivery && authoritativeDelivery ? authoritativeDelivery.distanceKm : undefined,
+        distanceCategory: wantsDelivery && authoritativeDelivery ? authoritativeDelivery.distanceCategory : undefined,
+        vehicleType: wantsDelivery && authoritativeDelivery ? authoritativeDelivery.vehicleType : undefined,
+        vehicleName: wantsDelivery && authoritativeDelivery ? authoritativeDelivery.vehicleName : undefined,
+        deliveryFee: deliveryFee,
+        estimatedDurationMinutes: wantsDelivery && authoritativeDelivery ? authoritativeDelivery.estimatedDurationMinutes : undefined,
+        
         animalId: animalData ? animalData.id : undefined,
         animalBreed: animalBreed || undefined,
         animalType: animalType || undefined,
@@ -173,8 +276,8 @@ router.post(
         depositAmount: depositAmt,
         remainingAmount: remainingAmt,
         selectedServices: parsedServices,
-        servicesFee: fee,
-        totalAmount: calculatedTotal,
+        servicesFee: otherServicesFee,
+        totalAmount: calculatedGrandTotal,
         paymentMethod: paymentMethod || 'Telebirr',
         bankAccountId: bankAccountId || undefined,
         paymentSlipUrl: slipUrl,
@@ -519,6 +622,38 @@ router.post('/:id/status', authenticateToken, requireAdmin, async (req: AuthRequ
   } catch (error: any) {
     console.error('Error updating order status:', error);
     res.status(500).json({ success: false, error: 'Failed to update order status' });
+  }
+});
+
+// ==================== ADMIN: APPROVE DELIVERY & DISPATCH ====================
+router.post('/:id/approve-delivery', authenticateToken, requireAdmin, async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { status = 'delivery_pending', adminNotes } = req.body;
+    const adminName = req.user?.name || 'Administrator';
+
+    const result = await PostgresDB.approveDelivery(req.params.id, adminName, status, adminNotes);
+    if (!result) {
+      res.status(404).json({ success: false, error: 'Order not found' });
+      return;
+    }
+
+    // 🚀 REALTIME BROADCAST
+    realtimeService.broadcast('DELIVERY_APPROVED', {
+      order: result.order,
+      notification: result.notification
+    });
+
+    realtimeService.broadcast('ORDER_UPDATED', result.order);
+
+    res.json({
+      success: true,
+      message: `🚚 Delivery for order ${result.order.id} approved & dispatched (${result.order.vehicleName || result.order.vehicleType || 'vehicle'}).`,
+      order: result.order,
+      notification: result.notification
+    });
+  } catch (error: any) {
+    console.error('Error approving delivery:', error);
+    res.status(500).json({ success: false, error: 'Failed to approve delivery' });
   }
 });
 

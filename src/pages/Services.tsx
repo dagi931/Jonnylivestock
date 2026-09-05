@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
+import { useUserAuth } from '../context/UserAuthContext';
 import { business } from '../config/business';
 import { getWhatsAppLink, getPhoneCallLink } from '../utils/formatters';
 import { livestockServices, serviceFlowSteps } from '../data/services';
@@ -24,6 +25,7 @@ import {
 export const Services: React.FC = () => {
   const { theme } = useTheme();
   const { t, isAmharic } = useLanguage();
+  const { isAuthenticated, openAuthModal } = useUserAuth();
   const isDark = theme === 'design7';
   const [isMeatModalOpen, setIsMeatModalOpen] = useState(false);
 
@@ -334,7 +336,18 @@ export const Services: React.FC = () => {
                       {service.id === 'meat-by-kg' && (
                         <button
                           type="button"
-                          onClick={() => setIsMeatModalOpen(true)}
+                          onClick={() => {
+                            if (!isAuthenticated) {
+                              openAuthModal(
+                                'register',
+                                isAmharic
+                                  ? 'የበሬ ስጋ በኪሎ ለማዘዝ እባክዎ መጀመሪያ ይመዝገቡ ወይም ይግቡ።'
+                                  : 'To order raw beef by the KG, please create an account or sign in first.'
+                              );
+                              return;
+                            }
+                            setIsMeatModalOpen(true);
+                          }}
                           className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-black font-bold text-xs shadow-sm transition-all active:scale-[0.98] cursor-pointer"
                         >
                           <Scale className="w-3.5 h-3.5" />

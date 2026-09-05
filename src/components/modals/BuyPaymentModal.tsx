@@ -20,8 +20,13 @@ import {
   ArrowRight,
   Info,
   Trash2,
-  RefreshCw
+  RefreshCw,
+  Truck,
+  MapPin
 } from 'lucide-react';
+import { DeliveryLocationModal } from '../delivery/DeliveryLocationModal';
+import { DeliveryVehicleSelector } from '../delivery/DeliveryVehicleSelector';
+import { SelectedDeliveryLocation, VehicleQuoteResult, VehicleTypeId, DeliveryQuoteResponse } from '../../types/delivery';
 
 interface BuyPaymentModalProps {
   animal: Animal;
@@ -38,7 +43,7 @@ export const BuyPaymentModal: React.FC<BuyPaymentModalProps> = ({
   onOrderComplete,
   initialMode = 'deposit'
 }) => {
-  const { user } = useUserAuth();
+  const { user, isAuthenticated, openAuthModal } = useUserAuth();
   const { theme } = useTheme();
   const { isAmharic } = useLanguage();
   const isDark = theme === 'design7';
@@ -57,11 +62,22 @@ export const BuyPaymentModal: React.FC<BuyPaymentModalProps> = ({
   const [selectedBankId, setSelectedBankId] = useState<string>('BANK-TELEBIRR');
   const [copiedBankId, setCopiedBankId] = useState<string | null>(null);
 
+  // Delivery & Location States
+  const [isDelivery, setIsDelivery] = useState<boolean>(true);
+  const [selectedLocation, setSelectedLocation] = useState<SelectedDeliveryLocation | null>({
+    address: 'Kazanchis / UNECA Area (Kirkos Sub-City, Addis Ababa)',
+    lat: 9.0175,
+    lng: 38.7690
+  });
+  const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
+  const [selectedVehicleId, setSelectedVehicleId] = useState<VehicleTypeId>('car');
+  const [selectedVehicleQuote, setSelectedVehicleQuote] = useState<VehicleQuoteResult | null>(null);
+  const [deliveryQuoteData, setDeliveryQuoteData] = useState<DeliveryQuoteResponse | null>(null);
+
   // Form Fields
   const [customerName, setCustomerName] = useState(user?.name || '');
   const [customerPhone, setCustomerPhone] = useState(user?.phone || '');
   const [customerEmail, setCustomerEmail] = useState(user?.email || '');
-  const [deliveryLocation, setDeliveryLocation] = useState('');
   const [customerNotes, setCustomerNotes] = useState('');
   const [transactionRef, setTransactionRef] = useState('');
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
@@ -96,21 +112,30 @@ export const BuyPaymentModal: React.FC<BuyPaymentModalProps> = ({
 
   if (!isOpen) return null;
 
-  // Calculate optional service add-ons
-  const availableServices = [
-    { id: 'delivery', name: isAmharic ? 'የእንስሳት ማጓጓዣ (Delivery)' : 'Livestock Delivery', fee: 1500 },
-    { id: 'slaughter', name: isAmharic ? 'የእርድና የሥጋ ዝግጅት አገልግሎት' : 'Slaughter & Meat Prep', fee: 2000 }
-  ];
+  // Optional Add-on Service: Slaughter Prep (Delivery is handled dedicatedly)
+  const slaughterService = {
+    id: 'slaughter',
+    name: isAmharic ? 'የእርድና የሥጋ ዝግጅት አገልግሎት' : 'Slaughter & Meat Prep',
+    fee: 2000
+  };
 
-  const servicesFee = selectedServices.reduce((acc, currId) => {
-    const s = availableServices.find(srv => srv.id === currId);
-    return acc + (s ? s.fee : 0);
-  }, 0);
+  const servicesFee = selectedServices.includes('slaughter') ? slaughterService.fee : 0;
+  const deliveryFee = isDelivery && selectedVehicleQuote ? selectedVehicleQuote.deliveryFee : 0;
 
-  const grandTotal = animal.price + servicesFee;
+  const grandTotal = animal.price + servicesFee + deliveryFee;
   const depositAmount = Math.round(grandTotal * 0.5);
   const remainingAmount = grandTotal - depositAmount;
   const currentPayAmount = paymentMode === 'deposit' ? depositAmount : grandTotal;
+
+  // Animal Load item representation
+  const loadItems = [
+    {
+      type: animal.type,
+      name: animal.breed,
+      quantity: 1,
+      weightKg: animal.weight
+    }
+  ];
 
   const handleCopyAccount = (accNum: string, id: string) => {
     navigator.clipboard.writeText(accNum.replace(/\s+/g, ''));
@@ -168,12 +193,35 @@ export const BuyPaymentModal: React.FC<BuyPaymentModalProps> = ({
     e.preventDefault();
     setSubmitError(null);
 
+    if (!isAuthenticated) {
+      setSubmitError(
+        isAmharic
+          ? 'ትዕዛዝ ለማስገባት እባክዎ መለያ ይፍጠሩ ወይም ይግቡ'
+          : 'Please create an account or sign in before placing an order'
+      );
+      openAuthModal(
+        'register',
+        isAmharic
+          ? `ስለ ${animal.breed} (${animal.id}) ትዕዛዝዎን ለማጠናቀቅ እባክዎ መጀመሪያ ይመዝገቡ ወይም ይግቡ።`
+          : `To complete your order for ${animal.breed} (${animal.id}), please create an account or sign in first.`
+      );
+      return;
+    }
+
     if (!customerName.trim()) {
       setSubmitError(isAmharic ? 'እባክዎ ሙሉ ስምዎን ያስገቡ' : 'Please provide your full name');
       return;
     }
     if (!customerPhone.trim()) {
       setSubmitError(isAmharic ? 'እባክዎ ስልክ ቁጥርዎን ያስገቡ' : 'Please provide your phone number');
+      return;
+    }
+    if (isDelivery && !selectedLocation) {
+      setSubmitError(isAmharic ? 'እባክዎ የማስረከቢያ ቦታዎን ይምረጡ' : 'Please select your delivery location');
+      return;
+    }
+    if (isDelivery && deliveryQuoteData && !deliveryQuoteData.isWithinRange) {
+      setSubmitError(isAmharic ? 'የመረጡት ቦታ ከማድረሻ ክልል (30 ኪ.ሜ) ውጭ ነው' : 'Delivery is unavailable beyond 30 km. Please select a closer address or Farm Pickup.');
       return;
     }
     if (!slipFile) {
@@ -191,7 +239,20 @@ export const BuyPaymentModal: React.FC<BuyPaymentModalProps> = ({
       formData.append('customerName', customerName);
       formData.append('customerPhone', customerPhone);
       if (customerEmail) formData.append('customerEmail', customerEmail);
-      if (deliveryLocation) formData.append('deliveryLocation', deliveryLocation);
+      
+      // Delivery attributes
+      formData.append('isDelivery', String(isDelivery));
+      if (isDelivery && selectedLocation) {
+        formData.append('deliveryLocation', selectedLocation.address);
+        formData.append('deliveryAddress', selectedLocation.address);
+        formData.append('deliveryLatitude', String(selectedLocation.lat));
+        formData.append('deliveryLongitude', String(selectedLocation.lng));
+        formData.append('vehicleType', selectedVehicleId);
+        formData.append('deliveryFee', String(deliveryFee));
+      } else {
+        formData.append('deliveryLocation', 'Self Pickup from Aware Farm Facility');
+      }
+
       formData.append('animalId', animal.id);
       formData.append('selectedServices', JSON.stringify(selectedServices));
       formData.append('servicesFee', String(servicesFee));
@@ -423,6 +484,43 @@ export const BuyPaymentModal: React.FC<BuyPaymentModalProps> = ({
 
               {/* Scrollable Form Body */}
               <div className="overflow-y-auto p-5 sm:p-7 space-y-6 flex-1">
+                {/* Account Required Alert Banner */}
+                {!isAuthenticated && (
+                  <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-sm">
+                    <div className="flex items-start sm:items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-500 flex items-center justify-center shrink-0 mt-0.5 sm:mt-0">
+                        <AlertCircle className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <div className="text-xs sm:text-sm font-bold text-amber-500">
+                          {isAmharic ? 'ትዕዛዝ ለማስገባት መለያ ያስፈልጋል' : 'Account Required to Order'}
+                        </div>
+                        <div className="text-[11px] sm:text-xs opacity-80">
+                          {isAmharic
+                            ? 'ትዕዛዝዎን ለመከታተልና ደረሰኝ ለማያያዝ እባክዎ መለያ ይፍጠሩ ወይም ይግቡ።'
+                            : 'To track your orders, receipts, and livestock status, please create an account or sign in.'}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 w-full sm:w-auto shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => openAuthModal('register', isAmharic ? `ስለ ${animal.breed} (${animal.id}) ትዕዛዝዎን ለማጠናቀቅ እባክዎ ይመዝገቡ።` : `Please create an account to complete your order for ${animal.breed} (${animal.id}).`)}
+                        className="flex-1 sm:flex-initial px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-black text-xs font-bold transition-all shadow-sm cursor-pointer whitespace-nowrap"
+                      >
+                        {isAmharic ? 'መለያ ፍጠር (Register)' : 'Create Account'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => openAuthModal('login', isAmharic ? `ስለ ${animal.breed} (${animal.id}) ትዕዛዝዎን ለማጠናቀቅ እባክዎ ይግቡ።` : `Please sign in to complete your order for ${animal.breed} (${animal.id}).`)}
+                        className="flex-1 sm:flex-initial px-3 py-2 rounded-xl border border-amber-500/40 text-amber-500 hover:bg-amber-500/10 text-xs font-bold transition-all cursor-pointer whitespace-nowrap"
+                      >
+                        {isAmharic ? 'ግባ (Sign In)' : 'Sign In'}
+                      </button>
+                    </div>
+                  </div>
+                )}
+
                 {/* Animal Quick Summary Card */}
                 <div
                   className={`flex flex-col sm:flex-row gap-4 p-4 rounded-2xl border ${
@@ -448,25 +546,96 @@ export const BuyPaymentModal: React.FC<BuyPaymentModalProps> = ({
                       </p>
                     </div>
 
-                    {/* Optional Services Checkbox */}
+                    {/* Optional Slaughter Preparation Checkbox */}
                     <div className="mt-2 pt-2 border-t border-black/5 dark:border-white/5 flex flex-wrap gap-2">
-                      {availableServices.map((srv) => (
-                        <button
-                          key={srv.id}
-                          type="button"
-                          onClick={() => toggleService(srv.id)}
-                          className={`text-xs px-2.5 py-1 rounded-lg border transition-all flex items-center gap-1.5 ${
-                            selectedServices.includes(srv.id)
-                              ? 'bg-[#C18A45]/20 border-[#C18A45] text-[#C18A45] font-semibold'
-                              : 'opacity-60 border-transparent hover:opacity-100'
-                          }`}
-                        >
-                          <span>{selectedServices.includes(srv.id) ? '✓' : '+'}</span>
-                          <span>{srv.name} (+{srv.fee} ETB)</span>
-                        </button>
-                      ))}
+                      <button
+                        type="button"
+                        onClick={() => toggleService('slaughter')}
+                        className={`text-xs px-2.5 py-1 rounded-lg border transition-all flex items-center gap-1.5 ${
+                          selectedServices.includes('slaughter')
+                            ? 'bg-[#C18A45]/20 border-[#C18A45] text-[#C18A45] font-semibold'
+                            : 'opacity-60 border-transparent hover:opacity-100'
+                        }`}
+                      >
+                        <span>{selectedServices.includes('slaughter') ? '✓' : '+'}</span>
+                        <span>{slaughterService.name} (+{slaughterService.fee} ETB)</span>
+                      </button>
                     </div>
                   </div>
+                </div>
+
+                {/* Delivery Fulfillment Selector (Doorstep Delivery vs Farm Pickup) */}
+                <div className="space-y-3 p-4 rounded-2xl border bg-black/[0.02] dark:bg-white/[0.02] border-black/10 dark:border-white/10">
+                  <label className="block text-xs font-bold uppercase tracking-wider opacity-80 flex items-center justify-between">
+                    <span className="flex items-center gap-1.5">
+                      <Truck className="w-3.5 h-3.5 text-[#C18A45]" />
+                      <span>{isAmharic ? 'የማስረከቢያ መንገድ' : 'Fulfillment & Delivery'}</span>
+                    </span>
+                    <span className="text-[10px] opacity-60 font-mono">
+                      {isDelivery ? (isAmharic ? 'የበር ማድረስ' : 'Doorstep Delivery') : (isAmharic ? 'ከእርሻው መውሰድ' : 'Farm Pickup')}
+                    </span>
+                  </label>
+
+                  <div className="grid grid-cols-2 gap-2.5">
+                    <button
+                      type="button"
+                      onClick={() => setIsDelivery(true)}
+                      className={`p-3 rounded-2xl border text-left transition-all cursor-pointer flex items-center gap-2.5 ${
+                        isDelivery
+                          ? 'bg-amber-500/15 border-amber-500 text-amber-500 font-bold shadow-xs ring-1 ring-amber-500/30'
+                          : isDark
+                          ? 'bg-[#1B1208] border-[#4A2C16] opacity-70 hover:opacity-100'
+                          : 'bg-white border-[#E4D4BC] opacity-70 hover:opacity-100'
+                      }`}
+                    >
+                      <Truck className="w-4 h-4 shrink-0 text-[#C18A45]" />
+                      <div>
+                        <div className="text-xs font-bold">{isAmharic ? 'በአድራሻዬ ይድረስ' : 'Doorstep Delivery'}</div>
+                        <div className="text-[10px] opacity-70">{isAmharic ? 'የተሽከርካሪ ማጓጓዣ' : 'Road Vehicle Fleet'}</div>
+                      </div>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setIsDelivery(false)}
+                      className={`p-3 rounded-2xl border text-left transition-all cursor-pointer flex items-center gap-2.5 ${
+                        !isDelivery
+                          ? 'bg-amber-500/15 border-amber-500 text-amber-500 font-bold shadow-xs ring-1 ring-amber-500/30'
+                          : isDark
+                          ? 'bg-[#1B1208] border-[#4A2C16] opacity-70 hover:opacity-100'
+                          : 'bg-white border-[#E4D4BC] opacity-70 hover:opacity-100'
+                      }`}
+                    >
+                      <MapPin className="w-4 h-4 shrink-0 text-emerald-500" />
+                      <div>
+                        <div className="text-xs font-bold">{isAmharic ? 'ከእርሻው መውሰድ (Pickup)' : 'Farm Pickup'}</div>
+                        <div className="text-[10px] opacity-70">{isAmharic ? 'አዋሬ እርሻ (ነፃ)' : 'Aware Farm (Free)'}</div>
+                      </div>
+                    </button>
+                  </div>
+
+                  {isDelivery ? (
+                    <DeliveryVehicleSelector
+                      loadItems={loadItems}
+                      selectedLocation={selectedLocation}
+                      onLocationClick={() => setIsLocationModalOpen(true)}
+                      selectedVehicleId={selectedVehicleId}
+                      onSelectVehicle={(vId, vQuote) => {
+                        setSelectedVehicleId(vId);
+                        setSelectedVehicleQuote(vQuote);
+                      }}
+                      onQuoteChange={(quote) => setDeliveryQuoteData(quote)}
+                    />
+                  ) : (
+                    <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-400 flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 shrink-0" />
+                      <span>
+                        {isAmharic
+                          ? 'ከአዋሬ እርሻ ተቋም ቀጥታ በነፃ ይረከባሉ። ክፍያዎ እንደተረጋገጠ ርክክብ ይፈጸማል።'
+                          : 'Pick up your livestock directly from Aware Farm HQ in Addis Ababa free of delivery charge.'}
+                      </span>
+                    </div>
+                  )}
                 </div>
 
                 {/* Total Display for mobile view */}
@@ -760,9 +929,9 @@ export const BuyPaymentModal: React.FC<BuyPaymentModalProps> = ({
                       <div>
                         <input
                           type="text"
-                          value={deliveryLocation}
-                          onChange={(e) => setDeliveryLocation(e.target.value)}
-                          placeholder={isAmharic ? 'የማስረከቢያ አድራሻ (Delivery Location)' : 'Delivery Address / Pickup Location'}
+                          value={customerNotes}
+                          onChange={(e) => setCustomerNotes(e.target.value)}
+                          placeholder={isAmharic ? 'ተጨማሪ ማስታወሻ ወይም ልዩ ትዕዛዝ (Optional Note)' : 'Special Instructions or Delivery Note (Optional)'}
                           className={`w-full px-3.5 py-2.5 rounded-xl border text-sm transition-all focus:outline-none focus:ring-2 focus:ring-[#C18A45] ${
                             isDark
                               ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0] placeholder-[#D8C5A8]/40'
@@ -770,20 +939,6 @@ export const BuyPaymentModal: React.FC<BuyPaymentModalProps> = ({
                           }`}
                         />
                       </div>
-                    </div>
-
-                    <div className="mt-3">
-                      <input
-                        type="text"
-                        value={customerNotes}
-                        onChange={(e) => setCustomerNotes(e.target.value)}
-                        placeholder={isAmharic ? 'ተጨማሪ ማስታወሻ ወይም ልዩ ትዕዛዝ (Optional Note)' : 'Special Instructions or Delivery Note (Optional)'}
-                        className={`w-full px-3.5 py-2.5 rounded-xl border text-sm transition-all focus:outline-none focus:ring-2 focus:ring-[#C18A45] ${
-                          isDark
-                            ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0] placeholder-[#D8C5A8]/40'
-                            : 'bg-white border-[#E4D4BC] text-[#2A1A0D] placeholder-[#746556]/40'
-                        }`}
-                      />
                     </div>
                   </div>
 
@@ -826,38 +981,58 @@ export const BuyPaymentModal: React.FC<BuyPaymentModalProps> = ({
                   {isAmharic ? 'ተመለስ' : 'Cancel'}
                 </button>
 
-                <button
-                  type="submit"
-                  form="payment-form"
-                  disabled={isSubmitting}
-                  className="flex-1 py-3.5 px-5 rounded-xl bg-gradient-to-r from-[#C18A45] to-[#A06E35] text-white font-bold text-sm sm:text-base shadow-xl hover:shadow-2xl hover:scale-[1.005] active:scale-[0.99] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                >
-                  {isSubmitting ? (
-                    <>
-                      <span className="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      <span>{isAmharic ? 'ደረሰኝ በመጫን ላይ...' : 'Uploading Slip & Notifying Admin...'}</span>
-                    </>
-                  ) : (
-                    <>
-                      <ShieldCheck className="w-4 h-4" />
-                      <span>
-                        {paymentMode === 'deposit'
-                          ? (isAmharic
-                              ? `የ50% ቅድመ-ክፍያ ደረሰኝ አረጋግጥ (${formatPrice(depositAmount)})`
-                              : `Submit 50% Deposit Slip (${formatPrice(depositAmount)})`)
-                          : (isAmharic
-                              ? `ክፍያዬን አረጋግጥ (${formatPrice(grandTotal)})`
-                              : `Submit Full Payment Slip (${formatPrice(grandTotal)})`)}
-                      </span>
-                      <ArrowRight className="w-4 h-4 ml-1" />
-                    </>
-                  )}
-                </button>
+                {!isAuthenticated ? (
+                  <button
+                    type="button"
+                    onClick={() => openAuthModal('register', isAmharic ? `ስለ ${animal.breed} (${animal.id}) ትዕዛዝዎን ለማጠናቀቅ እባክዎ ይመዝገቡ።` : `Please create an account to complete your order for ${animal.breed} (${animal.id}).`)}
+                    className="flex-1 py-3.5 px-5 rounded-xl bg-gradient-to-r from-[#C18A45] to-[#A06E35] text-white font-bold text-sm sm:text-base shadow-xl hover:shadow-2xl hover:scale-[1.005] active:scale-[0.99] transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    <ShieldCheck className="w-4 h-4" />
+                    <span>{isAmharic ? 'መለያ ፈጥረው ትዕዛዝዎን ያጠናቅቁ' : 'Create Account to Complete Order'}</span>
+                    <ArrowRight className="w-4 h-4 ml-1" />
+                  </button>
+                ) : (
+                  <button
+                    type="submit"
+                    form="payment-form"
+                    disabled={isSubmitting}
+                    className="flex-1 py-3.5 px-5 rounded-xl bg-gradient-to-r from-[#C18A45] to-[#A06E35] text-white font-bold text-sm sm:text-base shadow-xl hover:shadow-2xl hover:scale-[1.005] active:scale-[0.99] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <span className="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        <span>{isAmharic ? 'ደረሰኝ በመጫን ላይ...' : 'Uploading Slip & Notifying Admin...'}</span>
+                      </>
+                    ) : (
+                      <>
+                        <ShieldCheck className="w-4 h-4" />
+                        <span>
+                          {paymentMode === 'deposit'
+                            ? (isAmharic
+                                ? `የ50% ቅድመ-ክፍያ ደረሰኝ አረጋግጥ (${formatPrice(depositAmount)})`
+                                : `Submit 50% Deposit Slip (${formatPrice(depositAmount)})`)
+                            : (isAmharic
+                                ? `ክፍያዬን አረጋግጥ (${formatPrice(grandTotal)})`
+                                : `Submit Full Payment Slip (${formatPrice(grandTotal)})`)}
+                        </span>
+                        <ArrowRight className="w-4 h-4 ml-1" />
+                      </>
+                    )}
+                  </button>
+                )}
               </div>
             </>
           )}
         </div>
       </div>
+
+      {/* Delivery Location Selection Modal */}
+      <DeliveryLocationModal
+        isOpen={isLocationModalOpen}
+        onClose={() => setIsLocationModalOpen(false)}
+        currentSelected={selectedLocation}
+        onSelectLocation={(loc) => setSelectedLocation(loc)}
+      />
     </div>
   );
 };

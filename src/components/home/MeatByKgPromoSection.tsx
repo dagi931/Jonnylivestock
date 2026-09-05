@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTheme } from '../../context/ThemeContext';
 import { useLanguage } from '../../context/LanguageContext';
+import { useUserAuth } from '../../context/UserAuthContext';
 import { business } from '../../config/business';
 import { api } from '../../services/api';
 import { getWhatsAppLink, getPhoneCallLink } from '../../utils/formatters';
@@ -24,6 +25,7 @@ import {
 export const MeatByKgPromoSection: React.FC = () => {
   const { theme } = useTheme();
   const { isAmharic } = useLanguage();
+  const { isAuthenticated, openAuthModal } = useUserAuth();
   const isDark = theme === 'design7';
   const [isMeatModalOpen, setIsMeatModalOpen] = useState(false);
   const [prices, setPrices] = useState({
@@ -262,7 +264,18 @@ export const MeatByKgPromoSection: React.FC = () => {
                   {/* Primary Amber CTA Button */}
                   <button
                     type="button"
-                    onClick={() => setIsMeatModalOpen(true)}
+                    onClick={() => {
+                      if (!isAuthenticated) {
+                        openAuthModal(
+                          'register',
+                          isAmharic
+                            ? 'የበሬ ስጋ በኪሎግራም (KG) ለማዘዝ እባክዎ መጀመሪያ ይመዝገቡ ወይም ይግቡ።'
+                            : 'To order fresh ox beef by the KG, please create an account or sign in first.'
+                        );
+                        return;
+                      }
+                      setIsMeatModalOpen(true);
+                    }}
                     className="w-full inline-flex items-center justify-between px-5 py-3.5 rounded-2xl bg-amber-500 hover:bg-amber-600 text-black font-bold text-xs sm:text-sm shadow-md transition-all active:scale-[0.98] group cursor-pointer"
                   >
                     <div className="flex items-center gap-2.5">

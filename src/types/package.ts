@@ -90,6 +90,18 @@ export interface Order {
   finalVerifiedAt?: string;
   finalVerifiedBy?: string;
 
+  // Delivery specific fields
+  isDelivery?: boolean;
+  deliveryAddress?: string;
+  deliveryLatitude?: number;
+  deliveryLongitude?: number;
+  vehicleType?: string;
+  deliveryFee?: number;
+  distanceKm?: number;
+  deliveryApprovedAt?: string;
+  deliveryApprovedBy?: string;
+  deliveredAt?: string;
+
   selectedServices?: string[];
   servicesFee?: number;
   totalAmount: number;

@@ -523,6 +523,21 @@ export class PostgresDB {
       userId: o.userId || undefined,
       customerEmail: o.customerEmail || undefined,
       deliveryLocation: o.deliveryLocation || undefined,
+      isDelivery: Boolean(o.isDelivery),
+      deliveryAddress: o.deliveryAddress || o.deliveryLocation || undefined,
+      deliveryLatitude: o.deliveryLatitude !== null && o.deliveryLatitude !== undefined ? Number(o.deliveryLatitude) : undefined,
+      deliveryLongitude: o.deliveryLongitude !== null && o.deliveryLongitude !== undefined ? Number(o.deliveryLongitude) : undefined,
+      pickupAddress: o.pickupAddress || undefined,
+      pickupLatitude: o.pickupLatitude !== null && o.pickupLatitude !== undefined ? Number(o.pickupLatitude) : undefined,
+      pickupLongitude: o.pickupLongitude !== null && o.pickupLongitude !== undefined ? Number(o.pickupLongitude) : undefined,
+      distanceKm: o.distanceKm !== null && o.distanceKm !== undefined ? Number(o.distanceKm) : undefined,
+      distanceCategory: o.distanceCategory || undefined,
+      vehicleType: o.vehicleType || undefined,
+      vehicleName: o.vehicleName || undefined,
+      deliveryFee: o.deliveryFee !== null && o.deliveryFee !== undefined ? Number(o.deliveryFee) : 0,
+      estimatedDurationMinutes: o.estimatedDurationMinutes !== null && o.estimatedDurationMinutes !== undefined ? Number(o.estimatedDurationMinutes) : undefined,
+      deliveryApprovedAt: o.deliveryApprovedAt ? o.deliveryApprovedAt.toISOString() : undefined,
+      deliveryApprovedBy: o.deliveryApprovedBy || undefined,
       animalId: o.animalId || undefined,
       animalBreed: o.animalBreed || undefined,
       animalPrice: o.animalPrice !== null ? Number(o.animalPrice) : undefined,
@@ -601,7 +616,22 @@ export class PostgresDB {
         customerName: orderData.customerName || 'Valued Customer',
         customerPhone: orderData.customerPhone || '',
         customerEmail: orderData.customerEmail || null,
-        deliveryLocation: orderData.deliveryLocation || null,
+        deliveryLocation: orderData.deliveryLocation || orderData.deliveryAddress || null,
+        
+        // Delivery fields
+        isDelivery: Boolean(orderData.isDelivery),
+        deliveryAddress: orderData.deliveryAddress || orderData.deliveryLocation || null,
+        deliveryLatitude: orderData.deliveryLatitude !== undefined ? Number(orderData.deliveryLatitude) : null,
+        deliveryLongitude: orderData.deliveryLongitude !== undefined ? Number(orderData.deliveryLongitude) : null,
+        pickupAddress: orderData.pickupAddress || null,
+        pickupLatitude: orderData.pickupLatitude !== undefined ? Number(orderData.pickupLatitude) : null,
+        pickupLongitude: orderData.pickupLongitude !== undefined ? Number(orderData.pickupLongitude) : null,
+        distanceKm: orderData.distanceKm !== undefined ? Number(orderData.distanceKm) : null,
+        distanceCategory: orderData.distanceCategory || null,
+        vehicleType: orderData.vehicleType || null,
+        vehicleName: orderData.vehicleName || null,
+        deliveryFee: Number(orderData.deliveryFee || 0),
+        estimatedDurationMinutes: orderData.estimatedDurationMinutes !== undefined ? Number(orderData.estimatedDurationMinutes) : null,
         
         animalId: orderData.animalId || null,
         animalBreed: orderData.animalBreed || null,
@@ -1037,6 +1067,53 @@ export class PostgresDB {
     return {
       order: this.formatOrder(updatedOrder),
       animal: updatedAnimal,
+      notification: {
+        ...notif,
+        type: notif.type as AdminNotification['type'],
+        orderId: notif.orderId || undefined,
+        createdAt: notif.createdAt.toISOString()
+      }
+    };
+  }
+
+  // Admin approves delivery & dispatches vehicle -> status becomes 'delivery_pending' or 'delivered'
+  public static async approveDelivery(
+    orderId: string,
+    adminName: string,
+    targetStatus: 'delivery_pending' | 'delivered' = 'delivery_pending',
+    adminNotes?: string
+  ): Promise<{ order: Order; notification: AdminNotification } | null> {
+    const existing = await prisma.order.findFirst({
+      where: { id: { equals: orderId, mode: 'insensitive' } }
+    });
+    if (!existing) return null;
+
+    const updatedOrder = await prisma.order.update({
+      where: { id: existing.id },
+      data: {
+        status: targetStatus,
+        deliveryApprovedAt: new Date(),
+        deliveryApprovedBy: adminName,
+        ...(adminNotes && { adminNotes }),
+        updatedAt: new Date()
+      }
+    });
+
+    const isDelivered = targetStatus === 'delivered';
+    const notif = await prisma.adminNotification.create({
+      data: {
+        id: `NOTIF-${Date.now().toString().slice(-6)}`,
+        type: 'GENERAL',
+        title: isDelivered ? '🚚 Delivery Completed' : '🚚 Delivery Approved & Dispatched',
+        message: `Order ${updatedOrder.id} delivery to ${updatedOrder.deliveryAddress || 'customer address'} was ${isDelivered ? 'marked as DELIVERED' : 'APPROVED & DISPATCHED'} by ${adminName}.`,
+        orderId: updatedOrder.id,
+        read: false,
+        createdAt: new Date()
+      }
+    });
+
+    return {
+      order: this.formatOrder(updatedOrder),
       notification: {
         ...notif,
         type: notif.type as AdminNotification['type'],

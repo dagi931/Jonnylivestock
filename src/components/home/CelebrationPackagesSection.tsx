@@ -4,6 +4,7 @@ import { PreMadePackage } from '../../types/package';
 import { api } from '../../services/api';
 import { useTheme } from '../../context/ThemeContext';
 import { useLanguage } from '../../context/LanguageContext';
+import { useUserAuth } from '../../context/UserAuthContext';
 import {
   formatPrice,
   getItemDisplayName,
@@ -25,6 +26,7 @@ import {
 export const CelebrationPackagesSection: React.FC = () => {
   const { theme } = useTheme();
   const { isAmharic } = useLanguage();
+  const { isAuthenticated, openAuthModal } = useUserAuth();
   const isDark = theme === 'design7';
 
   const [packages, setPackages] = useState<PreMadePackage[]>([]);
@@ -55,6 +57,15 @@ export const CelebrationPackagesSection: React.FC = () => {
   }, []);
 
   const handleOrder = (pkg: PreMadePackage) => {
+    if (!isAuthenticated) {
+      openAuthModal(
+        'register',
+        isAmharic
+          ? `የበዓል ጥቅል "${pkg.name}" ለማዘዝ ወይም በ50% ለማስያዝ እባክዎ መጀመሪያ ይመዝገቡ ወይም ይግቡ።`
+          : `To order or reserve celebration package "${pkg.name}", please create an account or sign in first.`
+      );
+      return;
+    }
     setSelectedPackage(pkg);
     setIsModalOpen(true);
   };

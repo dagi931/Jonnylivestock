@@ -8,7 +8,7 @@ const __dirname = path.dirname(__filename);
 const DB_PATH = path.resolve(__dirname, '../../data/db.json');
 
 async function main() {
-  console.log('🌱 Starting database seeding to Supabase PostgreSQL...');
+  console.log('🌱 Starting database seeding to Local PostgreSQL...');
 
   if (!fs.existsSync(DB_PATH)) {
     console.error(`Database file not found at ${DB_PATH}`);
@@ -190,7 +190,7 @@ async function main() {
     }
   }
 
-  console.log('✅ Supabase PostgreSQL seeding successfully completed!');
+  console.log('✅ Local PostgreSQL seeding successfully completed!');
 }
 
 main()

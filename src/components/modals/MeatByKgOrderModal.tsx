@@ -19,6 +19,9 @@ import {
   RefreshCw,
   Sparkles
 } from 'lucide-react';
+import { DeliveryLocationModal } from '../delivery/DeliveryLocationModal';
+import { DeliveryVehicleSelector } from '../delivery/DeliveryVehicleSelector';
+import { SelectedDeliveryLocation, VehicleQuoteResult, VehicleTypeId, DeliveryQuoteResponse } from '../../types/delivery';
 
 interface MeatByKgOrderModalProps {
   isOpen: boolean;
@@ -33,7 +36,7 @@ export const MeatByKgOrderModal: React.FC<MeatByKgOrderModalProps> = ({
   onClose,
   onSuccess
 }) => {
-  const { user } = useUserAuth();
+  const { user, isAuthenticated, openAuthModal } = useUserAuth();
   const { theme } = useTheme();
   const { isAmharic } = useLanguage();
   const isDark = theme === 'design7';
@@ -58,7 +61,15 @@ export const MeatByKgOrderModal: React.FC<MeatByKgOrderModalProps> = ({
 
   // Delivery Option States
   const [isDelivery, setIsDelivery] = useState<boolean>(true);
-  const [deliveryAddress, setDeliveryAddress] = useState<string>('');
+  const [selectedLocation, setSelectedLocation] = useState<SelectedDeliveryLocation | null>({
+    address: 'Kazanchis / UNECA Area (Kirkos Sub-City, Addis Ababa)',
+    lat: 9.0175,
+    lng: 38.7690
+  });
+  const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
+  const [selectedVehicleId, setSelectedVehicleId] = useState<VehicleTypeId>('car');
+  const [selectedVehicleQuote, setSelectedVehicleQuote] = useState<VehicleQuoteResult | null>(null);
+  const [deliveryQuoteData, setDeliveryQuoteData] = useState<DeliveryQuoteResponse | null>(null);
 
   // Bank Accounts & Payment State
   const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
@@ -150,7 +161,18 @@ export const MeatByKgOrderModal: React.FC<MeatByKgOrderModalProps> = ({
   ];
 
   const currentCut = cutsData.find((c) => c.id === selectedCut) || cutsData[0];
-  const totalAmount = Math.max(1, kg) * currentCut.price;
+  const meatSubtotal = Math.max(1, kg) * currentCut.price;
+  const deliveryFee = isDelivery && selectedVehicleQuote ? selectedVehicleQuote.deliveryFee : 0;
+  const totalAmount = meatSubtotal + deliveryFee;
+
+  const loadItems = [
+    {
+      type: 'kg',
+      name: `${kg} KG ${currentCut.title}`,
+      quantity: 1,
+      weightKg: kg
+    }
+  ];
 
   const handleCopyAccount = (accNum: string, id: string) => {
     navigator.clipboard.writeText(accNum.replace(/\s+/g, ''));
@@ -185,6 +207,21 @@ export const MeatByKgOrderModal: React.FC<MeatByKgOrderModalProps> = ({
     e.preventDefault();
     setSubmitError(null);
 
+    if (!isAuthenticated) {
+      setSubmitError(
+        isAmharic
+          ? 'ትዕዛዝ ለማስገባት እባክዎ መለያ ይፍጠሩ ወይም ይግቡ'
+          : 'Please create an account or sign in before placing an order'
+      );
+      openAuthModal(
+        'register',
+        isAmharic
+          ? 'የበሬ ስጋ በኪሎግራም (KG) ለማዘዝ እባክዎ መጀመሪያ ይመዝገቡ ወይም ይግቡ።'
+          : 'To complete your raw beef by KG order, please create an account or sign in first.'
+      );
+      return;
+    }
+
     if (!customerName.trim()) {
       setSubmitError(isAmharic ? 'እባክዎ ሙሉ ስምዎን ያስገቡ' : 'Please provide your full name');
       return;
@@ -193,11 +230,27 @@ export const MeatByKgOrderModal: React.FC<MeatByKgOrderModalProps> = ({
       setSubmitError(isAmharic ? 'እባክዎ ስልክ ቁጥርዎን ያስገቡ' : 'Please provide your phone number');
       return;
     }
-    if (isDelivery && !deliveryAddress.trim()) {
+    if (isDelivery && !selectedLocation) {
       setSubmitError(
         isAmharic
-          ? 'እባክዎ ስጋው የሚደርስበትን ትክክለኛ አድራሻ ያስገቡ'
-          : 'Please provide your delivery address or landmark in Addis Ababa'
+          ? 'እባክዎ ስጋው የሚደርስበትን ትክክለኛ አድራሻ ይምረጡ'
+          : 'Please select your delivery address in Addis Ababa'
+      );
+      return;
+    }
+    if (isDelivery && deliveryQuoteData && !deliveryQuoteData.isWithinRange) {
+      setSubmitError(
+        isAmharic
+          ? 'የተመረጠው አድራሻ ከ30 ኪ.ሜ ማድረሻ ክልል ውጪ ነው። እባክዎ በአዲስ አበባ ውስጥ ቅርብ አድራሻ ይምረጡ ወይም ከእርሻው መውሰድ ይምረጡ።'
+          : 'Delivery is out of range (>30 km). Please select an address within Addis Ababa or choose Farm Pickup.'
+      );
+      return;
+    }
+    if (isDelivery && (!selectedVehicleQuote || !selectedVehicleQuote.isSuitable)) {
+      setSubmitError(
+        isAmharic
+          ? 'እባክዎ ለዚህ ጭነት ተስማሚ ተሽከርካሪ ይምረጡ'
+          : 'Please select a suitable delivery vehicle for this order'
       );
       return;
     }
@@ -218,11 +271,19 @@ export const MeatByKgOrderModal: React.FC<MeatByKgOrderModalProps> = ({
       formData.append('customerName', customerName.trim());
       formData.append('customerPhone', customerPhone.trim());
       if (customerEmail.trim()) formData.append('customerEmail', customerEmail.trim());
-      formData.append(
-        'deliveryLocation',
-        isDelivery ? deliveryAddress.trim() : 'Self Pickup from Aware Farm Facility'
-      );
+
       formData.append('isDelivery', String(isDelivery));
+      if (isDelivery && selectedLocation) {
+        formData.append('deliveryLocation', selectedLocation.address);
+        formData.append('deliveryAddress', selectedLocation.address);
+        formData.append('deliveryLatitude', String(selectedLocation.lat));
+        formData.append('deliveryLongitude', String(selectedLocation.lng));
+        if (selectedVehicleId) formData.append('vehicleType', selectedVehicleId);
+        if (selectedVehicleQuote) formData.append('deliveryFee', String(selectedVehicleQuote.deliveryFee));
+      } else {
+        formData.append('deliveryLocation', 'Self Pickup from Aware Farm Facility');
+        formData.append('deliveryFee', '0');
+      }
 
       // Meat Specifications
       formData.append('isMeatByKg', 'true');
@@ -317,16 +378,8 @@ export const MeatByKgOrderModal: React.FC<MeatByKgOrderModalProps> = ({
               }`}
             >
               <div className="flex justify-between pb-1 border-b border-black/10 dark:border-white/10">
-                <span className="opacity-70">Cut:</span>
-                <span className="font-bold">{currentCut.title}</span>
-              </div>
-              <div className="flex justify-between pb-1 border-b border-black/10 dark:border-white/10">
-                <span className="opacity-70">Quantity:</span>
-                <span className="font-bold">{kg} KG</span>
-              </div>
-              <div className="flex justify-between pb-1 border-b border-black/10 dark:border-white/10">
                 <span className="opacity-70">Fulfillment:</span>
-                <span className="font-bold">{isDelivery ? `Doorstep Delivery (${deliveryAddress})` : 'Farm Pickup'}</span>
+                <span className="font-bold">{isDelivery ? `Doorstep Delivery (${selectedLocation?.address || 'Addis Ababa'})` : 'Farm Pickup'}</span>
               </div>
               <div className="flex justify-between pt-1 text-sm font-extrabold text-[#C18A45]">
                 <span>Total Paid:</span>
@@ -354,6 +407,43 @@ export const MeatByKgOrderModal: React.FC<MeatByKgOrderModalProps> = ({
         ) : (
           <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
             <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5">
+              {/* Account Required Alert Banner */}
+              {!isAuthenticated && (
+                <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-sm">
+                  <div className="flex items-start sm:items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-500 flex items-center justify-center shrink-0 mt-0.5 sm:mt-0">
+                      <AlertCircle className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <div className="text-xs sm:text-sm font-bold text-amber-500">
+                        {isAmharic ? 'ትዕዛዝ ለማስገባት መለያ ያስፈልጋል' : 'Account Required to Order'}
+                      </div>
+                      <div className="text-[11px] sm:text-xs opacity-80">
+                        {isAmharic
+                          ? 'የስጋ ትዕዛዝዎን ለመከታተልና ደረሰኝ ለማያያዝ እባክዎ መለያ ይፍጠሩ ወይም ይግቡ።'
+                          : 'To track your orders, receipts, and meat delivery status, please create an account or sign in.'}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 w-full sm:w-auto shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => openAuthModal('register', isAmharic ? 'የበሬ ስጋ በኪሎ ለማዘዝ እባክዎ መለያ ይፍጠሩ።' : 'Please create an account to order raw beef by the KG.')}
+                      className="flex-1 sm:flex-initial px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-black text-xs font-bold transition-all shadow-sm cursor-pointer whitespace-nowrap"
+                    >
+                      {isAmharic ? 'መለያ ፍጠር (Register)' : 'Create Account'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => openAuthModal('login', isAmharic ? 'የበሬ ስጋ በኪሎ ለማዘዝ እባክዎ ይግቡ።' : 'Please sign in to order raw beef by the KG.')}
+                      className="flex-1 sm:flex-initial px-3 py-2 rounded-xl border border-amber-500/40 text-amber-500 hover:bg-amber-500/10 text-xs font-bold transition-all cursor-pointer whitespace-nowrap"
+                    >
+                      {isAmharic ? 'ግባ (Sign In)' : 'Sign In'}
+                    </button>
+                  </div>
+                </div>
+              )}
+
               {submitError && (
                 <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs flex items-center gap-2">
                   <AlertCircle className="w-4 h-4 shrink-0" />
@@ -467,7 +557,7 @@ export const MeatByKgOrderModal: React.FC<MeatByKgOrderModalProps> = ({
               </div>
 
               {/* 3. Delivery Option */}
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <label className="text-xs font-bold uppercase opacity-80 flex items-center gap-1.5">
                   <Truck className="w-3.5 h-3.5 text-amber-500" />
                   <span>3. {isAmharic ? 'የማድረሻ ምርጫ' : 'Delivery Preference'}</span>
@@ -488,7 +578,7 @@ export const MeatByKgOrderModal: React.FC<MeatByKgOrderModalProps> = ({
                     <Truck className="w-5 h-5 shrink-0 text-amber-500" />
                     <div>
                       <div className="text-xs font-bold">{isAmharic ? 'በአድራሻዬ ይድረስ' : 'Doorstep Delivery'}</div>
-                      <div className="text-[10px] opacity-70">{isAmharic ? 'ወደ ቤትዎ ወይም ሬስቶራንትዎ' : 'To your home/restaurant'}</div>
+                      <div className="text-[10px] opacity-70">{isAmharic ? 'ወደ ቤትዎ ወይም ሬስቶራንትዎ' : 'Direct to your door / restaurant'}</div>
                     </div>
                   </button>
 
@@ -512,20 +602,17 @@ export const MeatByKgOrderModal: React.FC<MeatByKgOrderModalProps> = ({
                 </div>
 
                 {isDelivery && (
-                  <div className="pt-1">
-                    <input
-                      type="text"
-                      required={isDelivery}
-                      placeholder={
-                        isAmharic
-                          ? 'የማድረሻ አድራሻ (ለምሳሌ፡ ቦሌ መድሃኒዓለም፣ ካዛንቺስ፣ አዋሬ፣ መገናኛ...)'
-                          : 'Delivery address or landmark (e.g. Bole Medhanialem, Kazanchis, Megenagna...)'
-                      }
-                      value={deliveryAddress}
-                      onChange={(e) => setDeliveryAddress(e.target.value)}
-                      className="w-full px-3.5 py-2.5 rounded-xl text-xs border bg-transparent focus:outline-none"
-                    />
-                  </div>
+                  <DeliveryVehicleSelector
+                    loadItems={loadItems}
+                    selectedLocation={selectedLocation}
+                    onLocationClick={() => setIsLocationModalOpen(true)}
+                    selectedVehicleId={selectedVehicleId}
+                    onSelectVehicle={(vehicleId, quote) => {
+                      setSelectedVehicleId(vehicleId);
+                      setSelectedVehicleQuote(quote);
+                    }}
+                    onQuoteChange={(quote) => setDeliveryQuoteData(quote)}
+                  />
                 )}
               </div>
 
@@ -543,8 +630,12 @@ export const MeatByKgOrderModal: React.FC<MeatByKgOrderModalProps> = ({
                     </span>
                   </div>
                   <div className="text-[11px] opacity-75">
-                    {kg} KG × {formatPrice(currentCut.price)}
-                    {isDelivery ? ' • Doorstep Delivery Included' : ' • Farm Pickup'}
+                    {kg} KG × {formatPrice(currentCut.price)} = {formatPrice(meatSubtotal)}
+                    {isDelivery && selectedVehicleQuote
+                      ? ` + Delivery (${selectedVehicleQuote.name}: ${formatPrice(selectedVehicleQuote.deliveryFee)})`
+                      : !isDelivery
+                      ? ' • Farm Pickup (Free)'
+                      : ''}
                   </div>
                 </div>
 
@@ -762,30 +853,48 @@ export const MeatByKgOrderModal: React.FC<MeatByKgOrderModalProps> = ({
                 >
                   Cancel
                 </button>
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="flex-1 sm:flex-none px-6 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-black font-extrabold text-xs shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
-                >
-                  {isSubmitting ? (
-                    <>
-                      <RefreshCw className="w-4 h-4 animate-spin" />
-                      <span>Submitting Order...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Check className="w-4 h-4" />
-                      <span>
-                        {isAmharic ? `በ${formatPrice(totalAmount)} እዘዝ` : `Place Order (${formatPrice(totalAmount)})`}
-                      </span>
-                    </>
-                  )}
-                </button>
+                {!isAuthenticated ? (
+                  <button
+                    type="button"
+                    onClick={() => openAuthModal('register', isAmharic ? 'የበሬ ስጋ በኪሎ ለማዘዝ እባክዎ መለያ ይፍጠሩ።' : 'Please create an account to order raw beef by the KG.')}
+                    className="flex-1 sm:flex-none px-6 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-black font-extrabold text-xs shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    <Check className="w-4 h-4" />
+                    <span>{isAmharic ? 'መለያ ፈጥረው እዘዝ' : 'Create Account to Order'}</span>
+                  </button>
+                ) : (
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="flex-1 sm:flex-none px-6 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-black font-extrabold text-xs shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <RefreshCw className="w-4 h-4 animate-spin" />
+                        <span>Submitting Order...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Check className="w-4 h-4" />
+                        <span>
+                          {isAmharic ? `በ${formatPrice(totalAmount)} እዘዝ` : `Place Order (${formatPrice(totalAmount)})`}
+                        </span>
+                      </>
+                    )}
+                  </button>
+                )}
               </div>
             </div>
           </form>
         )}
       </div>
+
+      <DeliveryLocationModal
+        isOpen={isLocationModalOpen}
+        onClose={() => setIsLocationModalOpen(false)}
+        onSelectLocation={(loc) => setSelectedLocation(loc)}
+        selectedLocation={selectedLocation}
+      />
     </div>
   );
 };
