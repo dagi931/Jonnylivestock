@@ -337,7 +337,7 @@ export const CeremonyDashboard: React.FC = () => {
             </h3>
 
             <p className="text-xs opacity-85 leading-relaxed">
-              We hold and feed your reserved animals at our farm in Aware until your scheduled date, protecting you from last-minute holiday price spikes and rush shortages.
+              We hold and feed your reserved animals at our facility in Arat Kilo until your scheduled date, protecting you from last-minute holiday price spikes and rush shortages.
             </p>
 
             <ul className="space-y-2 text-xs opacity-85 pt-1 border-t" style={{ borderColor: isDark ? '#4A2C16' : '#E4D4BC' }}>

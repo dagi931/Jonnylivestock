@@ -593,7 +593,7 @@ export class DeliveryService {
     return {
       success: true,
       pickupLocation: {
-        name: 'Jonny Livestock Aware Farm Facility',
+        name: 'Jonny Livestock Main Facility (Arat Kilo)',
         address: settings.pickupAddress,
         lat: settings.pickupLatitude,
         lng: settings.pickupLongitude

@@ -15,10 +15,10 @@ import {
   AlertCircle,
   RefreshCw,
   Route,
-  Info,
-  CheckCircle2,
+  Crosshair,
   Building2,
-  Crosshair
+  CheckCircle2,
+  Sparkles
 } from 'lucide-react';
 
 interface DeliveryLocationModalProps {
@@ -38,9 +38,25 @@ interface PlaceSearchResult {
   lng: number;
 }
 
-// Client-side Haversine Geodesic Road Distance Formula
+// Popular quick selection shortcuts across Addis Ababa
+const QUICK_PRESET_AREAS = [
+  { name: 'Arat Kilo', amharic: 'አራት ኪሎ', lat: 9.0335, lng: 38.7635, address: 'Arat Kilo / Unity Park, Addis Ababa' },
+  { name: 'Kazanchis', amharic: 'ካዛንቺስ', lat: 9.0175, lng: 38.7690, address: 'Kazanchis / UNECA Area, Kirkos, Addis Ababa' },
+  { name: 'Bole Medhanialem', amharic: 'ቦሌ መድኃኒዓለም', lat: 8.9984, lng: 38.7877, address: 'Bole Medhanialem / Edna Mall, Bole, Addis Ababa' },
+  { name: 'Megenagna', amharic: 'መገናኛ', lat: 9.0205, lng: 38.8020, address: 'Megenagna / Zefmesh Grand Mall, Yeka, Addis Ababa' },
+  { name: 'CMC', amharic: 'ሲኤምሲ', lat: 9.0210, lng: 38.8280, address: 'CMC St. Michael / Tsehay Real Estate, Yeka, Addis Ababa' },
+  { name: 'Sarbet', amharic: 'ሳርቤት', lat: 8.9950, lng: 38.7350, address: 'Sarbet / AU Headquarters Area, Kirkos, Addis Ababa' },
+  { name: 'Piassa', amharic: 'ፒያሳ', lat: 9.0340, lng: 38.7520, address: 'Piassa / Churchill Avenue, Arada, Addis Ababa' },
+  { name: 'Ayat', amharic: 'አያት', lat: 9.0270, lng: 38.8650, address: 'Ayat Real Estate / Roundabout, Bole, Addis Ababa' },
+  { name: 'Lebu', amharic: 'ለቡ', lat: 8.9550, lng: 38.7230, address: 'Lebu / Mebrat Hayl, Nifas Silk, Addis Ababa' },
+  { name: 'Jemo', amharic: 'ጀሞ', lat: 8.9420, lng: 38.7050, address: 'Jemo 1 & 2 Condominiums, Nifas Silk, Addis Ababa' },
+  { name: 'Gerji', amharic: 'ገርጂ', lat: 8.9920, lng: 38.8100, address: 'Gerji / Roba Bakery / Imperial, Bole, Addis Ababa' },
+  { name: '22 Mazoria', amharic: '22 ማዞሪያ', lat: 9.0150, lng: 38.7850, address: '22 Mazoria / Gollagul Tower, Yeka, Addis Ababa' }
+];
+
+// Client-side Haversine Road Distance Formula (Fast baseline, never 0 or null)
 function calculateHaversineRoadKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
-  const R = 6371; // Earth radius in km
+  const R = 6371;
   const dLat = ((lat2 - lat1) * Math.PI) / 180;
   const dLon = ((lon2 - lon1) * Math.PI) / 180;
   const a =
@@ -66,24 +82,24 @@ export const DeliveryLocationModal: React.FC<DeliveryLocationModalProps> = ({
   const { theme } = useTheme();
   const isDark = theme === 'design7';
 
-  // Map DOM and Leaflet instance references
+  // Map DOM & Leaflet instance refs
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
   const userMarkerRef = useRef<L.Marker | null>(null);
   const farmMarkerRef = useRef<L.Marker | null>(null);
   const polylineRef = useRef<L.Polyline | null>(null);
 
-  // Search & Geolocation states
+  // Search state
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<PlaceSearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showSearchResults, setShowSearchResults] = useState(false);
 
-  // Pin & Address states
-  const [currentLat, setCurrentLat] = useState<number>(activeSelected?.lat || 8.9984);
-  const [currentLng, setCurrentLng] = useState<number>(activeSelected?.lng || 38.7877);
+  // Active Pin & Address state
+  const [currentLat, setCurrentLat] = useState<number>(activeSelected?.lat || 9.0175);
+  const [currentLng, setCurrentLng] = useState<number>(activeSelected?.lng || 38.7690);
   const [resolvedAddress, setResolvedAddress] = useState<string>(
-    activeSelected?.address || 'Bole Medhanialem / Edna Mall, Addis Ababa'
+    activeSelected?.address || 'Kazanchis / UNECA Area, Kirkos, Addis Ababa'
   );
   const [customNotes, setCustomNotes] = useState<string>('');
   const [isReverseGeocoding, setIsReverseGeocoding] = useState(false);
@@ -93,29 +109,29 @@ export const DeliveryLocationModal: React.FC<DeliveryLocationModalProps> = ({
   const [geoError, setGeoError] = useState<string | null>(null);
   const [gpsSuccess, setGpsSuccess] = useState<string | null>(null);
 
-  // Road Routing States (Exact Turn-by-Turn Driving Distance & Time)
+  // Road Routing state
   const [roadDistanceKm, setRoadDistanceKm] = useState<number>(() =>
     calculateHaversineRoadKm(
       AWARE_FARM_LOCATION.lat,
       AWARE_FARM_LOCATION.lng,
-      activeSelected?.lat || 8.9984,
-      activeSelected?.lng || 38.7877
+      activeSelected?.lat || 9.0175,
+      activeSelected?.lng || 38.7690
     )
   );
   const [roadDurationMins, setRoadDurationMins] = useState<number>(15);
   const [isWithinRange, setIsWithinRange] = useState<boolean>(true);
   const [isRouting, setIsRouting] = useState<boolean>(false);
 
-  // Persistent reference for active coordinates (prevents any loss during renders)
+  // Persistent reference for active coordinates (safeguard against re-render race conditions)
   const activeCoordsRef = useRef<{ lat: number; lng: number }>({
-    lat: activeSelected?.lat || 8.9984,
-    lng: activeSelected?.lng || 38.7877
+    lat: activeSelected?.lat || 9.0175,
+    lng: activeSelected?.lng || 38.7690
   });
 
-  // Track modal open/close transitions so we only initialize when opening
+  // Track modal open/close transitions
   const prevIsOpenRef = useRef<boolean>(false);
 
-  // Perform reverse geocoding on coordinates
+  // Reverse geocoding helper
   const performReverseGeocode = useCallback(async (lat: number, lng: number) => {
     setIsReverseGeocoding(true);
     try {
@@ -123,7 +139,7 @@ export const DeliveryLocationModal: React.FC<DeliveryLocationModalProps> = ({
       if (res.success && res.data?.address) {
         setResolvedAddress(res.data.address);
       } else {
-        // Fallback to closest local landmark
+        // Fallback to nearest landmark
         let closest = ADDIS_ABABA_LOCATIONS[0];
         let minD = Infinity;
         for (const loc of ADDIS_ABABA_LOCATIONS) {
@@ -144,9 +160,9 @@ export const DeliveryLocationModal: React.FC<DeliveryLocationModalProps> = ({
     }
   }, []);
 
-  // Fetch actual driving road route from OSRM engine and draw turn-by-turn road polyline
+  // Fetch driving route and draw road polyline
   const fetchRoadRoute = useCallback(async (destLat: number, destLng: number) => {
-    // 1. Immediately set instant client-side road distance as responsive baseline
+    // 1. Instant client-side fallback calculation (guarantees distance is never lost or blank)
     const instantKm = calculateHaversineRoadKm(
       AWARE_FARM_LOCATION.lat,
       AWARE_FARM_LOCATION.lng,
@@ -164,7 +180,7 @@ export const DeliveryLocationModal: React.FC<DeliveryLocationModalProps> = ({
       ]);
     }
 
-    // 2. Fetch full turn-by-turn route geometry from backend OSRM
+    // 2. Fetch OSRM turn-by-turn road geometry from backend
     setIsRouting(true);
     try {
       const res = await api.getDeliveryRoute(destLat, destLng);
@@ -185,13 +201,13 @@ export const DeliveryLocationModal: React.FC<DeliveryLocationModalProps> = ({
         }
       }
     } catch (err) {
-      console.warn('Error fetching driving road route:', err);
+      console.warn('Error fetching road route:', err);
     } finally {
       setIsRouting(false);
     }
   }, []);
 
-  // Central function to update pin, coordinates, route, and address
+  // Central pin & location updater
   const updatePinAndLocation = useCallback(
     (lat: number, lng: number, label?: string, shouldFly: boolean = false) => {
       activeCoordsRef.current = { lat, lng };
@@ -217,18 +233,18 @@ export const DeliveryLocationModal: React.FC<DeliveryLocationModalProps> = ({
     [performReverseGeocode, fetchRoadRoute]
   );
 
-  // Store updatePinAndLocation in a stable ref for Leaflet event callbacks
+  // Stable ref for Leaflet event handlers
   const updatePinRef = useRef(updatePinAndLocation);
   useEffect(() => {
     updatePinRef.current = updatePinAndLocation;
   }, [updatePinAndLocation]);
 
-  // Sync state ONLY when modal transitions from closed (false) to open (true)
+  // Sync state strictly when modal transitions from closed to open
   useEffect(() => {
     if (isOpen && !prevIsOpenRef.current) {
-      const initLat = activeSelected?.lat || 8.9984;
-      const initLng = activeSelected?.lng || 38.7877;
-      const initAddr = activeSelected?.address || 'Bole Medhanialem / Edna Mall, Addis Ababa';
+      const initLat = activeSelected?.lat || 9.0175;
+      const initLng = activeSelected?.lng || 38.7690;
+      const initAddr = activeSelected?.address || 'Kazanchis / UNECA Area, Kirkos, Addis Ababa';
 
       activeCoordsRef.current = { lat: initLat, lng: initLng };
       setCurrentLat(initLat);
@@ -252,7 +268,7 @@ export const DeliveryLocationModal: React.FC<DeliveryLocationModalProps> = ({
     prevIsOpenRef.current = isOpen;
   }, [isOpen, activeSelected]);
 
-  // Debounced Comprehensive Place & Hotel Search
+  // Search query filter (combines backend search with instant local catalog fallback)
   useEffect(() => {
     const q = searchQuery.trim().toLowerCase();
     if (!q) {
@@ -269,23 +285,14 @@ export const DeliveryLocationModal: React.FC<DeliveryLocationModalProps> = ({
           setSearchResults(res.data);
           setShowSearchResults(true);
         } else {
-          // Local catalog comprehensive filter
+          // Instant local search filter
           const local = ADDIS_ABABA_LOCATIONS.filter((l) => {
             const name = (l.name || '').toLowerCase();
             const amharic = (l.amharicName || '').toLowerCase();
             const subCity = (l.subCity || '').toLowerCase();
-            const cat = (l.category || '').toLowerCase();
-            return (
-              name.includes(q) ||
-              amharic.includes(q) ||
-              subCity.includes(q) ||
-              cat.includes(q) ||
-              (q.includes('hotel') && cat === 'hotel') ||
-              (q.includes('hospital') && cat === 'hospital') ||
-              (q.includes('mall') && cat === 'mall')
-            );
+            return name.includes(q) || amharic.includes(q) || subCity.includes(q);
           })
-            .slice(0, 8)
+            .slice(0, 7)
             .map((l) => ({
               name: l.name,
               address: `${l.name} (${l.subCity} Sub-City, Addis Ababa)`,
@@ -298,27 +305,26 @@ export const DeliveryLocationModal: React.FC<DeliveryLocationModalProps> = ({
           setShowSearchResults(true);
         }
       } catch (err) {
-        console.warn('Search failed:', err);
+        console.warn('Place search error:', err);
       } finally {
         setIsSearching(false);
       }
-    }, 200);
+    }, 180);
 
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  // Initialize Leaflet Map (Run STRICTLY ONCE per modal open)
+  // Leaflet Map Initialization (strictly once per modal open session)
   useEffect(() => {
     if (!isOpen || !mapContainerRef.current) return;
 
-    // If map already exists and valid, just invalidate size and return
     if (mapInstanceRef.current) {
       mapInstanceRef.current.invalidateSize();
       return;
     }
 
-    const initLat = activeCoordsRef.current.lat || 8.9984;
-    const initLng = activeCoordsRef.current.lng || 38.7877;
+    const initLat = activeCoordsRef.current.lat || 9.0175;
+    const initLng = activeCoordsRef.current.lng || 38.7690;
 
     const map = L.map(mapContainerRef.current, {
       center: [initLat, initLng],
@@ -327,43 +333,42 @@ export const DeliveryLocationModal: React.FC<DeliveryLocationModalProps> = ({
       attributionControl: false
     });
 
-    // Clean OpenStreetMap standard tile layer
-    const tileUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
-    L.tileLayer(tileUrl, {
+    // OpenStreetMap standard tiles
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
       subdomains: ['a', 'b', 'c']
     }).addTo(map);
 
-    // Custom Seller / Farm Main Facility HQ Icon
+    // Seller HQ Marker (Arat Kilo / Belay Zeleke St: 9.0314, 38.7725)
     const farmIcon = L.divIcon({
       className: 'custom-farm-pin',
       html: `
-        <div style="background-color:#C18A45; width:36px; height:36px; border-radius:50%; border:3px solid #FFFFFF; box-shadow:0 4px 14px rgba(0,0,0,0.4); display:flex; align-items:center; justify-content:center; color:#FFFFFF; font-size:17px;">
+        <div style="background-color:#C18A45; width:34px; height:34px; border-radius:50%; border:3px solid #FFFFFF; box-shadow:0 3px 12px rgba(0,0,0,0.45); display:flex; align-items:center; justify-content:center; color:#FFFFFF; font-size:16px;">
           🌾
         </div>
       `,
-      iconSize: [36, 36],
-      iconAnchor: [18, 18]
+      iconSize: [34, 34],
+      iconAnchor: [17, 17]
     });
 
     farmMarkerRef.current = L.marker([AWARE_FARM_LOCATION.lat, AWARE_FARM_LOCATION.lng], {
       icon: farmIcon,
-      title: 'Jonny Livestock Main Facility (Seller Location)'
+      title: 'Jonny Livestock Main Facility (Seller HQ: Arat Kilo)'
     }).addTo(map);
 
     farmMarkerRef.current.bindPopup(
       `<div style="font-family:sans-serif; font-size:12px; font-weight:bold; color:#2A1A0D; padding:4px;">
-        🌾 Jonny Livestock Main Facility (Seller Location)<br/>
+        🌾 Jonny Livestock Main Facility (Seller HQ)<br/>
         <span style="font-size:10px; font-weight:normal; color:#666;">Arat Kilo / Belay Zeleke Street</span>
       </div>`
     );
 
-    // High-Precision SVG Customer Pin Icon (Anchored exactly at the needle tip [18, 42])
+    // Customer Delivery Destination Pin (Draggable SVG needle anchored at tip [18, 42])
     const userIcon = L.divIcon({
       className: 'custom-user-pin-marker',
       html: `
         <div style="position:relative; width:36px; height:42px; display:flex; flex-direction:column; align-items:center;">
-          <svg width="36" height="42" viewBox="0 0 36 42" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter:drop-shadow(0 4px 10px rgba(225,29,72,0.45));">
+          <svg width="36" height="42" viewBox="0 0 36 42" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter:drop-shadow(0 4px 10px rgba(225,29,72,0.5));">
             <path d="M18 0C8.05887 0 0 8.05887 0 18C0 28.5 18 42 18 42C18 42 36 28.5 36 18C36 8.05887 27.9411 0 18 0Z" fill="#E11D48"/>
             <circle cx="18" cy="16" r="8" fill="#FFFFFF"/>
             <circle cx="18" cy="16" r="4.5" fill="#E11D48"/>
@@ -401,10 +406,10 @@ export const DeliveryLocationModal: React.FC<DeliveryLocationModalProps> = ({
 
     polylineRef.current = polyline;
 
-    // Fetch initial road route
+    // Fetch initial route
     fetchRoadRoute(initLat, initLng);
 
-    // Marker Drag Listener: locks position and updates route
+    // Marker Drag listener
     userMarker.on('dragend', () => {
       const pos = userMarker.getLatLng();
       if (updatePinRef.current) {
@@ -412,7 +417,7 @@ export const DeliveryLocationModal: React.FC<DeliveryLocationModalProps> = ({
       }
     });
 
-    // Map Click Listener: places pin directly at clicked coordinates
+    // Map Click listener
     map.on('click', (e: L.LeafletMouseEvent) => {
       const { lat, lng } = e.latlng;
       userMarker.setLatLng([lat, lng]);
@@ -423,15 +428,13 @@ export const DeliveryLocationModal: React.FC<DeliveryLocationModalProps> = ({
 
     mapInstanceRef.current = map;
 
-    // Invalidate map size after DOM mount
     const t1 = setTimeout(() => {
       if (mapInstanceRef.current) mapInstanceRef.current.invalidateSize();
-    }, 150);
+    }, 120);
     const t2 = setTimeout(() => {
       if (mapInstanceRef.current) mapInstanceRef.current.invalidateSize();
-    }, 450);
+    }, 400);
 
-    // Cleanup ONLY when modal completely closes
     return () => {
       clearTimeout(t1);
       clearTimeout(t2);
@@ -441,9 +444,9 @@ export const DeliveryLocationModal: React.FC<DeliveryLocationModalProps> = ({
       farmMarkerRef.current = null;
       polylineRef.current = null;
     };
-  }, [isOpen]); // ONLY depends on isOpen! Never tears down during active interactions!
+  }, [isOpen]);
 
-  // Recenter map on active pin
+  // Recenter button
   const handleRecenter = () => {
     if (mapInstanceRef.current) {
       mapInstanceRef.current.flyTo([activeCoordsRef.current.lat, activeCoordsRef.current.lng], 15, {
@@ -452,7 +455,7 @@ export const DeliveryLocationModal: React.FC<DeliveryLocationModalProps> = ({
     }
   };
 
-  // Live GPS Geolocation
+  // Live GPS geolocation
   const handleUseMyLocation = () => {
     if (!navigator.geolocation) {
       setGeoError(
@@ -475,7 +478,7 @@ export const DeliveryLocationModal: React.FC<DeliveryLocationModalProps> = ({
         setGpsSuccess(
           isAmharic
             ? `የጂፒኤስ መገኛዎ ተገኝቷል (${latitude.toFixed(4)}, ${longitude.toFixed(4)})`
-            : `GPS location detected (${latitude.toFixed(4)}, ${longitude.toFixed(4)})`
+            : `GPS detected (${latitude.toFixed(4)}, ${longitude.toFixed(4)})`
         );
       },
       (error) => {
@@ -485,13 +488,13 @@ export const DeliveryLocationModal: React.FC<DeliveryLocationModalProps> = ({
           setGeoError(
             isAmharic
               ? 'የመገኛ ቦታ ፈቃድ ተከልክሏል። እባክዎ በካርታው ላይ ይጫኑ ወይም ይፈልጉ።'
-              : 'Location permission was denied. Please search or tap directly on the map.'
+              : 'Location permission denied. Please search or tap on map.'
           );
         } else {
           setGeoError(
             isAmharic
               ? 'መገኛዎን በጂፒኤስ ማግኘት አልተቻለም። እባክዎ በካርታው ላይ ይምረጡ።'
-              : 'Could not fetch GPS fix. Please click anywhere on the map.'
+              : 'Could not fetch GPS fix. Please tap anywhere on the map.'
           );
         }
       },
@@ -499,7 +502,7 @@ export const DeliveryLocationModal: React.FC<DeliveryLocationModalProps> = ({
     );
   };
 
-  // Confirm Location selection and pass to parent
+  // Confirm and return location to parent
   const handleConfirmLocation = () => {
     let finalAddress = resolvedAddress;
     if (customNotes.trim()) {
@@ -515,69 +518,54 @@ export const DeliveryLocationModal: React.FC<DeliveryLocationModalProps> = ({
     onClose();
   };
 
-  // Render category icon helper
-  const renderCategoryIcon = (category?: string) => {
-    switch (category) {
-      case 'hotel':
-        return <Building2 className="w-3.5 h-3.5 text-amber-500 shrink-0 mt-0.5" />;
-      case 'hospital':
-        return <span className="text-xs shrink-0 mt-0.5">🏥</span>;
-      case 'mall':
-        return <span className="text-xs shrink-0 mt-0.5">🛍️</span>;
-      default:
-        return <MapPin className="w-3.5 h-3.5 text-[#C18A45] shrink-0 mt-0.5" />;
-    }
-  };
-
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/80 backdrop-blur-md flex items-center justify-center p-2 sm:p-4 animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/80 backdrop-blur-md flex items-center justify-center p-2 sm:p-4 animate-in fade-in duration-150">
       <div
-        className={`relative w-full max-w-4xl max-h-[95vh] rounded-3xl border shadow-2xl flex flex-col overflow-hidden ${
+        className={`relative w-full max-w-2xl max-h-[88vh] rounded-2xl sm:rounded-3xl border shadow-2xl flex flex-col overflow-hidden ${
           isDark
-            ? 'bg-[#1D130A] border-[#4A2C16] text-[#F4E8D0]'
+            ? 'bg-[#1A1108] border-[#4A2C16] text-[#F4E8D0]'
             : 'bg-white border-[#E4D4BC] text-[#2A1A0D]'
         }`}
       >
-        {/* Header */}
+        {/* Compact Header */}
         <div
-          className="p-3.5 sm:p-4 border-b flex items-center justify-between shrink-0"
+          className="px-3.5 py-2.5 sm:px-4 sm:py-3 border-b flex items-center justify-between shrink-0"
           style={{ borderColor: isDark ? '#4A2C16' : '#E4D4BC' }}
         >
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-2xl bg-[#C18A45]/15 text-[#C18A45] flex items-center justify-center shrink-0">
-              <MapPin className="w-5 h-5" />
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-xl bg-[#C18A45]/15 text-[#C18A45] flex items-center justify-center shrink-0">
+              <MapPin className="w-4 h-4" />
             </div>
             <div>
-              <h2 className="font-serif font-bold text-sm sm:text-base leading-tight">
-                {isAmharic ? 'የማስረከቢያ ቦታዎን በካርታ ላይ ይምረጡ' : 'Select Delivery Location on Real Map'}
+              <h2 className="font-serif font-bold text-xs sm:text-sm leading-tight">
+                {isAmharic ? 'የማስረከቢያ ቦታ በካርታ ይምረጡ' : 'Select Delivery Location on Map'}
               </h2>
-              <p className="text-[11px] opacity-75 mt-0.5">
+              <p className="text-[10.5px] opacity-70">
                 {isAmharic
-                  ? 'ሆቴሎችን፣ ህንፃዎችን ይፈልጉ፣ ፒኑን ያንቀሳቅሱ ወይም የጂፒኤስ መገኛዎን ይጠቀሙ'
-                  : 'Search any hotel, landmark, building, drag the pin to your gate, or use GPS'}
+                  ? 'ሻጭ፡ አራት ኪሎ (ቤላይ ዘለቀ መንገድ) • ፒኑን ወደ ቤትዎ በር ያንቀሳቅሱ'
+                  : 'Origin: Arat Kilo (Belay Zeleke St) • Drag 📍 pin to exact gate'}
               </p>
             </div>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="p-2 rounded-xl opacity-70 hover:opacity-100 hover:bg-black/10 dark:hover:bg-white/10 transition-colors cursor-pointer"
+            className="p-1.5 rounded-lg opacity-70 hover:opacity-100 hover:bg-black/10 dark:hover:bg-white/10 transition-colors cursor-pointer"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 
-        {/* Top Control Bar: Search Autocomplete + GPS Button */}
+        {/* Compact Search Bar & GPS */}
         <div
-          className="p-3 sm:p-4 border-b space-y-2.5 shrink-0 bg-black/[0.02] dark:bg-white/[0.02]"
+          className="p-2.5 sm:p-3 border-b space-y-2 shrink-0 bg-black/[0.02] dark:bg-white/[0.02]"
           style={{ borderColor: isDark ? '#4A2C16' : '#E4D4BC' }}
         >
-          <div className="flex flex-col sm:flex-row gap-2 relative">
-            {/* Search Input with Category Autocomplete */}
+          <div className="flex gap-2 relative">
             <div className="relative flex-1">
-              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 opacity-50" />
+              <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 opacity-50" />
               <input
                 type="text"
                 value={searchQuery}
@@ -587,17 +575,17 @@ export const DeliveryLocationModal: React.FC<DeliveryLocationModalProps> = ({
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder={
                   isAmharic
-                    ? 'ሆቴል፣ ሆስፒታል፣ ሞል ወይም ሰፈር ይፈልጉ (ለምሳሌ፡ ስካይላይት፣ ሒልተን፣ ሼራተን፣ ቦሌ መድኃኒዓለም፣ አያት፣ ሲኤምሲ...)'
-                    : 'Search any hotel, hospital, mall, or street (e.g. Skylight Hotel, Hilton, Sheraton, Edna Mall, Brass, Ayat...)'
+                    ? 'ሆቴል፣ ህንፃ፣ ሞል ወይም ሰፈር ይፈልጉ (ቦሌ፣ ሲኤምሲ፣ ካዛንቺስ፣ አያት...)'
+                    : 'Search hotel, landmark, building, street (e.g. Skylight, Hilton, Edna Mall, CMC, Ayat...)'
                 }
-                className={`w-full pl-9 pr-8 py-2.5 rounded-xl border text-xs focus:outline-none focus:ring-2 focus:ring-[#C18A45] ${
+                className={`w-full pl-8 pr-7 py-1.5 sm:py-2 rounded-xl border text-xs focus:outline-none focus:ring-1.5 focus:ring-[#C18A45] ${
                   isDark
                     ? 'bg-[#24170D] border-[#4A2C16] text-[#F4E8D0]'
                     : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#2A1A0D]'
                 }`}
               />
               {isSearching ? (
-                <RefreshCw className="w-3.5 h-3.5 absolute right-3 top-1/2 -translate-y-1/2 animate-spin opacity-60 text-[#C18A45]" />
+                <RefreshCw className="w-3 h-3 absolute right-2.5 top-1/2 -translate-y-1/2 animate-spin text-[#C18A45]" />
               ) : searchQuery ? (
                 <button
                   type="button"
@@ -605,20 +593,20 @@ export const DeliveryLocationModal: React.FC<DeliveryLocationModalProps> = ({
                     setSearchQuery('');
                     setShowSearchResults(false);
                   }}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 p-0.5 opacity-60 hover:opacity-100"
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 opacity-60 hover:opacity-100"
                 >
-                  <X className="w-3.5 h-3.5" />
+                  <X className="w-3 h-3" />
                 </button>
               ) : null}
 
               {/* Autocomplete Dropdown */}
               {showSearchResults && searchResults.length > 0 && (
                 <div
-                  className={`absolute left-0 right-0 top-full mt-1.5 z-50 rounded-2xl border shadow-2xl max-h-64 overflow-y-auto ${
+                  className={`absolute left-0 right-0 top-full mt-1 z-50 rounded-xl border shadow-xl max-h-48 overflow-y-auto ${
                     isDark ? 'bg-[#24170D] border-[#4A2C16]' : 'bg-white border-[#E4D4BC]'
                   }`}
                 >
-                  <div className="p-1.5 space-y-1">
+                  <div className="p-1 space-y-0.5">
                     {searchResults.map((place, idx) => (
                       <div
                         key={idx}
@@ -627,21 +615,21 @@ export const DeliveryLocationModal: React.FC<DeliveryLocationModalProps> = ({
                           setShowSearchResults(false);
                           setSearchQuery('');
                         }}
-                        className={`p-2.5 rounded-xl text-left cursor-pointer transition-colors flex items-start gap-2.5 ${
+                        className={`p-2 rounded-lg text-left cursor-pointer transition-colors flex items-start gap-2 ${
                           isDark ? 'hover:bg-white/5' : 'hover:bg-black/5'
                         }`}
                       >
-                        {renderCategoryIcon(place.category)}
+                        <Building2 className="w-3.5 h-3.5 text-amber-500 shrink-0 mt-0.5" />
                         <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-1.5 justify-between">
+                          <div className="flex items-center justify-between gap-1">
                             <span className="font-bold text-xs truncate">{place.name}</span>
                             {place.subCity && (
-                              <span className="text-[9.5px] px-2 py-0.5 rounded-md bg-black/10 dark:bg-white/10 opacity-75 shrink-0">
+                              <span className="text-[9px] px-1.5 py-0.5 rounded bg-black/10 dark:bg-white/10 opacity-70 shrink-0">
                                 {place.subCity}
                               </span>
                             )}
                           </div>
-                          <div className="text-[10.5px] opacity-70 truncate mt-0.5">{place.address}</div>
+                          <div className="text-[10px] opacity-70 truncate">{place.address}</div>
                         </div>
                       </div>
                     ))}
@@ -650,77 +638,97 @@ export const DeliveryLocationModal: React.FC<DeliveryLocationModalProps> = ({
               )}
             </div>
 
-            {/* Live GPS Locate Button */}
+            {/* GPS Locate Button */}
             <button
               type="button"
               onClick={handleUseMyLocation}
               disabled={isLocating}
-              className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white text-xs font-bold shadow transition-all flex items-center justify-center gap-1.5 cursor-pointer shrink-0"
+              className="px-3 py-1.5 sm:py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white text-xs font-bold shadow-xs transition-all flex items-center justify-center gap-1 cursor-pointer shrink-0"
+              title="Use GPS Coordinates"
             >
               {isLocating ? (
-                <>
-                  <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                  <span>{isAmharic ? 'በማግኘት ላይ...' : 'Detecting GPS...'}</span>
-                </>
+                <RefreshCw className="w-3.5 h-3.5 animate-spin" />
               ) : (
-                <>
-                  <Navigation className="w-3.5 h-3.5 animate-pulse" />
-                  <span>{isAmharic ? 'የአሁኑ መገኛዬን ተጠቀም' : 'Use My Live GPS'}</span>
-                </>
+                <Navigation className="w-3.5 h-3.5" />
               )}
+              <span className="hidden sm:inline">{isAmharic ? 'የእኔ ጂፒኤስ' : 'Live GPS'}</span>
             </button>
           </div>
 
+          {/* Quick-Select Area Pills */}
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 no-scrollbar text-[11px]">
+            <span className="text-[10px] font-bold opacity-60 uppercase tracking-wider shrink-0 flex items-center gap-1">
+              <Sparkles className="w-2.5 h-2.5 text-amber-500" />
+              {isAmharic ? 'ፈጣን ምርጫ:' : 'Quick Area:'}
+            </span>
+            {QUICK_PRESET_AREAS.map((area, idx) => (
+              <button
+                key={idx}
+                type="button"
+                onClick={() => updatePinAndLocation(area.lat, area.lng, area.address, true)}
+                className={`px-2 py-0.5 rounded-lg border text-[10.5px] whitespace-nowrap transition-colors cursor-pointer shrink-0 ${
+                  Math.abs(currentLat - area.lat) < 0.005 && Math.abs(currentLng - area.lng) < 0.005
+                    ? 'bg-[#C18A45] text-white border-[#C18A45] font-bold shadow-xs'
+                    : isDark
+                    ? 'bg-[#24170D] border-[#4A2C16] text-[#D8C5A8] hover:border-[#C18A45]/60'
+                    : 'bg-white border-[#E4D4BC] text-[#746556] hover:border-[#C18A45]'
+                }`}
+              >
+                {isAmharic ? area.amharic : area.name}
+              </button>
+            ))}
+          </div>
+
           {gpsSuccess && (
-            <div className="p-2 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 shrink-0" />
+            <div className="p-1.5 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-[11px] flex items-center gap-1.5">
+              <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
               <span>{gpsSuccess}</span>
             </div>
           )}
 
           {geoError && (
-            <div className="p-2 rounded-xl bg-red-500/15 border border-red-500/30 text-red-400 text-xs flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 shrink-0" />
+            <div className="p-1.5 rounded-lg bg-red-500/15 border border-red-500/30 text-red-400 text-[11px] flex items-center gap-1.5">
+              <AlertCircle className="w-3.5 h-3.5 shrink-0" />
               <span>{geoError}</span>
             </div>
           )}
         </div>
 
-        {/* Map Container & Interactive Surface */}
-        <div className="relative flex-1 min-h-[320px] sm:min-h-[380px] max-h-[480px] w-full bg-black/10">
+        {/* Minimized Map Surface (Compact Height: 210px - 240px) */}
+        <div className="relative w-full h-[210px] sm:h-[240px] bg-black/10 shrink-0">
           <div ref={mapContainerRef} className="absolute inset-0 w-full h-full z-0" />
 
-          {/* Floating Instructions */}
-          <div className="absolute top-3 left-3 z-10 flex flex-wrap gap-2 pointer-events-none">
-            <div className="px-3 py-1.5 rounded-xl bg-black/80 backdrop-blur-md text-white text-[11px] font-medium shadow flex items-center gap-1.5 pointer-events-auto">
-              <Info className="w-3.5 h-3.5 text-[#C18A45]" />
-              <span>{isAmharic ? 'በካርታው ላይ ጠቅ ያድርጉ ወይም 📍 ፒኑን ይጎትቱ' : 'Click map or drag 📍 pin to exact gate'}</span>
+          {/* Floating Instructions Banner */}
+          <div className="absolute top-2 left-2 z-10 pointer-events-none">
+            <div className="px-2.5 py-1 rounded-lg bg-black/80 backdrop-blur-md text-white text-[10px] font-medium shadow flex items-center gap-1.5 pointer-events-auto">
+              <MapPin className="w-3 h-3 text-[#C18A45]" />
+              <span>{isAmharic ? 'በካርታው ላይ ጠቅ ያድርጉ ወይም 📍 ፒኑን ይጎትቱ' : 'Click map or drag 📍 pin to your gate'}</span>
             </div>
           </div>
 
-          {/* Floating Route Distance Badge */}
-          <div className="absolute top-3 right-3 z-10 pointer-events-none flex items-center gap-2">
+          {/* Floating Route Badge & Recenter Button */}
+          <div className="absolute top-2 right-2 z-10 pointer-events-none flex items-center gap-1.5">
             <button
               type="button"
               onClick={handleRecenter}
               title="Recenter on Pin"
-              className="p-2 rounded-xl bg-black/85 backdrop-blur-md text-white shadow-lg border border-white/10 hover:bg-black pointer-events-auto cursor-pointer flex items-center justify-center"
+              className="p-1.5 rounded-lg bg-black/85 backdrop-blur-md text-white shadow border border-white/10 hover:bg-black pointer-events-auto cursor-pointer"
             >
               <Crosshair className="w-3.5 h-3.5 text-amber-400" />
             </button>
 
-            <div className="px-3.5 py-1.5 rounded-xl bg-black/85 backdrop-blur-md text-white text-xs font-mono font-bold shadow-lg flex items-center gap-2 border border-white/10 pointer-events-auto">
-              <Route className="w-3.5 h-3.5 text-emerald-400" />
+            <div className="px-2.5 py-1 rounded-lg bg-black/85 backdrop-blur-md text-white text-[11px] font-mono font-bold shadow flex items-center gap-1.5 border border-white/10 pointer-events-auto">
+              <Route className="w-3 h-3 text-emerald-400" />
               {isRouting ? (
-                <span className="flex items-center gap-1.5 text-[11px] font-sans text-amber-400">
-                  <RefreshCw className="w-3 h-3 animate-spin" />
-                  <span>{isAmharic ? 'መንገድ በማስላት ላይ...' : 'Routing road...'}</span>
+                <span className="flex items-center gap-1 text-[10px] text-amber-400">
+                  <RefreshCw className="w-2.5 h-2.5 animate-spin" />
+                  <span>{isAmharic ? 'መንገድ በማስላት ላይ...' : 'Routing...'}</span>
                 </span>
               ) : (
                 <>
                   <span className="text-emerald-400 font-bold">{roadDistanceKm} km</span>
-                  <span className="text-[10px] opacity-80 font-sans font-normal">
-                    (🚗 ~{roadDurationMins} {isAmharic ? 'ደቂቃ ጉዞ' : 'mins drive'})
+                  <span className="text-[9.5px] opacity-75 font-sans font-normal">
+                    (🚗 ~{roadDurationMins}m)
                   </span>
                 </>
               )}
@@ -728,49 +736,49 @@ export const DeliveryLocationModal: React.FC<DeliveryLocationModalProps> = ({
           </div>
         </div>
 
-        {/* Selected Location Summary & Details Footer */}
+        {/* Selected Location Details & Confirmation Footer */}
         <div
-          className="p-3.5 sm:p-4 border-t space-y-3 shrink-0 bg-black/[0.02] dark:bg-white/[0.02]"
+          className="p-2.5 sm:p-3.5 border-t space-y-2 shrink-0 bg-black/[0.02] dark:bg-white/[0.02]"
           style={{ borderColor: isDark ? '#4A2C16' : '#E4D4BC' }}
         >
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-1.5">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-[#C18A45]">
-                  {isAmharic ? 'የተመረጠው አድራሻ (Assigned Location):' : 'Assigned Delivery Address:'}
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[#C18A45]">
+                  {isAmharic ? 'የተመረጠው አድራሻ:' : 'Assigned Delivery Address:'}
                 </span>
                 {isReverseGeocoding && (
-                  <span className="text-[10px] text-amber-500 animate-pulse flex items-center gap-1">
+                  <span className="text-[9px] text-amber-500 animate-pulse flex items-center gap-1">
                     <RefreshCw className="w-2.5 h-2.5 animate-spin" />
-                    <span>Resolving address...</span>
+                    <span>Resolving...</span>
                   </span>
                 )}
               </div>
-              <div className="font-bold text-xs sm:text-sm truncate mt-0.5">
+              <div className="font-bold text-xs sm:text-sm truncate">
                 {resolvedAddress}
               </div>
-              <div className="text-[11px] opacity-80 font-mono flex items-center gap-2 flex-wrap mt-0.5">
-                <span>GPS: {currentLat.toFixed(5)}, {currentLng.toFixed(5)}</span>
+              <div className="text-[10px] opacity-75 font-mono flex items-center gap-1.5 flex-wrap">
+                <span>GPS: {currentLat.toFixed(4)}, {currentLng.toFixed(4)}</span>
                 <span>•</span>
                 <span className="text-emerald-500 font-bold font-sans">
-                  🛣️ {roadDistanceKm} km {isAmharic ? 'የመኪና መንገድ' : 'driving road'} (~{roadDurationMins} {isAmharic ? 'ደቂቃ' : 'mins'})
+                  🛣️ {roadDistanceKm} km ({roadDurationMins} {isAmharic ? 'ደቂቃ ጉዞ' : 'mins drive'})
                 </span>
                 {!isWithinRange && (
-                  <span className="text-red-400 font-bold font-sans bg-red-500/15 px-2 py-0.5 rounded-md border border-red-500/20">
-                    ⚠️ {isAmharic ? 'ከ30 ኪ.ሜ ማድረሻ ክልል ውጪ' : 'Beyond 30 km range'}
+                  <span className="text-red-400 font-bold font-sans bg-red-500/15 px-1.5 py-0.2 rounded border border-red-500/20">
+                    ⚠️ {isAmharic ? 'ከ30 ኪ.ሜ ማድረሻ ክልል ውጪ' : 'Beyond 30km range'}
                   </span>
                 )}
               </div>
             </div>
 
-            {/* Optional Specific Note/House Number */}
-            <div className="sm:w-64 shrink-0">
+            {/* Optional Specific House Number / Gate Note */}
+            <div className="sm:w-56 shrink-0">
               <input
                 type="text"
                 value={customNotes}
                 onChange={(e) => setCustomNotes(e.target.value)}
-                placeholder={isAmharic ? 'የቤት ቁጥር / የተለየ ምልክት (አማራጭ)...' : 'House #, gate color, or landmark (optional)...'}
-                className={`w-full px-3 py-1.5 rounded-xl border text-xs focus:outline-none focus:ring-1 focus:ring-[#C18A45] ${
+                placeholder={isAmharic ? 'የቤት ቁጥር / መለያ ምልክት...' : 'House # / Landmark (optional)...'}
+                className={`w-full px-2.5 py-1.5 rounded-xl border text-xs focus:outline-none focus:ring-1 focus:ring-[#C18A45] ${
                   isDark ? 'bg-[#24170D] border-[#4A2C16]' : 'bg-white border-[#E4D4BC]'
                 }`}
               />
@@ -778,11 +786,11 @@ export const DeliveryLocationModal: React.FC<DeliveryLocationModalProps> = ({
           </div>
 
           {/* Action Buttons */}
-          <div className="flex items-center justify-end gap-2 pt-1">
+          <div className="flex items-center justify-end gap-2 pt-0.5">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-xl border text-xs font-semibold hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer"
+              className="px-3.5 py-1.5 rounded-xl border text-xs font-semibold hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer"
               style={{ borderColor: isDark ? '#4A2C16' : '#E4D4BC' }}
             >
               {isAmharic ? 'ይቅር' : 'Cancel'}
@@ -790,10 +798,10 @@ export const DeliveryLocationModal: React.FC<DeliveryLocationModalProps> = ({
             <button
               type="button"
               onClick={handleConfirmLocation}
-              className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-black font-extrabold text-xs shadow-md hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center gap-2 cursor-pointer"
+              className="px-5 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-black font-black text-xs shadow-md hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center gap-1.5 cursor-pointer"
             >
-              <Check className="w-4 h-4 stroke-[3]" />
-              <span>{isAmharic ? 'ይህንን ቦታ አረጋግጥ' : 'Confirm Delivery Location'}</span>
+              <Check className="w-3.5 h-3.5 stroke-[3]" />
+              <span>{isAmharic ? 'ይህንን ቦታ አረጋግጥ' : 'Confirm Location'}</span>
             </button>
           </div>
         </div>

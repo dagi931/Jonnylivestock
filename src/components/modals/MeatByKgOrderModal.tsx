@@ -281,7 +281,7 @@ export const MeatByKgOrderModal: React.FC<MeatByKgOrderModalProps> = ({
         if (selectedVehicleId) formData.append('vehicleType', selectedVehicleId);
         if (selectedVehicleQuote) formData.append('deliveryFee', String(selectedVehicleQuote.deliveryFee));
       } else {
-        formData.append('deliveryLocation', 'Self Pickup from Aware Farm Facility');
+        formData.append('deliveryLocation', 'Self Pickup from Arat Kilo Farm Facility');
         formData.append('deliveryFee', '0');
       }
 
@@ -343,7 +343,7 @@ export const MeatByKgOrderModal: React.FC<MeatByKgOrderModalProps> = ({
               <p className="text-[11px] opacity-75 mt-0.5">
                 {isAmharic
                   ? 'ከወፈሩ ሰንጋዎች በንጽህና የተዘጋጀና በዲጂታል ሚዛን የተመዘነ'
-                  : 'Extracted fresh from healthy fattened cattle at Aware Farm'}
+                  : 'Extracted fresh from healthy fattened cattle at Jonny Livestock Facility'}
               </p>
             </div>
           </div>
@@ -596,7 +596,7 @@ export const MeatByKgOrderModal: React.FC<MeatByKgOrderModalProps> = ({
                     <MapPin className="w-5 h-5 shrink-0 text-amber-500" />
                     <div>
                       <div className="text-xs font-bold">{isAmharic ? 'ከእርሻው መውሰድ (Pickup)' : 'Farm Pickup'}</div>
-                      <div className="text-[10px] opacity-70">Aware Farm Facility (Free)</div>
+                      <div className="text-[10px] opacity-70">Arat Kilo Farm Facility (Free)</div>
                     </div>
                   </button>
                 </div>

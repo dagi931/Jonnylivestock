@@ -97,7 +97,7 @@ export class EmailService {
           <tr>
             <td align="center" style="background-color: #F8F5F0; padding: 22px 30px; border-top: 1px solid #EBE3D5; font-size: 11px; color: #8A7565;">
               <div style="font-weight: 700; color: #4A3222; margin-bottom: 4px;">Jonny Livestock Trading PLC</div>
-              <div>Aware / Kazanchis, Addis Ababa, Ethiopia • Tel: +251 910 194 903</div>
+              <div>Belay Zeleke Street, Arat Kilo, Addis Ababa, Ethiopia • Tel: +251 910 194 903</div>
               <div style="margin-top: 8px; opacity: 0.6;">© ${new Date().getFullYear()} Jonny Livestock. All rights reserved.</div>
             </td>
           </tr>
@@ -236,7 +236,7 @@ export class EmailService {
           <tr>
             <td align="center" style="background-color: #F8F5F0; padding: 22px 30px; border-top: 1px solid #EBE3D5; font-size: 11px; color: #8A7565;">
               <div style="font-weight: 700; color: #4A3222; margin-bottom: 4px;">Jonny Livestock Trading PLC</div>
-              <div>Aware / Kazanchis, Addis Ababa, Ethiopia • Tel: +251 910 194 903</div>
+              <div>Belay Zeleke Street, Arat Kilo, Addis Ababa, Ethiopia • Tel: +251 910 194 903</div>
               <div style="margin-top: 8px; opacity: 0.6;">© ${new Date().getFullYear()} Jonny Livestock. All rights reserved.</div>
             </td>
           </tr>

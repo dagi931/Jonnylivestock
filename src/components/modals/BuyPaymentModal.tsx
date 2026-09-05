@@ -250,7 +250,7 @@ export const BuyPaymentModal: React.FC<BuyPaymentModalProps> = ({
         formData.append('vehicleType', selectedVehicleId);
         formData.append('deliveryFee', String(deliveryFee));
       } else {
-        formData.append('deliveryLocation', 'Self Pickup from Aware Farm Facility');
+        formData.append('deliveryLocation', 'Self Pickup from Arat Kilo Farm Facility');
       }
 
       formData.append('animalId', animal.id);
@@ -609,7 +609,7 @@ export const BuyPaymentModal: React.FC<BuyPaymentModalProps> = ({
                       <MapPin className="w-4 h-4 shrink-0 text-emerald-500" />
                       <div>
                         <div className="text-xs font-bold">{isAmharic ? 'ከእርሻው መውሰድ (Pickup)' : 'Farm Pickup'}</div>
-                        <div className="text-[10px] opacity-70">{isAmharic ? 'አዋሬ እርሻ (ነፃ)' : 'Aware Farm (Free)'}</div>
+                        <div className="text-[10px] opacity-70">{isAmharic ? 'አራት ኪሎ እርሻ (ነፃ)' : 'Arat Kilo Farm (Free)'}</div>
                       </div>
                     </button>
                   </div>
@@ -631,8 +631,8 @@ export const BuyPaymentModal: React.FC<BuyPaymentModalProps> = ({
                       <CheckCircle2 className="w-4 h-4 shrink-0" />
                       <span>
                         {isAmharic
-                          ? 'ከአዋሬ እርሻ ተቋም ቀጥታ በነፃ ይረከባሉ። ክፍያዎ እንደተረጋገጠ ርክክብ ይፈጸማል።'
-                          : 'Pick up your livestock directly from Aware Farm HQ in Addis Ababa free of delivery charge.'}
+                          ? 'ከአራት ኪሎ እርሻ ተቋም ቀጥታ በነፃ ይረከባሉ። ክፍያዎ እንደተረጋገጠ ርክክብ ይፈጸማል።'
+                          : 'Pick up your livestock directly from Arat Kilo Farm HQ in Addis Ababa free of delivery charge.'}
                       </span>
                     </div>
                   )}

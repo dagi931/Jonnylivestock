@@ -145,7 +145,7 @@ Cut Notes: ${cutInstructions || 'Standard portioning'}`;
               </div>
               <h3 className="font-serif font-bold text-xl">Beef in KG Order Received!</h3>
               <p className="text-xs max-w-md mx-auto opacity-80">
-                Thank you <strong>{contactPerson}</strong>. Our butchery dispatch in Aware will contact you at <strong>{phone}</strong> to confirm wholesale pricing, kg weighing, and delivery.
+                Thank you <strong>{contactPerson}</strong>. Our butchery dispatch in Arat Kilo will contact you at <strong>{phone}</strong> to confirm wholesale pricing, kg weighing, and delivery.
               </p>
 
               <div className={`p-4 rounded-2xl border text-left text-xs space-y-2 ${

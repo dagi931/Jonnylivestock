@@ -35,7 +35,7 @@ export const SlaughterPrepDashboard: React.FC = () => {
     setSubmitted(true);
   };
 
-  const whatsappMessage = `Hello ${business.name}, I would like to book a DEDICATED WORKER for SLAUGHTER & MEAT PREPARATION. Details: [1 ${animalType.toUpperCase()}] at [${address}]. Execution Mode: [${serviceLocation === 'on_site' ? 'At My Compound / On-Site' : 'Slaughter at Aware Farm & Deliver Prepared'}]. Date: ${preferredDate || 'Earliest available'}. Cut Notes: ${cutPreferences || 'Standard butchering'}. Customer: ${customerName} (Phone: ${phone}).`;
+  const whatsappMessage = `Hello ${business.name}, I would like to book a DEDICATED WORKER for SLAUGHTER & MEAT PREPARATION. Details: [1 ${animalType.toUpperCase()}] at [${address}]. Execution Mode: [${serviceLocation === 'on_site' ? 'At My Compound / On-Site' : 'Slaughter at Arat Kilo Farm & Deliver Prepared'}]. Date: ${preferredDate || 'Earliest available'}. Cut Notes: ${cutPreferences || 'Standard butchering'}. Customer: ${customerName} (Phone: ${phone}).`;
 
   return (
     <div className="space-y-8 animate-in fade-in-50 duration-200">
@@ -161,7 +161,7 @@ export const SlaughterPrepDashboard: React.FC = () => {
                     }`}
                   >
                     <option value="on_site">Dispatched to My Home / Venue</option>
-                    <option value="farm_slaughter">Process at Aware Farm & Deliver</option>
+                    <option value="farm_slaughter">Process at Arat Kilo Farm & Deliver</option>
                   </select>
                 </div>
               </div>

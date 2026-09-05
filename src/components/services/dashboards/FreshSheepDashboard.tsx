@@ -43,7 +43,7 @@ export const FreshSheepDashboard: React.FC = () => {
     custom_cuts: 'Portioned Cuts (የተቆራረጠ - Tibs, Wot, Goden)'
   };
 
-  const whatsappMessage = `Hello ${business.name}, I would like to order FRESHLY SLAUGHTERED SHEEP DELIVERY from Aware. Details: [${sheepCount} Sheep (${breedPreference.toUpperCase()} - ${targetWeight.toUpperCase()} size)]. Preparation: [${prepTypeLabels[prepType]}]. Customer: ${customerName} (Phone: ${phone}). Delivery Address: [${deliveryAddress}]. Date: ${deliveryDate || 'Earliest available'}. Notes: ${specialInstructions || 'Please deliver fresh right after slaughter.'}`;
+  const whatsappMessage = `Hello ${business.name}, I would like to order FRESHLY SLAUGHTERED SHEEP DELIVERY from Arat Kilo. Details: [${sheepCount} Sheep (${breedPreference.toUpperCase()} - ${targetWeight.toUpperCase()} size)]. Preparation: [${prepTypeLabels[prepType]}]. Customer: ${customerName} (Phone: ${phone}). Delivery Address: [${deliveryAddress}]. Date: ${deliveryDate || 'Earliest available'}. Notes: ${specialInstructions || 'Please deliver fresh right after slaughter.'}`;
 
   return (
     <div className="space-y-8 animate-in fade-in-50 duration-200">
@@ -66,7 +66,7 @@ export const FreshSheepDashboard: React.FC = () => {
                 Freshly Slaughtered Sheep Delivery Portal
               </h2>
               <p className={`text-xs sm:text-sm mt-1 max-w-xl ${isDark ? 'text-[#D8C5A8]' : 'text-[#746556]'}`}>
-                Enjoy clean, fresh sheep meat delivered straight to your door without the hassle of live animal handling or home slaughter. We slaughter freshly at our Aware farm just before dispatch.
+                Enjoy clean, fresh sheep meat delivered straight to your door without the hassle of live animal handling or home slaughter. We slaughter freshly at our Arat Kilo farm facility just before dispatch.
               </p>
             </div>
           </div>
@@ -328,7 +328,7 @@ export const FreshSheepDashboard: React.FC = () => {
             </div>
 
             <p className="text-xs opacity-85 leading-relaxed">
-              Every sheep is inspected for health, slaughtered freshly at our Aware facility under sanitary traditional standards, and transported immediately in clean food-grade protective wrap.
+              Every sheep is inspected for health, slaughtered freshly at our Arat Kilo facility under sanitary traditional standards, and transported immediately in clean food-grade protective wrap.
             </p>
 
             <ul className="space-y-2 text-xs opacity-85 pt-1 border-t" style={{ borderColor: isDark ? '#4A2C16' : '#E4D4BC' }}>

@@ -283,7 +283,7 @@ export const SlipPreviewModal: React.FC<SlipPreviewModalProps> = ({
                         <MapPin className="w-3.5 h-3.5 text-[#C18A45] shrink-0 mt-0.5" />
                         <div>
                           <span className="opacity-70 text-[11px]">Destination: </span>
-                          <span className="font-bold">{order.deliveryAddress || order.deliveryLocation || 'Aware Farm Pickup'}</span>
+                          <span className="font-bold">{order.deliveryAddress || order.deliveryLocation || 'Farm Pickup (Arat Kilo)'}</span>
                         </div>
                       </div>
 

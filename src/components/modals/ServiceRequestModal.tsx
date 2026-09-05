@@ -201,7 +201,7 @@ export const ServiceRequestModal: React.FC<ServiceRequestModalProps> = ({
               <p className="opacity-80">
                 {isAmharic
                   ? `ባለቤቱ መጠኑን፣ ዋጋውንና የማድረሻ ሰዓቱን ለማረጋገጥ በ ${phoneNumber} በቀጥታ ይደውሉልዎታል።`
-                  : `The seller will contact you directly at ${phoneNumber} to confirm your quantities (KG/cuts), pricing, and delivery schedule from Aware, Addis Ababa.`}
+                  : `The seller will contact you directly at ${phoneNumber} to confirm your quantities (KG/cuts), pricing, and delivery schedule from Arat Kilo, Addis Ababa.`}
               </p>
             </div>
 
@@ -522,7 +522,7 @@ export const ServiceRequestModal: React.FC<ServiceRequestModalProps> = ({
                 </label>
                 <input
                   type="text"
-                  placeholder={isAmharic ? 'ለምሳሌ፡ አዲስ አበባ፣ ቦሌ ወይም አዋሬ' : 'e.g. Addis Ababa, Bole near Medhanialem or Aware'}
+                  placeholder={isAmharic ? 'ለምሳሌ፡ አዲስ አበባ፣ ቦሌ ወይም አራት ኪሎ' : 'e.g. Addis Ababa, Bole near Medhanialem or Arat Kilo'}
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
                   className={`w-full px-3.5 py-2.5 rounded-xl text-sm border focus:outline-none focus:ring-2 transition-all ${

@@ -51,7 +51,7 @@ export const DeliveryDashboard: React.FC = () => {
     setSubmitted(true);
   };
 
-  const whatsappMessage = `Hello ${business.name}, I would like to book LIVE LIVESTOCK DELIVERY from Aware. Details: [${animalCount} ${animalType.toUpperCase()}(s)] to [${subCity}, ${specificAddress}]. Date: ${preferredDate || 'Earliest available'}. Customer: ${customerName} (Phone: ${phone}). Notes: ${notes || 'Please confirm transport schedule.'}`;
+  const whatsappMessage = `Hello ${business.name}, I would like to book LIVE LIVESTOCK DELIVERY from Arat Kilo. Details: [${animalCount} ${animalType.toUpperCase()}(s)] to [${subCity}, ${specificAddress}]. Date: ${preferredDate || 'Earliest available'}. Customer: ${customerName} (Phone: ${phone}). Notes: ${notes || 'Please confirm transport schedule.'}`;
 
   return (
     <div className="space-y-8 animate-in fade-in-50 duration-200">
@@ -74,7 +74,7 @@ export const DeliveryDashboard: React.FC = () => {
                 Live Livestock Delivery Portal
               </h2>
               <p className={`text-xs sm:text-sm mt-1 max-w-xl ${isDark ? 'text-[#D8C5A8]' : 'text-[#746556]'}`}>
-                Safe, direct transit from our farm on <strong>Queen Elizabeth Street, Aware, Addis Ababa</strong> to your destination across Addis Ababa and surrounding towns.
+                Safe, direct transit from our farm on <strong>Belay Zeleke Street, Arat Kilo, Addis Ababa</strong> to your destination across Addis Ababa and surrounding towns.
               </p>
             </div>
           </div>
@@ -109,7 +109,7 @@ export const DeliveryDashboard: React.FC = () => {
               </div>
               <h3 className="font-serif font-bold text-xl">Delivery Booking Submitted!</h3>
               <p className="text-xs max-w-md mx-auto opacity-80">
-                Thank you <strong>{customerName}</strong>. Our dispatch team in Aware will contact you at <strong>{phone}</strong> to confirm your vehicle schedule to {subCity}.
+                Thank you <strong>{customerName}</strong>. Our dispatch team in Arat Kilo will contact you at <strong>{phone}</strong> to confirm your vehicle schedule to {subCity}.
               </p>
 
               <div className="pt-3 flex flex-col sm:flex-row justify-center gap-2.5">
@@ -314,7 +314,7 @@ export const DeliveryDashboard: React.FC = () => {
               </li>
               <li className="flex items-start gap-2">
                 <CheckCircle2 className="w-3.5 h-3.5 text-green-500 shrink-0 mt-0.5" />
-                <span>Originates directly from Queen Elizabeth Street, Aware, Addis Ababa.</span>
+                <span>Originates directly from Belay Zeleke Street, Arat Kilo, Addis Ababa.</span>
               </li>
               <li className="flex items-start gap-2">
                 <CheckCircle2 className="w-3.5 h-3.5 text-green-500 shrink-0 mt-0.5" />

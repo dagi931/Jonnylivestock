@@ -194,8 +194,8 @@ export const DeliveryVehicleSelector: React.FC<DeliveryVehicleSelectorProps> = (
           </div>
           <p className="text-[11px] opacity-80 leading-relaxed">
             {isAmharic
-              ? `የመረጡት ቦታ ከአዋሬ እርሻ ${quoteData.distanceKm} ኪ.ሜ ርቀት ላይ ይገኛል። የማድረስ አገልግሎታችን እስከ ${quoteData.maxDistanceKm} ኪ.ሜ ብቻ ነው። እባክዎ በአዲስ አበባ ውስጥ ቅርብ አድራሻ ይምረጡ ወይም ከእርሻው መረከብ (Farm Pickup) ይምረጡ።`
-              : `The destination is ${quoteData.distanceKm} km from Aware Farm. Maximum supported delivery range is ${quoteData.maxDistanceKm} km. Please choose an address within Addis Ababa or select Farm Pickup.`}
+              ? `የመረጡት ቦታ ከጆኒ እርባታ ተቋም (አራት ኪሎ) ${quoteData.distanceKm} ኪ.ሜ ርቀት ላይ ይገኛል። የማድረስ አገልግሎታችን እስከ ${quoteData.maxDistanceKm} ኪ.ሜ ብቻ ነው። እባክዎ በአዲስ አበባ ውስጥ ቅርብ አድራሻ ይምረጡ ወይም ከእርሻው መረከብ (Farm Pickup) ይምረጡ።`
+              : `The destination is ${quoteData.distanceKm} km from Jonny Livestock Facility (Arat Kilo). Maximum supported delivery range is ${quoteData.maxDistanceKm} km. Please choose an address within Addis Ababa or select Farm Pickup.`}
           </p>
         </div>
       )}

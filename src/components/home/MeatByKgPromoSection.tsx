@@ -113,8 +113,8 @@ export const MeatByKgPromoSection: React.FC = () => {
       icon: ShieldCheck,
       title: '100% Prime Fattened Beef',
       amharicTitle: '100% ጥራት ያለው የበሬ ሥጋ',
-      desc: 'Inspected prime cuts from healthy cattle raised directly on our Aware farm.',
-      amharicDesc: 'በአዋሬው እርሻችን ከተመረጡ የሰቡ ሰንጋዎች ብቻ የተዘጋጀ።'
+      desc: 'Inspected prime cuts from healthy cattle raised directly on our farm.',
+      amharicDesc: 'በእርሻችን ከተመረጡ የሰቡ ሰንጋዎች ብቻ የተዘጋጀ።'
     },
     {
       icon: Truck,

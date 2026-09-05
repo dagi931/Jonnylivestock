@@ -345,7 +345,7 @@ export const PackageOrderModal: React.FC<PackageOrderModalProps> = ({
         if (selectedVehicleId) formData.append('vehicleType', selectedVehicleId);
         formData.append('deliveryFee', isFreeDeliveryEligible ? '0' : String(selectedVehicleQuote?.deliveryFee || 0));
       } else {
-        formData.append('deliveryLocation', 'Self Pickup from Aware Farm Facility');
+        formData.append('deliveryLocation', 'Self Pickup from Arat Kilo Farm Facility');
         formData.append('deliveryFee', '0');
       }
 
@@ -669,7 +669,7 @@ export const PackageOrderModal: React.FC<PackageOrderModalProps> = ({
                     <MapPin className="w-5 h-5 shrink-0 text-amber-500" />
                     <div>
                       <div className="text-xs font-bold">{isAmharic ? 'ከእርሻው መውሰድ (Pickup)' : 'Farm Pickup'}</div>
-                      <div className="text-[10px] opacity-70">Aware Farm Facility (Free)</div>
+                      <div className="text-[10px] opacity-70">Arat Kilo Farm Facility (Free)</div>
                     </div>
                   </button>
                 </div>

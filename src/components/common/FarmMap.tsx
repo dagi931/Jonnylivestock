@@ -58,8 +58,8 @@ export const FarmMap: React.FC = () => {
             </h3>
             <p className="text-xs opacity-75">
               {isAmharic
-                ? 'ንግሥት ኤልሳቤጥ መንገድ (ከደጃዝማች ወልደ ገብርኤል መንገድ መገናኛ)፣ አዋሬ፣ አዲስ አበባ'
-                : 'Queen Elizabeth Street (at Dejazmach Wolde Gebriel St), Aware, Addis Ababa'}
+                ? 'በላይ ዘለቀ መንገድ፣ አራት ኪሎ፣ አዲስ አበባ'
+                : 'Belay Zeleke Street, Arat Kilo, Addis Ababa'}
             </p>
           </div>
         </div>
@@ -101,7 +101,7 @@ export const FarmMap: React.FC = () => {
       {/* Interactive GIS Map Viewport */}
       <div className="relative w-full h-[320px] sm:h-[380px] bg-stone-900">
         <iframe
-          title="Jonny Livestock Exact Location - Queen Elizabeth Street, Aware, Addis Ababa"
+          title="Jonny Livestock Exact Location - Belay Zeleke Street, Arat Kilo, Addis Ababa"
           src={osmEmbedUrl}
           className="w-full h-full border-0"
           loading="lazy"
@@ -115,8 +115,8 @@ export const FarmMap: React.FC = () => {
           </div>
           <p className="text-[11px] opacity-85 leading-snug">
             {isAmharic
-              ? 'ንግሥት ኤልሳቤጥ መንገድ (ከደጃዝማች ወልደ ገብርኤል መንገድ መገናኛ)፣ አዋሬ፣ አዲስ አበባ'
-              : 'Queen Elizabeth Street (at Dejazmach Wolde Gebriel St junction), Aware, Addis Ababa'}
+              ? 'በላይ ዘለቀ መንገድ፣ አራት ኪሎ፣ አዲስ አበባ'
+              : 'Belay Zeleke Street, Arat Kilo, Addis Ababa'}
           </p>
           <div className="pt-1 flex items-center gap-2 text-[10px] text-green-400 font-semibold border-t border-white/10">
             <span>● {isAmharic ? 'ለደንበኞች ጉብኝትና ርክክብ ክፍት ነው' : 'Open for Customer Visits & Pickup'}</span>
@@ -145,8 +145,8 @@ export const FarmMap: React.FC = () => {
             <strong className="block font-semibold">{isAmharic ? 'ቀጥታ የመንገድ መዳረሻ' : 'Direct Road Access'}</strong>
             <span className="opacity-75">
               {isAmharic
-                ? 'ከአራት ኪሎ፣ አዋሬና ቀበና ጋር በሚያገናኘው በንግሥት ኤልሳቤጥ መንገድ ላይ በቀጥታ ይገኛል።'
-                : 'Directly on Queen Elizabeth Street connecting Arat Kilo, Aware, and Kebena.'}
+                ? 'በአራት ኪሎ በላይ ዘለቀ መንገድ ላይ በቀጥታ ይገኛል።'
+                : 'Directly on Belay Zeleke Street, Arat Kilo, Addis Ababa.'}
             </span>
           </div>
         </div>

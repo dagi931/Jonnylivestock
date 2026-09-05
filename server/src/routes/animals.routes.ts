@@ -106,7 +106,7 @@ router.post('/', authenticateToken, requireAdmin, async (req: AuthRequest, res: 
       color: color || 'Natural',
       price: Number(price),
       quantity: quantity !== undefined ? Number(quantity) : 1,
-      location: location || 'Aware, Addis Ababa',
+      location: location || 'Arat Kilo, Addis Ababa',
       description: description || '',
       status: 'available',
       images: Array.isArray(images) && images.length > 0 ? images : ['https://images.unsplash.com/photo-1484557052118-f32bd25b45b5?auto=format&fit=crop&w=1200&q=80'],
