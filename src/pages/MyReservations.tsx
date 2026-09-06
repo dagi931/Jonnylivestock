@@ -390,7 +390,7 @@ export const MyReservations: React.FC = () => {
         ) : loading ? (
           <div className="text-center py-20 opacity-60">
             <div className="w-8 h-8 rounded-full border-2 border-amber-500 border-t-transparent animate-spin mx-auto mb-3" />
-            <p className="text-xs font-semibold">{isAmharic ? 'ትዕዛዞች በመጫን ላይ...' : 'Loading your orders & reservations...'}</p>
+            <p className="text-xs font-semibold text-amber-500">{isAmharic ? 'በመጫን ላይ...' : 'Loading...'}</p>
           </div>
         ) : displayedOrders.length === 0 ? (
           <div

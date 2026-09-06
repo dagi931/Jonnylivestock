@@ -32,7 +32,7 @@ export const AnimalGrid: React.FC<AnimalGridProps> = ({
         <div className="flex flex-col items-center justify-center py-8 text-center animate-in fade-in duration-200">
           <div className="w-8 h-8 rounded-full border-2 border-amber-500 border-t-transparent animate-spin mb-2.5" />
           <p className="text-xs font-semibold text-amber-500">
-            {isAmharic ? 'ከብቶች ከዳታቤዝ በመጫን ላይ...' : 'Loading livestock from database...'}
+            {isAmharic ? 'በመጫን ላይ...' : 'Loading...'}
           </p>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-5">

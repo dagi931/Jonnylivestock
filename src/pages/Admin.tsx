@@ -2087,12 +2087,9 @@ export const Admin: React.FC = () => {
         {activeTab === 'overview' && (
           isLoadingData && ordersList.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-28 text-center animate-in fade-in duration-200">
-              <div className="w-10 h-10 rounded-full border-3 border-amber-500 border-t-transparent animate-spin mb-4" />
-              <h3 className="font-serif font-bold text-lg text-amber-500 mb-1">
-                {isAmharic ? 'የአስተዳዳሪ መረጃ ከዳታቤዝ በመጫን ላይ...' : 'Loading administration data from database...'}
-              </h3>
-              <p className="text-xs opacity-60">
-                {isAmharic ? 'እባክዎ ትንሽ ይጠብቁ...' : 'Connecting and retrieving latest metrics...'}
+              <div className="w-8 h-8 rounded-full border-2 border-amber-500 border-t-transparent animate-spin mb-3" />
+              <p className="text-xs font-semibold text-amber-500">
+                {isAmharic ? 'በመጫን ላይ...' : 'Loading...'}
               </p>
             </div>
           ) : (
@@ -2282,7 +2279,7 @@ export const Admin: React.FC = () => {
                           <div className="flex flex-col items-center justify-center gap-2 animate-in fade-in duration-200">
                             <div className="w-8 h-8 rounded-full border-2 border-amber-500 border-t-transparent animate-spin" />
                             <span className="text-xs font-semibold text-amber-500">
-                              {isAmharic ? 'ትዕዛዞች ከዳታቤዝ በመጫን ላይ...' : 'Loading orders from database...'}
+                              {isAmharic ? 'በመጫን ላይ...' : 'Loading...'}
                             </span>
                           </div>
                         </td>
@@ -2709,7 +2706,7 @@ export const Admin: React.FC = () => {
                           <div className="flex flex-col items-center justify-center gap-2 animate-in fade-in duration-200">
                             <div className="w-8 h-8 rounded-full border-2 border-amber-500 border-t-transparent animate-spin" />
                             <span className="text-xs font-semibold text-amber-500">
-                              {isAmharic ? 'የከብቶች መረጃ ከዳታቤዝ በመጫን ላይ...' : 'Loading livestock inventory from database...'}
+                              {isAmharic ? 'በመጫን ላይ...' : 'Loading...'}
                             </span>
                           </div>
                         </td>
@@ -2861,8 +2858,8 @@ export const Admin: React.FC = () => {
                 isDark ? 'bg-[#24170D] border-[#4A2C16]' : 'bg-white border-[#E4D4BC]'
               }`}>
                 <div className="w-8 h-8 rounded-full border-2 border-amber-500 border-t-transparent animate-spin mx-auto mb-3" />
-                <p className="font-semibold text-sm text-amber-500">
-                  {isAmharic ? 'የበዓል ጥቅሎች ከዳታቤዝ በመጫን ላይ...' : 'Loading celebration packages from database...'}
+                <p className="text-xs font-semibold text-amber-500">
+                  {isAmharic ? 'በመጫን ላይ...' : 'Loading...'}
                 </p>
               </div>
             ) : packagesList.length === 0 ? (
@@ -3898,7 +3895,7 @@ export const Admin: React.FC = () => {
                               <div className="flex flex-col items-center justify-center gap-2 animate-in fade-in duration-200">
                                 <div className="w-8 h-8 rounded-full border-2 border-amber-500 border-t-transparent animate-spin" />
                                 <span className="text-xs font-semibold text-amber-500">
-                                  {isAmharic ? 'የማድረሻ ትዕዛዞች ከዳታቤዝ በመጫን ላይ...' : 'Loading delivery orders from database...'}
+                                  {isAmharic ? 'በመጫን ላይ...' : 'Loading...'}
                                 </span>
                               </div>
                             </td>
@@ -4693,8 +4690,8 @@ export const Admin: React.FC = () => {
                     isDark ? 'bg-[#2A1A0D]/40 border-[#4A2C16]' : 'bg-[#F1E8D8]/40 border-[#E4D4BC]'
                   }`}>
                     <div className="w-8 h-8 rounded-full border-2 border-amber-500 border-t-transparent animate-spin mx-auto mb-3" />
-                    <p className="font-semibold text-sm text-amber-500">
-                      {isAmharic ? 'መልዕክቶች ከዳታቤዝ በመጫን ላይ...' : 'Loading customer inquiries from database...'}
+                    <p className="text-xs font-semibold text-amber-500">
+                      {isAmharic ? 'በመጫን ላይ...' : 'Loading...'}
                     </p>
                   </div>
                 );

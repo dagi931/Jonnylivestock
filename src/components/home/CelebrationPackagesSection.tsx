@@ -166,7 +166,7 @@ export const CelebrationPackagesSection: React.FC = () => {
           <div className="py-16 text-center animate-in fade-in duration-200">
             <div className="w-8 h-8 rounded-full border-2 border-amber-500 border-t-transparent animate-spin mx-auto mb-3" />
             <p className="text-xs font-semibold text-amber-500">
-              {isAmharic ? 'የበዓል ጥቅሎችን ከዳታቤዝ በመጫን ላይ...' : 'Loading celebration packages from database...'}
+              {isAmharic ? 'በመጫን ላይ...' : 'Loading...'}
             </p>
           </div>
         ) : (
