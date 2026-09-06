@@ -747,4 +747,45 @@ router.post('/:id/pickup-status', authenticateToken, requireAdmin, async (req: A
   }
 });
 
+// ==================== ADMIN: CLEAR RECEIPT SLIP FROM ORDER ====================
+router.post('/:id/clear-receipt', authenticateToken, requireAdmin, async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { receiptType = 'all' } = req.body;
+    const updated = await PostgresDB.clearOrderReceipt(req.params.id, receiptType);
+    if (!updated) {
+      res.status(404).json({ success: false, error: 'Order not found' });
+      return;
+    }
+
+    // 🚀 REALTIME BROADCAST
+    realtimeService.broadcast('ORDER_UPDATED', updated);
+
+    res.json({
+      success: true,
+      message: `Receipt slip cleared successfully from order #${updated.id}`,
+      order: updated
+    });
+  } catch (error: any) {
+    console.error('Error clearing receipt:', error);
+    res.status(500).json({ success: false, error: error.message || 'Failed to clear receipt' });
+  }
+});
+
+// ==================== ADMIN: BULK CLEAR RECEIPTS ====================
+router.post('/clear-all-receipts', authenticateToken, requireAdmin, async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { statusFilter } = req.body;
+    const clearedCount = await PostgresDB.clearAllReceipts(statusFilter);
+
+    res.json({
+      success: true,
+      message: `Successfully cleared ${clearedCount} receipt slip(s).`,
+      clearedCount
+    });
+  } catch (error: any) {
+    console.error('Error clearing all receipts:', error);
+    res.status(500).json({ success: false, error: error.message || 'Failed to clear all receipts' });
+  }
+});
+
 export default router;

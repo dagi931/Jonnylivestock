@@ -646,6 +646,32 @@ class ApiService {
     }
   }
 
+  async clearOrderReceipt(orderId: string, receiptType: 'initial' | 'final' | 'all' = 'all', token?: string): Promise<{ success: boolean; message?: string; order?: Order; error?: string }> {
+    try {
+      const res = await fetch(`${API_BASE}/orders/${orderId}/clear-receipt`, {
+        method: 'POST',
+        headers: this.getHeaders(token),
+        body: JSON.stringify({ receiptType })
+      });
+      return await res.json();
+    } catch (error: any) {
+      return { success: false, error: error.message || 'Failed to clear order receipt' };
+    }
+  }
+
+  async clearAllReceipts(statusFilter?: string, token?: string): Promise<{ success: boolean; message?: string; count?: number; error?: string }> {
+    try {
+      const res = await fetch(`${API_BASE}/orders/clear-all-receipts`, {
+        method: 'POST',
+        headers: this.getHeaders(token),
+        body: JSON.stringify({ statusFilter })
+      });
+      return await res.json();
+    } catch (error: any) {
+      return { success: false, error: error.message || 'Failed to clear receipts' };
+    }
+  }
+
   // ==================== NOTIFICATIONS ====================
   private getLocalNotifications(): AdminNotification[] {
     try {

@@ -14,7 +14,8 @@ import {
   Minimize2,
   ZoomIn,
   Eye,
-  Truck
+  Truck,
+  Trash2
 } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 import { useLanguage } from '../../context/LanguageContext';
@@ -34,6 +35,7 @@ interface SlipPreviewModalProps {
   onApproveDelivery?: (id: string, status?: 'delivery_pending' | 'delivered') => void;
   onUpdatePickupStatus?: (id: string, status?: 'pickup_ready' | 'completed') => void;
   onReject?: (id: string) => void;
+  onClearReceipt?: (id: string, receiptType: 'initial' | 'final' | 'all') => void;
   isActionLoading?: boolean;
 }
 
@@ -50,6 +52,7 @@ export const SlipPreviewModal: React.FC<SlipPreviewModalProps> = ({
   onApproveDelivery,
   onUpdatePickupStatus,
   onReject,
+  onClearReceipt,
   isActionLoading = false
 }) => {
   const { theme } = useTheme();
@@ -384,6 +387,32 @@ export const SlipPreviewModal: React.FC<SlipPreviewModalProps> = ({
                     <Eye className="w-3.5 h-3.5 text-[#C18A45]" />
                     <span>{isAmharic ? 'ደረሰኙን በከፍተኛ ጥራት ለማየት ከላይ ያለውን ምስል ይጫኑ' : 'Click image above to zoom and expand to full size'}</span>
                   </p>
+
+                  {currentSlip && onClearReceipt && currentOrderId && (
+                    <div className="w-full pt-2 border-t border-black/5 dark:border-white/5">
+                      <button
+                        type="button"
+                        disabled={isActionLoading}
+                        onClick={() => {
+                          const typeToClear = hasMultipleSlips ? activeSlipTab : 'all';
+                          onClearReceipt(currentOrderId, typeToClear);
+                        }}
+                        className="w-full py-1.5 px-3 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer border border-red-500/25"
+                        title={isAmharic ? 'ይህን የክፍያ ደረሰኝ ሰርዝ' : 'Clear this payment receipt'}
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        <span>
+                          {isAmharic
+                            ? (hasMultipleSlips
+                                ? (activeSlipTab === 'final' ? 'የመጨረሻ ደረሰኝ ሰርዝ' : 'የቅድመ-ክፍያ ደረሰኝ ሰርዝ')
+                                : 'ደረሰኝ ሰርዝ')
+                            : (hasMultipleSlips
+                                ? (activeSlipTab === 'final' ? 'Clear Final Slip' : 'Clear Deposit Slip')
+                                : 'Clear Receipt')}
+                        </span>
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -686,6 +715,23 @@ export const SlipPreviewModal: React.FC<SlipPreviewModalProps> = ({
               >
                 <ExternalLink className="w-5 h-5" />
               </a>
+
+              {onClearReceipt && currentOrderId && (
+                <button
+                  type="button"
+                  disabled={isActionLoading}
+                  onClick={() => {
+                    const typeToClear = hasMultipleSlips ? activeSlipTab : 'all';
+                    setIsSlipExpanded(false);
+                    onClearReceipt(currentOrderId, typeToClear);
+                  }}
+                  className="px-3.5 py-2 rounded-xl bg-red-500/20 hover:bg-red-500/30 text-red-300 font-bold text-xs flex items-center gap-1.5 transition-colors border border-red-500/30 cursor-pointer"
+                  title={isAmharic ? 'ደረሰኝ ሰርዝ' : 'Clear Receipt'}
+                >
+                  <Trash2 className="w-4 h-4 text-red-400" />
+                  <span>{isAmharic ? 'ደረሰኝ ሰርዝ' : 'Clear Slip'}</span>
+                </button>
+              )}
 
               <button
                 type="button"

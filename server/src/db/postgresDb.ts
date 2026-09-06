@@ -1,6 +1,26 @@
 import prisma from './prisma.js';
 import { Animal, Order, User, AdminNotification, BankAccount, SavedPackage, PackageCatalogItem, PreMadePackage, ContactMessage } from '../types/index.js';
 import { PRE_MADE_PACKAGES } from '../data/packagesData.js';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const UPLOADS_DIR = path.resolve(__dirname, '../../uploads');
+
+const tryDeleteSlipFile = (fileUrl?: string | null) => {
+  if (!fileUrl) return;
+  try {
+    const filename = path.basename(fileUrl);
+    const filePath = path.join(UPLOADS_DIR, filename);
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
+  } catch (e) {
+    console.warn('Could not delete receipt slip file from disk:', e);
+  }
+};
 
 const normalizeAnimalImages = (raw: any): string[] => {
   if (Array.isArray(raw)) {
@@ -1373,6 +1393,70 @@ export class PostgresDB {
     });
 
     return this.formatOrder(updated);
+  }
+
+  // Clear Receipt Slip from an Order
+  public static async clearOrderReceipt(
+    orderId: string,
+    receiptType: 'initial' | 'final' | 'all' = 'all'
+  ): Promise<Order | null> {
+    const existing = await prisma.order.findFirst({
+      where: { id: { equals: orderId, mode: 'insensitive' } }
+    });
+    if (!existing) return null;
+
+    const dataToUpdate: any = { updatedAt: new Date() };
+
+    if (receiptType === 'initial' || receiptType === 'all') {
+      tryDeleteSlipFile(existing.paymentSlipUrl);
+      dataToUpdate.paymentSlipUrl = null;
+    }
+    if (receiptType === 'final' || receiptType === 'all') {
+      tryDeleteSlipFile(existing.finalPaymentSlipUrl);
+      dataToUpdate.finalPaymentSlipUrl = null;
+    }
+
+    const updated = await prisma.order.update({
+      where: { id: existing.id },
+      data: dataToUpdate
+    });
+
+    return this.formatOrder(updated);
+  }
+
+  // Clear Receipts in Bulk (e.g. for rejected orders or all)
+  public static async clearAllReceipts(statusFilter?: string): Promise<number> {
+    const whereClause: any = {
+      OR: [
+        { paymentSlipUrl: { not: null } },
+        { finalPaymentSlipUrl: { not: null } }
+      ]
+    };
+
+    if (statusFilter && statusFilter !== 'all') {
+      whereClause.status = statusFilter;
+    }
+
+    const matchingOrders = await prisma.order.findMany({
+      where: whereClause,
+      select: { id: true, paymentSlipUrl: true, finalPaymentSlipUrl: true }
+    });
+
+    for (const ord of matchingOrders) {
+      tryDeleteSlipFile(ord.paymentSlipUrl);
+      tryDeleteSlipFile(ord.finalPaymentSlipUrl);
+    }
+
+    const updateRes = await prisma.order.updateMany({
+      where: whereClause,
+      data: {
+        paymentSlipUrl: null,
+        finalPaymentSlipUrl: null,
+        updatedAt: new Date()
+      }
+    });
+
+    return updateRes.count;
   }
 
   // ==================== NOTIFICATIONS ====================

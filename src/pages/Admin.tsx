@@ -438,8 +438,11 @@ export const Admin: React.FC = () => {
   };
 
   // Load Data from Backend
-  const loadDashboardData = async () => {
-    setIsLoadingData(true);
+  const loadDashboardData = async (isSilent: boolean | React.SyntheticEvent = false) => {
+    const silent = isSilent === true;
+    if (!silent) {
+      setIsLoadingData(true);
+    }
     try {
       const activeToken = adminToken || localStorage.getItem('jonny_admin_token') || localStorage.getItem('jonny_user_token') || undefined;
       const [fetchedAnimals, fetchedOrders, notifRes, pkgRes, fetchedMsgs, meatPricingRes, deliveryConfigRes] = await Promise.all([
@@ -486,7 +489,9 @@ export const Admin: React.FC = () => {
     } catch (err) {
       console.error('Failed to load backend data:', err);
     } finally {
-      setIsLoadingData(false);
+      if (!isSilent) {
+        setIsLoadingData(false);
+      }
     }
   };
 
@@ -495,9 +500,9 @@ export const Admin: React.FC = () => {
       loadDashboardData();
       const interval = setInterval(() => {
         if (!document.hidden) {
-          loadDashboardData();
+          loadDashboardData(true);
         }
-      }, 30000); // 30s background sync (SSE handles real-time immediate updates)
+      }, 30000); // 30s background sync (silent to prevent UI flicker)
       return () => clearInterval(interval);
     }
   }, [isAuthenticated]);
@@ -683,6 +688,18 @@ export const Admin: React.FC = () => {
         return copy;
       });
     }
+  });
+
+  // Realtime Listener: Order Updated (e.g. Receipt Cleared or Status Changed)
+  useRealtimeEvent<Order>('ORDER_UPDATED', (updated) => {
+    if (!updated) return;
+    setOrdersList(prev => {
+      const idx = prev.findIndex(o => o.id === updated.id);
+      if (idx === -1) return prev;
+      const copy = [...prev];
+      copy[idx] = { ...copy[idx], ...updated };
+      return copy;
+    });
   });
 
   // Realtime Listener: Live Animal Inventory Changes
@@ -935,6 +952,52 @@ export const Admin: React.FC = () => {
       loadDashboardData();
     } else {
       showAlert('error', res.error || 'Failed to reject order');
+    }
+  };
+
+  // Handle Clear Payment Receipt Slip
+  const handleClearReceipt = async (orderId: string, receiptType: 'initial' | 'final' | 'all' = 'all') => {
+    const confirmMsg = isAmharic
+      ? 'እርግጠኛ ነዎት ይህን የክፍያ ደረሰኝ መሰረዝ ይፈልጋሉ? ደረሰኙ ከሲስተም ይሰረዛል።'
+      : 'Are you sure you want to clear this payment receipt slip? The slip will be removed from the system.';
+    if (!window.confirm(confirmMsg)) return;
+
+    const activeToken = adminToken || localStorage.getItem('jonny_admin_token') || localStorage.getItem('jonny_user_token') || undefined;
+    const res = await api.clearOrderReceipt(orderId, receiptType, activeToken);
+    if (res.success) {
+      showAlert('success', isAmharic ? 'የክፍያ ደረሰኝ በተሳካ ሁኔታ ተሰርዟል' : 'Payment receipt slip cleared successfully');
+      setOrdersList(prev => prev.map(o => {
+        if (o.id !== orderId) return o;
+        if (receiptType === 'initial') return { ...o, paymentSlipUrl: undefined };
+        if (receiptType === 'final') return { ...o, finalPaymentSlipUrl: undefined };
+        return { ...o, paymentSlipUrl: undefined, finalPaymentSlipUrl: undefined };
+      }));
+      if (selectedSlipOrder && selectedSlipOrder.id === orderId) {
+        setSelectedSlipOrder(null);
+      }
+    } else {
+      showAlert('error', res.error || (isAmharic ? 'ደረሰኙን መሰረዝ አልተቻለም' : 'Failed to clear payment receipt'));
+    }
+  };
+
+  // Handle Clear All Receipts (e.g. for rejected orders)
+  const handleClearAllReceipts = async (statusFilter?: string) => {
+    const confirmMsg = isAmharic
+      ? statusFilter === 'rejected'
+        ? 'ውድቅ ለተደረጉ ትዕዛዞች በሙሉ ደረሰኞችን መሰረዝ ይፈልጋሉ?'
+        : 'ሁሉንም የክፍያ ደረሰኞች መሰረዝ ይፈልጋሉ?'
+      : statusFilter === 'rejected'
+        ? 'Are you sure you want to clear all payment receipt slips for rejected orders?'
+        : 'Are you sure you want to clear all payment receipts?';
+    if (!window.confirm(confirmMsg)) return;
+
+    const activeToken = adminToken || localStorage.getItem('jonny_admin_token') || localStorage.getItem('jonny_user_token') || undefined;
+    const res = await api.clearAllReceipts(statusFilter, activeToken);
+    if (res.success) {
+      showAlert('success', isAmharic ? `${res.count || 0} ደረሰኞች በተሳካ ሁኔታ ተሰርዘዋል` : `${res.count || 0} receipts cleared successfully`);
+      loadDashboardData(true);
+    } else {
+      showAlert('error', res.error || 'Failed to clear receipts');
     }
   };
 
@@ -2250,6 +2313,18 @@ export const Admin: React.FC = () => {
                     {isAmharic ? 'ውድቅ የተደረጉ' : 'Rejected'} ({ordersList.filter(o => o.status === 'rejected').length})
                   </option>
                 </select>
+
+                {ordersList.some(o => o.status === 'rejected' && (o.paymentSlipUrl || o.finalPaymentSlipUrl)) && (
+                  <button
+                    type="button"
+                    onClick={() => handleClearAllReceipts('rejected')}
+                    className="px-3 py-2 rounded-xl text-xs font-semibold bg-red-500/15 hover:bg-red-500/25 text-red-400 border border-red-500/30 transition-colors flex items-center gap-1.5 cursor-pointer"
+                    title={isAmharic ? 'ውድቅ ለተደረጉ ትዕዛዞች ደረሰኞችን አጽዳ' : 'Clear payment receipts for all rejected orders'}
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>{isAmharic ? 'የውድቅ ደረሰኞችን አጽዳ' : 'Clear Rejected Receipts'}</span>
+                  </button>
+                )}
               </div>
             </div>
 
@@ -2273,7 +2348,7 @@ export const Admin: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y" style={{ borderColor: isDark ? '#4A2C16' : '#E4D4BC' }}>
-                    {isLoadingData ? (
+                    {isLoadingData && ordersList.length === 0 ? (
                       <tr>
                         <td colSpan={7} className="text-center py-12">
                           <div className="flex flex-col items-center justify-center gap-2 animate-in fade-in duration-200">
@@ -2371,46 +2446,72 @@ export const Admin: React.FC = () => {
 
                             {/* Slip Preview Thumbnails (Initial + Final) */}
                             <td className="py-3 px-3.5">
-                              <div className="space-y-1">
+                              <div className="space-y-1.5">
                                 {order.paymentSlipUrl ? (
-                                  <button
-                                    type="button"
-                                    onClick={() => setSelectedSlipOrder(order)}
-                                    className="group relative inline-flex items-center gap-1.5 p-1 rounded-lg border border-[#C18A45]/30 hover:border-[#C18A45] transition-all bg-black/10 dark:bg-white/5 cursor-pointer"
-                                    title={isAmharic ? 'ደረሰኙን ለመመርመር ይጫኑ' : 'Click to inspect initial slip'}
-                                  >
-                                    <img
-                                      src={order.paymentSlipUrl}
-                                      alt="Receipt"
-                                      className="w-9 h-9 object-cover rounded-md"
-                                    />
-                                    <span className="text-[10px] font-bold text-[#C18A45] pr-1">
-                                      {isRes ? (isAmharic ? 'የቅድመ-ክፍያ ደረሰኝ' : 'Deposit Slip') : (isAmharic ? 'ሙሉ ደረሰኝ' : 'Full Slip')}
-                                    </span>
-                                  </button>
+                                  <div className="flex items-center gap-1">
+                                    <button
+                                      type="button"
+                                      onClick={() => setSelectedSlipOrder(order)}
+                                      className="group relative inline-flex items-center gap-1.5 p-1 rounded-lg border border-[#C18A45]/30 hover:border-[#C18A45] transition-all bg-black/10 dark:bg-white/5 cursor-pointer"
+                                      title={isAmharic ? 'ደረሰኙን ለመመርመር ይጫኑ' : 'Click to inspect initial slip'}
+                                    >
+                                      <img
+                                        src={order.paymentSlipUrl}
+                                        alt="Receipt"
+                                        className="w-9 h-9 object-cover rounded-md"
+                                      />
+                                      <span className="text-[10px] font-bold text-[#C18A45] pr-1">
+                                        {isRes ? (isAmharic ? 'የቅድመ-ክፍያ ደረሰኝ' : 'Deposit Slip') : (isAmharic ? 'ሙሉ ደረሰኝ' : 'Full Slip')}
+                                      </span>
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleClearReceipt(order.id, 'initial');
+                                      }}
+                                      className="p-1.5 rounded-lg text-red-400 hover:bg-red-500/20 transition-colors"
+                                      title={isAmharic ? 'ደረሰኝ ሰርዝ' : 'Clear Receipt'}
+                                    >
+                                      <Trash2 className="w-3.5 h-3.5" />
+                                    </button>
+                                  </div>
                                 ) : (
                                   <span className="text-[10px] opacity-40 block">{isAmharic ? 'ደረሰኝ አልተያያዘም' : 'No Deposit Slip'}</span>
                                 )}
 
                                 {order.finalPaymentSlipUrl && (
-                                  <button
-                                    type="button"
-                                    onClick={() => setSelectedSlipOrder({
-                                      ...order,
-                                      paymentSlipUrl: order.finalPaymentSlipUrl!
-                                    })}
-                                    className="group relative inline-flex items-center gap-1.5 p-1 rounded-lg border border-emerald-500/30 hover:border-emerald-500 transition-all bg-emerald-500/10 cursor-pointer"
-                                    title={isAmharic ? 'የቀሪ 50% ደረሰኝን ለመመርመር ይጫኑ' : 'Click to inspect final 50% balance slip'}
-                                  >
-                                    <img
-                                      src={order.finalPaymentSlipUrl}
-                                      alt="Final Receipt"
-                                      className="w-9 h-9 object-cover rounded-md"
-                                    />
-                                    <span className="text-[10px] font-bold text-emerald-400 pr-1">
-                                      {isAmharic ? 'የመጨረሻ ደረሰኝ' : 'Final Slip'}
-                                    </span>
-                                  </button>
+                                  <div className="flex items-center gap-1">
+                                    <button
+                                      type="button"
+                                      onClick={() => setSelectedSlipOrder({
+                                        ...order,
+                                        paymentSlipUrl: order.finalPaymentSlipUrl!
+                                      })}
+                                      className="group relative inline-flex items-center gap-1.5 p-1 rounded-lg border border-emerald-500/30 hover:border-emerald-500 transition-all bg-emerald-500/10 cursor-pointer"
+                                      title={isAmharic ? 'የቀሪ 50% ደረሰኝን ለመመርመር ይጫኑ' : 'Click to inspect final 50% balance slip'}
+                                    >
+                                      <img
+                                        src={order.finalPaymentSlipUrl}
+                                        alt="Final Receipt"
+                                        className="w-9 h-9 object-cover rounded-md"
+                                      />
+                                      <span className="text-[10px] font-bold text-emerald-400 pr-1">
+                                        {isAmharic ? 'የመጨረሻ ደረሰኝ' : 'Final Slip'}
+                                      </span>
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleClearReceipt(order.id, 'final');
+                                      }}
+                                      className="p-1.5 rounded-lg text-red-400 hover:bg-red-500/20 transition-colors"
+                                      title={isAmharic ? 'የመጨረሻ ደረሰኝ ሰርዝ' : 'Clear Final Slip'}
+                                    >
+                                      <Trash2 className="w-3.5 h-3.5" />
+                                    </button>
+                                  </div>
                                 )}
                               </div>
                             </td>
@@ -2700,7 +2801,7 @@ export const Admin: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y" style={{ borderColor: isDark ? '#4A2C16' : '#E4D4BC' }}>
-                    {isLoadingData ? (
+                    {isLoadingData && animalsList.length === 0 ? (
                       <tr>
                         <td colSpan={8} className="text-center py-12">
                           <div className="flex flex-col items-center justify-center gap-2 animate-in fade-in duration-200">
@@ -3889,7 +3990,7 @@ export const Admin: React.FC = () => {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-black/5 dark:divide-white/5">
-                        {isLoadingData ? (
+                        {isLoadingData && ordersList.length === 0 ? (
                           <tr>
                             <td colSpan={7} className="text-center py-12">
                               <div className="flex flex-col items-center justify-center gap-2 animate-in fade-in duration-200">
@@ -4878,6 +4979,9 @@ export const Admin: React.FC = () => {
           onReject={async (id) => {
             await handleRejectOrder(id);
             setSelectedSlipOrder(null);
+          }}
+          onClearReceipt={async (id, type) => {
+            await handleClearReceipt(id, type);
           }}
         />
       )}
