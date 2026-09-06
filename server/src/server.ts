@@ -16,6 +16,8 @@ import packagesRoutes from './routes/packages.routes.js';
 import contactRoutes from './routes/contact.routes.js';
 import deliveryRoutes from './routes/delivery.routes.js';
 import { globalLimiter } from './middleware/rateLimit.middleware.js';
+import { handleUploadError } from './middleware/upload.middleware.js';
+import { sanitizeErrorMessage } from './utils/errorHandler.js';
 
 dotenv.config();
 
@@ -36,8 +38,8 @@ app.use(cors({
   origin: true,
   credentials: true
 }));
-app.use(express.json({ limit: '50mb' }));
-app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+app.use(express.json({ limit: '100mb' }));
+app.use(express.urlencoded({ extended: true, limit: '100mb' }));
 
 // Serve static uploaded files (payment slips, animal photos)
 app.use('/uploads', express.static(UPLOADS_DIR));
@@ -106,12 +108,15 @@ app.use('/api/notifications', notificationsRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/events', eventsRoutes);
 
-// Error Handling Middleware
+// Multer Upload Error Interceptor (gives friendly error when exceeding limits)
+app.use(handleUploadError);
+
+// General Error Handling Middleware
 app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   console.error('Server error:', err);
   res.status(err.status || 500).json({
     success: false,
-    error: err.message || 'Internal Server Error'
+    error: sanitizeErrorMessage(err, 'Internal Server Error')
   });
 });
 

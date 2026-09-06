@@ -1,11 +1,12 @@
 import { Router, Response } from 'express';
 import { PostgresDB } from '../db/postgresDb.js';
 import { authenticateToken, requireAdmin, optionalAuth, AuthRequest } from '../middleware/auth.middleware.js';
-import { uploadSlip } from '../middleware/upload.middleware.js';
+import { uploadUserSlip } from '../middleware/upload.middleware.js';
 import { Order, DeliveryLoadItem } from '../types/index.js';
 import { DeliveryService } from '../services/delivery.service.js';
 import { realtimeService } from '../services/realtime.service.js';
 import { orderContactLimiter } from '../middleware/rateLimit.middleware.js';
+import { sanitizeErrorMessage } from '../utils/errorHandler.js';
 
 const router = Router();
 
@@ -14,7 +15,7 @@ router.post(
   '/',
   orderContactLimiter,
   authenticateToken,
-  uploadSlip.single('paymentSlip'),
+  uploadUserSlip.single('paymentSlip'),
   async (req: AuthRequest, res: Response): Promise<void> => {
     try {
       const {
@@ -169,12 +170,16 @@ router.post(
       }
 
       // Check if delivery requested
+      // IMPORTANT: Delivery functionalities are strictly disabled for reservations!
+      // Delivery is functional ONLY when covering total cost upfront or when finishing reservation.
       const wantsDelivery = Boolean(
-        req.body.isDelivery === true ||
-        req.body.isDelivery === 'true' ||
-        parsedServices.includes('delivery') ||
-        Boolean(deliveryAddress && deliveryAddress.trim()) ||
-        Boolean(deliveryLatitude && deliveryLongitude)
+        !isRes && (
+          req.body.isDelivery === true ||
+          req.body.isDelivery === 'true' ||
+          parsedServices.includes('delivery') ||
+          Boolean(deliveryAddress && deliveryAddress.trim()) ||
+          Boolean(deliveryLatitude && deliveryLongitude)
+        )
       );
 
       // Free delivery check for celebration packages fulfilling the >= 3 categories requirement
@@ -217,7 +222,7 @@ router.post(
         deliveryFee = isFreeDelivery ? 0 : authoritativeDelivery.deliveryFee;
       }
 
-      const calculatedGrandTotal = baseTotal + deliveryFee;
+      const calculatedGrandTotal = isRes ? baseTotal : (baseTotal + deliveryFee);
 
       // Handle slip file path or URL
       let slipUrl = '';
@@ -228,8 +233,8 @@ router.post(
       }
 
       const orderId = `ORD-${Date.now().toString().slice(-6)}`;
-      const depositAmt = isRes ? Math.round(calculatedGrandTotal * 0.5) : calculatedGrandTotal;
-      const remainingAmt = isRes ? calculatedGrandTotal - depositAmt : 0;
+      const depositAmt = isRes ? Math.round(baseTotal * 0.5) : null;
+      const remainingAmt = isRes ? baseTotal - (depositAmt || 0) : 0;
 
       const resolvedPhone = customerPhone && customerPhone.trim()
         ? customerPhone.trim()
@@ -273,7 +278,7 @@ router.post(
         packageName: packageName || (isPkg ? 'Celebration Custom Package' : undefined),
         packageDetails: parsedPackageDetails,
         isReservation: isRes,
-        depositAmount: depositAmt,
+        depositAmount: depositAmt !== null ? depositAmt : undefined,
         remainingAmount: remainingAmt,
         selectedServices: parsedServices,
         servicesFee: otherServicesFee,
@@ -311,7 +316,10 @@ router.post(
       });
     } catch (error: any) {
       console.error('Order creation error:', error);
-      res.status(500).json({ success: false, error: error.message || 'Failed to submit order' });
+      res.status(500).json({
+        success: false,
+        error: sanitizeErrorMessage(error, 'Failed to submit order. Please check your details and try again.')
+      });
     }
   }
 );
@@ -320,11 +328,25 @@ router.post(
 router.post(
   '/:id/final-payment',
   optionalAuth,
-  uploadSlip.single('finalPaymentSlip'),
+  uploadUserSlip.single('finalPaymentSlip'),
   async (req: AuthRequest, res: Response): Promise<void> => {
     try {
       const orderId = req.params.id;
-      const { paymentMethod, transactionReference } = req.body;
+      const {
+        paymentMethod,
+        transactionReference,
+        isDelivery,
+        deliveryLocation,
+        deliveryAddress,
+        deliveryLatitude,
+        deliveryLongitude,
+        vehicleType,
+        vehicleName,
+        deliveryFee,
+        distanceKm,
+        distanceCategory,
+        customerNotes
+      } = req.body;
 
       let slipUrl = '';
       if (req.file) {
@@ -338,7 +360,28 @@ router.post(
         return;
       }
 
-      const result = await PostgresDB.submitFinalPayment(orderId, slipUrl, paymentMethod, transactionReference);
+      const wantsDelivery = Boolean(isDelivery === true || isDelivery === 'true');
+      const parsedDeliveryFee = wantsDelivery ? (Number(deliveryFee) || 0) : 0;
+
+      const result = await PostgresDB.submitFinalPayment(
+        orderId,
+        slipUrl,
+        paymentMethod,
+        transactionReference,
+        {
+          isDelivery: wantsDelivery,
+          deliveryLocation: deliveryLocation || deliveryAddress,
+          deliveryAddress: deliveryAddress || deliveryLocation,
+          deliveryLatitude: deliveryLatitude ? Number(deliveryLatitude) : undefined,
+          deliveryLongitude: deliveryLongitude ? Number(deliveryLongitude) : undefined,
+          vehicleType,
+          vehicleName,
+          deliveryFee: parsedDeliveryFee,
+          distanceKm: distanceKm ? Number(distanceKm) : undefined,
+          distanceCategory,
+          customerNotes
+        }
+      );
       if (!result) {
         res.status(404).json({ success: false, error: 'Reservation order not found' });
         return;
@@ -441,12 +484,9 @@ router.get('/reservations', authenticateToken, async (req: AuthRequest, res: Res
       return;
     }
 
-    let reservations = await PostgresDB.getReservations();
-
-    // If regular customer, strictly filter to their own reservations
-    if (req.user.role !== 'admin') {
-      reservations = reservations.filter(r => r.userId === req.user?.id || (req.user?.phone && r.customerPhone === req.user.phone));
-    }
+    const reservations = req.user.role === 'admin'
+      ? await PostgresDB.getReservations()
+      : await PostgresDB.getReservations(req.user.id, req.user.phone);
 
     res.json({ success: true, count: reservations.length, data: reservations });
   } catch (error: any) {
@@ -455,7 +495,26 @@ router.get('/reservations', authenticateToken, async (req: AuthRequest, res: Res
   }
 });
 
-// ==================== GET USER'S OWN ORDERS & RESERVATIONS ====================
+// ==================== GET DIRECT FULL PAYMENT ORDERS ====================
+router.get('/direct-orders', authenticateToken, async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    if (!req.user) {
+      res.status(401).json({ success: false, error: 'Unauthorized' });
+      return;
+    }
+
+    const directOrders = req.user.role === 'admin'
+      ? await PostgresDB.getDirectOrders()
+      : await PostgresDB.getDirectOrders(req.user.id, req.user.phone);
+
+    res.json({ success: true, count: directOrders.length, data: directOrders });
+  } catch (error: any) {
+    console.error('Error fetching direct orders:', error);
+    res.status(500).json({ success: false, error: 'Failed to fetch direct orders' });
+  }
+});
+
+// ==================== GET USER'S ALL ORDERS & RESERVATIONS ====================
 router.get('/my-orders', authenticateToken, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     if (!req.user) {
@@ -463,7 +522,7 @@ router.get('/my-orders', authenticateToken, async (req: AuthRequest, res: Respon
       return;
     }
 
-    const orders = await PostgresDB.getOrdersByUserId(req.user.id);
+    const orders = await PostgresDB.getOrdersByUserId(req.user.id, req.user.phone);
     res.json({ success: true, count: orders.length, data: orders });
   } catch (error: any) {
     console.error('Error fetching user orders:', error);
@@ -647,13 +706,44 @@ router.post('/:id/approve-delivery', authenticateToken, requireAdmin, async (req
 
     res.json({
       success: true,
-      message: `🚚 Delivery for order ${result.order.id} approved & dispatched (${result.order.vehicleName || result.order.vehicleType || 'vehicle'}).`,
+      message: status === 'delivered'
+        ? `✓ Order ${result.order.id} delivery completed.`
+        : `🚚 Order ${result.order.id} dispatched for delivery.`,
       order: result.order,
       notification: result.notification
     });
   } catch (error: any) {
     console.error('Error approving delivery:', error);
     res.status(500).json({ success: false, error: 'Failed to approve delivery' });
+  }
+});
+
+// ==================== ADMIN: UPDATE PICKUP STATUS (pickup_ready or completed) ====================
+router.post('/:id/pickup-status', authenticateToken, requireAdmin, async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { status = 'pickup_ready', adminNotes } = req.body;
+    const adminName = req.user?.name || 'Administrator';
+
+    const result = await PostgresDB.updatePickupStatus(req.params.id, adminName, status, adminNotes);
+    if (!result) {
+      res.status(404).json({ success: false, error: 'Order not found' });
+      return;
+    }
+
+    // 🚀 REALTIME BROADCAST
+    realtimeService.broadcast('ORDER_UPDATED', result.order);
+
+    res.json({
+      success: true,
+      message: status === 'completed'
+        ? `🤝 Order ${result.order.id} marked as picked up and completed.`
+        : `📦 Order ${result.order.id} marked as ready for farm pickup.`,
+      order: result.order,
+      notification: result.notification
+    });
+  } catch (error: any) {
+    console.error('Error updating pickup status:', error);
+    res.status(500).json({ success: false, error: 'Failed to update pickup status' });
   }
 });
 

@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { PostgresDB } from '../db/postgresDb.js';
 import { authenticateToken, requireAdmin, AuthRequest } from '../middleware/auth.middleware.js';
 import { orderContactLimiter } from '../middleware/rateLimit.middleware.js';
+import { sanitizeErrorMessage } from '../utils/errorHandler.js';
 
 const router = Router();
 
@@ -36,7 +37,7 @@ router.post('/', orderContactLimiter, async (req: Request, res: Response): Promi
     console.error('Error saving contact message:', error);
     res.status(500).json({
       success: false,
-      error: error.message || 'Failed to deliver message to administration.'
+      error: sanitizeErrorMessage(error, 'Failed to deliver message to administration.')
     });
   }
 });
@@ -53,7 +54,7 @@ router.get('/', authenticateToken, requireAdmin, async (_req: AuthRequest, res: 
     console.error('Error fetching contact messages:', error);
     res.status(500).json({
       success: false,
-      error: error.message || 'Failed to fetch contact inquiries.'
+      error: sanitizeErrorMessage(error, 'Failed to fetch contact inquiries.')
     });
   }
 });
@@ -68,7 +69,7 @@ router.put('/:id/read', authenticateToken, requireAdmin, async (req: AuthRequest
     }
     res.json({ success: true, message: 'Message marked as read' });
   } catch (error: any) {
-    res.status(500).json({ success: false, error: error.message || 'Failed to update message' });
+    res.status(500).json({ success: false, error: sanitizeErrorMessage(error, 'Failed to update message') });
   }
 });
 
@@ -82,7 +83,7 @@ router.delete('/:id', authenticateToken, requireAdmin, async (req: AuthRequest, 
     }
     res.json({ success: true, message: 'Message deleted successfully' });
   } catch (error: any) {
-    res.status(500).json({ success: false, error: error.message || 'Failed to delete message' });
+    res.status(500).json({ success: false, error: sanitizeErrorMessage(error, 'Failed to delete message') });
   }
 });
 

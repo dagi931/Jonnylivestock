@@ -87,6 +87,7 @@ const AppContent: React.FC = () => {
           <Route path="/packages" element={<PackageBuilder />} />
           <Route path="/my-packages" element={<MyPackages />} />
           <Route path="/my-reservations" element={<MyReservations />} />
+          <Route path="/my-orders" element={<MyReservations />} />
 
           {/* Main Services Page (No redundant form pages) */}
           <Route path="/services" element={<Services />} />

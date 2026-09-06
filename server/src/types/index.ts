@@ -27,6 +27,7 @@ export type OrderStatus =
   | 'reserved'
   | 'final_payment_pending'
   | 'verified'
+  | 'pickup_ready'
   | 'completed'
   | 'delivery_pending'
   | 'delivered'

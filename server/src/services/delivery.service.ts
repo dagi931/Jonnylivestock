@@ -710,14 +710,16 @@ export class DeliveryService {
     neighborhood?: string;
     display_name?: string;
   }> {
+    // 1. Primary: OpenStreetMap Nominatim (Street and POI-level detail)
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 3500);
+      const timeoutId = setTimeout(() => controller.abort(), 6000);
 
       const url = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1&zoom=18`;
       const res = await fetch(url, {
         headers: {
-          'User-Agent': 'JonnyLivestockEthiopia/1.0 (contact@jonnylivestock.com)'
+          'User-Agent': 'JonnyLivestockEthiopia/1.0 (contact@jonnylivestock.com)',
+          'Accept-Language': 'en,am'
         },
         signal: controller.signal
       });
@@ -753,7 +755,43 @@ export class DeliveryService {
       console.warn('Nominatim reverse geocode error or timeout:', err);
     }
 
-    // Local nearest landmark fallback
+    // 2. Secondary: Fast Online Geocoding Service (BigDataCloud)
+    try {
+      const bdcController = new AbortController();
+      const bdcTimeout = setTimeout(() => bdcController.abort(), 4000);
+      const bdcUrl = `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=en`;
+      const bdcRes = await fetch(bdcUrl, { signal: bdcController.signal });
+      clearTimeout(bdcTimeout);
+
+      if (bdcRes.ok) {
+        const bdcData: any = await bdcRes.json();
+        if (bdcData) {
+          const locality = bdcData.locality || bdcData.city || '';
+          const subLocality = bdcData.localityInfo?.administrative?.[2]?.name || bdcData.principalSubdivision || '';
+          const informative = (bdcData.localityInfo?.informative || [])
+            .map((item: any) => item.name)
+            .filter((name: string) => name && name !== locality && name !== 'Addis Ababa');
+
+          const parts: string[] = [];
+          if (locality) parts.push(locality);
+          if (subLocality && subLocality !== locality) parts.push(subLocality);
+          if (informative.length > 0) parts.push(informative[0]);
+          parts.push('Addis Ababa');
+
+          if (parts.length > 1) {
+            return {
+              address: parts.join(', '),
+              subCity: subLocality || locality,
+              neighborhood: locality
+            };
+          }
+        }
+      }
+    } catch (bdcErr) {
+      console.warn('Secondary reverse geocoder error:', bdcErr);
+    }
+
+    // 3. High-Accuracy Local Distance Fallback: Find closest landmark with exact distance calibration
     let closest = ADDIS_ABABA_LOCATIONS[0];
     let minD = Infinity;
     for (const loc of ADDIS_ABABA_LOCATIONS) {
@@ -766,8 +804,15 @@ export class DeliveryService {
       }
     }
 
+    // Approximate distance in meters (1 degree ≈ 111,000 meters in Addis Ababa)
+    const distMeters = Math.round(Math.sqrt(minD) * 111000);
+    const calibratedAddress =
+      distMeters < 150
+        ? `${closest.name} (${closest.subCity} Sub-City, Addis Ababa)`
+        : `Near ${closest.name} (~${(distMeters / 1000).toFixed(1)} km, ${closest.subCity} Sub-City, Addis Ababa)`;
+
     return {
-      address: `${closest.name}, ${closest.subCity} Sub-City, Addis Ababa`,
+      address: calibratedAddress,
       subCity: closest.subCity,
       neighborhood: closest.name
     };

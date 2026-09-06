@@ -2,7 +2,8 @@ import { Router, Request, Response } from 'express';
 import { PACKAGE_CATALOG } from '../data/packagesData.js';
 import { PostgresDB } from '../db/postgresDb.js';
 import { authenticateToken, requireAdmin, optionalAuth, AuthRequest } from '../middleware/auth.middleware.js';
-import { uploadSlip } from '../middleware/upload.middleware.js';
+import { uploadAdminMedia } from '../middleware/upload.middleware.js';
+import { sanitizeErrorMessage } from '../utils/errorHandler.js';
 
 const router = Router();
 
@@ -124,7 +125,7 @@ router.patch('/:id/slots', authenticateToken, requireAdmin, async (req: AuthRequ
       data: updated
     });
   } catch (error: any) {
-    res.status(500).json({ success: false, error: error.message || 'Failed to update slots' });
+    res.status(500).json({ success: false, error: sanitizeErrorMessage(error, 'Failed to update slots') });
   }
 });
 
@@ -147,7 +148,7 @@ router.delete('/:id', authenticateToken, requireAdmin, async (req: AuthRequest, 
 });
 
 // ==================== ADMIN: UPLOAD PACKAGE IMAGE ====================
-router.post('/upload-image', uploadSlip.single('image'), (req: Request, res: Response): void => {
+router.post('/upload-image', uploadAdminMedia.single('image'), (req: Request, res: Response): void => {
   try {
     if (!req.file) {
       res.status(400).json({ success: false, error: 'No image file uploaded' });

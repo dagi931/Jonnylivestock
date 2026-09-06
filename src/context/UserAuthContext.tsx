@@ -8,7 +8,7 @@ interface UserAuthContextType {
   login: (email: string, password: string) => Promise<{ success: boolean; user?: UserProfile; error?: string }>;
   register: (name: string, email: string, phone: string, password: string) => Promise<{ success: boolean; error?: string }>;
   sendRegistrationOtp: (name: string, email: string, phone: string) => Promise<{ success: boolean; message?: string; error?: string }>;
-  verifyAndRegister: (data: { name: string; email: string; phone: string; password: string; otp: string }) => Promise<{ success: boolean; error?: string }>;
+  verifyAndRegister: (data: { name: string; email: string; phone: string; password: string; otp: string }) => Promise<{ success: boolean; user?: UserProfile; error?: string }>;
   sendForgotPasswordOtp: (email: string) => Promise<{ success: boolean; message?: string; error?: string }>;
   resetPasswordWithOtp: (data: { email: string; otp: string; newPassword: string }) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
@@ -111,9 +111,8 @@ export const UserAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       localStorage.setItem('jonny_user_token', res.token);
       localStorage.setItem('jonny_user_profile', JSON.stringify(res.user));
       window.dispatchEvent(new Event('auth_change'));
-      setIsAuthModalOpen(false);
       setAuthPromptMessage(null);
-      return { success: true };
+      return { success: true, user: res.user };
     }
     return { success: false, error: res.error || 'Verification failed' };
   };

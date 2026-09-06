@@ -571,23 +571,44 @@ export class PostgresDB {
     return orders.map(this.formatOrder);
   }
 
-  public static async getOrdersByUserId(userId: string): Promise<Order[]> {
+  public static async getOrdersByUserId(userId: string, phone?: string): Promise<Order[]> {
+    const whereConditions: any[] = [{ userId }];
+    if (phone) {
+      whereConditions.push({ customerPhone: phone });
+    }
     const orders = await prisma.order.findMany({
-      where: { userId },
+      where: {
+        OR: whereConditions
+      },
       orderBy: { createdAt: 'desc' }
     });
     return orders.map(this.formatOrder);
   }
 
-  public static async getReservations(userId?: string): Promise<Order[]> {
+  public static async getReservations(userId?: string, phone?: string): Promise<Order[]> {
+    const userOrPhoneConditions: any[] = [];
+    if (userId) userOrPhoneConditions.push({ userId });
+    if (phone) userOrPhoneConditions.push({ customerPhone: phone });
+
     const orders = await prisma.order.findMany({
       where: {
-        OR: [
-          { isReservation: true },
-          { depositAmount: { gt: 0 } },
-          { status: { in: ['reservation_pending', 'reserved', 'final_payment_pending'] } }
-        ],
-        ...(userId && { userId })
+        isReservation: true,
+        ...(userOrPhoneConditions.length > 0 ? { OR: userOrPhoneConditions } : {})
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+    return orders.map(this.formatOrder);
+  }
+
+  public static async getDirectOrders(userId?: string, phone?: string): Promise<Order[]> {
+    const userOrPhoneConditions: any[] = [];
+    if (userId) userOrPhoneConditions.push({ userId });
+    if (phone) userOrPhoneConditions.push({ customerPhone: phone });
+
+    const orders = await prisma.order.findMany({
+      where: {
+        isReservation: false,
+        ...(userOrPhoneConditions.length > 0 ? { OR: userOrPhoneConditions } : {})
       },
       orderBy: { createdAt: 'desc' }
     });
@@ -604,8 +625,9 @@ export class PostgresDB {
 
   public static async createOrder(orderData: Partial<Order>): Promise<{ order: Order; notification: AdminNotification; animal: Animal | null }> {
     const isReservation = Boolean(orderData.isReservation);
+    const isDeliveryEffective = !isReservation && Boolean(orderData.isDelivery);
     const totalAmount = Number(orderData.totalAmount);
-    const depositAmount = isReservation ? totalAmount * 0.5 : totalAmount;
+    const depositAmount = isReservation ? totalAmount * 0.5 : null;
     const remainingAmount = isReservation ? totalAmount * 0.5 : 0;
     const status = isReservation ? 'reservation_pending' : (orderData.status || 'pending_verification');
 
@@ -616,22 +638,22 @@ export class PostgresDB {
         customerName: orderData.customerName || 'Valued Customer',
         customerPhone: orderData.customerPhone || '',
         customerEmail: orderData.customerEmail || null,
-        deliveryLocation: orderData.deliveryLocation || orderData.deliveryAddress || null,
+        deliveryLocation: isDeliveryEffective ? (orderData.deliveryLocation || orderData.deliveryAddress || null) : 'Reservation - Delivery arranged on final payment',
         
-        // Delivery fields
-        isDelivery: Boolean(orderData.isDelivery),
-        deliveryAddress: orderData.deliveryAddress || orderData.deliveryLocation || null,
-        deliveryLatitude: orderData.deliveryLatitude !== undefined ? Number(orderData.deliveryLatitude) : null,
-        deliveryLongitude: orderData.deliveryLongitude !== undefined ? Number(orderData.deliveryLongitude) : null,
+        // Delivery fields: strictly inactive for initial reservations
+        isDelivery: isDeliveryEffective,
+        deliveryAddress: isDeliveryEffective ? (orderData.deliveryAddress || orderData.deliveryLocation || null) : 'Reservation - Delivery arranged on final payment',
+        deliveryLatitude: isDeliveryEffective && orderData.deliveryLatitude !== undefined ? Number(orderData.deliveryLatitude) : null,
+        deliveryLongitude: isDeliveryEffective && orderData.deliveryLongitude !== undefined ? Number(orderData.deliveryLongitude) : null,
         pickupAddress: orderData.pickupAddress || null,
-        pickupLatitude: orderData.pickupLatitude !== undefined ? Number(orderData.pickupLatitude) : null,
-        pickupLongitude: orderData.pickupLongitude !== undefined ? Number(orderData.pickupLongitude) : null,
-        distanceKm: orderData.distanceKm !== undefined ? Number(orderData.distanceKm) : null,
-        distanceCategory: orderData.distanceCategory || null,
-        vehicleType: orderData.vehicleType || null,
-        vehicleName: orderData.vehicleName || null,
-        deliveryFee: Number(orderData.deliveryFee || 0),
-        estimatedDurationMinutes: orderData.estimatedDurationMinutes !== undefined ? Number(orderData.estimatedDurationMinutes) : null,
+        pickupLatitude: isDeliveryEffective && orderData.pickupLatitude !== undefined ? Number(orderData.pickupLatitude) : null,
+        pickupLongitude: isDeliveryEffective && orderData.pickupLongitude !== undefined ? Number(orderData.pickupLongitude) : null,
+        distanceKm: isDeliveryEffective && orderData.distanceKm !== undefined ? Number(orderData.distanceKm) : null,
+        distanceCategory: isDeliveryEffective ? (orderData.distanceCategory || null) : null,
+        vehicleType: isDeliveryEffective ? (orderData.vehicleType || null) : null,
+        vehicleName: isDeliveryEffective ? (orderData.vehicleName || null) : null,
+        deliveryFee: isDeliveryEffective ? Number(orderData.deliveryFee || 0) : 0,
+        estimatedDurationMinutes: isDeliveryEffective && orderData.estimatedDurationMinutes !== undefined ? Number(orderData.estimatedDurationMinutes) : null,
         
         animalId: orderData.animalId || null,
         animalBreed: orderData.animalBreed || null,
@@ -674,7 +696,7 @@ export class PostgresDB {
     const notifMsg = isMeatByKg
       ? `${orderData.customerName}${customerPhoneStr} ordered ${orderData.animalBreed || 'Raw Beef by KG'} (${totalAmount.toLocaleString()} ETB). Please inspect the payment slip and approve.`
       : isReservation
-      ? `${orderData.customerName}${customerPhoneStr} uploaded a 50% reservation deposit (${depositAmount.toLocaleString()} ETB of ${totalAmount.toLocaleString()} ETB) for ${orderData.packageName || orderData.animalBreed || 'Order'}.`
+      ? `${orderData.customerName}${customerPhoneStr} uploaded a 50% reservation deposit (${(depositAmount || totalAmount * 0.5).toLocaleString()} ETB of ${totalAmount.toLocaleString()} ETB) for ${orderData.packageName || orderData.animalBreed || 'Order'}.`
       : `${orderData.customerName}${customerPhoneStr} uploaded a payment slip for ${orderData.packageName || orderData.animalBreed || 'Order'} - ${totalAmount.toLocaleString()} ETB.`;
 
     const notif = await prisma.adminNotification.create({
@@ -786,36 +808,95 @@ export class PostgresDB {
     return { order: formattedOrder, notification: formattedNotification, animal: updatedAnimal };
   }
 
-  // Customer uploads the 2nd slip (remaining 50% balance)
+  // Customer uploads the 2nd slip (remaining 50% balance + delivery if chosen)
   public static async submitFinalPayment(
     orderId: string,
     finalSlipUrl: string,
     paymentMethod?: string,
-    transactionRef?: string
+    transactionRef?: string,
+    deliveryData?: {
+      isDelivery?: boolean;
+      deliveryLocation?: string;
+      deliveryAddress?: string;
+      deliveryLatitude?: number;
+      deliveryLongitude?: number;
+      vehicleType?: string;
+      vehicleName?: string;
+      deliveryFee?: number;
+      distanceKm?: number;
+      distanceCategory?: string;
+      customerNotes?: string;
+    }
   ): Promise<{ order: Order; notification: AdminNotification } | null> {
     const existing = await prisma.order.findFirst({
       where: { id: { equals: orderId, mode: 'insensitive' } }
     });
     if (!existing) return null;
 
+    const wantsDelivery = Boolean(
+      deliveryData?.isDelivery === true ||
+      (deliveryData?.isDelivery as any) === 'true'
+    );
+    const parsedFee = wantsDelivery ? (Number(deliveryData?.deliveryFee) || 0) : 0;
+
+    const updatePayload: any = {
+      finalPaymentSlipUrl: finalSlipUrl,
+      finalPaymentMethod: paymentMethod || existing.paymentMethod,
+      finalTransactionRef: transactionRef || null,
+      status: 'final_payment_pending',
+      updatedAt: new Date()
+    };
+
+    if (wantsDelivery) {
+      updatePayload.isDelivery = true;
+      updatePayload.deliveryLocation = deliveryData?.deliveryAddress || deliveryData?.deliveryLocation || existing.deliveryLocation;
+      updatePayload.deliveryAddress = deliveryData?.deliveryAddress || deliveryData?.deliveryLocation || existing.deliveryAddress;
+      if (deliveryData?.deliveryLatitude !== undefined && !isNaN(Number(deliveryData.deliveryLatitude))) {
+        updatePayload.deliveryLatitude = Number(deliveryData.deliveryLatitude);
+      }
+      if (deliveryData?.deliveryLongitude !== undefined && !isNaN(Number(deliveryData.deliveryLongitude))) {
+        updatePayload.deliveryLongitude = Number(deliveryData.deliveryLongitude);
+      }
+      if (deliveryData?.vehicleType) updatePayload.vehicleType = deliveryData.vehicleType;
+      if (deliveryData?.vehicleName) updatePayload.vehicleName = deliveryData.vehicleName;
+      updatePayload.deliveryFee = parsedFee;
+      if (deliveryData?.distanceKm !== undefined && !isNaN(Number(deliveryData.distanceKm))) {
+        updatePayload.distanceKm = Number(deliveryData.distanceKm);
+      }
+      if (deliveryData?.distanceCategory) updatePayload.distanceCategory = deliveryData.distanceCategory;
+      if (parsedFee > 0) {
+        updatePayload.totalAmount = existing.totalAmount + parsedFee;
+      }
+    } else {
+      updatePayload.isDelivery = false;
+      updatePayload.deliveryFee = 0;
+      updatePayload.deliveryLocation = 'Self Pickup from Arat Kilo Farm Facility';
+      updatePayload.deliveryAddress = 'Self Pickup from Arat Kilo Farm Facility';
+    }
+
+    if (deliveryData?.customerNotes) {
+      updatePayload.customerNotes = existing.customerNotes
+        ? `${existing.customerNotes}\n[Final Step Note]: ${deliveryData.customerNotes}`
+        : deliveryData.customerNotes;
+    }
+
     const updatedOrder = await prisma.order.update({
       where: { id: existing.id },
-      data: {
-        finalPaymentSlipUrl: finalSlipUrl,
-        finalPaymentMethod: paymentMethod || existing.paymentMethod,
-        finalTransactionRef: transactionRef || null,
-        status: 'final_payment_pending',
-        updatedAt: new Date()
-      }
+      data: updatePayload
     });
 
+    const deliveryNote = updatedOrder.isDelivery
+      ? ` with Doorstep Delivery (${updatedOrder.vehicleName || updatedOrder.vehicleType || 'Vehicle'}, Fee: ${(updatedOrder.deliveryFee || 0).toLocaleString()} ETB)`
+      : ` (Farm Pickup)`;
+
+    const totalPaidNow = (updatedOrder.remainingAmount || 0) + (updatedOrder.deliveryFee || 0);
     const customerPhoneStr = updatedOrder.customerPhone ? ` [📞 ${updatedOrder.customerPhone}]` : '';
     const notif = await prisma.adminNotification.create({
       data: {
         id: `NOTIF-${Date.now().toString().slice(-6)}`,
         type: 'FINAL_PAYMENT_SLIP',
         title: '💳 Final Balance Payment Slip Uploaded',
-        message: `${updatedOrder.customerName}${customerPhoneStr} submitted the remaining 50% balance (${(updatedOrder.remainingAmount || 0).toLocaleString()} ETB) for Reservation ${updatedOrder.id}.`,
+        message: `${updatedOrder.customerName}${customerPhoneStr} submitted the final payment (${totalPaidNow.toLocaleString()} ETB)${deliveryNote} for Reservation ${updatedOrder.id}.`,
         orderId: updatedOrder.id,
         read: false,
         createdAt: new Date()
@@ -914,7 +995,7 @@ export class PostgresDB {
     const updatedOrder = await prisma.order.update({
       where: { id: existing.id },
       data: {
-        status: 'completed',
+        status: 'verified',
         finalVerifiedAt: new Date(),
         finalVerifiedBy: adminName,
         ...(adminNotes && { adminNotes }),
@@ -996,10 +1077,12 @@ export class PostgresDB {
     });
     if (!existing) return null;
 
+    const targetStatus = 'verified';
+
     const updatedOrder = await prisma.order.update({
       where: { id: existing.id },
       data: {
-        status: 'completed',
+        status: targetStatus,
         verifiedAt: new Date(),
         verifiedBy: adminName,
         ...(adminNotes && { adminNotes }),
@@ -1088,24 +1171,75 @@ export class PostgresDB {
     });
     if (!existing) return null;
 
+    const isDelivered = targetStatus === 'delivered';
     const updatedOrder = await prisma.order.update({
       where: { id: existing.id },
       data: {
         status: targetStatus,
-        deliveryApprovedAt: new Date(),
-        deliveryApprovedBy: adminName,
+        ...(targetStatus === 'delivery_pending' ? {
+          deliveryApprovedAt: new Date(),
+          deliveryApprovedBy: adminName,
+        } : {}),
+        ...(targetStatus === 'delivered' ? {
+          deliveredAt: new Date(),
+        } : {}),
         ...(adminNotes && { adminNotes }),
         updatedAt: new Date()
       }
     });
 
-    const isDelivered = targetStatus === 'delivered';
     const notif = await prisma.adminNotification.create({
       data: {
         id: `NOTIF-${Date.now().toString().slice(-6)}`,
         type: 'GENERAL',
         title: isDelivered ? '🚚 Delivery Completed' : '🚚 Delivery Approved & Dispatched',
         message: `Order ${updatedOrder.id} delivery to ${updatedOrder.deliveryAddress || 'customer address'} was ${isDelivered ? 'marked as DELIVERED' : 'APPROVED & DISPATCHED'} by ${adminName}.`,
+        orderId: updatedOrder.id,
+        read: false,
+        createdAt: new Date()
+      }
+    });
+
+    return {
+      order: this.formatOrder(updatedOrder),
+      notification: {
+        ...notif,
+        type: notif.type as AdminNotification['type'],
+        orderId: notif.orderId || undefined,
+        createdAt: notif.createdAt.toISOString()
+      }
+    };
+  }
+
+  // Admin updates farm pickup status: 'pickup_ready' or 'completed'
+  public static async updatePickupStatus(
+    orderId: string,
+    adminName: string,
+    targetStatus: 'pickup_ready' | 'completed' = 'pickup_ready',
+    adminNotes?: string
+  ): Promise<{ order: Order; notification: AdminNotification } | null> {
+    const existing = await prisma.order.findFirst({
+      where: { id: { equals: orderId, mode: 'insensitive' } }
+    });
+    if (!existing) return null;
+
+    const isCompleted = targetStatus === 'completed';
+    const updatedOrder = await prisma.order.update({
+      where: { id: existing.id },
+      data: {
+        status: targetStatus,
+        ...(isCompleted ? { deliveredAt: new Date() } : {}),
+        ...(adminNotes && { adminNotes }),
+        updatedAt: new Date()
+      }
+    });
+
+    const notif = await prisma.adminNotification.create({
+      data: {
+        id: `NOTIF-${Date.now().toString().slice(-6)}`,
+        type: 'GENERAL',
+        title: isCompleted ? '🤝 Livestock Picked Up & Completed' : '📦 Order Ready for Farm Pickup',
+        message: `Order ${updatedOrder.id} (${updatedOrder.packageName || updatedOrder.animalBreed}) was marked as ${isCompleted ? 'PICKED UP & COMPLETED' : 'READY FOR FARM PICKUP'} by ${adminName}.`,
         orderId: updatedOrder.id,
         read: false,
         createdAt: new Date()

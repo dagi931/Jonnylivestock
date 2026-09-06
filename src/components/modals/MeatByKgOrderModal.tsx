@@ -4,6 +4,7 @@ import { useTheme } from '../../context/ThemeContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { api, BankAccount } from '../../services/api';
 import { formatPrice } from '../../utils/formatters';
+import { sanitizeClientError } from '../../utils/errorSanitizer';
 import {
   X,
   UploadCloud,
@@ -61,11 +62,7 @@ export const MeatByKgOrderModal: React.FC<MeatByKgOrderModalProps> = ({
 
   // Delivery Option States
   const [isDelivery, setIsDelivery] = useState<boolean>(true);
-  const [selectedLocation, setSelectedLocation] = useState<SelectedDeliveryLocation | null>({
-    address: 'Kazanchis / UNECA Area (Kirkos Sub-City, Addis Ababa)',
-    lat: 9.0175,
-    lng: 38.7690
-  });
+  const [selectedLocation, setSelectedLocation] = useState<SelectedDeliveryLocation | null>(null);
   const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
   const [selectedVehicleId, setSelectedVehicleId] = useState<VehicleTypeId>('car');
   const [selectedVehicleQuote, setSelectedVehicleQuote] = useState<VehicleQuoteResult | null>(null);
@@ -304,10 +301,18 @@ export const MeatByKgOrderModal: React.FC<MeatByKgOrderModalProps> = ({
         setCompletedOrderId(res.order.id);
         if (onSuccess) onSuccess();
       } else {
-        setSubmitError(res.error || 'Failed to place meat order. Please try again.');
+        const friendlyError = sanitizeClientError(
+          res.error,
+          isAmharic ? 'የስጋ ትዕዛዝ ማስተናገድ አልተቻለም። እባክዎ እንደገና ይሞክሩ።' : 'Failed to place meat order. Please try again.'
+        );
+        setSubmitError(friendlyError);
       }
     } catch (err: any) {
-      setSubmitError(err.message || 'Error processing order');
+      const friendlyError = sanitizeClientError(
+        err,
+        isAmharic ? 'የትዕዛዝ ግንኙነት ስህተት አጋጥሟል። እባክዎ እንደገና ይሞክሩ።' : 'Network error while placing meat order. Please try again.'
+      );
+      setSubmitError(friendlyError);
     } finally {
       setIsSubmitting(false);
     }
@@ -606,6 +611,7 @@ export const MeatByKgOrderModal: React.FC<MeatByKgOrderModalProps> = ({
                     loadItems={loadItems}
                     selectedLocation={selectedLocation}
                     onLocationClick={() => setIsLocationModalOpen(true)}
+                    onSelectLocation={(loc) => setSelectedLocation(loc)}
                     selectedVehicleId={selectedVehicleId}
                     onSelectVehicle={(vehicleId, quote) => {
                       setSelectedVehicleId(vehicleId);

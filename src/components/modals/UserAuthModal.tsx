@@ -16,9 +16,11 @@ import {
   UserPlus,
   ShieldCheck,
   ArrowLeft,
+  ArrowRight,
   RefreshCw,
   CheckCircle2,
-  KeyRound
+  KeyRound,
+  Clock
 } from 'lucide-react';
 
 export const UserAuthModal: React.FC = () => {
@@ -40,7 +42,8 @@ export const UserAuthModal: React.FC = () => {
   const isDark = theme === 'design7';
 
   const [mode, setMode] = useState<'login' | 'register' | 'forgot_password'>(authModalMode || 'login');
-  const [step, setStep] = useState<'form' | 'otp'>('form');
+  const [step, setStep] = useState<'form' | 'otp' | 'success'>('form');
+  const [createdUserName, setCreatedUserName] = useState('');
   const [forgotStep, setForgotStep] = useState<'email' | 'otp'>('email');
 
   // Form Fields
@@ -84,6 +87,17 @@ export const UserAuthModal: React.FC = () => {
     }, 1000);
     return () => clearInterval(timer);
   }, [resendCountdown]);
+
+  // Auto-redirect on successful registration
+  useEffect(() => {
+    if (step === 'success') {
+      const timer = setTimeout(() => {
+        closeAuthModal();
+        navigate('/', { replace: true, state: { accountCreated: true, userName: createdUserName || name } });
+      }, 1800);
+      return () => clearTimeout(timer);
+    }
+  }, [step, closeAuthModal, navigate, createdUserName, name]);
 
   if (!isAuthModalOpen) return null;
 
@@ -177,8 +191,8 @@ export const UserAuthModal: React.FC = () => {
       });
 
       if (res.success) {
-        closeAuthModal();
-        navigate('/');
+        setCreatedUserName(res.user?.name || name.trim());
+        setStep('success');
       } else {
         setError(res.error || (isAmharic ? 'ትክክለኛ ያልሆነ ኮድ' : 'Invalid verification code'));
       }
@@ -323,19 +337,21 @@ export const UserAuthModal: React.FC = () => {
           }`}
         >
           {/* Close Button */}
-          <button
-            onClick={closeAuthModal}
-            type="button"
-            className={`absolute top-5 right-5 p-2 rounded-full transition-colors ${
-              isDark ? 'hover:bg-[#1B1208] text-[#D8C5A8]' : 'hover:bg-[#EFE8DC] text-[#746556]'
-            }`}
-            aria-label="Close"
-          >
-            <X className="w-5 h-5" />
-          </button>
+          {step !== 'success' && (
+            <button
+              onClick={closeAuthModal}
+              type="button"
+              className={`absolute top-5 right-5 p-2 rounded-full transition-colors ${
+                isDark ? 'hover:bg-[#1B1208] text-[#D8C5A8]' : 'hover:bg-[#EFE8DC] text-[#746556]'
+              }`}
+              aria-label="Close"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          )}
 
           {/* Prompt Message Banner (e.g. Account Required for Ordering) */}
-          {authPromptMessage && (
+          {authPromptMessage && step !== 'success' && (
             <div className="mb-5 p-3.5 rounded-2xl bg-amber-500/15 border-2 border-amber-500/40 text-amber-500 flex items-start gap-3 shadow-md animate-in fade-in slide-in-from-top-2">
               <div className="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-500 flex items-center justify-center shrink-0 mt-0.5">
                 <AlertCircle className="w-5 h-5" />
@@ -352,9 +368,61 @@ export const UserAuthModal: React.FC = () => {
           )}
 
           {/* ========================================================== */}
-          {/* VIEW: FORGOT PASSWORD FLOW */}
+          {/* VIEW: REGISTRATION SUCCESS (NO EMOJIS, CLEAN REDIRECT) */}
           {/* ========================================================== */}
-          {mode === 'forgot_password' ? (
+          {step === 'success' ? (
+            <div className="text-center py-6 px-3 space-y-4 animate-in fade-in zoom-in-95 duration-200">
+              <div className="w-16 h-16 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-500 flex items-center justify-center mx-auto shadow-inner">
+                <CheckCircle2 className="w-9 h-9" />
+              </div>
+
+              <div>
+                <h2 className="text-xl sm:text-2xl font-bold font-serif text-emerald-600 dark:text-emerald-400">
+                  {isAmharic ? 'መለያዎ በተሳካ ሁኔታ ተፈጥሯል' : 'Account Created Successfully'}
+                </h2>
+                <p className="text-xs sm:text-sm opacity-80 mt-1.5 max-w-sm mx-auto leading-relaxed">
+                  {isAmharic
+                    ? `እንኳን ደህና መጡ ${createdUserName || name}! ወደ ዋናው ገጽ በመሄድ ላይ ነው...`
+                    : `Welcome, ${createdUserName || name}! Redirecting you to the home page...`}
+                </p>
+              </div>
+
+              {/* Account Quick Summary Pill */}
+              <div className={`p-3 rounded-xl border text-xs text-left max-w-xs mx-auto ${
+                isDark ? 'bg-[#1B1208] border-[#3D2513]' : 'bg-[#FAF6EE] border-[#E8DCCB]'
+              }`}>
+                <div className="flex items-center justify-between gap-2">
+                  <span className="opacity-70">{isAmharic ? 'ስም:' : 'Name:'}</span>
+                  <span className="font-bold truncate">{createdUserName || name}</span>
+                </div>
+                <div className="flex items-center justify-between gap-2 mt-1">
+                  <span className="opacity-70">{isAmharic ? 'ኢሜይል:' : 'Email:'}</span>
+                  <span className="font-mono text-[11px] truncate">{email}</span>
+                </div>
+              </div>
+
+              {/* Progress indicator */}
+              <div className="w-full max-w-xs mx-auto pt-1">
+                <div className="w-full h-1.5 bg-black/10 dark:bg-white/10 rounded-full overflow-hidden">
+                  <div className="h-full bg-emerald-500 rounded-full animate-pulse transition-all duration-700 w-full" />
+                </div>
+              </div>
+
+              <div className="pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    closeAuthModal();
+                    navigate('/', { replace: true, state: { accountCreated: true, userName: createdUserName || name } });
+                  }}
+                  className="w-full py-3 rounded-xl bg-gradient-to-r from-[#C18A45] to-[#A06E35] text-white font-bold text-sm shadow-lg hover:shadow-xl hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <span>{isAmharic ? 'ወደ ዋናው ገጽ ሂድ' : 'Continue to Home Page'}</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          ) : mode === 'forgot_password' ? (
             <div>
               <button
                 type="button"
@@ -630,8 +698,9 @@ export const UserAuthModal: React.FC = () => {
                         : 'bg-white border-[#E4D4BC] text-[#8F6026] placeholder-[#746556]/20'
                     }`}
                   />
-                  <p className="text-[11px] opacity-60 text-center mt-1.5">
-                    ⏱️ {isAmharic ? 'ኮዱ ለ 10 ደቂቃዎች ያገለግላል' : 'Code expires in 10 minutes'}
+                  <p className="text-[11px] opacity-60 text-center mt-1.5 flex items-center justify-center gap-1.5">
+                    <Clock className="w-3.5 h-3.5 opacity-70" />
+                    <span>{isAmharic ? 'ኮዱ ለ 10 ደቂቃዎች ያገለግላል' : 'Code expires in 10 minutes'}</span>
                   </p>
                 </div>
 

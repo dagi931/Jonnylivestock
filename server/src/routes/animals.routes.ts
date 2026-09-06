@@ -3,7 +3,7 @@ import { PostgresDB } from '../db/postgresDb.js';
 import { authenticateToken, requireAdmin, AuthRequest } from '../middleware/auth.middleware.js';
 import { Animal, AnimalType } from '../types/index.js';
 import { realtimeService } from '../services/realtime.service.js';
-import { uploadSlip } from '../middleware/upload.middleware.js';
+import { uploadSlip, uploadAdminMedia } from '../middleware/upload.middleware.js';
 
 const router = Router();
 
@@ -168,7 +168,7 @@ router.delete('/:id', authenticateToken, requireAdmin, async (req: AuthRequest, 
 });
 
 // ==================== UPLOAD ANIMAL IMAGE ====================
-router.post('/upload-image', uploadSlip.single('image'), (req: Request, res: Response): void => {
+router.post('/upload-image', uploadAdminMedia.single('image'), (req: Request, res: Response): void => {
   try {
     if (!req.file) {
       res.status(400).json({ success: false, error: 'No image file uploaded' });

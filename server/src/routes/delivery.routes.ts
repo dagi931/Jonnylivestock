@@ -3,6 +3,7 @@ import { DeliveryService } from '../services/delivery.service.js';
 import { authenticateToken, requireAdmin, AuthRequest } from '../middleware/auth.middleware.js';
 import { ADDIS_ABABA_LOCATIONS, AWARE_FARM_LOCATION } from '../data/addisLocations.js';
 import { DeliveryLoadItem, VehicleTypeId } from '../types/index.js';
+import { sanitizeErrorMessage } from '../utils/errorHandler.js';
 
 const router = Router();
 
@@ -167,7 +168,7 @@ router.post('/quote', async (req: Request, res: Response): Promise<void> => {
     res.json(quote);
   } catch (error: any) {
     console.error('Error calculating delivery quote:', error);
-    res.status(500).json({ success: false, error: error.message || 'Failed to calculate delivery quote' });
+    res.status(500).json({ success: false, error: sanitizeErrorMessage(error, 'Failed to calculate delivery quote') });
   }
 });
 
@@ -220,7 +221,7 @@ router.put('/config', authenticateToken, requireAdmin, async (req: AuthRequest, 
     });
   } catch (error: any) {
     console.error('Error updating delivery config:', error);
-    res.status(500).json({ success: false, error: error.message || 'Failed to update delivery configuration' });
+    res.status(500).json({ success: false, error: sanitizeErrorMessage(error, 'Failed to update delivery configuration') });
   }
 });
 
@@ -240,7 +241,7 @@ router.post('/test-route', authenticateToken, requireAdmin, async (req: AuthRequ
       ...result
     });
   } catch (error: any) {
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: sanitizeErrorMessage(error, 'Failed to calculate test route') });
   }
 });
 

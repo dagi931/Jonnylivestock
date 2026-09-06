@@ -20,6 +20,7 @@ import {
   CheckCircle2,
   Sparkles
 } from 'lucide-react';
+import { getAccurateCurrentPosition } from '../../utils/geolocation';
 
 interface DeliveryLocationModalProps {
   isOpen: boolean;
@@ -86,6 +87,7 @@ export const DeliveryLocationModal: React.FC<DeliveryLocationModalProps> = ({
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
   const userMarkerRef = useRef<L.Marker | null>(null);
+  const accuracyCircleRef = useRef<L.Circle | null>(null);
   const farmMarkerRef = useRef<L.Marker | null>(null);
   const polylineRef = useRef<L.Polyline | null>(null);
 
@@ -96,10 +98,11 @@ export const DeliveryLocationModal: React.FC<DeliveryLocationModalProps> = ({
   const [showSearchResults, setShowSearchResults] = useState(false);
 
   // Active Pin & Address state
-  const [currentLat, setCurrentLat] = useState<number>(activeSelected?.lat || 9.0175);
-  const [currentLng, setCurrentLng] = useState<number>(activeSelected?.lng || 38.7690);
+  const [hasSelectedLocation, setHasSelectedLocation] = useState<boolean>(Boolean(activeSelected?.address));
+  const [currentLat, setCurrentLat] = useState<number>(activeSelected?.lat || 9.0314);
+  const [currentLng, setCurrentLng] = useState<number>(activeSelected?.lng || 38.7725);
   const [resolvedAddress, setResolvedAddress] = useState<string>(
-    activeSelected?.address || 'Kazanchis / UNECA Area, Kirkos, Addis Ababa'
+    activeSelected?.address || (isAmharic ? 'ቦታ በካርታው ላይ ይምረጡ ወይም ጂፒኤስ ይጠቀሙ' : 'Select location on map or use GPS')
   );
   const [customNotes, setCustomNotes] = useState<string>('');
   const [isReverseGeocoding, setIsReverseGeocoding] = useState(false);
@@ -210,6 +213,7 @@ export const DeliveryLocationModal: React.FC<DeliveryLocationModalProps> = ({
   // Central pin & location updater
   const updatePinAndLocation = useCallback(
     (lat: number, lng: number, label?: string, shouldFly: boolean = false) => {
+      setHasSelectedLocation(true);
       activeCoordsRef.current = { lat, lng };
       setCurrentLat(lat);
       setCurrentLng(lng);
@@ -224,8 +228,14 @@ export const DeliveryLocationModal: React.FC<DeliveryLocationModalProps> = ({
         userMarkerRef.current.setLatLng([lat, lng]);
       }
 
+      // If pin is moved manually, remove stale GPS accuracy circle
+      if (!shouldFly && accuracyCircleRef.current) {
+        accuracyCircleRef.current.remove();
+        accuracyCircleRef.current = null;
+      }
+
       if (shouldFly && mapInstanceRef.current) {
-        mapInstanceRef.current.flyTo([lat, lng], 15, { duration: 0.8 });
+        mapInstanceRef.current.flyTo([lat, lng], 17, { duration: 0.8 });
       }
 
       fetchRoadRoute(lat, lng);
@@ -242,9 +252,11 @@ export const DeliveryLocationModal: React.FC<DeliveryLocationModalProps> = ({
   // Sync state strictly when modal transitions from closed to open
   useEffect(() => {
     if (isOpen && !prevIsOpenRef.current) {
-      const initLat = activeSelected?.lat || 9.0175;
-      const initLng = activeSelected?.lng || 38.7690;
-      const initAddr = activeSelected?.address || 'Kazanchis / UNECA Area, Kirkos, Addis Ababa';
+      const hasLoc = Boolean(activeSelected?.address);
+      setHasSelectedLocation(hasLoc);
+      const initLat = activeSelected?.lat || 9.0314;
+      const initLng = activeSelected?.lng || 38.7725;
+      const initAddr = activeSelected?.address || (isAmharic ? 'ቦታ በካርታው ላይ ይምረጡ ወይም ጂፒኤስ ይጠቀሙ' : 'Select location on map or use GPS');
 
       activeCoordsRef.current = { lat: initLat, lng: initLng };
       setCurrentLat(initLat);
@@ -430,14 +442,28 @@ export const DeliveryLocationModal: React.FC<DeliveryLocationModalProps> = ({
 
     const t1 = setTimeout(() => {
       if (mapInstanceRef.current) mapInstanceRef.current.invalidateSize();
-    }, 120);
+    }, 100);
     const t2 = setTimeout(() => {
       if (mapInstanceRef.current) mapInstanceRef.current.invalidateSize();
-    }, 400);
+    }, 300);
+    const t3 = setTimeout(() => {
+      if (mapInstanceRef.current) mapInstanceRef.current.invalidateSize();
+    }, 600);
+
+    const handleResize = () => {
+      if (mapInstanceRef.current) mapInstanceRef.current.invalidateSize();
+    };
+    window.addEventListener('resize', handleResize);
 
     return () => {
+      window.removeEventListener('resize', handleResize);
       clearTimeout(t1);
       clearTimeout(t2);
+      clearTimeout(t3);
+      if (accuracyCircleRef.current) {
+        accuracyCircleRef.current.remove();
+        accuracyCircleRef.current = null;
+      }
       map.remove();
       mapInstanceRef.current = null;
       userMarkerRef.current = null;
@@ -455,55 +481,83 @@ export const DeliveryLocationModal: React.FC<DeliveryLocationModalProps> = ({
     }
   };
 
-  // Live GPS geolocation
+  // Live high-precision GPS geolocation with satellite locking
   const handleUseMyLocation = () => {
-    if (!navigator.geolocation) {
-      setGeoError(
-        isAmharic
-          ? 'የአሰሳ ፕሮግራምዎ የጂፒኤስ መገኛን አይደግፍም'
-          : 'Geolocation is not supported by your browser'
-      );
-      return;
-    }
-
     setIsLocating(true);
     setGeoError(null);
-    setGpsSuccess(null);
+    setGpsSuccess(isAmharic ? 'የሳተላይት መገኛ በመፈለግ ላይ...' : 'Acquiring satellite GPS...');
 
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
+    getAccurateCurrentPosition({
+      maxWaitMs: 12000,
+      desiredAccuracyMeters: 25,
+      onProgress: (prog) => {
+        if (prog.accuracy) {
+          setGpsSuccess(
+            isAmharic
+              ? `ትክክለኛ መገኛ በመፈለግ ላይ... (ግምት ±${prog.accuracy} ሜትር)`
+              : `Locking GPS satellites... (±${prog.accuracy}m)`
+          );
+        }
+      }
+    })
+      .then((pos) => {
         setIsLocating(false);
-        const { latitude, longitude } = position.coords;
+        const { latitude, longitude, accuracy } = pos;
         updatePinAndLocation(latitude, longitude, undefined, true);
+
+        // Render visual high-precision accuracy radius around pin
+        if (mapInstanceRef.current) {
+          if (accuracyCircleRef.current) {
+            accuracyCircleRef.current.setLatLng([latitude, longitude]);
+            accuracyCircleRef.current.setRadius(accuracy);
+          } else {
+            accuracyCircleRef.current = L.circle([latitude, longitude], {
+              radius: accuracy,
+              color: '#10B981',
+              fillColor: '#10B981',
+              fillOpacity: 0.15,
+              weight: 1.5
+            }).addTo(mapInstanceRef.current);
+          }
+          mapInstanceRef.current.flyTo([latitude, longitude], 17, { duration: 0.8 });
+        }
+
         setGpsSuccess(
           isAmharic
-            ? `የጂፒኤስ መገኛዎ ተገኝቷል (${latitude.toFixed(4)}, ${longitude.toFixed(4)})`
-            : `GPS detected (${latitude.toFixed(4)}, ${longitude.toFixed(4)})`
+            ? `ትክክለኛ መገኛዎ ተገኝቷል! (ትክክለኛነት ±${accuracy} ሜትር)`
+            : `Accurate Location Acquired! (±${accuracy}m precision)`
         );
-      },
-      (error) => {
+      })
+      .catch((error) => {
         setIsLocating(false);
         console.warn('Geolocation error:', error);
-        if (error.code === error.PERMISSION_DENIED) {
+        if (error.code === 1 || error.name === 'NotAllowedError') {
           setGeoError(
             isAmharic
-              ? 'የመገኛ ቦታ ፈቃድ ተከልክሏል። እባክዎ በካርታው ላይ ይጫኑ ወይም ይፈልጉ።'
-              : 'Location permission denied. Please search or tap on map.'
+              ? 'የመገኛ ቦታ ፈቃድ ተከልክሏል። እባክዎ በካርታው ላይ ጠቅ በማድረግ ይምረጡ።'
+              : 'Location permission denied. Please tap anywhere on the map.'
           );
         } else {
           setGeoError(
             isAmharic
-              ? 'መገኛዎን በጂፒኤስ ማግኘት አልተቻለም። እባክዎ በካርታው ላይ ይምረጡ።'
-              : 'Could not fetch GPS fix. Please tap anywhere on the map.'
+              ? 'ትክክለኛ የጂፒኤስ መገኛ ማግኘት አልተቻለም። እባክዎ በካርታው ላይ ጠቅ በማድረግ ይምረጡ።'
+              : 'Could not acquire GPS fix. Please tap your location directly on the map.'
           );
         }
-      },
-      { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
-    );
+      });
   };
 
   // Confirm and return location to parent
   const handleConfirmLocation = () => {
+    if (!hasSelectedLocation) {
+      setGeoError(
+        isAmharic
+          ? 'እባክዎ መጀመሪያ የመሳሪያዎን መገኛ (GPS) ይጠቀሙ ወይም በካርታው ላይ ጠቅ በማድረግ ቦታ ይምረጡ'
+          : 'Please select a location on the map or use your device GPS first'
+      );
+      return;
+    }
+
     let finalAddress = resolvedAddress;
     if (customNotes.trim()) {
       finalAddress = `${resolvedAddress} (${customNotes.trim()})`;
@@ -518,54 +572,74 @@ export const DeliveryLocationModal: React.FC<DeliveryLocationModalProps> = ({
     onClose();
   };
 
+  // Close on Escape key
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/80 backdrop-blur-md flex items-center justify-center p-2 sm:p-4 animate-in fade-in duration-150">
+    <div className="fixed inset-0 z-[100] w-screen h-screen h-[100dvh] bg-black/95 backdrop-blur-md flex flex-col overflow-hidden animate-in fade-in duration-200">
       <div
-        className={`relative w-full max-w-2xl max-h-[88vh] rounded-2xl sm:rounded-3xl border shadow-2xl flex flex-col overflow-hidden ${
+        className={`relative w-full h-full flex flex-col overflow-hidden ${
           isDark
-            ? 'bg-[#1A1108] border-[#4A2C16] text-[#F4E8D0]'
-            : 'bg-white border-[#E4D4BC] text-[#2A1A0D]'
+            ? 'bg-[#150E07] text-[#F4E8D0]'
+            : 'bg-[#FBF9F5] text-[#2A1A0D]'
         }`}
       >
-        {/* Compact Header */}
+        {/* Top Header Bar */}
         <div
-          className="px-3.5 py-2.5 sm:px-4 sm:py-3 border-b flex items-center justify-between shrink-0"
+          className="px-4 py-2.5 sm:px-6 sm:py-3 border-b flex items-center justify-between gap-3 shrink-0 z-30 shadow-xs"
           style={{ borderColor: isDark ? '#4A2C16' : '#E4D4BC' }}
         >
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-xl bg-[#C18A45]/15 text-[#C18A45] flex items-center justify-center shrink-0">
-              <MapPin className="w-4 h-4" />
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-9 h-9 rounded-xl bg-[#C18A45]/15 text-[#C18A45] flex items-center justify-center shrink-0 shadow-inner">
+              <MapPin className="w-5 h-5" />
             </div>
-            <div>
-              <h2 className="font-serif font-bold text-xs sm:text-sm leading-tight">
+            <div className="min-w-0">
+              <h2 className="font-serif font-bold text-sm sm:text-base leading-tight truncate">
                 {isAmharic ? 'የማስረከቢያ ቦታ በካርታ ይምረጡ' : 'Select Delivery Location on Map'}
               </h2>
-              <p className="text-[10.5px] opacity-70">
+              <p className="text-[11px] opacity-70 truncate">
                 {isAmharic
-                  ? 'ሻጭ፡ አራት ኪሎ (ቤላይ ዘለቀ መንገድ) • ፒኑን ወደ ቤትዎ በር ያንቀሳቅሱ'
-                  : 'Origin: Arat Kilo (Belay Zeleke St) • Drag 📍 pin to exact gate'}
+                  ? 'ሻጭ፡ አራት ኪሎ (ቤላይ ዘለቀ መንገድ) • 📍 ፒኑን ወደ ቤትዎ በር ያንቀሳቅሱ'
+                  : 'Origin: Arat Kilo (Belay Zeleke St) • Drag 📍 pin to exact compound/gate'}
               </p>
             </div>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="p-1.5 rounded-lg opacity-70 hover:opacity-100 hover:bg-black/10 dark:hover:bg-white/10 transition-colors cursor-pointer"
-          >
-            <X className="w-4 h-4" />
-          </button>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <div className="hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-xs font-mono opacity-80">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span>Full Screen Map</span>
+            </div>
+
+            <button
+              type="button"
+              onClick={onClose}
+              className="p-2 rounded-xl opacity-70 hover:opacity-100 hover:bg-black/10 dark:hover:bg-white/10 transition-all cursor-pointer flex items-center gap-1.5 text-xs"
+              title="Close (Esc)"
+            >
+              <X className="w-5 h-5" />
+              <span className="hidden sm:inline font-semibold">{isAmharic ? 'ዝጋ' : 'Close'}</span>
+            </button>
+          </div>
         </div>
 
-        {/* Compact Search Bar & GPS */}
+        {/* Search Bar & GPS Controls Strip */}
         <div
-          className="p-2.5 sm:p-3 border-b space-y-2 shrink-0 bg-black/[0.02] dark:bg-white/[0.02]"
+          className="px-4 py-2 sm:px-6 sm:py-2.5 border-b space-y-2 shrink-0 z-20 bg-black/[0.02] dark:bg-white/[0.02]"
           style={{ borderColor: isDark ? '#4A2C16' : '#E4D4BC' }}
         >
-          <div className="flex gap-2 relative">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
             <div className="relative flex-1">
-              <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 opacity-50" />
+              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 opacity-50" />
               <input
                 type="text"
                 value={searchQuery}
@@ -575,17 +649,17 @@ export const DeliveryLocationModal: React.FC<DeliveryLocationModalProps> = ({
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder={
                   isAmharic
-                    ? 'ሆቴል፣ ህንፃ፣ ሞል ወይም ሰፈር ይፈልጉ (ቦሌ፣ ሲኤምሲ፣ ካዛንቺስ፣ አያት...)'
-                    : 'Search hotel, landmark, building, street (e.g. Skylight, Hilton, Edna Mall, CMC, Ayat...)'
+                    ? 'ሆቴል፣ ህንፃ፣ ሞል ወይም ሰፈር ይፈልጉ (ቦሌ፣ ሲኤምሲ፣ ካዛንቺስ፣ አያት፣ ሳርቤት...)'
+                    : 'Search landmark, building, street, sub-city (e.g. Skylight, Hilton, Edna Mall, CMC, Ayat, Sarbet...)'
                 }
-                className={`w-full pl-8 pr-7 py-1.5 sm:py-2 rounded-xl border text-xs focus:outline-none focus:ring-1.5 focus:ring-[#C18A45] ${
+                className={`w-full pl-9 pr-8 py-2 rounded-xl border text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#C18A45] transition-all ${
                   isDark
                     ? 'bg-[#24170D] border-[#4A2C16] text-[#F4E8D0]'
                     : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#2A1A0D]'
                 }`}
               />
               {isSearching ? (
-                <RefreshCw className="w-3 h-3 absolute right-2.5 top-1/2 -translate-y-1/2 animate-spin text-[#C18A45]" />
+                <RefreshCw className="w-3.5 h-3.5 absolute right-3 top-1/2 -translate-y-1/2 animate-spin text-[#C18A45]" />
               ) : searchQuery ? (
                 <button
                   type="button"
@@ -593,20 +667,20 @@ export const DeliveryLocationModal: React.FC<DeliveryLocationModalProps> = ({
                     setSearchQuery('');
                     setShowSearchResults(false);
                   }}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 opacity-60 hover:opacity-100"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 opacity-60 hover:opacity-100"
                 >
-                  <X className="w-3 h-3" />
+                  <X className="w-3.5 h-3.5" />
                 </button>
               ) : null}
 
               {/* Autocomplete Dropdown */}
               {showSearchResults && searchResults.length > 0 && (
                 <div
-                  className={`absolute left-0 right-0 top-full mt-1 z-50 rounded-xl border shadow-xl max-h-48 overflow-y-auto ${
+                  className={`absolute left-0 right-0 top-full mt-1.5 z-50 rounded-2xl border shadow-2xl max-h-60 overflow-y-auto ${
                     isDark ? 'bg-[#24170D] border-[#4A2C16]' : 'bg-white border-[#E4D4BC]'
                   }`}
                 >
-                  <div className="p-1 space-y-0.5">
+                  <div className="p-1.5 space-y-0.5">
                     {searchResults.map((place, idx) => (
                       <div
                         key={idx}
@@ -615,21 +689,21 @@ export const DeliveryLocationModal: React.FC<DeliveryLocationModalProps> = ({
                           setShowSearchResults(false);
                           setSearchQuery('');
                         }}
-                        className={`p-2 rounded-lg text-left cursor-pointer transition-colors flex items-start gap-2 ${
+                        className={`p-2.5 rounded-xl text-left cursor-pointer transition-colors flex items-start gap-2.5 ${
                           isDark ? 'hover:bg-white/5' : 'hover:bg-black/5'
                         }`}
                       >
-                        <Building2 className="w-3.5 h-3.5 text-amber-500 shrink-0 mt-0.5" />
+                        <Building2 className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center justify-between gap-1">
-                            <span className="font-bold text-xs truncate">{place.name}</span>
+                            <span className="font-bold text-xs sm:text-sm truncate">{place.name}</span>
                             {place.subCity && (
-                              <span className="text-[9px] px-1.5 py-0.5 rounded bg-black/10 dark:bg-white/10 opacity-70 shrink-0">
+                              <span className="text-[10px] px-2 py-0.5 rounded-md bg-black/10 dark:bg-white/10 opacity-70 shrink-0">
                                 {place.subCity}
                               </span>
                             )}
                           </div>
-                          <div className="text-[10px] opacity-70 truncate">{place.address}</div>
+                          <div className="text-[11px] opacity-70 truncate">{place.address}</div>
                         </div>
                       </div>
                     ))}
@@ -643,30 +717,53 @@ export const DeliveryLocationModal: React.FC<DeliveryLocationModalProps> = ({
               type="button"
               onClick={handleUseMyLocation}
               disabled={isLocating}
-              className="px-3 py-1.5 sm:py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white text-xs font-bold shadow-xs transition-all flex items-center justify-center gap-1 cursor-pointer shrink-0"
+              className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-95 disabled:opacity-50 text-white text-xs sm:text-sm font-bold shadow-md transition-all flex items-center justify-center gap-1.5 cursor-pointer shrink-0"
               title="Use GPS Coordinates"
             >
               {isLocating ? (
-                <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                <RefreshCw className="w-4 h-4 animate-spin" />
               ) : (
-                <Navigation className="w-3.5 h-3.5" />
+                <Navigation className="w-4 h-4" />
               )}
-              <span className="hidden sm:inline">{isAmharic ? 'የእኔ ጂፒኤስ' : 'Live GPS'}</span>
+              <span>{isAmharic ? 'የመሳሪያዬ መገኛ (GPS)' : 'Use Device GPS'}</span>
             </button>
           </div>
 
+          {/* Action Prompt Banner if no location chosen yet */}
+          {!hasSelectedLocation && (
+            <div className="p-2.5 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-500 text-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 shadow-xs">
+              <div className="flex items-center gap-2">
+                <Navigation className="w-4 h-4 text-amber-500 shrink-0 animate-bounce" />
+                <span className="font-semibold">
+                  {isAmharic
+                    ? 'እባክዎ የመሳሪያዎትን መገኛ (GPS) ይጠቀሙ ወይም ካርታው ላይ ጠቅ በማድረግ መዳረሻዎን ይምረጡ'
+                    : 'Please use your device GPS or click anywhere on the map to pinpoint your delivery gate'}
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={handleUseMyLocation}
+                disabled={isLocating}
+                className="px-3 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-1.5 shrink-0 shadow-sm"
+              >
+                {isLocating ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Navigation className="w-3.5 h-3.5" />}
+                <span>{isAmharic ? 'የእኔ ጂፒኤስ' : 'Use Device GPS'}</span>
+              </button>
+            </div>
+          )}
+
           {/* Quick-Select Area Pills */}
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 no-scrollbar text-[11px]">
-            <span className="text-[10px] font-bold opacity-60 uppercase tracking-wider shrink-0 flex items-center gap-1">
-              <Sparkles className="w-2.5 h-2.5 text-amber-500" />
-              {isAmharic ? 'ፈጣን ምርጫ:' : 'Quick Area:'}
+          <div className="flex items-center gap-2 overflow-x-auto pb-0.5 no-scrollbar text-xs">
+            <span className="text-[10.5px] font-bold opacity-60 uppercase tracking-wider shrink-0 flex items-center gap-1">
+              <Sparkles className="w-3 h-3 text-amber-500" />
+              {isAmharic ? 'ፈጣን ምርጫ:' : 'Quick Select:'}
             </span>
             {QUICK_PRESET_AREAS.map((area, idx) => (
               <button
                 key={idx}
                 type="button"
                 onClick={() => updatePinAndLocation(area.lat, area.lng, area.address, true)}
-                className={`px-2 py-0.5 rounded-lg border text-[10.5px] whitespace-nowrap transition-colors cursor-pointer shrink-0 ${
+                className={`px-2.5 py-1 rounded-lg border text-xs whitespace-nowrap transition-all cursor-pointer shrink-0 ${
                   Math.abs(currentLat - area.lat) < 0.005 && Math.abs(currentLng - area.lng) < 0.005
                     ? 'bg-[#C18A45] text-white border-[#C18A45] font-bold shadow-xs'
                     : isDark
@@ -680,54 +777,55 @@ export const DeliveryLocationModal: React.FC<DeliveryLocationModalProps> = ({
           </div>
 
           {gpsSuccess && (
-            <div className="p-1.5 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-[11px] flex items-center gap-1.5">
-              <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+            <div className="p-2 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 shrink-0" />
               <span>{gpsSuccess}</span>
             </div>
           )}
 
           {geoError && (
-            <div className="p-1.5 rounded-lg bg-red-500/15 border border-red-500/30 text-red-400 text-[11px] flex items-center gap-1.5">
-              <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+            <div className="p-2 rounded-xl bg-red-500/15 border border-red-500/30 text-red-400 text-xs flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 shrink-0" />
               <span>{geoError}</span>
             </div>
           )}
         </div>
 
-        {/* Minimized Map Surface (Compact Height: 210px - 240px) */}
-        <div className="relative w-full h-[210px] sm:h-[240px] bg-black/10 shrink-0">
+        {/* Full-Screen Interactive Map Surface */}
+        <div className="relative flex-1 w-full h-full min-h-0 z-10 bg-black/10">
           <div ref={mapContainerRef} className="absolute inset-0 w-full h-full z-0" />
 
-          {/* Floating Instructions Banner */}
-          <div className="absolute top-2 left-2 z-10 pointer-events-none">
-            <div className="px-2.5 py-1 rounded-lg bg-black/80 backdrop-blur-md text-white text-[10px] font-medium shadow flex items-center gap-1.5 pointer-events-auto">
-              <MapPin className="w-3 h-3 text-[#C18A45]" />
-              <span>{isAmharic ? 'በካርታው ላይ ጠቅ ያድርጉ ወይም 📍 ፒኑን ይጎትቱ' : 'Click map or drag 📍 pin to your gate'}</span>
+          {/* Floating Instructions Banner (Shifted for Leaflet's zoom buttons) */}
+          <div className="absolute top-3 left-14 sm:left-16 z-10 pointer-events-none">
+            <div className="px-3 py-1.5 rounded-xl bg-black/85 backdrop-blur-md text-white text-xs font-medium shadow-lg flex items-center gap-2 pointer-events-auto border border-white/10">
+              <MapPin className="w-3.5 h-3.5 text-[#C18A45]" />
+              <span>{isAmharic ? 'በካርታው ላይ ጠቅ ያድርጉ ወይም 📍 ፒኑን ወደ በርዎ ያንቀሳቅሱ' : 'Click anywhere on map or drag 📍 pin to your exact compound/gate'}</span>
             </div>
           </div>
 
-          {/* Floating Route Badge & Recenter Button */}
-          <div className="absolute top-2 right-2 z-10 pointer-events-none flex items-center gap-1.5">
+          {/* Floating Recenter & Live Route Floating Badges */}
+          <div className="absolute top-3 right-3 z-10 pointer-events-none flex items-center gap-2">
             <button
               type="button"
               onClick={handleRecenter}
-              title="Recenter on Pin"
-              className="p-1.5 rounded-lg bg-black/85 backdrop-blur-md text-white shadow border border-white/10 hover:bg-black pointer-events-auto cursor-pointer"
+              title={isAmharic ? 'ወደ ፒኑ ተመለስ' : 'Recenter on Pin'}
+              className="p-2 sm:px-3 sm:py-1.5 rounded-xl bg-black/85 backdrop-blur-md text-white shadow-lg border border-white/10 hover:bg-black pointer-events-auto cursor-pointer flex items-center gap-1.5 text-xs transition-transform active:scale-95"
             >
-              <Crosshair className="w-3.5 h-3.5 text-amber-400" />
+              <Crosshair className="w-4 h-4 text-amber-400" />
+              <span className="hidden sm:inline font-medium">{isAmharic ? 'ወደ ፒኑ ተመለስ' : 'Recenter'}</span>
             </button>
 
-            <div className="px-2.5 py-1 rounded-lg bg-black/85 backdrop-blur-md text-white text-[11px] font-mono font-bold shadow flex items-center gap-1.5 border border-white/10 pointer-events-auto">
-              <Route className="w-3 h-3 text-emerald-400" />
+            <div className="px-3 py-1.5 rounded-xl bg-black/85 backdrop-blur-md text-white text-xs font-mono font-bold shadow-lg flex items-center gap-2 border border-white/10 pointer-events-auto">
+              <Route className="w-3.5 h-3.5 text-emerald-400" />
               {isRouting ? (
-                <span className="flex items-center gap-1 text-[10px] text-amber-400">
-                  <RefreshCw className="w-2.5 h-2.5 animate-spin" />
+                <span className="flex items-center gap-1 text-[11px] text-amber-400">
+                  <RefreshCw className="w-3 h-3 animate-spin" />
                   <span>{isAmharic ? 'መንገድ በማስላት ላይ...' : 'Routing...'}</span>
                 </span>
               ) : (
                 <>
                   <span className="text-emerald-400 font-bold">{roadDistanceKm} km</span>
-                  <span className="text-[9.5px] opacity-75 font-sans font-normal">
+                  <span className="text-[10px] opacity-75 font-sans font-normal">
                     (🚗 ~{roadDurationMins}m)
                   </span>
                 </>
@@ -738,71 +836,77 @@ export const DeliveryLocationModal: React.FC<DeliveryLocationModalProps> = ({
 
         {/* Selected Location Details & Confirmation Footer */}
         <div
-          className="p-2.5 sm:p-3.5 border-t space-y-2 shrink-0 bg-black/[0.02] dark:bg-white/[0.02]"
+          className="px-4 py-3 sm:px-6 sm:py-3.5 border-t space-y-2.5 shrink-0 z-20 shadow-2xl bg-white/95 dark:bg-[#1A1108]/95 backdrop-blur-md"
           style={{ borderColor: isDark ? '#4A2C16' : '#E4D4BC' }}
         >
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
             <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-1.5">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-[#C18A45]">
-                  {isAmharic ? 'የተመረጠው አድራሻ:' : 'Assigned Delivery Address:'}
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-[#C18A45]">
+                  {isAmharic ? 'የተመረጠው የማስረከቢያ አድራሻ:' : 'Assigned Delivery Address:'}
                 </span>
                 {isReverseGeocoding && (
-                  <span className="text-[9px] text-amber-500 animate-pulse flex items-center gap-1">
-                    <RefreshCw className="w-2.5 h-2.5 animate-spin" />
+                  <span className="text-[10px] text-amber-500 animate-pulse flex items-center gap-1">
+                    <RefreshCw className="w-3 h-3 animate-spin" />
                     <span>Resolving...</span>
                   </span>
                 )}
               </div>
-              <div className="font-bold text-xs sm:text-sm truncate">
+              <div
+                title={resolvedAddress}
+                className="font-bold text-xs sm:text-sm md:text-base truncate leading-snug"
+              >
                 {resolvedAddress}
               </div>
-              <div className="text-[10px] opacity-75 font-mono flex items-center gap-1.5 flex-wrap">
-                <span>GPS: {currentLat.toFixed(4)}, {currentLng.toFixed(4)}</span>
+              <div className="text-[11px] opacity-75 font-mono flex items-center gap-2 flex-wrap pt-0.5">
+                <span className="px-2 py-0.5 rounded-md bg-black/5 dark:bg-white/5">
+                  GPS: {currentLat.toFixed(4)}, {currentLng.toFixed(4)}
+                </span>
                 <span>•</span>
-                <span className="text-emerald-500 font-bold font-sans">
+                <span className="text-emerald-500 font-bold font-sans flex items-center gap-1">
                   🛣️ {roadDistanceKm} km ({roadDurationMins} {isAmharic ? 'ደቂቃ ጉዞ' : 'mins drive'})
                 </span>
                 {!isWithinRange && (
-                  <span className="text-red-400 font-bold font-sans bg-red-500/15 px-1.5 py-0.2 rounded border border-red-500/20">
+                  <span className="text-red-400 font-bold font-sans bg-red-500/15 px-2 py-0.5 rounded border border-red-500/20">
                     ⚠️ {isAmharic ? 'ከ30 ኪ.ሜ ማድረሻ ክልል ውጪ' : 'Beyond 30km range'}
                   </span>
                 )}
               </div>
             </div>
 
-            {/* Optional Specific House Number / Gate Note */}
-            <div className="sm:w-56 shrink-0">
-              <input
-                type="text"
-                value={customNotes}
-                onChange={(e) => setCustomNotes(e.target.value)}
-                placeholder={isAmharic ? 'የቤት ቁጥር / መለያ ምልክት...' : 'House # / Landmark (optional)...'}
-                className={`w-full px-2.5 py-1.5 rounded-xl border text-xs focus:outline-none focus:ring-1 focus:ring-[#C18A45] ${
-                  isDark ? 'bg-[#24170D] border-[#4A2C16]' : 'bg-white border-[#E4D4BC]'
-                }`}
-              />
-            </div>
-          </div>
+            {/* Specific House Number / Gate Note & Action Buttons */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 shrink-0">
+              <div className="w-full sm:w-60 md:w-72">
+                <input
+                  type="text"
+                  value={customNotes}
+                  onChange={(e) => setCustomNotes(e.target.value)}
+                  placeholder={isAmharic ? 'የቤት ቁጥር / መለያ ምልክት...' : 'House # / Landmark (optional)...'}
+                  className={`w-full px-3 py-2 rounded-xl border text-xs sm:text-sm focus:outline-none focus:ring-1.5 focus:ring-[#C18A45] ${
+                    isDark ? 'bg-[#24170D] border-[#4A2C16] text-[#F4E8D0]' : 'bg-white border-[#E4D4BC] text-[#2A1A0D]'
+                  }`}
+                />
+              </div>
 
-          {/* Action Buttons */}
-          <div className="flex items-center justify-end gap-2 pt-0.5">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-3.5 py-1.5 rounded-xl border text-xs font-semibold hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer"
-              style={{ borderColor: isDark ? '#4A2C16' : '#E4D4BC' }}
-            >
-              {isAmharic ? 'ይቅር' : 'Cancel'}
-            </button>
-            <button
-              type="button"
-              onClick={handleConfirmLocation}
-              className="px-5 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-black font-black text-xs shadow-md hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center gap-1.5 cursor-pointer"
-            >
-              <Check className="w-3.5 h-3.5 stroke-[3]" />
-              <span>{isAmharic ? 'ይህንን ቦታ አረጋግጥ' : 'Confirm Location'}</span>
-            </button>
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="flex-1 sm:flex-initial px-4 py-2 rounded-xl border text-xs sm:text-sm font-semibold hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer"
+                  style={{ borderColor: isDark ? '#4A2C16' : '#E4D4BC' }}
+                >
+                  {isAmharic ? 'ይቅር' : 'Cancel'}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleConfirmLocation}
+                  className="flex-1 sm:flex-initial px-6 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-black font-black text-xs sm:text-sm shadow-lg hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <Check className="w-4 h-4 stroke-[3]" />
+                  <span>{isAmharic ? 'ይህንን ቦታ አረጋግጥ' : 'Confirm Location'}</span>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>

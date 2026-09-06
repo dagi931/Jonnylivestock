@@ -53,7 +53,9 @@ import {
   MapPin,
   Sparkles,
   Settings,
-  Filter
+  Filter,
+  Menu,
+  Package
 } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { PreMadePackage, PackageCatalogItem } from '../types/package';
@@ -108,6 +110,7 @@ export const Admin: React.FC = () => {
 
   // Dashboard Active Tab
   const [activeTab, setActiveTab] = useState<AdminTab>('overview');
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
   // Read tab and filter from URL params (e.g. /admin?tab=orders&filter=active_reservation)
   useEffect(() => {
@@ -379,6 +382,21 @@ export const Admin: React.FC = () => {
       }
     } catch (err: any) {
       showAlert('error', err.message || 'Error updating delivery status');
+    }
+  };
+
+  const handleUpdatePickupStatus = async (orderId: string, status: 'pickup_ready' | 'completed' = 'pickup_ready') => {
+    try {
+      const activeToken = adminToken || localStorage.getItem('jonny_admin_token') || localStorage.getItem('jonny_user_token') || undefined;
+      const res = await api.updatePickupStatus(orderId, status, status === 'completed' ? 'Customer picked up livestock from farm' : 'Livestock prepared for farm pickup', activeToken);
+      if (res.success) {
+        showAlert('success', status === 'completed' ? `✓ Order ${orderId} marked as PICKED UP & COMPLETED!` : `✓ Order ${orderId} is now READY FOR FARM PICKUP!`);
+        loadDashboardData();
+      } else {
+        showAlert('error', res.error || 'Failed to update pickup status');
+      }
+    } catch (err: any) {
+      showAlert('error', err.message || 'Error updating pickup status');
     }
   };
 
@@ -783,6 +801,76 @@ export const Admin: React.FC = () => {
     });
   }, [ordersList, orderStatusFilter, searchQuery]);
 
+  // Unified Navigation Modules (Used for both Desktop Sidebar & Mobile Side Drawer)
+  const navItems = useMemo(() => [
+    {
+      id: 'overview' as AdminTab,
+      label: isAmharic ? 'አጠቃላይ ዳሽቦርድ' : 'Overview & Stats',
+      shortLabel: isAmharic ? 'ዳሽቦርድ' : 'Overview',
+      icon: LayoutDashboard,
+      badge: null,
+      badgeIsAlert: false
+    },
+    {
+      id: 'orders' as AdminTab,
+      label: isAmharic ? 'ትዕዛዞች እና ደረሰኞች' : 'Orders & Payment Slips',
+      shortLabel: isAmharic ? 'ትዕዛዞች' : 'Orders',
+      icon: CreditCard,
+      badge: stats.pendingOrdersCount > 0 ? `${stats.pendingOrdersCount} ${isAmharic ? 'አዲስ' : 'new'}` : String(ordersList.length),
+      badgeIsAlert: stats.pendingOrdersCount > 0
+    },
+    {
+      id: 'inventory' as AdminTab,
+      label: isAmharic ? 'የከብቶች ዝርዝር' : 'Livestock Inventory',
+      shortLabel: isAmharic ? 'ከብቶች' : 'Livestock',
+      icon: Layers,
+      badge: String(animalsList.length),
+      badgeIsAlert: false
+    },
+    {
+      id: 'packages' as AdminTab,
+      label: isAmharic ? 'የበዓል ጥቅሎች' : 'Celebration Packages',
+      shortLabel: isAmharic ? 'ጥቅሎች' : 'Packages',
+      icon: Gift,
+      badge: String(packagesList.length),
+      badgeIsAlert: false
+    },
+    {
+      id: 'raw_meat' as AdminTab,
+      label: isAmharic ? 'በኪሎ ጥሬ ስጋ' : 'Raw Meat (በኪሎ ስጋ)',
+      shortLabel: isAmharic ? 'ስጋ' : 'Raw Meat',
+      icon: Scale,
+      badge: String(ordersList.filter(o => (o.packageDetails as any)?.isMeatByKg).length),
+      badgeIsAlert: false
+    },
+    {
+      id: 'delivery' as AdminTab,
+      label: isAmharic ? 'ማድረሻ እና መኪኖች' : 'Delivery & Fleet',
+      shortLabel: isAmharic ? 'ማድረሻ' : 'Delivery',
+      icon: Truck,
+      badge: ordersList.filter(o => o.isDelivery && (o.status === 'pending_verification' || o.status === 'delivery_pending')).length > 0
+        ? `${ordersList.filter(o => o.isDelivery && (o.status === 'pending_verification' || o.status === 'delivery_pending')).length} ${isAmharic ? 'አዲስ' : 'new'}`
+        : String(ordersList.filter(o => o.isDelivery).length),
+      badgeIsAlert: ordersList.filter(o => o.isDelivery && (o.status === 'pending_verification' || o.status === 'delivery_pending')).length > 0
+    },
+    {
+      id: 'demand' as AdminTab,
+      label: isAmharic ? 'ትንታኔ እና ገበያ' : 'Demand & Metrics',
+      shortLabel: isAmharic ? 'ትንታኔ' : 'Metrics',
+      icon: BarChart3,
+      badge: null,
+      badgeIsAlert: false
+    },
+    {
+      id: 'messages' as AdminTab,
+      label: isAmharic ? 'የደንበኞች መልዕክቶች' : 'Customer Inquiries',
+      shortLabel: isAmharic ? 'መልዕክቶች' : 'Inquiries',
+      icon: MessageSquare,
+      badge: unreadMessagesCount > 0 ? `${unreadMessagesCount} ${isAmharic ? 'አዲስ' : 'new'}` : String(contactMessages.length),
+      badgeIsAlert: unreadMessagesCount > 0
+    }
+  ], [isAmharic, stats.pendingOrdersCount, ordersList, animalsList.length, packagesList.length, unreadMessagesCount, contactMessages.length]);
+
   // Handle Verify Order & Mark Sold (100% Full Payment)
   const handleVerifyOrder = async (orderId: string) => {
     const res = await api.verifyOrder(orderId, 'Verified payment slip via Admin panel');
@@ -830,18 +918,7 @@ export const Admin: React.FC = () => {
     }
   };
 
-  // Handle Update Generic Order Status (e.g. delivery_pending, delivered)
-  const handleUpdateOrderStatus = async (orderId: string, newStatus: string) => {
-    const res = await api.updateOrderStatus(orderId, newStatus);
-    if (res.success) {
-      setOrdersList((prev) =>
-        prev.map((o) => (o.id === orderId ? { ...o, status: newStatus as any } : o))
-      );
-      showAlert('success', `✓ Order ${orderId} updated to ${newStatus.replace('_', ' ')}.`);
-    } else {
-      showAlert('error', res.error || 'Failed to update order status');
-    }
-  };
+
 
   // Handle Click on Notification: Mark Read on server & Open Slip Approval Modal without minimizing notification counts
   const handleNotificationClick = async (notif: AdminNotification) => {
@@ -1558,11 +1635,145 @@ export const Admin: React.FC = () => {
   return (
     <div className={`min-h-screen pb-16 transition-colors duration-300 ${isDark ? 'bg-[#1B1208] text-[#F4E8D0]' : 'bg-[#FAF7F0] text-[#241A12]'}`}>
       
+      {/* Mobile Slide-Out Side Navigation Drawer (Full-Height Sidebar on Phone screens) */}
+      {isMobileSidebarOpen && (
+        <div className="fixed inset-0 z-50 lg:hidden animate-in fade-in duration-200">
+          {/* Backdrop overlay */}
+          <div
+            className="fixed inset-0 bg-black/60 backdrop-blur-xs"
+            onClick={() => setIsMobileSidebarOpen(false)}
+            aria-hidden="true"
+          />
+
+          {/* Drawer content sliding from the left */}
+          <aside
+            className={`fixed inset-y-0 left-0 w-72 max-w-[85vw] z-50 flex flex-col justify-between shadow-2xl border-r animate-in slide-in-from-left duration-200 ${
+              isDark ? 'bg-[#1E140A] border-[#3D2513] text-[#F4E8D0]' : 'bg-[#FAF6EE] border-[#E8DCCB] text-[#241A12]'
+            }`}
+          >
+            {/* Drawer Header */}
+            <div className="p-4 border-b border-black/10 dark:border-white/10 flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-[#C18A45]/20 text-[#C18A45] flex items-center justify-center font-bold font-serif text-sm">
+                  JL
+                </div>
+                <div>
+                  <h3 className="font-bold text-xs sm:text-sm leading-tight">
+                    {isAmharic ? 'የጆኒ አስተዳዳሪ' : 'Jonny Admin'}
+                  </h3>
+                  <p className="text-[10px] opacity-60 truncate max-w-[140px]">
+                    {user?.name || 'Administrator'}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsMobileSidebarOpen(false)}
+                className="p-1.5 rounded-xl hover:bg-black/10 dark:hover:bg-white/10 opacity-75 hover:opacity-100 transition-opacity cursor-pointer"
+                aria-label="Close Navigation"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Navigation Links */}
+            <div className="p-3 flex-1 overflow-y-auto space-y-1">
+              <div className="px-2 py-1 mb-1 text-[10px] font-bold uppercase tracking-wider text-[#C18A45] opacity-75">
+                {isAmharic ? 'የአስተዳዳሪ ክፍሎች' : 'Admin Modules'}
+              </div>
+              {navItems.map((item) => {
+                const Icon = item.icon;
+                const isActive = activeTab === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => {
+                      setActiveTab(item.id);
+                      setIsMobileSidebarOpen(false);
+                    }}
+                    className={`w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition-all text-left cursor-pointer ${
+                      isActive
+                        ? 'bg-[#C18A45] text-white shadow-sm font-extrabold'
+                        : isDark
+                        ? 'hover:bg-[#2A1A0D] text-[#D8C5A8]'
+                        : 'hover:bg-[#F1E8D8] text-[#746556]'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-white' : 'text-[#C18A45]'}`} />
+                      <span className="truncate">{item.label}</span>
+                    </div>
+                    {item.badge && (
+                      <span
+                        className={`px-2 py-0.5 rounded-md text-[10px] font-bold shrink-0 ${
+                          item.badgeIsAlert
+                            ? 'bg-amber-500 text-black animate-pulse font-black'
+                            : isActive
+                            ? 'bg-black/20 text-white'
+                            : 'bg-black/5 dark:bg-white/10 opacity-75 font-mono'
+                        }`}
+                      >
+                        {item.badge}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Drawer Footer */}
+            <div className="p-3 border-t border-black/10 dark:border-white/10 space-y-2">
+              <div className="flex items-center justify-between gap-2 px-1">
+                <LanguageToggle />
+                <ThemeToggle />
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsMobileSidebarOpen(false);
+                  localStorage.removeItem('jonny_admin_token');
+                  localStorage.removeItem('jonny_admin_user');
+                  localStorage.removeItem('jonny_user_token');
+                  localStorage.removeItem('jonny_user_profile');
+                  sessionStorage.clear();
+                  logout();
+                  userLogout();
+                  window.location.href = '/';
+                }}
+                className="w-full py-2.5 px-3 rounded-xl bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 transition-colors text-xs font-bold flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+                <span>{isAmharic ? 'ውጣ' : 'Sign Out'}</span>
+              </button>
+            </div>
+          </aside>
+        </div>
+      )}
+
       {/* Top Banner with Real-Time Notification Bell & Refresh */}
       <div className={`border-b sticky top-0 z-40 backdrop-blur-md ${isDark ? 'bg-[#1B1208]/90 border-[#4A2C16]' : 'bg-[#FAF7F0]/90 border-[#E4D4BC]'}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-xl bg-[#C18A45]/20 text-[#C18A45] flex items-center justify-center font-bold font-serif text-sm">
+          <div className="flex items-center gap-2.5 sm:gap-3">
+            {/* Mobile Side Navigation Toggle (visible on phone screens) */}
+            <button
+              type="button"
+              onClick={() => setIsMobileSidebarOpen(true)}
+              className={`lg:hidden p-2 rounded-xl border flex items-center justify-center transition-all cursor-pointer relative ${
+                isDark
+                  ? 'bg-[#2A1A0D] border-[#4A2C16] text-[#C18A45] hover:bg-[#3D2513]'
+                  : 'bg-white border-[#E4D4BC] text-[#C18A45] hover:bg-[#FAF6EE]'
+              }`}
+              aria-label="Open Side Navigation Menu"
+              title={isAmharic ? 'የጎን ማውጫ ክፈት' : 'Open Navigation Menu'}
+            >
+              <Menu className="w-5 h-5" />
+              {stats.pendingOrdersCount + unreadMessagesCount > 0 && (
+                <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-amber-500 ring-2 ring-white dark:ring-black animate-pulse" />
+              )}
+            </button>
+
+            <div className="w-8 h-8 rounded-xl bg-[#C18A45]/20 text-[#C18A45] flex items-center justify-center font-bold font-serif text-sm shrink-0">
               JL
             </div>
             <div>
@@ -1570,8 +1781,20 @@ export const Admin: React.FC = () => {
                 <span className="font-bold text-sm sm:text-base">
                   {isAmharic ? 'የጆኒ አስተዳዳሪ ፖርታል' : 'Jonny Admin Portal'}
                 </span>
+                {/* Active Module Indicator Badge on Mobile - Tap to Open Side Menu */}
+                <button
+                  type="button"
+                  onClick={() => setIsMobileSidebarOpen(true)}
+                  className="lg:hidden flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold bg-[#C18A45]/15 text-[#C18A45] border border-[#C18A45]/30 cursor-pointer"
+                  title={isAmharic ? 'ክፍል ለመቀየር ይጫኑ' : 'Tap to switch module'}
+                >
+                  <span className="truncate max-w-[100px]">
+                    {navItems.find(n => n.id === activeTab)?.shortLabel || navItems.find(n => n.id === activeTab)?.label}
+                  </span>
+                  <ChevronDown className="w-3 h-3 shrink-0" />
+                </button>
               </div>
-              <p className="text-[11px] opacity-70">
+              <p className="text-[11px] opacity-70 hidden sm:block">
                 {isAmharic ? 'የገቡበት መለያ:' : 'Logged in as:'} <strong className="text-[#C18A45]">{user?.name}</strong> ({user?.email})
               </p>
             </div>
@@ -1801,214 +2024,57 @@ export const Admin: React.FC = () => {
       {/* Main Dashboard Layout: Full-Height Continuous Sidebar + Content Area */}
       <div className="flex flex-col lg:flex-row min-h-[calc(100vh-61px)]">
         
-        {/* Full-Height Left Sidebar covering top to bottom */}
+        {/* Full-Height Left Sidebar for Desktop (Hidden on phone/mobile screens where slide drawer is used) */}
         <aside
-          className={`w-full lg:w-64 xl:w-72 shrink-0 border-b lg:border-b-0 lg:border-r transition-colors z-30 flex flex-col justify-between ${
+          className={`hidden lg:flex w-64 xl:w-72 shrink-0 border-r transition-colors z-30 flex-col justify-between ${
             isDark ? 'bg-[#1E140A] border-[#3D2513]' : 'bg-[#FAF6EE] border-[#E8DCCB]'
           }`}
         >
-          <div className="p-4 sm:p-5 lg:sticky lg:top-20">
-            <div className="hidden lg:flex items-center justify-between px-3 py-2 mb-3 rounded-xl bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5">
+          <div className="p-4 sm:p-5 sticky top-20">
+            <div className="flex items-center justify-between px-3 py-2 mb-3 rounded-xl bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5">
               <span className="text-[11px] font-bold uppercase tracking-wider text-[#C18A45]">
                 {isAmharic ? 'የአስተዳዳሪ ክፍሎች' : 'Admin Modules'}
               </span>
               <span className="text-[10px] font-mono opacity-50">{isAmharic ? '8 ክፍሎች' : '8 Modules'}</span>
             </div>
 
-            <nav className="flex flex-row lg:flex-col gap-1.5 overflow-x-auto lg:overflow-visible pb-1 lg:pb-0 no-scrollbar">
-              
-              {/* 1. Overview */}
-              <button
-                type="button"
-                onClick={() => setActiveTab('overview')}
-                className={`flex items-center justify-between gap-2.5 px-3.5 py-3 rounded-xl text-xs font-bold transition-all text-left whitespace-nowrap lg:whitespace-normal cursor-pointer ${
-                  activeTab === 'overview'
-                    ? 'bg-[#C18A45] text-white shadow-sm font-extrabold'
-                    : isDark
-                    ? 'hover:bg-[#2A1A0D] text-[#D8C5A8]'
-                    : 'hover:bg-[#F1E8D8] text-[#746556]'
-                }`}
-              >
-                <div className="flex items-center gap-2.5">
-                  <LayoutDashboard className={`w-4 h-4 shrink-0 ${activeTab === 'overview' ? 'text-white' : 'text-[#C18A45]'}`} />
-                  <span>{isAmharic ? 'አጠቃላይ ዳሽቦርድ' : 'Overview & Stats'}</span>
-                </div>
-              </button>
-
-              {/* 2. Orders & Payment Slips */}
-              <button
-                type="button"
-                onClick={() => setActiveTab('orders')}
-                className={`flex items-center justify-between gap-2.5 px-3.5 py-3 rounded-xl text-xs font-bold transition-all text-left whitespace-nowrap lg:whitespace-normal cursor-pointer ${
-                  activeTab === 'orders'
-                    ? 'bg-[#C18A45] text-white shadow-sm font-extrabold'
-                    : isDark
-                    ? 'hover:bg-[#2A1A0D] text-[#D8C5A8]'
-                    : 'hover:bg-[#F1E8D8] text-[#746556]'
-                }`}
-              >
-                <div className="flex items-center gap-2.5">
-                  <CreditCard className={`w-4 h-4 shrink-0 ${activeTab === 'orders' ? 'text-white' : 'text-[#C18A45]'}`} />
-                  <span>{isAmharic ? 'ትዕዛዞች እና ደረሰኞች' : 'Orders & Payment Slips'}</span>
-                </div>
-                {stats.pendingOrdersCount > 0 ? (
-                  <span className="px-2 py-0.5 rounded-md bg-amber-500 text-black text-[10px] font-black shrink-0 animate-pulse">
-                    {stats.pendingOrdersCount} {isAmharic ? 'አዲስ' : 'new'}
-                  </span>
-                ) : (
-                  <span className={`px-2 py-0.5 rounded-md text-[10.5px] font-mono font-bold shrink-0 ${
-                    activeTab === 'orders' ? 'bg-black/20 text-white' : 'bg-black/5 dark:bg-white/10 opacity-75'
-                  }`}>
-                    {ordersList.length}
-                  </span>
-                )}
-              </button>
-
-              {/* 3. Livestock Inventory */}
-              <button
-                type="button"
-                onClick={() => setActiveTab('inventory')}
-                className={`flex items-center justify-between gap-2.5 px-3.5 py-3 rounded-xl text-xs font-bold transition-all text-left whitespace-nowrap lg:whitespace-normal cursor-pointer ${
-                  activeTab === 'inventory'
-                    ? 'bg-[#C18A45] text-white shadow-sm font-extrabold'
-                    : isDark
-                    ? 'hover:bg-[#2A1A0D] text-[#D8C5A8]'
-                    : 'hover:bg-[#F1E8D8] text-[#746556]'
-                }`}
-              >
-                <div className="flex items-center gap-2.5">
-                  <Layers className={`w-4 h-4 shrink-0 ${activeTab === 'inventory' ? 'text-white' : 'text-[#C18A45]'}`} />
-                  <span>{isAmharic ? 'የከብቶች ዝርዝር' : 'Livestock Inventory'}</span>
-                </div>
-                <span className={`px-2 py-0.5 rounded-md text-[10.5px] font-mono font-bold shrink-0 ${
-                  activeTab === 'inventory' ? 'bg-black/20 text-white' : 'bg-black/5 dark:bg-white/10 opacity-75'
-                }`}>
-                  {animalsList.length}
-                </span>
-              </button>
-
-              {/* 4. Celebration Packages */}
-              <button
-                type="button"
-                onClick={() => setActiveTab('packages')}
-                className={`flex items-center justify-between gap-2.5 px-3.5 py-3 rounded-xl text-xs font-bold transition-all text-left whitespace-nowrap lg:whitespace-normal cursor-pointer ${
-                  activeTab === 'packages'
-                    ? 'bg-[#C18A45] text-white shadow-sm font-extrabold'
-                    : isDark
-                    ? 'hover:bg-[#2A1A0D] text-[#D8C5A8]'
-                    : 'hover:bg-[#F1E8D8] text-[#746556]'
-                }`}
-              >
-                <div className="flex items-center gap-2.5">
-                  <Gift className={`w-4 h-4 shrink-0 ${activeTab === 'packages' ? 'text-white' : 'text-[#C18A45]'}`} />
-                  <span>{isAmharic ? 'የበዓል ጥቅሎች' : 'Celebration Packages'}</span>
-                </div>
-                <span className={`px-2 py-0.5 rounded-md text-[10.5px] font-mono font-bold shrink-0 ${
-                  activeTab === 'packages' ? 'bg-black/20 text-white' : 'bg-black/5 dark:bg-white/10 opacity-75'
-                }`}>
-                  {packagesList.length}
-                </span>
-              </button>
-
-              {/* 5. Raw Meat (ስጋ በኪሎ) */}
-              <button
-                type="button"
-                onClick={() => setActiveTab('raw_meat')}
-                className={`flex items-center justify-between gap-2.5 px-3.5 py-3 rounded-xl text-xs font-bold transition-all text-left whitespace-nowrap lg:whitespace-normal cursor-pointer ${
-                  activeTab === 'raw_meat'
-                    ? 'bg-[#C18A45] text-white shadow-sm font-extrabold'
-                    : isDark
-                    ? 'hover:bg-[#2A1A0D] text-[#D8C5A8]'
-                    : 'hover:bg-[#F1E8D8] text-[#746556]'
-                }`}
-              >
-                <div className="flex items-center gap-2.5">
-                  <Scale className={`w-4 h-4 shrink-0 ${activeTab === 'raw_meat' ? 'text-white' : 'text-[#C18A45]'}`} />
-                  <span>{isAmharic ? 'በኪሎ ጥሬ ስጋ' : 'Raw Meat (በኪሎ ስጋ)'}</span>
-                </div>
-                <span className={`px-2 py-0.5 rounded-md text-[10.5px] font-mono font-bold shrink-0 ${
-                  activeTab === 'raw_meat' ? 'bg-black/20 text-white' : 'bg-black/5 dark:bg-white/10 opacity-75'
-                }`}>
-                  {ordersList.filter(o => (o.packageDetails as any)?.isMeatByKg).length}
-                </span>
-              </button>
-
-              {/* 6. Delivery & Fleet Logistics */}
-              <button
-                type="button"
-                onClick={() => setActiveTab('delivery')}
-                className={`flex items-center justify-between gap-2.5 px-3.5 py-3 rounded-xl text-xs font-bold transition-all text-left whitespace-nowrap lg:whitespace-normal cursor-pointer ${
-                  activeTab === 'delivery'
-                    ? 'bg-[#C18A45] text-white shadow-sm font-extrabold'
-                    : isDark
-                    ? 'hover:bg-[#2A1A0D] text-[#D8C5A8]'
-                    : 'hover:bg-[#F1E8D8] text-[#746556]'
-                }`}
-              >
-                <div className="flex items-center gap-2.5">
-                  <Truck className={`w-4 h-4 shrink-0 ${activeTab === 'delivery' ? 'text-white' : 'text-[#C18A45]'}`} />
-                  <span>{isAmharic ? 'ማድረሻ እና መኪኖች' : 'Delivery & Fleet'}</span>
-                </div>
-                {ordersList.filter(o => o.isDelivery && (o.status === 'pending_verification' || o.status === 'delivery_pending')).length > 0 ? (
-                  <span className="px-2 py-0.5 rounded-md bg-amber-500 text-black text-[10px] font-black shrink-0 animate-pulse">
-                    {ordersList.filter(o => o.isDelivery && (o.status === 'pending_verification' || o.status === 'delivery_pending')).length} {isAmharic ? 'አዲስ' : 'new'}
-                  </span>
-                ) : (
-                  <span className={`px-2 py-0.5 rounded-md text-[10.5px] font-mono font-bold shrink-0 ${
-                    activeTab === 'delivery' ? 'bg-black/20 text-white' : 'bg-black/5 dark:bg-white/10 opacity-75'
-                  }`}>
-                    {ordersList.filter(o => o.isDelivery).length}
-                  </span>
-                )}
-              </button>
-
-              {/* 7. Demand & Metrics */}
-              <button
-                type="button"
-                onClick={() => setActiveTab('demand')}
-                className={`flex items-center justify-between gap-2.5 px-3.5 py-3 rounded-xl text-xs font-bold transition-all text-left whitespace-nowrap lg:whitespace-normal cursor-pointer ${
-                  activeTab === 'demand'
-                    ? 'bg-[#C18A45] text-white shadow-sm font-extrabold'
-                    : isDark
-                    ? 'hover:bg-[#2A1A0D] text-[#D8C5A8]'
-                    : 'hover:bg-[#F1E8D8] text-[#746556]'
-                }`}
-              >
-                <div className="flex items-center gap-2.5">
-                  <BarChart3 className={`w-4 h-4 shrink-0 ${activeTab === 'demand' ? 'text-white' : 'text-[#C18A45]'}`} />
-                  <span>{isAmharic ? 'ትንታኔ እና ገበያ' : 'Demand & Metrics'}</span>
-                </div>
-              </button>
-
-              {/* 8. Customer Inquiries */}
-              <button
-                type="button"
-                onClick={() => setActiveTab('messages')}
-                className={`flex items-center justify-between gap-2.5 px-3.5 py-3 rounded-xl text-xs font-bold transition-all text-left whitespace-nowrap lg:whitespace-normal cursor-pointer ${
-                  activeTab === 'messages'
-                    ? 'bg-[#C18A45] text-white shadow-sm font-extrabold'
-                    : isDark
-                    ? 'hover:bg-[#2A1A0D] text-[#D8C5A8]'
-                    : 'hover:bg-[#F1E8D8] text-[#746556]'
-                }`}
-              >
-                <div className="flex items-center gap-2.5">
-                  <MessageSquare className={`w-4 h-4 shrink-0 ${activeTab === 'messages' ? 'text-white' : 'text-[#C18A45]'}`} />
-                  <span>{isAmharic ? 'የደንበኞች መልዕክቶች' : 'Customer Inquiries'}</span>
-                </div>
-                {unreadMessagesCount > 0 ? (
-                  <span className="px-2 py-0.5 rounded-md bg-amber-500 text-black text-[10px] font-black animate-pulse shrink-0">
-                    {unreadMessagesCount} {isAmharic ? 'አዲስ' : 'new'}
-                  </span>
-                ) : (
-                  <span className={`px-2 py-0.5 rounded-md text-[10.5px] font-mono font-bold shrink-0 ${
-                    activeTab === 'messages' ? 'bg-black/20 text-white' : 'bg-black/5 dark:bg-white/10 opacity-75'
-                  }`}>
-                    {contactMessages.length}
-                  </span>
-                )}
-              </button>
-
+            <nav className="flex flex-col gap-1.5">
+              {navItems.map((item) => {
+                const Icon = item.icon;
+                const isActive = activeTab === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => setActiveTab(item.id)}
+                    className={`flex items-center justify-between gap-2.5 px-3.5 py-3 rounded-xl text-xs font-bold transition-all text-left cursor-pointer ${
+                      isActive
+                        ? 'bg-[#C18A45] text-white shadow-sm font-extrabold'
+                        : isDark
+                        ? 'hover:bg-[#2A1A0D] text-[#D8C5A8]'
+                        : 'hover:bg-[#F1E8D8] text-[#746556]'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-white' : 'text-[#C18A45]'}`} />
+                      <span className="truncate">{item.label}</span>
+                    </div>
+                    {item.badge && (
+                      <span
+                        className={`px-2 py-0.5 rounded-md text-[10px] font-bold shrink-0 ${
+                          item.badgeIsAlert
+                            ? 'bg-amber-500 text-black animate-pulse font-black'
+                            : isActive
+                            ? 'bg-black/20 text-white'
+                            : 'bg-black/5 dark:bg-white/10 opacity-75 font-mono'
+                        }`}
+                      >
+                        {item.badge}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
             </nav>
           </div>
         </aside>
@@ -2459,54 +2525,60 @@ export const Admin: React.FC = () => {
                                   </span>
                                 )}
 
-                                {/* 5. Sold / Completed - Provide Delivery Status Transitions */}
-                                {(order.status === 'completed' || order.status === 'verified') && (
-                                  <div className="flex items-center gap-1.5">
-                                    {order.deliveryLocation ? (
-                                      <>
-                                        <button
-                                          onClick={() => handleUpdateOrderStatus(order.id, 'delivery_pending')}
-                                          className="px-2.5 py-1 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 text-amber-400 font-bold text-[11px] border border-amber-500/30 transition-colors cursor-pointer"
-                                          title={isAmharic ? 'ትዕዛዙን ማድረስ የሚጠብቅ ያድርጉ' : 'Set order as Delivery Pending'}
-                                        >
-                                          {isAmharic ? 'ለመላክ አዘጋጅ' : 'Dispatch Delivery'}
-                                        </button>
-                                        <button
-                                          onClick={() => handleUpdateOrderStatus(order.id, 'delivered')}
-                                          className="px-2.5 py-1 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 font-bold text-[11px] border border-emerald-500/30 transition-colors cursor-pointer"
-                                          title={isAmharic ? 'ደርሷል ምልክት ያድርጉ' : 'Mark as Delivered'}
-                                        >
-                                          {isAmharic ? 'ደርሷል ✓' : 'Mark Delivered ✓'}
-                                        </button>
-                                      </>
-                                    ) : (
-                                      <span className="text-[11px] text-emerald-500 font-semibold">
-                                        ✓ {isAmharic ? 'ሙሉ የተከፈለ & የተሸጠ' : 'Fully Paid & Sold'}
-                                      </span>
+                                {/* 5. Delivery Flow Actions */}
+                                {order.isDelivery && (
+                                  <>
+                                    {order.status === 'verified' && (
+                                      <button
+                                        type="button"
+                                        onClick={() => handleApproveDelivery(order.id, 'delivery_pending')}
+                                        className="px-2.5 py-1 rounded-lg bg-amber-500 hover:bg-amber-600 text-black font-bold text-[11px] shadow transition-all flex items-center gap-1 cursor-pointer"
+                                        title={isAmharic ? 'ተሽከርካሪ ላክ (በጉዞ ላይ አድርግ)' : 'Dispatch delivery vehicle'}
+                                      >
+                                        <Truck className="w-3 h-3" />
+                                        <span>{isAmharic ? 'ላክ' : 'Dispatch'}</span>
+                                      </button>
                                     )}
-                                  </div>
+                                    {order.status === 'delivery_pending' && (
+                                      <button
+                                        type="button"
+                                        onClick={() => handleApproveDelivery(order.id, 'delivered')}
+                                        className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] shadow transition-all flex items-center gap-1 cursor-pointer"
+                                        title={isAmharic ? 'መድረሱን አረጋግጥ እና አጠናቅቅ' : 'Confirm delivered to customer door'}
+                                      >
+                                        <Check className="w-3 h-3" />
+                                        <span>{isAmharic ? 'ደርሷል (አጠናቅቅ)' : 'Delivered'}</span>
+                                      </button>
+                                    )}
+                                  </>
                                 )}
 
-                                {/* 6. Delivery Pending Actions */}
-                                {order.status === 'delivery_pending' && (
-                                  <div className="flex items-center gap-1.5">
-                                    <button
-                                      onClick={() => handleUpdateOrderStatus(order.id, 'delivered')}
-                                      className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow transition-colors flex items-center gap-1 cursor-pointer"
-                                      title={isAmharic ? 'ለደንበኛ መድረሱን ያረጋግጡ' : 'Confirm delivery to customer'}
-                                    >
-                                      <Check className="w-3.5 h-3.5" />
-                                      <span>{isAmharic ? 'ደርሷል በል' : 'Mark Delivered'}</span>
-                                    </button>
-                                  </div>
-                                )}
-
-                                {/* 7. Delivered Status */}
-                                {order.status === 'delivered' && (
-                                  <span className="text-[11px] text-emerald-400 font-bold inline-flex items-center gap-1">
-                                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                                    <span>{isAmharic ? 'ደርሷል & ተዘግቷል' : 'Delivered & Closed'}</span>
-                                  </span>
+                                {/* Farm Pickup Flow Actions */}
+                                {!order.isDelivery && (
+                                  <>
+                                    {order.status === 'verified' && (
+                                      <button
+                                        type="button"
+                                        onClick={() => handleUpdatePickupStatus(order.id, 'pickup_ready')}
+                                        className="px-2.5 py-1 rounded-lg bg-blue-500 hover:bg-blue-600 text-white font-bold text-[11px] shadow transition-all flex items-center gap-1 cursor-pointer"
+                                        title={isAmharic ? 'ለእርሻ ርክክብ ዝግጁ አድርግ' : 'Mark livestock ready for farm pickup'}
+                                      >
+                                        <Package className="w-3 h-3" />
+                                        <span>{isAmharic ? 'ለርክክብ ዝግጁ' : 'Ready'}</span>
+                                      </button>
+                                    )}
+                                    {order.status === 'pickup_ready' && (
+                                      <button
+                                        type="button"
+                                        onClick={() => handleUpdatePickupStatus(order.id, 'completed')}
+                                        className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] shadow transition-all flex items-center gap-1 cursor-pointer"
+                                        title={isAmharic ? 'ደንበኛ ከብቱን ተረክቧል፣ ግብይቱን አጠናቅቅ' : 'Customer picked up livestock, complete transaction'}
+                                      >
+                                        <Check className="w-3 h-3" />
+                                        <span>{isAmharic ? 'ተረክበዋል' : 'Picked Up'}</span>
+                                      </button>
+                                    )}
+                                  </>
                                 )}
                               </div>
                             </td>
@@ -3457,25 +3529,56 @@ export const Admin: React.FC = () => {
                                       <span>{isAmharic ? 'አጽድቅ' : 'Approve'}</span>
                                     </button>
                                   )}
-                                  {order.status === 'verified' && (
-                                    <button
-                                      type="button"
-                                      onClick={() => handleApproveDelivery(order.id, 'delivery_pending')}
-                                      className="px-2.5 py-1 rounded-lg bg-amber-500 hover:bg-amber-600 text-black font-bold text-[11px] shadow transition-all flex items-center gap-1 cursor-pointer"
-                                    >
-                                      <Truck className="w-3 h-3" />
-                                      <span>{isAmharic ? 'ላክ' : 'Dispatch'}</span>
-                                    </button>
-                                  )}
-                                  {order.status === 'delivery_pending' && (
-                                    <button
-                                      type="button"
-                                      onClick={() => handleApproveDelivery(order.id, 'delivered')}
-                                      className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] shadow transition-all flex items-center gap-1 cursor-pointer"
-                                    >
-                                      <Check className="w-3 h-3" />
-                                      <span>{isAmharic ? 'ደርሷል' : 'Delivered'}</span>
-                                    </button>
+                                  {order.isDelivery ? (
+                                    <>
+                                      {order.status === 'verified' && (
+                                        <button
+                                          type="button"
+                                          onClick={() => handleApproveDelivery(order.id, 'delivery_pending')}
+                                          className="px-2.5 py-1 rounded-lg bg-amber-500 hover:bg-amber-600 text-black font-bold text-[11px] shadow transition-all flex items-center gap-1 cursor-pointer"
+                                          title={isAmharic ? 'ተሽከርካሪ ላክ (በጉዞ ላይ አድርግ)' : 'Dispatch delivery'}
+                                        >
+                                          <Truck className="w-3 h-3" />
+                                          <span>{isAmharic ? 'ላክ' : 'Dispatch'}</span>
+                                        </button>
+                                      )}
+                                      {order.status === 'delivery_pending' && (
+                                        <button
+                                          type="button"
+                                          onClick={() => handleApproveDelivery(order.id, 'delivered')}
+                                          className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] shadow transition-all flex items-center gap-1 cursor-pointer"
+                                          title={isAmharic ? 'ደርሷል ምልክት አድርግ (አጠናቅቅ)' : 'Mark Delivered (Complete)'}
+                                        >
+                                          <Check className="w-3 h-3" />
+                                          <span>{isAmharic ? 'ደርሷል' : 'Delivered'}</span>
+                                        </button>
+                                      )}
+                                    </>
+                                  ) : (
+                                    <>
+                                      {order.status === 'verified' && (
+                                        <button
+                                          type="button"
+                                          onClick={() => handleUpdatePickupStatus(order.id, 'pickup_ready')}
+                                          className="px-2.5 py-1 rounded-lg bg-blue-500 hover:bg-blue-600 text-white font-bold text-[11px] shadow transition-all flex items-center gap-1 cursor-pointer"
+                                          title={isAmharic ? 'ለእርሻ ርክክብ ዝግጁ አድርግ' : 'Ready for Pickup'}
+                                        >
+                                          <Package className="w-3 h-3" />
+                                          <span>{isAmharic ? 'ለርክክብ ዝግጁ' : 'Ready'}</span>
+                                        </button>
+                                      )}
+                                      {order.status === 'pickup_ready' && (
+                                        <button
+                                          type="button"
+                                          onClick={() => handleUpdatePickupStatus(order.id, 'completed')}
+                                          className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] shadow transition-all flex items-center gap-1 cursor-pointer"
+                                          title={isAmharic ? 'ደንበኛ ተረክቧል፣ ግብይት አጠናቅቅ' : 'Customer Picked Up (Complete)'}
+                                        >
+                                          <Check className="w-3 h-3" />
+                                          <span>{isAmharic ? 'ተረክበዋል' : 'Picked Up'}</span>
+                                        </button>
+                                      )}
+                                    </>
                                   )}
                                   {order.paymentSlipUrl && (
                                     <button
@@ -3833,24 +3936,36 @@ export const Admin: React.FC = () => {
 
                               <td className="py-3 pl-2 text-right">
                                 <div className="inline-flex items-center justify-end gap-1.5">
-                                  {order.status !== 'delivery_pending' && order.status !== 'delivered' && (
+                                  {order.status === 'pending_verification' && (
+                                    <button
+                                      type="button"
+                                      onClick={() => handleVerifyOrder(order.id)}
+                                      className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] shadow transition-all flex items-center gap-1 cursor-pointer"
+                                      title={isAmharic ? 'ደረሰኝ አረጋግጥ' : 'Verify Slip'}
+                                    >
+                                      <Check className="w-3 h-3" />
+                                      <span>{isAmharic ? 'አረጋግጥ' : 'Verify'}</span>
+                                    </button>
+                                  )}
+
+                                  {order.status === 'verified' && (
                                     <button
                                       type="button"
                                       onClick={() => handleApproveDelivery(order.id, 'delivery_pending')}
                                       className="px-2.5 py-1 rounded-lg bg-amber-500 hover:bg-amber-600 text-black font-bold text-[11px] shadow transition-all flex items-center gap-1 cursor-pointer"
-                                      title={isAmharic ? 'አጽድቅ እና ለመላክ አዘጋጅ' : 'Approve and mark order as out for delivery'}
+                                      title={isAmharic ? 'አጽድቅ እና ለመላክ አዘጋጅ (በጉዞ ላይ)' : 'Approve and dispatch delivery'}
                                     >
                                       <Truck className="w-3 h-3" />
                                       <span>{isAmharic ? 'ላክ' : 'Dispatch'}</span>
                                     </button>
                                   )}
 
-                                  {order.status !== 'delivered' && (
+                                  {order.status === 'delivery_pending' && (
                                     <button
                                       type="button"
                                       onClick={() => handleApproveDelivery(order.id, 'delivered')}
                                       className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] shadow transition-all flex items-center gap-1 cursor-pointer"
-                                      title={isAmharic ? 'ለደንበኛ መድረሱን ያረጋግጡ' : 'Confirm delivery to customer door'}
+                                      title={isAmharic ? 'ለደንበኛ መድረሱን ያረጋግጡ እና አጠናቅቅ' : 'Confirm delivery to customer door & complete'}
                                     >
                                       <Check className="w-3 h-3" />
                                       <span>{isAmharic ? 'ደርሷል' : 'Delivered'}</span>
@@ -4672,6 +4787,10 @@ export const Admin: React.FC = () => {
           }}
           onApproveDelivery={async (id, status) => {
             await handleApproveDelivery(id, status);
+            setSelectedSlipOrder(null);
+          }}
+          onUpdatePickupStatus={async (id, status) => {
+            await handleUpdatePickupStatus(id, status);
             setSelectedSlipOrder(null);
           }}
           onReject={async (id) => {

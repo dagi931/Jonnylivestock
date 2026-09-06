@@ -2,6 +2,7 @@ import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
+import { Request, Response, NextFunction } from 'express';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -28,14 +29,64 @@ const fileFilter = (_req: any, file: Express.Multer.File, cb: multer.FileFilterC
   if (allowedMimeTypes.includes(file.mimetype)) {
     cb(null, true);
   } else {
-    cb(new Error('Only image files (JPEG, PNG, WEBP, GIF) and PDF are allowed'));
+    cb(new Error('Only image files (JPEG, PNG, WEBP, GIF) and PDF documents are allowed.'));
   }
 };
 
-export const uploadSlip = multer({
+/**
+ * 👤 USER UPLOAD LIMIT: 10 MB
+ * Generous for high-res smartphone camera receipt screenshots and PDFs,
+ * while protecting your VPS storage from disk abuse.
+ */
+export const uploadUserSlip = multer({
   storage,
   limits: {
-    fileSize: 50 * 1024 * 1024 // 50 MB limit
+    fileSize: 10 * 1024 * 1024 // 10 MB
   },
   fileFilter
 });
+
+/**
+ * 👑 ADMIN UPLOAD LIMIT: 200 MB (Practically Unlimited)
+ * Allows administrators to upload ultra high-res 4K livestock photos,
+ * promotional banners, and package media without restriction.
+ */
+export const uploadAdminMedia = multer({
+  storage,
+  limits: {
+    fileSize: 200 * 1024 * 1024 // 200 MB
+  },
+  fileFilter
+});
+
+// Backward compatibility alias for orders
+export const uploadSlip = uploadUserSlip;
+
+/**
+ * Multer Error Interceptor Middleware
+ * Converts technical multer error codes into polite, human-readable messages.
+ */
+export const handleUploadError = (err: any, _req: Request, res: Response, next: NextFunction): void => {
+  if (err instanceof multer.MulterError) {
+    if (err.code === 'LIMIT_FILE_SIZE') {
+      res.status(400).json({
+        success: false,
+        error: 'The uploaded file exceeds the 10MB size limit. Please upload a standard photo or screenshot.'
+      });
+      return;
+    }
+    res.status(400).json({
+      success: false,
+      error: `File upload error: ${err.message}`
+    });
+    return;
+  }
+  if (err) {
+    res.status(400).json({
+      success: false,
+      error: err.message || 'Invalid file uploaded.'
+    });
+    return;
+  }
+  next();
+};

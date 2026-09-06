@@ -51,6 +51,7 @@ export type OrderStatus =
   | 'reserved'
   | 'final_payment_pending'
   | 'verified'
+  | 'pickup_ready'
   | 'completed'
   | 'delivery_pending'
   | 'delivered'
@@ -96,6 +97,8 @@ export interface Order {
   deliveryLatitude?: number;
   deliveryLongitude?: number;
   vehicleType?: string;
+  vehicleName?: string;
+  distanceCategory?: string;
   deliveryFee?: number;
   distanceKm?: number;
   deliveryApprovedAt?: string;

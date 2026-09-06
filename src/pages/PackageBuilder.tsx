@@ -102,9 +102,21 @@ export const PackageBuilder: React.FC = () => {
     }
   };
 
+  // Cleanup touch card timer on unmount
+  useEffect(() => {
+    return () => {
+      if (touchCardTimerRef.current) clearTimeout(touchCardTimerRef.current);
+    };
+  }, []);
+
   const handleSaveToMyPackages = async () => {
     if (!isAuthenticated) {
-      openAuthModal('login');
+      openAuthModal(
+        'login',
+        isAmharic
+          ? 'ያዘጋጁትን ጥቅል ወደ መለያዎ ለማስቀመጥ እባክዎ መጀመሪያ ይግቡ።'
+          : 'Please sign in to save your custom package to your collection.'
+      );
       return;
     }
     if (!isEligible) return;
@@ -130,11 +142,12 @@ export const PackageBuilder: React.FC = () => {
 
   const handleOrderPreMade = (pkg: PreMadePackage) => {
     if (!isAuthenticated) {
+      const title = getPackageTitle(pkg, isAmharic);
       openAuthModal(
         'register',
         isAmharic
-          ? `የበዓል ጥቅል "${pkg.name}" ለማዘዝ እባክዎ መጀመሪያ ይመዝገቡ ወይም ይግቡ።`
-          : `To order celebration package "${pkg.name}", please create an account or sign in first.`
+          ? `የበዓል ጥቅል "${title}" ለማዘዝ እባክዎ መጀመሪያ ይመዝገቡ ወይም ይግቡ።`
+          : `To order celebration package "${title}", please create an account or sign in first.`
       );
       return;
     }
@@ -351,7 +364,7 @@ export const PackageBuilder: React.FC = () => {
                           <button
                             type="button"
                             onClick={() => setExpandedPreMadeId(isExpanded ? null : pkg.id)}
-                            className="w-full text-xs font-semibold flex items-center justify-between py-1 px-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 opacity-80 hover:opacity-100 transition-colors border border-black/5 dark:border-white/5 cursor-pointer"
+                            className="w-full text-xs font-semibold flex items-center justify-between py-1 text-amber-500 hover:text-amber-400 opacity-90 hover:opacity-100 transition-colors cursor-pointer"
                           >
                             <span>{isExpanded ? (isAmharic ? 'ዝርዝር አሳንስ' : 'Hide details') : (isAmharic ? 'የጥቅሉ ዝርዝር' : 'Show details')}</span>
                             <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />

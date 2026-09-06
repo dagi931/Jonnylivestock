@@ -1,6 +1,7 @@
 import { Animal, ContactMessage, ContactFormData } from '../types/animal';
 import { PackageCatalogItem, PreMadePackage, SavedPackage, Order } from '../types/package';
 import { PACKAGE_CATALOG, PRE_MADE_PACKAGES } from '../data/packagesData';
+import { sanitizeClientError } from '../utils/errorSanitizer';
 
 export type { Order, ContactMessage, ContactFormData };
 
@@ -450,6 +451,9 @@ class ApiService {
         body: formData
       });
       const result = await res.json();
+      if (!result.success && result.error) {
+        result.error = sanitizeClientError(result.error, 'Failed to submit order. Please check your details and try again.');
+      }
       if (result.success) {
         // Also update local slot state in case frontend is running on local fallback
         const isPackage = formData.get('isPackage') === 'true';
@@ -475,7 +479,7 @@ class ApiService {
       }
       return result;
     } catch (error: any) {
-      return { success: false, error: error.message || 'Failed to submit order' };
+      return { success: false, error: sanitizeClientError(error, 'Network error while submitting order. Please try again.') };
     }
   }
 
@@ -492,9 +496,13 @@ class ApiService {
         headers,
         body: formData
       });
-      return await res.json();
+      const result = await res.json();
+      if (!result.success && result.error) {
+        result.error = sanitizeClientError(result.error, 'Failed to submit final payment. Please try again.');
+      }
+      return result;
     } catch (error: any) {
-      return { success: false, error: error.message || 'Failed to submit final payment' };
+      return { success: false, error: sanitizeClientError(error, 'Network error while submitting final payment.') };
     }
   }
 
@@ -522,6 +530,20 @@ class ApiService {
       return json.data || [];
     } catch (error) {
       console.error('Error fetching reservations:', error);
+      return [];
+    }
+  }
+
+  async getDirectOrders(token?: string): Promise<Order[]> {
+    try {
+      const res = await fetch(`${API_BASE}/orders/direct-orders`, {
+        headers: this.getHeaders(token)
+      });
+      if (!res.ok) return [];
+      const json = await res.json();
+      return json.data || [];
+    } catch (error) {
+      console.error('Error fetching direct orders:', error);
       return [];
     }
   }
@@ -977,6 +999,24 @@ class ApiService {
       return await res.json();
     } catch (error: any) {
       return { success: false, error: error.message || 'Failed to approve delivery' };
+    }
+  }
+
+  async updatePickupStatus(
+    orderId: string,
+    status: 'pickup_ready' | 'completed' = 'pickup_ready',
+    adminNotes?: string,
+    token?: string
+  ): Promise<{ success: boolean; message?: string; order?: Order; error?: string }> {
+    try {
+      const res = await fetch(`${API_BASE}/orders/${orderId}/pickup-status`, {
+        method: 'POST',
+        headers: this.getHeaders(token),
+        body: JSON.stringify({ status, adminNotes })
+      });
+      return await res.json();
+    } catch (error: any) {
+      return { success: false, error: error.message || 'Failed to update pickup status' };
     }
   }
 

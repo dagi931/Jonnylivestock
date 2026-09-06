@@ -13,7 +13,8 @@ import {
   Maximize2,
   Minimize2,
   ZoomIn,
-  Eye
+  Eye,
+  Truck
 } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 import { useLanguage } from '../../context/LanguageContext';
@@ -31,6 +32,7 @@ interface SlipPreviewModalProps {
   onApproveFinal?: (id: string) => void;
   onApproveOrder?: (id: string) => void;
   onApproveDelivery?: (id: string, status?: 'delivery_pending' | 'delivered') => void;
+  onUpdatePickupStatus?: (id: string, status?: 'pickup_ready' | 'completed') => void;
   onReject?: (id: string) => void;
   isActionLoading?: boolean;
 }
@@ -46,6 +48,7 @@ export const SlipPreviewModal: React.FC<SlipPreviewModalProps> = ({
   onApproveFinal,
   onApproveOrder,
   onApproveDelivery,
+  onUpdatePickupStatus,
   onReject,
   isActionLoading = false
 }) => {
@@ -537,41 +540,85 @@ export const SlipPreviewModal: React.FC<SlipPreviewModalProps> = ({
             )}
 
             {/* 4. Delivery / Logistics Actions */}
-            {order?.isDelivery && onApproveDelivery && (order.status === 'verified' || order.status === 'completed' || order.status === 'delivery_pending') && (
+            {order?.isDelivery && onApproveDelivery && (order.status === 'verified' || order.status === 'delivery_pending') && (
               <div className="pt-2 border-t border-black/10 dark:border-white/10 flex items-center justify-between gap-2">
                 <span className="text-xs font-bold text-[#C18A45] flex items-center gap-1">
                   <MapPin className="w-4 h-4" />
                   <span>{isAmharic ? 'የትራንስፖርት እርምጃ:' : 'Logistics Action:'}</span>
                 </span>
                 <div className="flex items-center gap-2">
-                  {order.status !== 'delivery_pending' && (
+                  {order.status === 'verified' && (
                     <button
                       type="button"
                       disabled={isActionLoading}
                       onClick={() => onApproveDelivery(order.id, 'delivery_pending')}
                       className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-black font-bold text-xs shadow transition-all flex items-center gap-1 cursor-pointer"
                     >
-                      <span>{isAmharic ? 'አጽድቅ እና ለመላክ አዘጋጅ' : 'Approve & Dispatch Delivery'}</span>
+                      <Truck className="w-3.5 h-3.5" />
+                      <span>{isAmharic ? 'ተሽከርካሪ ላክ (በጉዞ ላይ)' : 'Approve & Dispatch Delivery'}</span>
                     </button>
                   )}
-                  <button
-                    type="button"
-                    disabled={isActionLoading}
-                    onClick={() => onApproveDelivery(order.id, 'delivered')}
-                    className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow transition-all flex items-center gap-1 cursor-pointer"
-                  >
-                    <Check className="w-3.5 h-3.5" />
-                    <span>{isAmharic ? 'ደርሷል ምልክት አድርግ ✓' : 'Mark Delivered ✓'}</span>
-                  </button>
+                  {order.status === 'delivery_pending' && (
+                    <button
+                      type="button"
+                      disabled={isActionLoading}
+                      onClick={() => onApproveDelivery(order.id, 'delivered')}
+                      className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow transition-all flex items-center gap-1 cursor-pointer"
+                    >
+                      <Check className="w-3.5 h-3.5" />
+                      <span>{isAmharic ? 'ደርሷል ምልክት አድርግ (አጠናቅቅ) ✓' : 'Mark Delivered (Complete) ✓'}</span>
+                    </button>
+                  )}
                 </div>
               </div>
             )}
 
-            {/* Confirmed States */}
-            {(order?.status === 'completed' || order?.status === 'verified') && !order.isDelivery && (
+            {/* 5. Farm Pickup Actions (No Delivery) */}
+            {order && !order.isDelivery && onUpdatePickupStatus && (order.status === 'verified' || order.status === 'pickup_ready') && (
+              <div className="pt-2 border-t border-black/10 dark:border-white/10 flex items-center justify-between gap-2">
+                <span className="text-xs font-bold text-[#C18A45] flex items-center gap-1">
+                  <MapPin className="w-4 h-4" />
+                  <span>{isAmharic ? 'የእርሻ ርክክብ እርምጃ:' : 'Farm Pickup Action:'}</span>
+                </span>
+                <div className="flex items-center gap-2">
+                  {order.status === 'verified' && (
+                    <button
+                      type="button"
+                      disabled={isActionLoading}
+                      onClick={() => onUpdatePickupStatus(order.id, 'pickup_ready')}
+                      className="px-3 py-1.5 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-bold text-xs shadow transition-all flex items-center gap-1 cursor-pointer"
+                    >
+                      <Package className="w-3.5 h-3.5" />
+                      <span>{isAmharic ? 'ለርክክብ አዘጋጅ' : 'Mark Ready for Pickup'}</span>
+                    </button>
+                  )}
+                  {order.status === 'pickup_ready' && (
+                    <button
+                      type="button"
+                      disabled={isActionLoading}
+                      onClick={() => onUpdatePickupStatus(order.id, 'completed')}
+                      className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow transition-all flex items-center gap-1 cursor-pointer"
+                    >
+                      <Check className="w-3.5 h-3.5" />
+                      <span>{isAmharic ? 'ተረክበዋል (ግብይት አጠናቅቅ) ✓' : 'Customer Picked Up (Complete) ✓'}</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Confirmed / Completed States */}
+            {order?.status === 'delivered' && (
               <div className="p-2.5 rounded-xl bg-emerald-500/15 text-emerald-400 text-xs font-bold text-center flex items-center justify-center gap-2">
                 <CheckCircle2 className="w-4 h-4" />
-                <span>{isAmharic ? 'ትዕዛዙ ሙሉ በሙሉ ተጠናቋል እና ከብቱ ተሽጧል' : 'Order Fully Settled & Livestock Marked as Sold'}</span>
+                <span>{isAmharic ? 'ትዕዛዙ ለደንበኛ ደርሷል እና ተጠናቋል' : 'Order Successfully Delivered to Customer Door & Completed'}</span>
+              </div>
+            )}
+
+            {order?.status === 'completed' && !order.isDelivery && (
+              <div className="p-2.5 rounded-xl bg-emerald-500/15 text-emerald-400 text-xs font-bold text-center flex items-center justify-center gap-2">
+                <CheckCircle2 className="w-4 h-4" />
+                <span>{isAmharic ? 'ደንበኛ በእርሻ ተረክቧል፣ ግብይቱ ተጠናቋል' : 'Customer Picked Up from Farm & Transaction Completed'}</span>
               </div>
             )}
 

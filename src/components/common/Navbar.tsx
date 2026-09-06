@@ -17,7 +17,8 @@ import {
   ShieldCheck,
   Bookmark,
   CreditCard,
-  Layers
+  Layers,
+  ShoppingBag
 } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 import { useLanguage } from '../../context/LanguageContext';
@@ -247,12 +248,12 @@ export const Navbar: React.FC = () => {
                       <>
                         {/* Customer Personal Links */}
                         <Link
-                          to="/my-reservations"
+                          to="/my-orders"
                           onClick={() => setUserDropdownOpen(false)}
                           className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs hover:bg-[#C18A45]/15 hover:text-[#C18A45] transition-colors"
                         >
-                          <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
-                          <span>{isAmharic ? 'የእኔ የተያዙት' : 'My Reservations (50%)'}</span>
+                          <ShoppingBag className="w-3.5 h-3.5 text-amber-500" />
+                          <span>{isAmharic ? 'ትዕዛዞች & ይዞታዎች' : 'My Orders & Reservations'}</span>
                         </Link>
 
                         <Link
@@ -324,114 +325,165 @@ export const Navbar: React.FC = () => {
         </div>
       </div>
 
-      {/* Mobile Drawer */}
-      {isOpen && (
-        <div
-          className={`lg:hidden border-b animate-in slide-in-from-top-2 duration-150 ${
-            isDark
-              ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0]'
-              : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#2A1A0D]'
-          }`}
-        >
-          <div className="px-4 pt-2 pb-5 space-y-1 max-w-7xl mx-auto">
-            {isAuthenticated && user && (
-              <div className="p-3 rounded-xl bg-black/5 dark:bg-white/5 mb-2 flex justify-between items-center">
-                <div>
-                  <div className="font-bold text-xs flex items-center gap-2">
-                    <span>{user.name}</span>
-                    {isAdminUser && (
-                      <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-500 text-black">
-                        ADMIN
-                      </span>
-                    )}
-                  </div>
-                  <div className="text-[10px] opacity-60">{user.email}</div>
+      {/* Mobile Backdrop Overlay */}
+      <div
+        className={`fixed inset-x-0 top-16 sm:top-18 bottom-0 bg-black/50 backdrop-blur-sm transition-opacity duration-300 lg:hidden z-40 ${
+          isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+        }`}
+        onClick={() => setIsOpen(false)}
+        aria-hidden="true"
+      />
+
+      {/* Mobile Drawer (Absolute overlay so page content below NEVER shifts down) */}
+      <div
+        className={`lg:hidden absolute top-full left-0 right-0 z-50 border-b transition-all duration-300 ease-out transform ${
+          isOpen
+            ? 'opacity-100 translate-y-0 pointer-events-auto'
+            : 'opacity-0 -translate-y-3 pointer-events-none'
+        } ${
+          isDark
+            ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0]'
+            : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#241A12]'
+        }`}
+        style={{
+          backgroundColor: isDark ? '#1B1208' : '#FAF7F0',
+          boxShadow: isDark
+            ? '0 20px 40px rgba(0, 0, 0, 0.65)'
+            : '0 20px 40px rgba(42, 26, 13, 0.16)'
+        }}
+      >
+        <div className="px-4 pt-3 pb-6 space-y-1.5 max-w-7xl mx-auto max-h-[calc(100dvh-4.5rem)] overflow-y-auto overscroll-contain">
+          {isAuthenticated && user && (
+            <div
+              className={`p-3.5 rounded-xl mb-2.5 flex justify-between items-center border ${
+                isDark
+                  ? 'bg-[#2A1A0D] border-[#4A2C16] text-[#F4E8D0]'
+                  : 'bg-[#F1E8D8] border-[#E4D4BC] text-[#241A12]'
+              }`}
+            >
+              <div>
+                <div className="font-bold text-xs flex items-center gap-2">
+                  <span className={isDark ? 'text-[#F4E8D0]' : 'text-[#241A12]'}>{user.name}</span>
+                  {isAdminUser && (
+                    <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-500 text-black">
+                      ADMIN
+                    </span>
+                  )}
                 </div>
-                <button
-                  type="button"
-                  onClick={handleFullLogout}
-                  className="p-1.5 rounded-lg text-red-400 hover:bg-red-500/10"
-                >
-                  <LogOut className="w-4 h-4" />
-                </button>
+                <div className={`text-[11px] font-medium mt-0.5 ${isDark ? 'text-[#D8C5A8]' : 'text-[#746556]'}`}>
+                  {user.email}
+                </div>
               </div>
-            )}
-
-            {/* Quick Links for User in Mobile */}
-            {isAuthenticated && (
-              <div className="grid grid-cols-2 gap-2 pb-2 mb-2 border-b border-black/10 dark:border-white/10">
-                {isAdminUser ? (
-                  <>
-                    <Link
-                      to="/admin?tab=orders&filter=active_reservation"
-                      onClick={() => setIsOpen(false)}
-                      className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-bold flex items-center gap-1.5 justify-center"
-                    >
-                      <ShieldCheck className="w-3.5 h-3.5" />
-                      <span>All Reservations</span>
-                    </Link>
-                    <Link
-                      to="/admin"
-                      onClick={() => setIsOpen(false)}
-                      className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-bold flex items-center gap-1.5 justify-center"
-                    >
-                      <BarChart3 className="w-3.5 h-3.5" />
-                      <span>Admin Center</span>
-                    </Link>
-                  </>
-                ) : (
-                  <>
-                    <Link
-                      to="/my-reservations"
-                      onClick={() => setIsOpen(false)}
-                      className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-bold flex items-center gap-1.5 justify-center"
-                    >
-                      <ShieldCheck className="w-3.5 h-3.5" />
-                      <span>My Reservations</span>
-                    </Link>
-                    <Link
-                      to="/my-packages"
-                      onClick={() => setIsOpen(false)}
-                      className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-bold flex items-center gap-1.5 justify-center"
-                    >
-                      <Bookmark className="w-3.5 h-3.5" />
-                      <span>My Packages</span>
-                    </Link>
-                  </>
-                )}
-              </div>
-            )}
-
-            {navLinks.map((link) => (
-              <NavLink
-                key={link.path}
-                to={link.path}
-                className={({ isActive }) =>
-                  `flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors ${
-                    isActive
-                      ? isDark
-                        ? 'bg-[#2A1A0D] text-[#E0B15A] font-semibold border border-[#4A2C16]'
-                        : 'bg-[#F1E8D8] text-[#B8792F] font-semibold border border-[#E4D4BC]'
-                      : isDark
-                        ? 'text-[#D8C5A8] hover:bg-[#2A1A0D]/50 hover:text-[#F4E8D0]'
-                        : 'text-[#746556] hover:bg-[#F1E8D8]/50 hover:text-[#2A1A0D]'
-                  }`
-                }
+              <button
+                type="button"
+                onClick={handleFullLogout}
+                className="p-2 rounded-lg text-red-500 hover:bg-red-500/10 transition-colors"
+                title="Log out"
               >
-                <div className="flex items-center gap-2">
-                  {link.isAdmin ? (
-                    <BarChart3 className="w-4 h-4 text-amber-500" />
-                  ) : link.isSpecial ? (
-                    <Gift className="w-4 h-4 text-amber-500" />
-                  ) : null}
-                  <span>{link.name}</span>
-                </div>
-                <ChevronRight className="w-4 h-4 opacity-50" />
-              </NavLink>
-            ))}
-          </div>
+                <LogOut className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+
+          {/* Quick Links for User in Mobile */}
+          {isAuthenticated && (
+            <div className={`grid grid-cols-2 gap-2 pb-2.5 mb-2.5 border-b ${isDark ? 'border-[#4A2C16]' : 'border-[#E4D4BC]'}`}>
+              {isAdminUser ? (
+                <>
+                  <Link
+                    to="/admin?tab=orders&filter=active_reservation"
+                    onClick={() => setIsOpen(false)}
+                    className="p-2.5 rounded-xl bg-emerald-500/15 border border-emerald-500/40 text-emerald-700 dark:text-emerald-400 text-xs font-bold flex items-center gap-1.5 justify-center shadow-xs"
+                  >
+                    <ShieldCheck className="w-3.5 h-3.5" />
+                    <span>All Reservations</span>
+                  </Link>
+                  <Link
+                    to="/admin"
+                    onClick={() => setIsOpen(false)}
+                    className="p-2.5 rounded-xl bg-amber-500/15 border border-amber-500/40 text-amber-700 dark:text-amber-400 text-xs font-bold flex items-center gap-1.5 justify-center shadow-xs"
+                  >
+                    <BarChart3 className="w-3.5 h-3.5" />
+                    <span>Admin Center</span>
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <Link
+                    to="/my-orders"
+                    onClick={() => setIsOpen(false)}
+                    className="p-2.5 rounded-xl bg-amber-500/15 border border-amber-500/40 text-amber-700 dark:text-amber-400 text-xs font-bold flex items-center gap-1.5 justify-center shadow-xs"
+                  >
+                    <ShoppingBag className="w-3.5 h-3.5" />
+                    <span>{isAmharic ? 'ትዕዛዞች & ይዞታዎች' : 'Orders & Reservations'}</span>
+                  </Link>
+                  <Link
+                    to="/my-packages"
+                    onClick={() => setIsOpen(false)}
+                    className="p-2.5 rounded-xl bg-amber-500/15 border border-amber-500/40 text-amber-700 dark:text-amber-400 text-xs font-bold flex items-center gap-1.5 justify-center shadow-xs"
+                  >
+                    <Bookmark className="w-3.5 h-3.5" />
+                    <span>My Packages</span>
+                  </Link>
+                </>
+              )}
+            </div>
+          )}
+
+          {!isAuthenticated && (
+            <div className={`pb-3 mb-2 border-b ${isDark ? 'border-[#4A2C16]' : 'border-[#E4D4BC]'}`}>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsOpen(false);
+                  openAuthModal('login');
+                }}
+                className={`w-full py-2.5 px-4 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-colors shadow-xs ${
+                  isDark
+                    ? 'bg-[#C58A3A] text-[#1B1208] hover:bg-[#E0B15A]'
+                    : 'bg-[#B8792F] text-white hover:bg-[#9E6523]'
+                }`}
+              >
+                <LogIn className="w-4 h-4" />
+                <span>{isAmharic ? 'ግባ / ተመዝገብ' : 'Sign In / Register'}</span>
+              </button>
+            </div>
+          )}
+
+          {navLinks.map((link) => (
+            <NavLink
+              key={link.path}
+              to={link.path}
+              onClick={() => setIsOpen(false)}
+              className={({ isActive }) =>
+                `flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-colors ${
+                  isActive
+                    ? isDark
+                      ? 'bg-[#2A1A0D] text-[#E0B15A] border border-[#4A2C16] shadow-xs'
+                      : 'bg-[#F1E8D8] text-[#B8792F] border border-[#E4D4BC] shadow-xs'
+                    : isDark
+                      ? 'text-[#F4E8D0] hover:bg-[#2A1A0D]/70 hover:text-[#E0B15A]'
+                      : 'text-[#241A12] hover:bg-[#F1E8D8] hover:text-[#B8792F]'
+                }`
+              }
+            >
+              <div className="flex items-center gap-2.5">
+                {link.isAdmin ? (
+                  <BarChart3 className="w-4 h-4 text-amber-600 dark:text-amber-500" />
+                ) : link.isSpecial ? (
+                  <Gift className="w-4 h-4 text-amber-600 dark:text-amber-500" />
+                ) : null}
+                <span>{link.name}</span>
+              </div>
+              <ChevronRight
+                className={`w-4 h-4 transition-transform ${
+                  isDark ? 'text-[#D8C5A8]/70' : 'text-[#746556]/80'
+                }`}
+              />
+            </NavLink>
+          ))}
         </div>
-      )}
+      </div>
     </header>
   );
 };

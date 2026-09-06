@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { Hero } from '../components/home/Hero';
 import { TrustSection } from '../components/home/TrustSection';
 import { CelebrationPackagesSection } from '../components/home/CelebrationPackagesSection';
@@ -10,15 +10,31 @@ import { CTASection } from '../components/home/CTASection';
 import { AnimalCard } from '../components/common/AnimalCard';
 import { AnimatedReveal } from '../components/common/AnimatedReveal';
 import { getFeaturedAnimals } from '../data/animals';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, CheckCircle2, X } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
 
 export const Home: React.FC = () => {
   const { theme } = useTheme();
   const { t, isAmharic } = useLanguage();
+  const location = useLocation();
   const isDark = theme === 'design7';
   const [expandedAnimalId, setExpandedAnimalId] = useState<string | null>(null);
+
+  const [showAccountNotice, setShowAccountNotice] = useState(() => {
+    return Boolean((location.state as any)?.accountCreated);
+  });
+  const newUserName = (location.state as any)?.userName;
+
+  useEffect(() => {
+    if ((location.state as any)?.accountCreated) {
+      setShowAccountNotice(true);
+      const timer = setTimeout(() => {
+        setShowAccountNotice(false);
+      }, 7000);
+      return () => clearTimeout(timer);
+    }
+  }, [location.state]);
 
   const featuredSheep = getFeaturedAnimals('sheep');
   const featuredGoats = getFeaturedAnimals('goat');
@@ -26,6 +42,37 @@ export const Home: React.FC = () => {
 
   return (
     <div className="min-h-screen">
+      {/* Account Creation Success Banner (Without emojis) */}
+      {showAccountNotice && (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+          <div className="p-4 rounded-2xl border bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-between gap-3 shadow-md animate-in fade-in slide-in-from-top-2">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-500 flex items-center justify-center shrink-0">
+                <CheckCircle2 className="w-5 h-5" />
+              </div>
+              <div className="min-w-0">
+                <h4 className="font-bold text-xs sm:text-sm">
+                  {isAmharic ? 'መለያዎ በተሳካ ሁኔታ ተፈጥሯል' : 'Account Created Successfully'}
+                </h4>
+                <p className="text-[11px] sm:text-xs opacity-90 mt-0.5 leading-relaxed truncate sm:whitespace-normal">
+                  {isAmharic
+                    ? `እንኳን ወደ ጆኒ ከብት እርባታ በደህና መጡ ${newUserName ? newUserName + ' ' : ''}! አሁን ከብቶችን እና የበዓል ጥቅሎችን በቀላሉ መያዝ እና ማዘዝ ይችላሉ።`
+                    : `Welcome to Jonny Livestock${newUserName ? ', ' + newUserName : ''}! Your account is now active. You can now reserve livestock and customize celebration packages.`}
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowAccountNotice(false)}
+              className="p-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 opacity-75 hover:opacity-100 transition-opacity cursor-pointer shrink-0"
+              aria-label="Close"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Hero Banner */}
       <Hero />
 
