@@ -57,7 +57,7 @@ import {
   Menu,
   Package
 } from 'lucide-react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { PreMadePackage, PackageCatalogItem } from '../types/package';
 
 type AdminTab = 'overview' | 'orders' | 'inventory' | 'packages' | 'raw_meat' | 'delivery' | 'demand' | 'messages' | 'settings';
@@ -80,11 +80,31 @@ const getAnimalFirstImage = (animal: Animal | null | undefined): string => {
 };
 
 export const Admin: React.FC = () => {
+  const navigate = useNavigate();
   const { isAuthenticated: isAdminAuth, user: adminUser, token: adminToken, login, logout } = useAdminAuth();
   const { isAuthenticated: isUserAuth, user: currentUser, logout: userLogout } = useUserAuth();
   const { theme } = useTheme();
   const isDark = theme === 'design7';
   const { isAmharic } = useLanguage();
+
+  // Flag to prevent admin login page flicker when signing out
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  const handleAdminLogout = () => {
+    setIsLoggingOut(true);
+    setIsMobileSidebarOpen(false);
+    localStorage.removeItem('jonny_admin_token');
+    localStorage.removeItem('jonny_admin_user');
+    localStorage.removeItem('jonny_user_token');
+    localStorage.removeItem('jonny_user_profile');
+    sessionStorage.clear();
+    // 1. Immediately switch route in memory to Home so Admin unmounts instantly
+    navigate('/', { replace: true });
+    // 2. Clear auth contexts & replace URL
+    logout();
+    userLogout();
+    window.location.replace('/');
+  };
 
   // Unified admin authentication state: Avoid prompting for password twice
   const isAuthenticated = Boolean(
@@ -1482,6 +1502,13 @@ export const Admin: React.FC = () => {
 
 
   // ==========================================
+  // VIEW 0: EXITING / SIGNING OUT (Direct to home, prevent login flash)
+  // ==========================================
+  if (isLoggingOut) {
+    return <div className={`min-h-screen ${isDark ? 'bg-[#1B1208]' : 'bg-[#FAF7F0]'}`} />;
+  }
+
+  // ==========================================
   // VIEW 1A: 403 FORBIDDEN (If logged in as customer)
   // ==========================================
   const isCustomerAccount = isUserAuth && currentUser && currentUser.role !== 'admin';
@@ -1502,19 +1529,10 @@ export const Admin: React.FC = () => {
           </p>
           <div className="pt-2 space-y-2">
             <button
-              onClick={() => {
-                localStorage.removeItem('jonny_user_token');
-                localStorage.removeItem('jonny_user_profile');
-                localStorage.removeItem('jonny_admin_token');
-                localStorage.removeItem('jonny_admin_user');
-                sessionStorage.clear();
-                userLogout();
-                logout();
-                window.location.href = '/';
-              }}
+              onClick={handleAdminLogout}
               className="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-black font-bold text-xs transition-all shadow-md cursor-pointer"
             >
-              Sign Out & Login as Administrator
+              Sign Out & Return Home
             </button>
             <Link
               to="/"
@@ -1730,17 +1748,7 @@ export const Admin: React.FC = () => {
               </div>
               <button
                 type="button"
-                onClick={() => {
-                  setIsMobileSidebarOpen(false);
-                  localStorage.removeItem('jonny_admin_token');
-                  localStorage.removeItem('jonny_admin_user');
-                  localStorage.removeItem('jonny_user_token');
-                  localStorage.removeItem('jonny_user_profile');
-                  sessionStorage.clear();
-                  logout();
-                  userLogout();
-                  window.location.href = '/';
-                }}
+                onClick={handleAdminLogout}
                 className="w-full py-2.5 px-3 rounded-xl bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 transition-colors text-xs font-bold flex items-center justify-center gap-2 cursor-pointer"
               >
                 <LogOut className="w-3.5 h-3.5" />
@@ -1984,18 +1992,9 @@ export const Admin: React.FC = () => {
 
             {/* Logout */}
             <button
-              onClick={() => {
-                localStorage.removeItem('jonny_admin_token');
-                localStorage.removeItem('jonny_admin_user');
-                localStorage.removeItem('jonny_user_token');
-                localStorage.removeItem('jonny_user_profile');
-                sessionStorage.clear();
-                logout();
-                userLogout();
-                window.location.href = '/';
-              }}
+              onClick={handleAdminLogout}
               className="p-2 rounded-xl bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 transition-colors cursor-pointer"
-              title="Sign Out"
+              title={isAmharic ? 'ውጣ' : 'Sign Out'}
             >
               <LogOut className="w-4 h-4" />
             </button>

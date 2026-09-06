@@ -57,7 +57,7 @@ export const Navbar: React.FC = () => {
     sessionStorage.clear();
     userLogout();
     adminLogout();
-    window.location.href = '/';
+    window.location.replace('/');
   };
 
   const isAdminUser = isAuthenticated && user?.role === 'admin';

@@ -157,7 +157,7 @@ export const UserAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     localStorage.removeItem('jonny_admin_user');
     sessionStorage.clear();
     window.dispatchEvent(new Event('auth_change'));
-    window.location.href = '/';
+    window.location.replace('/');
   };
 
   const openAuthModal = (mode: 'login' | 'register' | 'forgot_password' = 'login', message?: string) => {

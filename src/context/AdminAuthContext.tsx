@@ -174,8 +174,8 @@ export const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     localStorage.removeItem('jonny_user_token');
     localStorage.removeItem('jonny_user_profile');
     sessionStorage.clear();
-    // Redirect to home and reload a brand new clean page
-    window.location.href = '/';
+    // Redirect directly to home and replace URL in history
+    window.location.replace('/');
   };
 
   return (
