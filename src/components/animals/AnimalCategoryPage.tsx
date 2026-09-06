@@ -48,7 +48,7 @@ export const AnimalCategoryPage: React.FC<AnimalCategoryPageProps> = ({
   const { t, isAmharic } = useLanguage();
   const isDark = theme === 'design7';
 
-  const { animals: allAnimals, breeds: availableBreeds } = useAnimals(type);
+  const { animals: allAnimals, breeds: availableBreeds, isLoading } = useAnimals(type);
 
   const {
     filters,
@@ -131,6 +131,7 @@ export const AnimalCategoryPage: React.FC<AnimalCategoryPageProps> = ({
             {/* Responsive Grid */}
             <AnimalGrid
               animals={filteredAnimals}
+              isLoading={isLoading}
               onResetFilters={resetFilters}
               emptyTitle={isAmharic ? emptyTitle.am : emptyTitle.en}
               emptySubtitle={isAmharic ? emptySubtitle.am : emptySubtitle.en}

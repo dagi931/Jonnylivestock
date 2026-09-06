@@ -50,16 +50,27 @@ export const AnimalDetails: React.FC = () => {
   const [isInquiryOpen, setIsInquiryOpen] = useState(false);
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
   const [animalData, setAnimalData] = useState<Animal | undefined>(id ? getAnimalById(id) : undefined);
+  const [isLoading, setIsLoading] = useState<boolean>(!id || !getAnimalById(id));
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
     if (id) {
+      setIsLoading(true);
       // Fetch live animal from backend
-      api.getAnimalById(id).then((fetched) => {
-        if (fetched) {
-          setAnimalData(fetched);
-        }
-      });
+      api.getAnimalById(id)
+        .then((fetched) => {
+          if (fetched) {
+            setAnimalData(fetched);
+          }
+        })
+        .catch((err) => {
+          console.warn('Could not fetch animal from API:', err);
+        })
+        .finally(() => {
+          setIsLoading(false);
+        });
+    } else {
+      setIsLoading(false);
     }
   }, [id]);
 
@@ -87,6 +98,21 @@ export const AnimalDetails: React.FC = () => {
   });
 
   const animal = animalData || (id ? getAnimalById(id) : undefined);
+
+  // Loading indicator while animal data is being fetched from database
+  if (isLoading && !animal) {
+    return (
+      <div className="min-h-[70vh] flex flex-col items-center justify-center px-4 py-20 text-center animate-in fade-in duration-200">
+        <div className="w-10 h-10 rounded-full border-3 border-amber-500 border-t-transparent animate-spin mb-4" />
+        <h2 className="font-serif font-bold text-xl mb-1 text-amber-500">
+          {isAmharic ? 'የእንስሳት መረጃ ከዳታቤዝ በመጫን ላይ...' : 'Loading animal details from database...'}
+        </h2>
+        <p className="text-xs opacity-70">
+          {isAmharic ? 'እባክዎ ትንሽ ይጠብቁ...' : 'Please wait a moment while we retrieve the latest livestock status.'}
+        </p>
+      </div>
+    );
+  }
 
   // Invalid Animal Handling
   if (!animal) {

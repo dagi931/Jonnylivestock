@@ -274,8 +274,11 @@ export const PackageBuilder: React.FC = () => {
       {/* Main Content Area */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
         {loading ? (
-          <div className="text-center py-20 opacity-60">
-            {isAmharic ? 'የበዓል ጥቅሎችን በመጫን ላይ...' : 'Loading celebration packages...'}
+          <div className="text-center py-20 opacity-80 animate-in fade-in duration-200">
+            <div className="w-8 h-8 rounded-full border-2 border-amber-500 border-t-transparent animate-spin mx-auto mb-3" />
+            <p className="text-xs font-semibold text-amber-500">
+              {isAmharic ? 'የበዓል ጥቅሎችን ከዳታቤዝ በመጫን ላይ...' : 'Loading celebration packages from database...'}
+            </p>
           </div>
         ) : activeTab === 'premade' ? (
           /* ==================== PRE-MADE PACKAGES VIEW ==================== */

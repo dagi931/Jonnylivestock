@@ -153,7 +153,7 @@ export const Admin: React.FC = () => {
   const [unreadNotifsCount, setUnreadNotifsCount] = useState<number>(0);
   const [isNotifDropdownOpen, setIsNotifDropdownOpen] = useState(false);
   const notifDropdownRef = useRef<HTMLDivElement>(null);
-  const [isLoadingData, setIsLoadingData] = useState(false);
+  const [isLoadingData, setIsLoadingData] = useState(true);
 
   // Slip Inspector State
   const [selectedSlipOrder, setSelectedSlipOrder] = useState<Order | null>(null);
@@ -2085,6 +2085,17 @@ export const Admin: React.FC = () => {
         {/* TAB 1: OVERVIEW & METRICS */}
         {/* ============================================================ */}
         {activeTab === 'overview' && (
+          isLoadingData && ordersList.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-28 text-center animate-in fade-in duration-200">
+              <div className="w-10 h-10 rounded-full border-3 border-amber-500 border-t-transparent animate-spin mb-4" />
+              <h3 className="font-serif font-bold text-lg text-amber-500 mb-1">
+                {isAmharic ? 'የአስተዳዳሪ መረጃ ከዳታቤዝ በመጫን ላይ...' : 'Loading administration data from database...'}
+              </h3>
+              <p className="text-xs opacity-60">
+                {isAmharic ? 'እባክዎ ትንሽ ይጠብቁ...' : 'Connecting and retrieving latest metrics...'}
+              </p>
+            </div>
+          ) : (
           <div className="space-y-6 animate-in fade-in-50 duration-150">
             {/* KPI Cards Grid with Consistent Unified Icons */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -2193,6 +2204,7 @@ export const Admin: React.FC = () => {
               </div>
             )}
           </div>
+          )
         )}
 
         {/* ============================================================ */}
@@ -2264,7 +2276,18 @@ export const Admin: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y" style={{ borderColor: isDark ? '#4A2C16' : '#E4D4BC' }}>
-                    {filteredOrders.length === 0 ? (
+                    {isLoadingData ? (
+                      <tr>
+                        <td colSpan={7} className="text-center py-12">
+                          <div className="flex flex-col items-center justify-center gap-2 animate-in fade-in duration-200">
+                            <div className="w-8 h-8 rounded-full border-2 border-amber-500 border-t-transparent animate-spin" />
+                            <span className="text-xs font-semibold text-amber-500">
+                              {isAmharic ? 'ትዕዛዞች ከዳታቤዝ በመጫን ላይ...' : 'Loading orders from database...'}
+                            </span>
+                          </div>
+                        </td>
+                      </tr>
+                    ) : filteredOrders.length === 0 ? (
                       <tr>
                         <td colSpan={7} className="text-center py-8 opacity-60">
                           {isAmharic ? 'ማጣሪያውን የሚያሟላ ትዕዛዝ አልተገኘም' : 'No orders found matching filter'}
@@ -2680,7 +2703,25 @@ export const Admin: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y" style={{ borderColor: isDark ? '#4A2C16' : '#E4D4BC' }}>
-                    {filteredAnimals.map((animal) => (
+                    {isLoadingData ? (
+                      <tr>
+                        <td colSpan={8} className="text-center py-12">
+                          <div className="flex flex-col items-center justify-center gap-2 animate-in fade-in duration-200">
+                            <div className="w-8 h-8 rounded-full border-2 border-amber-500 border-t-transparent animate-spin" />
+                            <span className="text-xs font-semibold text-amber-500">
+                              {isAmharic ? 'የከብቶች መረጃ ከዳታቤዝ በመጫን ላይ...' : 'Loading livestock inventory from database...'}
+                            </span>
+                          </div>
+                        </td>
+                      </tr>
+                    ) : filteredAnimals.length === 0 ? (
+                      <tr>
+                        <td colSpan={8} className="text-center py-8 opacity-60">
+                          {isAmharic ? 'ምንም ከብት አልተገኘም' : 'No livestock found matching filter'}
+                        </td>
+                      </tr>
+                    ) : (
+                      filteredAnimals.map((animal) => (
                       <tr key={animal.id} className={`hover:bg-black/10 transition-colors ${isDark ? 'text-[#F4E8D0]' : 'text-[#2A1A0D]'}`}>
                         <td className="py-3 px-3.5 font-mono font-bold">
                           <Link to={`/animals/${animal.id}`} className="hover:underline inline-flex items-center gap-1">
@@ -2774,7 +2815,8 @@ export const Admin: React.FC = () => {
                           </div>
                         </td>
                       </tr>
-                    ))}
+                    ))
+                  )}
                   </tbody>
                 </table>
               </div>
@@ -2814,8 +2856,16 @@ export const Admin: React.FC = () => {
               </button>
             </div>
 
-            {/* Packages Grid */}
-            {packagesList.length === 0 ? (
+            {isLoadingData && packagesList.length === 0 ? (
+              <div className={`p-14 text-center rounded-3xl border animate-in fade-in duration-200 ${
+                isDark ? 'bg-[#24170D] border-[#4A2C16]' : 'bg-white border-[#E4D4BC]'
+              }`}>
+                <div className="w-8 h-8 rounded-full border-2 border-amber-500 border-t-transparent animate-spin mx-auto mb-3" />
+                <p className="font-semibold text-sm text-amber-500">
+                  {isAmharic ? 'የበዓል ጥቅሎች ከዳታቤዝ በመጫን ላይ...' : 'Loading celebration packages from database...'}
+                </p>
+              </div>
+            ) : packagesList.length === 0 ? (
               <div className={`p-12 text-center rounded-3xl border ${
                 isDark ? 'bg-[#24170D] border-[#4A2C16]' : 'bg-white border-[#E4D4BC]'
               }`}>
@@ -3842,8 +3892,19 @@ export const Admin: React.FC = () => {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-black/5 dark:divide-white/5">
-                        {ordersList
-                          .filter((o) => {
+                        {isLoadingData ? (
+                          <tr>
+                            <td colSpan={7} className="text-center py-12">
+                              <div className="flex flex-col items-center justify-center gap-2 animate-in fade-in duration-200">
+                                <div className="w-8 h-8 rounded-full border-2 border-amber-500 border-t-transparent animate-spin" />
+                                <span className="text-xs font-semibold text-amber-500">
+                                  {isAmharic ? 'የማድረሻ ትዕዛዞች ከዳታቤዝ በመጫን ላይ...' : 'Loading delivery orders from database...'}
+                                </span>
+                              </div>
+                            </td>
+                          </tr>
+                        ) : (() => {
+                          const deliveryOrdersList = ordersList.filter((o) => {
                             const hasDelivery = Boolean(
                               o.isDelivery ||
                                 o.deliveryAddress ||
@@ -3859,8 +3920,19 @@ export const Admin: React.FC = () => {
                               return o.status === 'delivered';
                             }
                             return true;
-                          })
-                          .map((order) => (
+                          });
+
+                          if (deliveryOrdersList.length === 0) {
+                            return (
+                              <tr>
+                                <td colSpan={7} className="text-center py-8 opacity-60">
+                                  {isAmharic ? 'ምንም የማድረሻ ትዕዛዝ አልተገኘም' : 'No delivery orders found matching filter'}
+                                </td>
+                              </tr>
+                            );
+                          }
+
+                          return deliveryOrdersList.map((order) => (
                             <tr key={order.id} className="hover:bg-black/[0.02] dark:hover:bg-white/[0.02]">
                               <td className="py-3 pr-2">
                                 <div className="font-mono font-bold text-xs text-[#C18A45]">#{order.id}</div>
@@ -3984,7 +4056,8 @@ export const Admin: React.FC = () => {
                                 </div>
                               </td>
                             </tr>
-                          ))}
+                          ));
+                        })()}
                       </tbody>
                     </table>
                   </div>
@@ -4614,6 +4687,19 @@ export const Admin: React.FC = () => {
 
             {/* Messages List */}
             {(() => {
+              if (isLoadingData && contactMessages.length === 0) {
+                return (
+                  <div className={`text-center py-16 rounded-2xl border animate-in fade-in duration-200 ${
+                    isDark ? 'bg-[#2A1A0D]/40 border-[#4A2C16]' : 'bg-[#F1E8D8]/40 border-[#E4D4BC]'
+                  }`}>
+                    <div className="w-8 h-8 rounded-full border-2 border-amber-500 border-t-transparent animate-spin mx-auto mb-3" />
+                    <p className="font-semibold text-sm text-amber-500">
+                      {isAmharic ? 'መልዕክቶች ከዳታቤዝ በመጫን ላይ...' : 'Loading customer inquiries from database...'}
+                    </p>
+                  </div>
+                );
+              }
+
               const filtered = contactMessages.filter((m) => {
                 if (messageFilter === 'unread' && m.read) return false;
                 if (messageFilter === 'read' && !m.read) return false;

@@ -30,6 +30,7 @@ export const CelebrationPackagesSection: React.FC = () => {
   const isDark = theme === 'design7';
 
   const [packages, setPackages] = useState<PreMadePackage[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [selectedPackage, setSelectedPackage] = useState<PreMadePackage | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [expandedPkgId, setExpandedPkgId] = useState<string | null>(null);
@@ -51,6 +52,8 @@ export const CelebrationPackagesSection: React.FC = () => {
         setPackages(data.preMadePackages || []);
       } catch (e) {
         console.error('Failed to load packages in home:', e);
+      } finally {
+        setIsLoading(false);
       }
     };
     loadPackages();
@@ -159,8 +162,16 @@ export const CelebrationPackagesSection: React.FC = () => {
         </AnimatedReveal>
 
         {/* Packages Cards Grid: 2 Cards per Row on Mobile (grid-cols-2), Compact with Show Details */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-5 items-start">
-          {packages.slice(0, 4).map((pkg, idx) => {
+        {isLoading && packages.length === 0 ? (
+          <div className="py-16 text-center animate-in fade-in duration-200">
+            <div className="w-8 h-8 rounded-full border-2 border-amber-500 border-t-transparent animate-spin mx-auto mb-3" />
+            <p className="text-xs font-semibold text-amber-500">
+              {isAmharic ? 'የበዓል ጥቅሎችን ከዳታቤዝ በመጫን ላይ...' : 'Loading celebration packages from database...'}
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-5 items-start">
+            {packages.slice(0, 4).map((pkg, idx) => {
             const isExpanded = expandedPkgId === pkg.id;
             return (
               <AnimatedReveal key={pkg.id} direction="up" delay={100 + idx * 75} className="self-start h-fit w-full">
@@ -308,6 +319,7 @@ export const CelebrationPackagesSection: React.FC = () => {
             );
           })}
         </div>
+        )}
 
         {/* Bottom Call to Action: "Prefer to build your own celebration hamper?" */}
         <AnimatedReveal direction="up" delay={150}>

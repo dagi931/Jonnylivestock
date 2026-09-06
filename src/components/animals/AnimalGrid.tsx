@@ -4,6 +4,7 @@ import { AnimalCard } from '../common/AnimalCard';
 import { SkeletonCard } from '../common/SkeletonCard';
 import { SearchX, RotateCcw } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
+import { useLanguage } from '../../context/LanguageContext';
 
 interface AnimalGridProps {
   animals: Animal[];
@@ -21,15 +22,24 @@ export const AnimalGrid: React.FC<AnimalGridProps> = ({
   emptySubtitle = "Try adjusting or clearing your filters to see available animals."
 }) => {
   const { theme } = useTheme();
+  const { isAmharic } = useLanguage();
   const isDark = theme === 'design7';
   const [expandedAnimalId, setExpandedAnimalId] = useState<string | null>(null);
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-5">
-        {[1, 2, 3, 4, 5, 6].map((n) => (
-          <SkeletonCard key={n} />
-        ))}
+      <div className="space-y-6">
+        <div className="flex flex-col items-center justify-center py-8 text-center animate-in fade-in duration-200">
+          <div className="w-8 h-8 rounded-full border-2 border-amber-500 border-t-transparent animate-spin mb-2.5" />
+          <p className="text-xs font-semibold text-amber-500">
+            {isAmharic ? 'ከብቶች ከዳታቤዝ በመጫን ላይ...' : 'Loading livestock from database...'}
+          </p>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-5">
+          {[1, 2, 3, 4, 5, 6].map((n) => (
+            <SkeletonCard key={n} />
+          ))}
+        </div>
       </div>
     );
   }
