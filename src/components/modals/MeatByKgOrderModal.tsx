@@ -474,27 +474,35 @@ export const MeatByKgOrderModal: React.FC<MeatByKgOrderModalProps> = ({
                         onClick={() => setSelectedCut(cut.id)}
                         className={`p-3 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
                           isSelected
-                            ? 'bg-amber-500/15 border-amber-500 text-amber-400 shadow-xs'
+                            ? 'bg-amber-500/20 border-amber-500 text-black shadow-xs ring-1 ring-amber-500/50'
                             : isDark
-                            ? 'bg-black/20 border-[#4A2C16] hover:border-amber-500/50'
-                            : 'bg-[#FAF7F0] border-[#E4D4BC] hover:border-amber-500/50'
+                            ? 'bg-black/20 border-[#4A2C16] text-[#F4E8D0] hover:border-amber-500/50'
+                            : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#2A1A0D] hover:border-amber-500/50'
                         }`}
                       >
                         <div>
                           <div className="flex items-center justify-between mb-1">
-                            <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-black/20 text-amber-500">
+                            <span
+                              className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
+                                isSelected
+                                  ? 'bg-black/10 text-black font-extrabold border border-black/20'
+                                  : 'bg-black/20 text-amber-500'
+                              }`}
+                            >
                               {cut.badge}
                             </span>
-                            {isSelected && <Check className="w-3.5 h-3.5 text-amber-500" />}
+                            {isSelected && <Check className="w-3.5 h-3.5 text-black stroke-[3]" />}
                           </div>
-                          <div className="font-serif font-bold text-xs sm:text-sm">{cut.title}</div>
-                          <p className="text-[10.5px] opacity-75 mt-1 line-clamp-2 leading-relaxed">
+                          <div className={`font-serif font-bold text-xs sm:text-sm ${isSelected ? 'text-black font-extrabold' : ''}`}>
+                            {cut.title}
+                          </div>
+                          <p className={`text-[10.5px] mt-1 line-clamp-2 leading-relaxed ${isSelected ? 'text-black/85 font-medium' : 'opacity-75'}`}>
                             {cut.desc}
                           </p>
                         </div>
-                        <div className="mt-2.5 pt-2 border-t border-black/10 dark:border-white/10 flex items-baseline justify-between">
-                          <span className="text-[10px] opacity-60">Price per KG:</span>
-                          <span className="font-mono font-bold text-xs text-[#C18A45]">
+                        <div className={`mt-2.5 pt-2 border-t flex items-baseline justify-between ${isSelected ? 'border-black/15' : 'border-black/10 dark:border-white/10'}`}>
+                          <span className={`text-[10px] ${isSelected ? 'text-black/75 font-semibold' : 'opacity-60'}`}>Price per KG:</span>
+                          <span className={`font-mono font-bold text-xs ${isSelected ? 'text-black font-black' : 'text-[#C18A45]'}`}>
                             {formatPrice(cut.price)}
                           </span>
                         </div>
@@ -626,8 +634,8 @@ export const MeatByKgOrderModal: React.FC<MeatByKgOrderModalProps> = ({
                 }`}
               >
                 <div className="space-y-0.5 text-xs">
-                  <div className="font-bold flex items-center gap-1.5 text-[#C18A45]">
-                    <Sparkles className="w-3.5 h-3.5" />
+                  <div className="font-bold flex items-center gap-1.5 text-black">
+                    <Sparkles className="w-3.5 h-3.5 text-amber-600" />
                     <span>
                       {currentCut.title} — {kg} KG
                     </span>
