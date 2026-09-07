@@ -373,26 +373,29 @@ export const MeatByKgPromoSection: React.FC = () => {
           </div>
         </AnimatedReveal>
 
-        {/* Bottom Guarantees: Open Row, Zero Boxes */}
+        {/* Bottom Guarantees: Displayed in One Single Row */}
         <AnimatedReveal direction="up" delay={200}>
-          <div className="pt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="pt-4 grid grid-cols-4 gap-2 sm:gap-4 md:gap-6">
             {benefits.map((b, idx) => {
               const Icon = b.icon;
               return (
-                <div key={idx} className="flex items-start gap-3.5">
-                  <div className="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center shrink-0 border border-amber-500/20">
-                    <Icon className="w-4 h-4" />
+                <div
+                  key={idx}
+                  className="flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-1.5 sm:gap-3.5 min-w-0"
+                >
+                  <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center shrink-0 border border-amber-500/20">
+                    <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   </div>
-                  <div>
+                  <div className="min-w-0 flex-1">
                     <h5
-                      className={`font-bold text-xs sm:text-sm ${
+                      className={`font-bold text-[10.5px] sm:text-xs md:text-sm leading-tight ${
                         isDark ? 'text-[#F4E8D0]' : 'text-[#241A12]'
                       }`}
                     >
                       {isAmharic ? b.amharicTitle : b.title}
                     </h5>
                     <p
-                      className={`text-xs opacity-75 mt-1 leading-snug ${
+                      className={`text-[9.5px] sm:text-[11px] md:text-xs opacity-75 mt-0.5 sm:mt-1 leading-snug ${
                         isDark ? 'text-[#D8C5A8]/80' : 'text-[#746556]'
                       }`}
                     >
