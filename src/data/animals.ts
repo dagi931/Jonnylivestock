@@ -430,3 +430,13 @@ export const getBreeds = (type?: AnimalType): string[] => {
   return Array.from(new Set(animals.map(a => a.breed)));
 };
 
+export const updateMockAnimalStatus = (id: string, status: Animal['status']): void => {
+  const item = mockAnimals.find(a => a.id.toLowerCase() === id.toLowerCase());
+  if (item) {
+    item.status = status;
+    if (status === 'sold') {
+      item.quantity = 0;
+    }
+  }
+};
+

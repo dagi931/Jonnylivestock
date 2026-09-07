@@ -795,11 +795,64 @@ export class PostgresDB {
       });
 
       if (existingAnimal) {
-        if (existingAnimal.quantity <= 1) {
+        const currentQty = existingAnimal.quantity ?? 1;
+
+        if (isReservation) {
+          // 50% reservation deposit: lock item as 'reserved'
+          if (currentQty <= 1) {
+            const res = await prisma.animal.update({
+              where: { id: existingAnimal.id },
+              data: { status: 'reserved' }
+            });
+            updatedAnimal = {
+              ...res,
+              type: res.type as Animal['type'],
+              gender: res.gender as Animal['gender'],
+              status: res.status as Animal['status'],
+              video: res.video || undefined,
+              createdAt: res.createdAt.toISOString()
+            };
+          } else {
+            updatedAnimal = {
+              ...existingAnimal,
+              type: existingAnimal.type as Animal['type'],
+              gender: existingAnimal.gender as Animal['gender'],
+              status: existingAnimal.status as Animal['status'],
+              video: existingAnimal.video || undefined,
+              createdAt: existingAnimal.createdAt.toISOString()
+            };
+          }
+        } else {
+          // Direct 100% full purchase: immediately mark animal as SOLD!
+          const newQty = Math.max(0, currentQty - 1);
+          const newStatus = newQty === 0 ? 'sold' : existingAnimal.status;
+
           const res = await prisma.animal.update({
             where: { id: existingAnimal.id },
-            data: { status: 'reserved' }
+            data: {
+              quantity: newQty,
+              status: newStatus
+            }
           });
+
+          if (newQty === 0) {
+            try {
+              await prisma.adminNotification.create({
+                data: {
+                  id: `NOTIF-${Date.now().toString().slice(-6)}`,
+                  type: 'OUT_OF_STOCK',
+                  title: '🏷️ Animal Sold',
+                  message: `Animal "${existingAnimal.breed}" (${existingAnimal.id}) was purchased and is now marked as SOLD!`,
+                  orderId: createdOrder.id,
+                  read: false,
+                  createdAt: new Date()
+                }
+              });
+            } catch (notifErr) {
+              console.warn('Could not create admin sold notification:', notifErr);
+            }
+          }
+
           updatedAnimal = {
             ...res,
             type: res.type as Animal['type'],
@@ -807,15 +860,6 @@ export class PostgresDB {
             status: res.status as Animal['status'],
             video: res.video || undefined,
             createdAt: res.createdAt.toISOString()
-          };
-        } else {
-          updatedAnimal = {
-            ...existingAnimal,
-            type: existingAnimal.type as Animal['type'],
-            gender: existingAnimal.gender as Animal['gender'],
-            status: existingAnimal.status as Animal['status'],
-            video: existingAnimal.video || undefined,
-            createdAt: existingAnimal.createdAt.toISOString()
           };
         }
       }

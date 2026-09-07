@@ -188,7 +188,7 @@ export const AnimalDetails: React.FC = () => {
     .filter((a) => a.type === animal.type && a.id !== animal.id)
     .slice(0, 3);
 
-  const isSold = animal.status === 'sold';
+  const isSold = animal.status === 'sold' || (animal.quantity !== undefined && animal.quantity <= 0);
 
   const categoryPath = animal.type === 'sheep' ? '/sheep' : animal.type === 'goat' ? '/goats' : '/cows';
   const categoryLabel = animal.type === 'sheep'
@@ -253,7 +253,7 @@ export const AnimalDetails: React.FC = () => {
           
           {/* Left Column: Gallery & Video (Balanced 50/50 proportion) */}
           <div className="lg:col-span-6 space-y-4 sm:space-y-5">
-            <ImageGallery images={animal.images} alt={`${animal.breed} (${animal.id})`} />
+            <ImageGallery images={animal.images} alt={`${animal.breed} (${animal.id})`} isSold={isSold} />
 
             {/* Optional Video Section */}
             {animal.video && (
@@ -424,7 +424,9 @@ export const AnimalDetails: React.FC = () => {
                       <ShieldCheck className="w-3.5 h-3.5" />
                       <span>{t.common.status}</span>
                     </div>
-                    <div className="text-right capitalize font-bold text-emerald-500">
+                    <div className={`text-right capitalize font-bold ${
+                      isSold ? 'text-red-400' : animal.status === 'reserved' ? 'text-amber-400' : 'text-emerald-500'
+                    }`}>
                       {animal.status === 'available' ? t.common.available : animal.status === 'reserved' ? t.common.reserved : t.common.sold}
                     </div>
                   </div>
@@ -593,35 +595,42 @@ export const AnimalDetails: React.FC = () => {
                   </span>
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setBuyModalMode('deposit');
-                      setIsBuyModalOpen(true);
-                    }}
-                    className="flex-1 sm:flex-initial px-3.5 py-2 rounded-xl bg-[#C58A3A] hover:bg-[#A06E35] text-white font-bold text-xs transition-colors cursor-pointer shadow-xs flex items-center justify-center gap-1.5"
-                  >
-                    <ShieldCheck className="w-3.5 h-3.5" />
-                    <span>{isAmharic ? 'በቅድመ-ክፍያ ይዘዙ' : 'Reserve with Deposit'}</span>
-                  </button>
+                {isSold ? (
+                  <div className="w-full py-2.5 px-4 rounded-xl bg-red-500/15 border border-red-500/40 text-center text-xs font-bold text-red-400 flex items-center justify-center gap-2 shadow-xs">
+                    <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                    <span>{isAmharic ? 'ይህ እንስሳ ተሽጧል (SOLD OUT)' : 'This animal has been sold (SOLD OUT)'}</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setBuyModalMode('deposit');
+                        setIsBuyModalOpen(true);
+                      }}
+                      className="flex-1 sm:flex-initial px-3.5 py-2 rounded-xl bg-[#C58A3A] hover:bg-[#A06E35] text-white font-bold text-xs transition-colors cursor-pointer shadow-xs flex items-center justify-center gap-1.5"
+                    >
+                      <ShieldCheck className="w-3.5 h-3.5" />
+                      <span>{isAmharic ? 'በቅድመ-ክፍያ ይዘዙ' : 'Reserve with Deposit'}</span>
+                    </button>
 
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setBuyModalMode('full');
-                      setIsBuyModalOpen(true);
-                    }}
-                    className={`flex-1 sm:flex-initial px-3.5 py-2 rounded-xl border font-bold text-xs transition-colors cursor-pointer flex items-center justify-center gap-1.5 ${
-                      isDark
-                        ? 'border-[#4A2C16] text-[#F4E8D0] hover:bg-[#2A1A0D]'
-                        : 'border-[#E4D4BC] text-[#241A12] hover:bg-[#FAF7F0]'
-                    }`}
-                  >
-                    <CreditCard className="w-3.5 h-3.5" />
-                    <span>{isAmharic ? 'ሙሉ ክፍያ' : 'Buy in Full'}</span>
-                  </button>
-                </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setBuyModalMode('full');
+                        setIsBuyModalOpen(true);
+                      }}
+                      className={`flex-1 sm:flex-initial px-3.5 py-2 rounded-xl border font-bold text-xs transition-colors cursor-pointer flex items-center justify-center gap-1.5 ${
+                        isDark
+                          ? 'border-[#4A2C16] text-[#F4E8D0] hover:bg-[#2A1A0D]'
+                          : 'border-[#E4D4BC] text-[#241A12] hover:bg-[#FAF7F0]'
+                      }`}
+                    >
+                      <CreditCard className="w-3.5 h-3.5" />
+                      <span>{isAmharic ? 'ሙሉ ክፍያ' : 'Buy in Full'}</span>
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           </div>

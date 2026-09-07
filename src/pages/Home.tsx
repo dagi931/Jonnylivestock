@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Hero } from '../components/home/Hero';
 import { TrustSection } from '../components/home/TrustSection';
@@ -10,6 +10,7 @@ import { CTASection } from '../components/home/CTASection';
 import { AnimalCard } from '../components/common/AnimalCard';
 import { AnimatedReveal } from '../components/common/AnimatedReveal';
 import { getFeaturedAnimals } from '../data/animals';
+import { useAnimals } from '../hooks/useAnimals';
 import { ArrowRight, CheckCircle2, X } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -20,6 +21,8 @@ export const Home: React.FC = () => {
   const location = useLocation();
   const isDark = theme === 'design7';
   const [expandedAnimalId, setExpandedAnimalId] = useState<string | null>(null);
+
+  const { animals: liveAnimals } = useAnimals();
 
   const [showAccountNotice, setShowAccountNotice] = useState(() => {
     return Boolean((location.state as any)?.accountCreated);
@@ -36,9 +39,20 @@ export const Home: React.FC = () => {
     }
   }, [location.state]);
 
-  const featuredSheep = getFeaturedAnimals('sheep');
-  const featuredGoats = getFeaturedAnimals('goat');
-  const featuredCows = getFeaturedAnimals('cow');
+  const featuredSheep = useMemo(() => {
+    const fromLive = liveAnimals.filter((a) => a.type === 'sheep' && a.featured);
+    return fromLive.length > 0 ? fromLive : getFeaturedAnimals('sheep');
+  }, [liveAnimals]);
+
+  const featuredGoats = useMemo(() => {
+    const fromLive = liveAnimals.filter((a) => a.type === 'goat' && a.featured);
+    return fromLive.length > 0 ? fromLive : getFeaturedAnimals('goat');
+  }, [liveAnimals]);
+
+  const featuredCows = useMemo(() => {
+    const fromLive = liveAnimals.filter((a) => a.type === 'cow' && a.featured);
+    return fromLive.length > 0 ? fromLive : getFeaturedAnimals('cow');
+  }, [liveAnimals]);
 
   return (
     <div className="min-h-screen">

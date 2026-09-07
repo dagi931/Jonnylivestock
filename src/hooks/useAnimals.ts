@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Animal, AnimalType } from '../types/animal';
-import { mockAnimals } from '../data/animals';
+import { mockAnimals, updateMockAnimalStatus } from '../data/animals';
 import { api } from '../services/api';
 import { useRealtimeEvent } from '../context/RealtimeContext';
 
@@ -16,6 +16,7 @@ export function useAnimals(type?: AnimalType) {
     let isMounted = true;
     api.getAnimals({ type }).then((liveAnimals) => {
       if (isMounted && liveAnimals && liveAnimals.length > 0) {
+        liveAnimals.forEach(a => updateMockAnimalStatus(a.id, a.status));
         setAnimals(liveAnimals);
       }
       if (isMounted) setIsLoading(false);
@@ -31,6 +32,7 @@ export function useAnimals(type?: AnimalType) {
   // 🚀 Realtime listener for animal updates (e.g. status becomes sold, reserved, quantity reduced)
   useRealtimeEvent<Animal>('ANIMAL_UPDATED', (updatedAnimal) => {
     if (!updatedAnimal || !updatedAnimal.id) return;
+    updateMockAnimalStatus(updatedAnimal.id, updatedAnimal.status);
     setAnimals(prev => {
       const index = prev.findIndex(a => a.id.toLowerCase() === updatedAnimal.id.toLowerCase());
       if (index === -1) return prev;
