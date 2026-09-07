@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { api } from '../services/api';
 
 interface AdminUser {
@@ -45,6 +45,55 @@ export const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   const isAuthenticated = Boolean(token && user);
 
+  // Track user interaction to detect if admin is actively working
+  const lastActiveRef = useRef<number>(Date.now());
+
+  useEffect(() => {
+    const events = ['mousedown', 'keydown', 'scroll', 'touchstart', 'click'];
+    const recordActivity = () => {
+      const now = Date.now();
+      if (now - lastActiveRef.current > 15000) { // Throttle updates to once every 15s
+        lastActiveRef.current = now;
+        localStorage.setItem('jonny_admin_last_active', String(now));
+      }
+    };
+
+    events.forEach(ev => window.addEventListener(ev, recordActivity, { passive: true }));
+    return () => {
+      events.forEach(ev => window.removeEventListener(ev, recordActivity));
+    };
+  }, []);
+
+  // Proactive Background Silent Refresh: Renew access token every ~10 mins if admin is actively working
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    const intervalId = setInterval(async () => {
+      const now = Date.now();
+      const timeSinceActive = now - lastActiveRef.current;
+      const ACTIVE_THRESHOLD_MS = 15 * 60 * 1000; // Active within the last 15 minutes
+      const REFRESH_AGE_THRESHOLD_MS = 10 * 60 * 1000; // Access token is >= 10 mins old (5 mins or less remaining)
+
+      const issuedAtStr = localStorage.getItem('jonny_admin_token_issued_at');
+      const issuedAt = issuedAtStr ? Number(issuedAtStr) : 0;
+      const tokenAge = issuedAt > 0 ? (now - issuedAt) : REFRESH_AGE_THRESHOLD_MS;
+
+      // If the admin has been active recently and the 15-minute access token is getting close to expiry
+      if (timeSinceActive < ACTIVE_THRESHOLD_MS && tokenAge >= REFRESH_AGE_THRESHOLD_MS) {
+        try {
+          const refreshRes = await api.refreshToken();
+          if (refreshRes.success && refreshRes.token) {
+            setToken(refreshRes.token);
+          }
+        } catch (err) {
+          console.warn('[AdminAuth] Proactive silent refresh error:', err);
+        }
+      }
+    }, 2 * 60 * 1000); // Check every 2 minutes
+
+    return () => clearInterval(intervalId);
+  }, [isAuthenticated]);
+
   useEffect(() => {
     const syncAdminAuth = () => {
       const savedToken = localStorage.getItem('jonny_admin_token') || localStorage.getItem('jonny_user_token');
@@ -67,13 +116,33 @@ export const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       }
     };
 
+    const handleTokenRefreshed = (e: any) => {
+      const newToken = e.detail?.accessToken;
+      if (newToken) {
+        setToken(newToken);
+      }
+      if (e.detail?.user && (e.detail.user.role === 'admin' || e.detail.user.role === 'Livestock Administrator')) {
+        setUser({
+          id: e.detail.user.id,
+          email: e.detail.user.email,
+          name: e.detail.user.name,
+          role: 'Livestock Administrator',
+          phone: e.detail.user.phone
+        });
+      }
+    };
+
     window.addEventListener('storage', syncAdminAuth);
     window.addEventListener('auth_change', syncAdminAuth);
+    window.addEventListener('auth_token_refreshed', handleTokenRefreshed);
 
     const handleAuthExpired = () => {
       setToken(null);
       setUser(null);
       localStorage.removeItem('jonny_admin_token');
+      localStorage.removeItem('jonny_admin_refresh_token');
+      localStorage.removeItem('jonny_admin_token_issued_at');
+      localStorage.removeItem('jonny_admin_last_active');
       localStorage.removeItem('jonny_admin_user');
     };
     window.addEventListener('auth_expired', handleAuthExpired);
@@ -84,7 +153,6 @@ export const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       if (active) {
         try {
           const res = await api.getMe(active);
-          // Only reset session if the server definitively confirmed an auth failure (invalid token or wrong role)
           const isExplicitAuthFailure =
             (res.user && res.user.role !== 'admin') ||
             (res.error && (
@@ -95,10 +163,20 @@ export const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
             ));
 
           if (isExplicitAuthFailure) {
+            // Attempt silent refresh before dropping session
+            const refreshRes = await api.refreshToken();
+            if (refreshRes.success && refreshRes.token) {
+              setToken(refreshRes.token);
+              return;
+            }
+
             console.warn('[AdminAuth] Saved admin token is invalid or expired. Prompting for fresh login.');
             setToken(null);
             setUser(null);
             localStorage.removeItem('jonny_admin_token');
+            localStorage.removeItem('jonny_admin_refresh_token');
+            localStorage.removeItem('jonny_admin_token_issued_at');
+            localStorage.removeItem('jonny_admin_last_active');
             localStorage.removeItem('jonny_admin_user');
           }
         } catch {
@@ -111,6 +189,7 @@ export const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     return () => {
       window.removeEventListener('storage', syncAdminAuth);
       window.removeEventListener('auth_change', syncAdminAuth);
+      window.removeEventListener('auth_token_refreshed', handleTokenRefreshed);
       window.removeEventListener('auth_expired', handleAuthExpired);
     };
   }, []);
@@ -128,7 +207,7 @@ export const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
 
     try {
-      // Call backend API login endpoint for genuine cryptographically signed JWT token
+      // Call backend API login endpoint for genuine cryptographically signed JWT tokens
       const res = await api.login(email.trim(), password);
 
       if (res.success && res.token && res.user) {
@@ -147,14 +226,26 @@ export const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           phone: res.user.phone
         };
 
-        // Synchronously save admin & user storage tokens immediately
+        const nowStr = String(Date.now());
+        // Synchronously save admin & user storage tokens immediately (15m access + 7d refresh)
         localStorage.setItem('jonny_admin_token', res.token);
+        if (res.refreshToken) {
+          localStorage.setItem('jonny_admin_refresh_token', res.refreshToken);
+        }
+        localStorage.setItem('jonny_admin_token_issued_at', nowStr);
+        localStorage.setItem('jonny_admin_last_active', nowStr);
         localStorage.setItem('jonny_admin_user', JSON.stringify(adminData));
+
         localStorage.setItem('jonny_user_token', res.token);
+        if (res.refreshToken) {
+          localStorage.setItem('jonny_user_refresh_token', res.refreshToken);
+        }
+        localStorage.setItem('jonny_user_token_issued_at', nowStr);
         localStorage.setItem('jonny_user_profile', JSON.stringify(res.user));
 
         setToken(res.token);
         setUser(adminData);
+        lastActiveRef.current = Date.now();
 
         return { success: true };
       }
@@ -170,8 +261,13 @@ export const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     setToken(null);
     setUser(null);
     localStorage.removeItem('jonny_admin_token');
+    localStorage.removeItem('jonny_admin_refresh_token');
+    localStorage.removeItem('jonny_admin_token_issued_at');
+    localStorage.removeItem('jonny_admin_last_active');
     localStorage.removeItem('jonny_admin_user');
     localStorage.removeItem('jonny_user_token');
+    localStorage.removeItem('jonny_user_refresh_token');
+    localStorage.removeItem('jonny_user_token_issued_at');
     localStorage.removeItem('jonny_user_profile');
     sessionStorage.clear();
     // Redirect directly to home and replace URL in history

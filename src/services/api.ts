@@ -59,6 +59,127 @@ class ApiService {
     return headers;
   }
 
+  private refreshTokenPromise: Promise<{
+    success: boolean;
+    token?: string;
+    accessToken?: string;
+    refreshToken?: string;
+    user?: UserProfile;
+    error?: string;
+  }> | null = null;
+
+  /**
+   * Silently renews the short-lived access token (15 mins) using the 7-day refresh token.
+   * Deduplicates simultaneous requests so only one refresh call is fired.
+   */
+  async refreshToken(customRefreshToken?: string): Promise<{
+    success: boolean;
+    token?: string;
+    accessToken?: string;
+    refreshToken?: string;
+    user?: UserProfile;
+    error?: string;
+  }> {
+    if (this.refreshTokenPromise) {
+      return this.refreshTokenPromise;
+    }
+
+    const adminRefresh = localStorage.getItem('jonny_admin_refresh_token');
+    const userRefresh = localStorage.getItem('jonny_user_refresh_token');
+    const activeRefreshToken = customRefreshToken || adminRefresh || userRefresh;
+
+    if (!activeRefreshToken) {
+      return { success: false, error: 'No refresh token available' };
+    }
+
+    this.refreshTokenPromise = (async () => {
+      try {
+        const res = await fetch(`${API_BASE}/auth/refresh`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ refreshToken: activeRefreshToken })
+        });
+
+        const json = await res.json();
+        if (res.ok && json.success && (json.accessToken || json.token)) {
+          const newAccessToken = json.accessToken || json.token;
+          const newRefreshToken = json.refreshToken || activeRefreshToken;
+
+          if (adminRefresh || json.user?.role === 'admin') {
+            localStorage.setItem('jonny_admin_token', newAccessToken);
+            localStorage.setItem('jonny_admin_refresh_token', newRefreshToken);
+            localStorage.setItem('jonny_admin_token_issued_at', String(Date.now()));
+          }
+          if (userRefresh || json.user?.role === 'customer') {
+            localStorage.setItem('jonny_user_token', newAccessToken);
+            localStorage.setItem('jonny_user_refresh_token', newRefreshToken);
+            localStorage.setItem('jonny_user_token_issued_at', String(Date.now()));
+          }
+
+          window.dispatchEvent(new CustomEvent('auth_token_refreshed', {
+            detail: {
+              accessToken: newAccessToken,
+              refreshToken: newRefreshToken,
+              user: json.user
+            }
+          }));
+
+          return json;
+        } else {
+          console.warn('[API] Refresh token expired or rejected by server:', json?.error);
+          window.dispatchEvent(new CustomEvent('auth_expired', { detail: { reason: json?.error || 'Session expired' } }));
+          return { success: false, error: json?.error || 'Failed to refresh session' };
+        }
+      } catch (err: any) {
+        console.warn('[API] Silent refresh network error:', err);
+        return { success: false, error: err.message || 'Network error during refresh' };
+      } finally {
+        this.refreshTokenPromise = null;
+      }
+    })();
+
+    return this.refreshTokenPromise;
+  }
+
+  /**
+   * Authenticated fetch with automatic silent token renewal on 401/403.
+   */
+  async fetchWithAuth(url: string, options: RequestInit = {}, customToken?: string | null): Promise<Response> {
+    const headers = new Headers(options.headers || {});
+    const adminToken = localStorage.getItem('jonny_admin_token');
+    const userToken = localStorage.getItem('jonny_user_token');
+    const authToken = customToken || adminToken || userToken;
+    if (authToken && !headers.has('Authorization')) {
+      headers.set('Authorization', `Bearer ${authToken}`);
+    }
+
+    const firstRes = await fetch(url, { ...options, headers });
+
+    // If unauthorized or forbidden because of access token expiry, attempt silent refresh once
+    if (firstRes.status === 401 || firstRes.status === 403) {
+      const clone = firstRes.clone();
+      const body = await clone.json().catch(() => null);
+      const isTokenIssue =
+        firstRes.status === 401 ||
+        (body && body.error && (
+          body.error.toLowerCase().includes('token') ||
+          body.error.toLowerCase().includes('expired') ||
+          body.error.toLowerCase().includes('unauthorized')
+        ));
+
+      if (isTokenIssue) {
+        const refreshRes = await this.refreshToken();
+        if (refreshRes.success && refreshRes.token) {
+          const retryHeaders = new Headers(options.headers || {});
+          retryHeaders.set('Authorization', `Bearer ${refreshRes.token}`);
+          return await fetch(url, { ...options, headers: retryHeaders });
+        }
+      }
+    }
+
+    return firstRes;
+  }
+
   // ==================== ANIMALS ====================
   async getAnimals(params?: {
     type?: string;
@@ -337,7 +458,14 @@ class ApiService {
   }
 
   // ==================== AUTH ====================
-  async register(name: string, email: string, phone: string, password: string): Promise<{ success: boolean; token?: string; user?: UserProfile; error?: string }> {
+  async register(name: string, email: string, phone: string, password: string): Promise<{
+    success: boolean;
+    token?: string;
+    accessToken?: string;
+    refreshToken?: string;
+    user?: UserProfile;
+    error?: string;
+  }> {
     try {
       const res = await fetch(`${API_BASE}/auth/register`, {
         method: 'POST',
@@ -369,7 +497,14 @@ class ApiService {
     phone: string;
     password: string;
     otp: string;
-  }): Promise<{ success: boolean; token?: string; user?: UserProfile; error?: string }> {
+  }): Promise<{
+    success: boolean;
+    token?: string;
+    accessToken?: string;
+    refreshToken?: string;
+    user?: UserProfile;
+    error?: string;
+  }> {
     try {
       const res = await fetch(`${API_BASE}/auth/verify-registration-otp`, {
         method: 'POST',
@@ -382,7 +517,14 @@ class ApiService {
     }
   }
 
-  async login(email: string, password: string): Promise<{ success: boolean; token?: string; user?: UserProfile; error?: string }> {
+  async login(email: string, password: string): Promise<{
+    success: boolean;
+    token?: string;
+    accessToken?: string;
+    refreshToken?: string;
+    user?: UserProfile;
+    error?: string;
+  }> {
     try {
       const res = await fetch(`${API_BASE}/auth/login`, {
         method: 'POST',
@@ -412,7 +554,15 @@ class ApiService {
     email: string;
     otp: string;
     newPassword: string;
-  }): Promise<{ success: boolean; token?: string; user?: UserProfile; message?: string; error?: string }> {
+  }): Promise<{
+    success: boolean;
+    token?: string;
+    accessToken?: string;
+    refreshToken?: string;
+    user?: UserProfile;
+    message?: string;
+    error?: string;
+  }> {
     try {
       const res = await fetch(`${API_BASE}/auth/reset-password-with-otp`, {
         method: 'POST',
@@ -427,9 +577,7 @@ class ApiService {
 
   async getMe(token?: string): Promise<{ success: boolean; user?: UserProfile; error?: string }> {
     try {
-      const res = await fetch(`${API_BASE}/auth/me`, {
-        headers: this.getHeaders(token)
-      });
+      const res = await this.fetchWithAuth(`${API_BASE}/auth/me`, {}, token);
       return await res.json();
     } catch (error: any) {
       return { success: false, error: error.message };
@@ -551,9 +699,7 @@ class ApiService {
   async getAllOrders(token?: string, status?: string): Promise<Order[]> {
     try {
       const query = status && status !== 'all' ? `?status=${status}` : '';
-      const res = await fetch(`${API_BASE}/orders${query}`, {
-        headers: this.getHeaders(token)
-      });
+      const res = await this.fetchWithAuth(`${API_BASE}/orders${query}`, {}, token);
       if (!res.ok) {
         const errJson = await res.json().catch(() => null);
         console.warn(`[Orders API] Failed to fetch orders (HTTP ${res.status}):`, errJson?.error || res.statusText);
@@ -694,9 +840,7 @@ class ApiService {
 
   async getNotifications(token?: string): Promise<{ unreadCount: number; data: AdminNotification[] }> {
     try {
-      const res = await fetch(`${API_BASE}/admin/notifications`, {
-        headers: this.getHeaders(token)
-      });
+      const res = await this.fetchWithAuth(`${API_BASE}/admin/notifications`, {}, token);
       if (!res.ok) throw new Error('Failed to fetch remote notifications');
       const json = await res.json();
       const serverData: AdminNotification[] = json.data || [];

@@ -94,8 +94,13 @@ export const Admin: React.FC = () => {
     setIsLoggingOut(true);
     setIsMobileSidebarOpen(false);
     localStorage.removeItem('jonny_admin_token');
+    localStorage.removeItem('jonny_admin_refresh_token');
+    localStorage.removeItem('jonny_admin_token_issued_at');
+    localStorage.removeItem('jonny_admin_last_active');
     localStorage.removeItem('jonny_admin_user');
     localStorage.removeItem('jonny_user_token');
+    localStorage.removeItem('jonny_user_refresh_token');
+    localStorage.removeItem('jonny_user_token_issued_at');
     localStorage.removeItem('jonny_user_profile');
     sessionStorage.clear();
     // 1. Immediately switch route in memory to Home so Admin unmounts instantly

@@ -2,7 +2,7 @@ import { Router, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import { v4 as uuidv4 } from 'uuid';
 import { PostgresDB } from '../db/postgresDb.js';
-import { generateToken, authenticateToken, AuthRequest } from '../middleware/auth.middleware.js';
+import { generateToken, generateTokens, verifyRefreshToken, authenticateToken, AuthRequest } from '../middleware/auth.middleware.js';
 import { User } from '../types/index.js';
 import { EmailService } from '../services/email.service.js';
 import { otpLimiter, authLimiter } from '../middleware/rateLimit.middleware.js';
@@ -153,7 +153,7 @@ router.post('/verify-registration-otp', authLimiter, async (req: AuthRequest, re
     await PostgresDB.createUser(newUser);
     registrationOtpStore.delete(normalizedEmail);
 
-    const token = generateToken({
+    const tokens = generateTokens({
       id: newUser.id,
       email: newUser.email,
       role: newUser.role,
@@ -164,7 +164,7 @@ router.post('/verify-registration-otp', authLimiter, async (req: AuthRequest, re
     res.status(201).json({
       success: true,
       message: 'Account verified and created successfully',
-      token,
+      ...tokens,
       user: {
         id: newUser.id,
         name: newUser.name,
@@ -210,7 +210,7 @@ router.post('/register', authLimiter, async (req: AuthRequest, res: Response): P
 
     await PostgresDB.createUser(newUser);
 
-    const token = generateToken({
+    const tokens = generateTokens({
       id: newUser.id,
       email: newUser.email,
       role: newUser.role,
@@ -221,7 +221,7 @@ router.post('/register', authLimiter, async (req: AuthRequest, res: Response): P
     res.status(201).json({
       success: true,
       message: 'Account created successfully',
-      token,
+      ...tokens,
       user: {
         id: newUser.id,
         name: newUser.name,
@@ -364,8 +364,8 @@ router.post('/reset-password-with-otp', authLimiter, async (req: AuthRequest, re
     // Clear OTP from store
     forgotPasswordOtpStore.delete(normalizedEmail);
 
-    // Generate authenticated JWT token for instant seamless sign-in
-    const token = generateToken({
+    // Generate authenticated JWT tokens (15m access + 7d refresh)
+    const tokens = generateTokens({
       id: user.id,
       email: user.email,
       role: user.role,
@@ -378,7 +378,7 @@ router.post('/reset-password-with-otp', authLimiter, async (req: AuthRequest, re
     res.json({
       success: true,
       message: 'Password reset successfully! You are now signed in.',
-      token,
+      ...tokens,
       user: {
         id: user.id,
         name: user.name,
@@ -420,7 +420,7 @@ router.post('/login', authLimiter, async (req: AuthRequest, res: Response): Prom
         };
       }
 
-      const token = generateToken({
+      const tokens = generateTokens({
         id: adminUser.id,
         email: adminUser.email,
         role: 'admin',
@@ -430,7 +430,7 @@ router.post('/login', authLimiter, async (req: AuthRequest, res: Response): Prom
 
       res.json({
         success: true,
-        token,
+        ...tokens,
         user: {
           id: adminUser.id,
           name: adminUser.name,
@@ -459,7 +459,7 @@ router.post('/login', authLimiter, async (req: AuthRequest, res: Response): Prom
       return;
     }
 
-    const token = generateToken({
+    const tokens = generateTokens({
       id: user.id,
       email: user.email,
       role: user.role,
@@ -469,7 +469,7 @@ router.post('/login', authLimiter, async (req: AuthRequest, res: Response): Prom
 
     res.json({
       success: true,
-      token,
+      ...tokens,
       user: {
         id: user.id,
         name: user.name,
@@ -481,6 +481,68 @@ router.post('/login', authLimiter, async (req: AuthRequest, res: Response): Prom
   } catch (error: any) {
     console.error('Login error:', error);
     res.status(500).json({ success: false, error: 'Authentication failed' });
+  }
+});
+
+// ==================== SILENT REFRESH TOKEN (7 Days -> New 15m Access) ====================
+router.post('/refresh', async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const rawRefreshToken = req.body?.refreshToken || req.headers['x-refresh-token'];
+
+    if (!rawRefreshToken || typeof rawRefreshToken !== 'string') {
+      res.status(400).json({ success: false, error: 'Refresh token is required' });
+      return;
+    }
+
+    const decoded = verifyRefreshToken(rawRefreshToken.trim());
+    if (!decoded || !decoded.id) {
+      res.status(401).json({ success: false, error: 'Invalid or expired refresh token. Please log in again.' });
+      return;
+    }
+
+    // Verify user exists in database (or fallback admin)
+    let user = await PostgresDB.findUserById(decoded.id);
+    if (!user && decoded.email === 'admin@jonnylivestock.com') {
+      user = {
+        id: decoded.id,
+        name: decoded.name || 'Jonny Owner',
+        email: decoded.email,
+        phone: decoded.phone || '+251911234567',
+        passwordHash: '',
+        role: 'admin',
+        createdAt: new Date().toISOString()
+      };
+    }
+
+    if (!user) {
+      res.status(401).json({ success: false, error: 'User account no longer exists' });
+      return;
+    }
+
+    // Generate fresh new access token (15 mins) and refresh token (7 days)
+    const newTokens = generateTokens({
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      name: user.name,
+      phone: user.phone
+    });
+
+    res.json({
+      success: true,
+      message: 'Token refreshed successfully',
+      ...newTokens,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        role: user.role
+      }
+    });
+  } catch (error: any) {
+    console.error('Token refresh error:', error);
+    res.status(500).json({ success: false, error: 'Failed to refresh token' });
   }
 });
 

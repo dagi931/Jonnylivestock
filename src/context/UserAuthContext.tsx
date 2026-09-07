@@ -51,16 +51,38 @@ export const UserAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   }, [token]);
 
+  useEffect(() => {
+    const handleTokenRefreshed = (e: any) => {
+      if (e.detail?.accessToken) {
+        setToken(e.detail.accessToken);
+      }
+      if (e.detail?.user) {
+        setUser(e.detail.user);
+      }
+    };
+    window.addEventListener('auth_token_refreshed', handleTokenRefreshed);
+    return () => window.removeEventListener('auth_token_refreshed', handleTokenRefreshed);
+  }, []);
+
   const login = async (email: string, password: string) => {
     const res = await api.login(email, password);
     if (res.success && res.token && res.user) {
       setToken(res.token);
       setUser(res.user);
       localStorage.setItem('jonny_user_token', res.token);
+      if (res.refreshToken) {
+        localStorage.setItem('jonny_user_refresh_token', res.refreshToken);
+      }
+      localStorage.setItem('jonny_user_token_issued_at', String(Date.now()));
       localStorage.setItem('jonny_user_profile', JSON.stringify(res.user));
 
       if (res.user.role === 'admin') {
         localStorage.setItem('jonny_admin_token', res.token);
+        if (res.refreshToken) {
+          localStorage.setItem('jonny_admin_refresh_token', res.refreshToken);
+        }
+        localStorage.setItem('jonny_admin_token_issued_at', String(Date.now()));
+        localStorage.setItem('jonny_admin_last_active', String(Date.now()));
         localStorage.setItem('jonny_admin_user', JSON.stringify({
           id: res.user.id,
           email: res.user.email,
@@ -84,6 +106,10 @@ export const UserAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       setToken(res.token);
       setUser(res.user);
       localStorage.setItem('jonny_user_token', res.token);
+      if ((res as any).refreshToken) {
+        localStorage.setItem('jonny_user_refresh_token', (res as any).refreshToken);
+      }
+      localStorage.setItem('jonny_user_token_issued_at', String(Date.now()));
       localStorage.setItem('jonny_user_profile', JSON.stringify(res.user));
       window.dispatchEvent(new Event('auth_change'));
       setIsAuthModalOpen(false);
@@ -109,6 +135,10 @@ export const UserAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       setToken(res.token);
       setUser(res.user);
       localStorage.setItem('jonny_user_token', res.token);
+      if ((res as any).refreshToken) {
+        localStorage.setItem('jonny_user_refresh_token', (res as any).refreshToken);
+      }
+      localStorage.setItem('jonny_user_token_issued_at', String(Date.now()));
       localStorage.setItem('jonny_user_profile', JSON.stringify(res.user));
       window.dispatchEvent(new Event('auth_change'));
       setAuthPromptMessage(null);
@@ -127,10 +157,19 @@ export const UserAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       setToken(res.token);
       setUser(res.user);
       localStorage.setItem('jonny_user_token', res.token);
+      if (res.refreshToken) {
+        localStorage.setItem('jonny_user_refresh_token', res.refreshToken);
+      }
+      localStorage.setItem('jonny_user_token_issued_at', String(Date.now()));
       localStorage.setItem('jonny_user_profile', JSON.stringify(res.user));
 
       if (res.user.role === 'admin') {
         localStorage.setItem('jonny_admin_token', res.token);
+        if (res.refreshToken) {
+          localStorage.setItem('jonny_admin_refresh_token', res.refreshToken);
+        }
+        localStorage.setItem('jonny_admin_token_issued_at', String(Date.now()));
+        localStorage.setItem('jonny_admin_last_active', String(Date.now()));
         localStorage.setItem('jonny_admin_user', JSON.stringify({
           id: res.user.id,
           email: res.user.email,
@@ -152,8 +191,13 @@ export const UserAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setToken(null);
     setUser(null);
     localStorage.removeItem('jonny_user_token');
+    localStorage.removeItem('jonny_user_refresh_token');
+    localStorage.removeItem('jonny_user_token_issued_at');
     localStorage.removeItem('jonny_user_profile');
     localStorage.removeItem('jonny_admin_token');
+    localStorage.removeItem('jonny_admin_refresh_token');
+    localStorage.removeItem('jonny_admin_token_issued_at');
+    localStorage.removeItem('jonny_admin_last_active');
     localStorage.removeItem('jonny_admin_user');
     sessionStorage.clear();
     window.dispatchEvent(new Event('auth_change'));
