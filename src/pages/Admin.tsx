@@ -1654,14 +1654,14 @@ export const Admin: React.FC = () => {
   const isCustomerAccount = isUserAuth && currentUser && currentUser.role !== 'admin';
   if (isCustomerAccount) {
     return (
-      <div className="min-h-[80vh] flex items-center justify-center px-4 py-12 animate-in fade-in zoom-in-95">
+      <div className="min-h-[80vh] flex items-center justify-center px-4 py-12 animate-in fade-in">
         <div
-          className={`w-full max-w-md rounded-3xl border p-8 shadow-2xl text-center space-y-4 ${
+          className={`w-full max-w-md rounded-2xl border p-8 shadow-xl text-center space-y-4 ${
             isDark ? 'bg-[#2A1A0D] border-[#4A2C16]' : 'bg-[#F1E8D8] border-[#E4D4BC]'
           }`}
         >
-          <div className="w-14 h-14 rounded-2xl bg-red-500/15 text-red-500 flex items-center justify-center mx-auto">
-            <Shield className="w-7 h-7" />
+          <div className="w-12 h-12 rounded-xl bg-red-500/15 text-red-500 flex items-center justify-center mx-auto">
+            <Shield className="w-6 h-6" />
           </div>
           <h2 className="font-serif font-bold text-2xl text-red-500">403 - Access Denied</h2>
           <p className="text-xs opacity-80 leading-relaxed">
@@ -1670,13 +1670,13 @@ export const Admin: React.FC = () => {
           <div className="pt-2 space-y-2">
             <button
               onClick={handleAdminLogout}
-              className="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-black font-bold text-xs transition-all shadow-md cursor-pointer"
+              className="w-full py-2.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-neutral-950 font-semibold text-xs transition-colors shadow-xs cursor-pointer"
             >
               Sign Out & Return Home
             </button>
             <Link
               to="/"
-              className="block w-full py-2.5 rounded-xl border text-xs font-semibold hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+              className="block w-full py-2.5 rounded-lg border text-xs font-semibold hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
             >
               Return to Homepage
             </Link>
@@ -1693,13 +1693,13 @@ export const Admin: React.FC = () => {
     return (
       <div className="min-h-[80vh] flex items-center justify-center px-4 py-12">
         <div
-          className={`w-full max-w-md rounded-3xl border p-6 sm:p-8 shadow-2xl transition-all ${
+          className={`w-full max-w-md rounded-2xl border p-6 sm:p-8 shadow-xl transition-all ${
             isDark ? 'bg-[#2A1A0D] border-[#4A2C16]' : 'bg-[#F1E8D8] border-[#E4D4BC]'
           }`}
         >
           {/* Header */}
           <div className="text-center mb-6">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#4A2C16] to-[#2A1A0D] border border-[#C58A3A]/40 flex items-center justify-center mx-auto mb-3 text-[#E0B15A] shadow-inner">
+            <div className="w-12 h-12 rounded-xl bg-[#2A1A0D] border border-[#C58A3A]/40 flex items-center justify-center mx-auto mb-3 text-[#E0B15A]">
               <Shield className="w-6 h-6" />
             </div>
             <h1 className={`font-serif font-bold text-2xl ${isDark ? 'text-[#F4E8D0]' : 'text-[#2A1A0D]'}`}>
@@ -1712,7 +1712,7 @@ export const Admin: React.FC = () => {
 
           {/* Error Alert */}
           {loginError && (
-            <div className="mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-500 text-xs flex items-start gap-2">
+            <div className="mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-500 text-xs flex items-start gap-2">
               <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
               <span>{loginError}</span>
             </div>
@@ -1732,7 +1732,7 @@ export const Admin: React.FC = () => {
                   placeholder="admin@jonnylivestock.com"
                   value={emailInput}
                   onChange={(e) => setEmailInput(e.target.value)}
-                  className={`w-full pl-10 pr-4 py-2.5 rounded-xl text-sm border focus:outline-none focus:ring-2 transition-all ${
+                  className={`w-full pl-10 pr-4 py-2.5 rounded-lg text-sm border focus:outline-none focus:ring-2 transition-colors ${
                     isDark
                       ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0] focus:ring-[#C58A3A]'
                       : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#2A1A0D] focus:ring-[#B8792F]'
@@ -1753,7 +1753,7 @@ export const Admin: React.FC = () => {
                   placeholder="••••••••"
                   value={passwordInput}
                   onChange={(e) => setPasswordInput(e.target.value)}
-                  className={`w-full pl-10 pr-10 py-2.5 rounded-xl text-sm border focus:outline-none focus:ring-2 transition-all ${
+                  className={`w-full pl-10 pr-10 py-2.5 rounded-lg text-sm border focus:outline-none focus:ring-2 transition-colors ${
                     isDark
                       ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0] focus:ring-[#C58A3A]'
                       : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#2A1A0D] focus:ring-[#B8792F]'
@@ -1773,7 +1773,7 @@ export const Admin: React.FC = () => {
             <button
               type="submit"
               disabled={isLoggingIn}
-              className={`w-full py-3 rounded-xl font-bold text-sm transition-all shadow-md flex items-center justify-center gap-2 ${
+              className={`w-full py-2.5 rounded-lg font-semibold text-sm transition-colors shadow-xs flex items-center justify-center gap-2 ${
                 isDark
                   ? 'bg-[#C58A3A] hover:bg-[#E0B15A] text-[#1B1208]'
                   : 'bg-[#B8792F] hover:bg-[#9E6523] text-[#FAF7F0]'
@@ -1798,14 +1798,14 @@ export const Admin: React.FC = () => {
         <div className="fixed inset-0 z-50 lg:hidden animate-in fade-in duration-200">
           {/* Backdrop overlay */}
           <div
-            className="fixed inset-0 bg-black/60 backdrop-blur-xs"
+            className="fixed inset-0 bg-black/60"
             onClick={() => setIsMobileSidebarOpen(false)}
             aria-hidden="true"
           />
 
           {/* Drawer content sliding from the left */}
           <aside
-            className={`fixed inset-y-0 left-0 w-72 max-w-[85vw] z-50 flex flex-col justify-between shadow-2xl border-r animate-in slide-in-from-left duration-200 ${
+            className={`fixed inset-y-0 left-0 w-72 max-w-[85vw] z-50 flex flex-col justify-between shadow-xl border-r animate-in slide-in-from-left duration-200 ${
               isDark ? 'bg-[#1E140A] border-[#3D2513] text-[#F4E8D0]' : 'bg-[#FAF6EE] border-[#E8DCCB] text-[#241A12]'
             }`}
           >
@@ -1900,7 +1900,7 @@ export const Admin: React.FC = () => {
       )}
 
       {/* Top Banner with Real-Time Notification Bell & Refresh */}
-      <div className={`border-b sticky top-0 z-40 backdrop-blur-md ${isDark ? 'bg-[#1B1208]/90 border-[#4A2C16]' : 'bg-[#FAF7F0]/90 border-[#E4D4BC]'}`}>
+      <div className={`border-b sticky top-0 z-40 ${isDark ? 'bg-[#1B1208] border-[#4A2C16]' : 'bg-[#FAF7F0] border-[#E4D4BC]'}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2.5 sm:gap-3">
             {/* Mobile Side Navigation Toggle (visible on phone screens) */}
@@ -1987,14 +1987,14 @@ export const Admin: React.FC = () => {
                 <>
                   {/* Universal Backdrop to close whenever clicking anywhere outside the notification boundary */}
                   <div
-                    className="fixed inset-0 z-40 bg-black/20 backdrop-blur-[1px]"
+                    className="fixed inset-0 z-40 bg-black/20"
                     onClick={() => setIsNotifDropdownOpen(false)}
                     aria-hidden="true"
                   />
 
                   {/* Responsive Notification Dropdown: firmly bounded on mobile (inset-x-3) and absolute on desktop */}
                   <div
-                    className={`fixed inset-x-3 top-20 sm:top-auto sm:inset-auto sm:absolute sm:right-0 sm:mt-2 w-auto sm:w-96 max-w-[calc(100vw-24px)] rounded-2xl shadow-2xl border p-3.5 z-50 animate-in fade-in zoom-in-95 duration-150 ${
+                    className={`fixed inset-x-3 top-20 sm:top-auto sm:inset-auto sm:absolute sm:right-0 sm:mt-2 w-auto sm:w-96 max-w-[calc(100vw-24px)] rounded-xl shadow-xl border p-3.5 z-50 animate-in fade-in zoom-in-95 duration-150 ${
                       isDark ? 'bg-[#24170D] border-[#4A2C16] text-[#F4E8D0]' : 'bg-white border-[#E4D4BC] text-[#2A1A0D]'
                     }`}
                   >
@@ -2418,7 +2418,7 @@ export const Admin: React.FC = () => {
                 </div>
               </div>
             ) : filteredOrders.length === 0 ? (
-              <div className={`p-8 text-center rounded-3xl border ${isDark ? 'bg-[#2A1A0D] border-[#4A2C16]' : 'bg-[#F1E8D8] border-[#E4D4BC]'}`}>
+              <div className={`p-8 text-center rounded-xl border ${isDark ? 'bg-[#2A1A0D] border-[#4A2C16]' : 'bg-[#F1E8D8] border-[#E4D4BC]'}`}>
                 <p className="text-xs opacity-60">
                   {isAmharic ? 'ማጣሪያውን የሚያሟላ ትዕዛዝ አልተገኘም' : 'No orders found matching filter'}
                 </p>
@@ -2946,7 +2946,7 @@ export const Admin: React.FC = () => {
                 {/* 2. DESKTOP & TABLET TABLE VIEW (>= 768px) - CLEAN & COMPACT */}
                 {/* ============================================================ */}
                 <div
-                  className={`hidden md:block rounded-3xl border overflow-hidden shadow-sm ${
+                  className={`hidden md:block rounded-xl border overflow-hidden shadow-xs ${
                     isDark ? 'bg-[#2A1A0D] border-[#4A2C16]' : 'bg-[#F1E8D8] border-[#E4D4BC]'
                   }`}
                 >
@@ -3454,7 +3454,7 @@ export const Admin: React.FC = () => {
 
             {/* Inventory Table */}
             <div
-              className={`rounded-3xl border overflow-hidden shadow-sm ${
+              className={`rounded-xl border overflow-hidden shadow-xs ${
                 isDark ? 'bg-[#2A1A0D] border-[#4A2C16]' : 'bg-[#F1E8D8] border-[#E4D4BC]'
               }`}
             >
@@ -3599,7 +3599,7 @@ export const Admin: React.FC = () => {
         {activeTab === 'packages' && (
           <div className="space-y-6 animate-in fade-in-50 duration-150">
             {/* Header Banner & Add Button */}
-            <div className={`p-6 rounded-3xl border flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm ${
+            <div className={`p-6 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs ${
               isDark ? 'bg-[#2A1A0D] border-[#4A2C16]' : 'bg-[#F1E8D8] border-[#E4D4BC]'
             }`}>
               <div>
@@ -3618,7 +3618,7 @@ export const Admin: React.FC = () => {
 
               <button
                 onClick={() => setIsAddPackageOpen(true)}
-                className="flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-[#C18A45] hover:bg-[#A06E35] text-white font-extrabold text-xs shadow-md transition-all cursor-pointer whitespace-nowrap"
+                className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg bg-[#C18A45] hover:bg-[#A06E35] text-white font-semibold text-xs shadow-xs transition-colors cursor-pointer whitespace-nowrap"
               >
                 <Plus className="w-4 h-4 stroke-[3]" />
                 <span>{isAmharic ? 'አዲስ የበዓል ጥቅል ጨምር' : 'Add New Celebration Package'}</span>
@@ -3626,7 +3626,7 @@ export const Admin: React.FC = () => {
             </div>
 
             {isLoadingData && packagesList.length === 0 ? (
-              <div className={`p-14 text-center rounded-3xl border animate-in fade-in duration-200 ${
+              <div className={`p-14 text-center rounded-xl border animate-in fade-in duration-150 ${
                 isDark ? 'bg-[#24170D] border-[#4A2C16]' : 'bg-white border-[#E4D4BC]'
               }`}>
                 <div className="w-8 h-8 rounded-full border-2 border-amber-500 border-t-transparent animate-spin mx-auto mb-3" />
@@ -3635,7 +3635,7 @@ export const Admin: React.FC = () => {
                 </p>
               </div>
             ) : packagesList.length === 0 ? (
-              <div className={`p-12 text-center rounded-3xl border ${
+              <div className={`p-12 text-center rounded-xl border ${
                 isDark ? 'bg-[#24170D] border-[#4A2C16]' : 'bg-white border-[#E4D4BC]'
               }`}>
                 <Gift className="w-12 h-12 text-[#C18A45]/40 mx-auto mb-3" />
@@ -3647,7 +3647,7 @@ export const Admin: React.FC = () => {
                 </p>
                 <button
                   onClick={() => setIsAddPackageOpen(true)}
-                  className="px-4 py-2 rounded-xl bg-[#C18A45] hover:bg-[#A06E35] text-white font-bold text-xs"
+                  className="px-4 py-2 rounded-lg bg-[#C18A45] hover:bg-[#A06E35] text-white font-semibold text-xs transition-colors"
                 >
                   + {isAmharic ? 'ጥቅል ጨምር' : 'Add Package'}
                 </button>
@@ -3661,7 +3661,7 @@ export const Admin: React.FC = () => {
                   return (
                     <div
                       key={pkgKey}
-                      className={`group rounded-3xl border overflow-hidden flex flex-col justify-between transition-all duration-200 hover:shadow-xl ${
+                      className={`group rounded-xl border overflow-hidden flex flex-col justify-between transition-colors shadow-xs ${
                         isDark ? 'bg-[#1F140A] border-[#4A2C16]' : 'bg-white border-[#E4D4BC]'
                       }`}
                     >
@@ -3925,7 +3925,7 @@ export const Admin: React.FC = () => {
             </div>
 
             {/* Cut Pricing Configuration Cards */}
-            <div className={`p-6 rounded-3xl border ${isDark ? 'bg-[#2A1A0D] border-[#4A2C16]' : 'bg-[#F1E8D8] border-[#E4D4BC]'}`}>
+            <div className={`p-6 rounded-xl border ${isDark ? 'bg-[#2A1A0D] border-[#4A2C16]' : 'bg-[#F1E8D8] border-[#E4D4BC]'}`}>
               <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 mb-6 border-b" style={{ borderColor: isDark ? '#4A2C16' : '#E4D4BC' }}>
                 <div>
                   <h3 className="font-serif font-bold text-lg">
@@ -4138,7 +4138,7 @@ export const Admin: React.FC = () => {
             </div>
 
             {/* Live Price Calculator Preview */}
-            <div className={`p-6 rounded-3xl border ${isDark ? 'bg-[#2A1A0D] border-[#4A2C16]' : 'bg-[#F1E8D8] border-[#E4D4BC]'}`}>
+            <div className={`p-6 rounded-xl border ${isDark ? 'bg-[#2A1A0D] border-[#4A2C16]' : 'bg-[#F1E8D8] border-[#E4D4BC]'}`}>
               <div className="flex items-center justify-between pb-3 mb-4 border-b" style={{ borderColor: isDark ? '#4A2C16' : '#E4D4BC' }}>
                 <div className="flex items-center gap-2">
                   <Scale className="w-4 h-4 text-[#C18A45]" />
@@ -4222,7 +4222,7 @@ export const Admin: React.FC = () => {
             </div>
 
             {/* Raw Meat Orders List */}
-            <div className={`rounded-3xl border overflow-hidden shadow-sm ${
+            <div className={`rounded-xl border overflow-hidden shadow-xs ${
               isDark ? 'bg-[#2A1A0D] border-[#4A2C16]' : 'bg-[#F1E8D8] border-[#E4D4BC]'
             }`}>
               <div className="p-4 border-b flex items-center justify-between" style={{ borderColor: isDark ? '#4A2C16' : '#E4D4BC' }}>
@@ -4604,7 +4604,7 @@ export const Admin: React.FC = () => {
 
                 {/* Live Delivery Orders Dispatch Queue */}
                 <div
-                  className={`p-5 sm:p-6 rounded-3xl border space-y-4 ${
+                  className={`p-5 sm:p-6 rounded-xl border space-y-4 ${
                     isDark ? 'bg-[#1E140A] border-[#3D2513]' : 'bg-white border-[#E8DCCB]'
                   }`}
                 >
@@ -4841,7 +4841,7 @@ export const Admin: React.FC = () => {
               <div className="space-y-8 animate-in fade-in-50 duration-150">
                 {/* 1. Fleet Vehicle Rates & Capacity Limits (Editable Config Table) */}
                 <div
-                  className={`p-5 sm:p-6 rounded-3xl border space-y-4 ${
+                  className={`p-5 sm:p-6 rounded-xl border space-y-4 ${
                     isDark ? 'bg-[#1E140A] border-[#3D2513]' : 'bg-white border-[#E8DCCB]'
                   }`}
                 >
@@ -5039,7 +5039,7 @@ export const Admin: React.FC = () => {
 
                 {/* 2. Farm Origin Facility & Global Logistics Settings */}
                 <div
-                  className={`p-5 sm:p-6 rounded-3xl border space-y-4 ${
+                  className={`p-5 sm:p-6 rounded-xl border space-y-4 ${
                     isDark ? 'bg-[#1E140A] border-[#3D2513]' : 'bg-white border-[#E8DCCB]'
                   }`}
                 >
@@ -5153,7 +5153,7 @@ export const Admin: React.FC = () => {
 
                 {/* 3. Slaughter & On-Site Preparation Rates (Configurable by Admin) */}
                 <div
-                  className={`p-5 sm:p-6 rounded-3xl border space-y-4 ${
+                  className={`p-5 sm:p-6 rounded-xl border space-y-4 ${
                     isDark ? 'bg-[#1E140A] border-[#3D2513]' : 'bg-white border-[#E8DCCB]'
                   }`}
                 >
@@ -5268,7 +5268,7 @@ export const Admin: React.FC = () => {
 
                 {/* 4. Interactive Live Route & Capacity Simulator Sandbox */}
                 <div
-                  className={`p-5 sm:p-6 rounded-3xl border space-y-4 ${
+                  className={`p-5 sm:p-6 rounded-xl border space-y-4 ${
                     isDark ? 'bg-[#1E140A] border-[#3D2513]' : 'bg-white border-[#E8DCCB]'
                   }`}
                 >
@@ -5774,9 +5774,9 @@ export const Admin: React.FC = () => {
 
       {/* Add Animal Modal */}
       {isAddAnimalOpen && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/75 flex items-center justify-center p-4">
           <div
-            className={`relative w-full max-w-lg rounded-3xl border shadow-2xl p-6 sm:p-8 animate-in fade-in zoom-in-95 duration-200 ${
+            className={`relative w-full max-w-lg rounded-2xl border shadow-xl p-6 sm:p-7 animate-in fade-in duration-150 ${
               isDark ? 'bg-[#24170D] border-[#4A2C16] text-[#F4E8D0]' : 'bg-white border-[#E4D4BC] text-[#2A1A0D]'
             }`}
           >
@@ -5977,7 +5977,7 @@ export const Admin: React.FC = () => {
                           <div
                             className={`p-3 rounded-full transition-transform group-hover:scale-110 ${
                               isDraggingImage
-                                ? 'bg-[#C18A45] text-white animate-bounce'
+                                ? 'bg-[#C18A45] text-white scale-105'
                                 : 'bg-[#C18A45]/15 text-[#C18A45]'
                             }`}
                           >
@@ -6041,9 +6041,9 @@ export const Admin: React.FC = () => {
 
       {/* Edit Livestock Listing Modal */}
       {editingAnimal && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/75 flex items-center justify-center p-4">
           <div
-            className={`relative w-full max-w-lg rounded-3xl border shadow-2xl p-6 sm:p-8 animate-in fade-in zoom-in-95 duration-200 ${
+            className={`relative w-full max-w-lg rounded-2xl border shadow-xl p-6 sm:p-7 animate-in fade-in duration-150 ${
               isDark ? 'bg-[#24170D] border-[#4A2C16] text-[#F4E8D0]' : 'bg-white border-[#E4D4BC] text-[#2A1A0D]'
             }`}
           >
@@ -6329,9 +6329,9 @@ export const Admin: React.FC = () => {
 
       {/* Add Celebration Package Modal */}
       {isAddPackageOpen && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
+        <div className="fixed inset-0 z-50 bg-black/75 flex items-center justify-center p-3 sm:p-4">
           <div
-            className={`relative w-full max-w-lg max-h-[88vh] rounded-3xl border shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200 ${
+            className={`relative w-full max-w-lg max-h-[88vh] rounded-2xl border shadow-xl flex flex-col overflow-hidden animate-in fade-in duration-150 ${
               isDark ? 'bg-[#24170D] border-[#4A2C16] text-[#F4E8D0]' : 'bg-white border-[#E4D4BC] text-[#2A1A0D]'
             }`}
           >
@@ -6724,9 +6724,9 @@ export const Admin: React.FC = () => {
 
       {/* Restock Package Slots Modal */}
       {restockModalPackage && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/75 flex items-center justify-center p-4">
           <div
-            className={`relative w-full max-w-md rounded-3xl border shadow-2xl p-6 sm:p-8 animate-in fade-in zoom-in-95 duration-200 ${
+            className={`relative w-full max-w-md rounded-2xl border shadow-xl p-6 sm:p-7 animate-in fade-in duration-150 ${
               isDark ? 'bg-[#24170D] border-[#4A2C16] text-[#F4E8D0]' : 'bg-white border-[#E4D4BC] text-[#2A1A0D]'
             }`}
           >

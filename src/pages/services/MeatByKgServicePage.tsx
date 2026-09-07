@@ -103,7 +103,7 @@ Cut Notes: ${cutInstructions || 'Standard portioning'}`;
         <div className="mb-6 flex items-center justify-between">
           <Link
             to="/services"
-            className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold border transition-colors ${
+            className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
               isDark
                 ? 'bg-[#2A1A0D] border-[#4A2C16] text-[#F4E8D0] hover:border-[#C58A3A]'
                 : 'bg-[#F1E8D8] border-[#E4D4BC] text-[#2A1A0D] hover:border-[#B8792F]'
@@ -116,7 +116,7 @@ Cut Notes: ${cutInstructions || 'Standard portioning'}`;
           <div className="flex items-center gap-2">
             <a
               href={getPhoneCallLink(business.phone)}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
                 isDark ? 'bg-[#C58A3A] hover:bg-[#E0B15A] text-[#1B1208]' : 'bg-[#B8792F] hover:bg-[#9E6523] text-[#FAF7F0]'
               }`}
             >
@@ -128,13 +128,13 @@ Cut Notes: ${cutInstructions || 'Standard portioning'}`;
 
         {/* Dedicated Service Hero Banner */}
         <div
-          className={`p-6 sm:p-8 rounded-3xl border mb-8 ${
+          className={`p-6 sm:p-8 rounded-xl border mb-8 ${
             isDark ? 'bg-[#2A1A0D] border-[#4A2C16]' : 'bg-[#F1E8D8] border-[#E4D4BC]'
           }`}
         >
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-500 flex items-center justify-center shrink-0">
+              <div className="w-12 h-12 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center shrink-0">
                 <Scale className="w-6 h-6" />
               </div>
               <div>
@@ -168,7 +168,7 @@ Cut Notes: ${cutInstructions || 'Standard portioning'}`;
           
           {/* Form / Calculator */}
           <div
-            className={`lg:col-span-7 p-6 sm:p-7 rounded-3xl border ${
+            className={`lg:col-span-7 p-6 sm:p-7 rounded-xl border ${
               isDark ? 'bg-[#2A1A0D] border-[#4A2C16]' : 'bg-[#F1E8D8] border-[#E4D4BC]'
             }`}
           >
@@ -188,7 +188,7 @@ Cut Notes: ${cutInstructions || 'Standard portioning'}`;
                   )}
                 </p>
 
-                <div className={`p-4 rounded-2xl border text-left text-xs space-y-2 ${
+                <div className={`p-4 rounded-xl border text-left text-xs space-y-2 ${
                   isDark ? 'bg-[#1B1208] border-[#4A2C16]' : 'bg-[#FAF7F0] border-[#E4D4BC]'
                 }`}>
                   <div><strong>{isAmharic ? 'የተመረጡ የስጋ አይነቶች፡' : 'Selected Cuts:'}</strong> {getOrderSummaryText()}</div>
@@ -204,7 +204,7 @@ Cut Notes: ${cutInstructions || 'Standard portioning'}`;
                     href={`https://wa.me/${business.whatsapp}?text=${encodeURIComponent(whatsappMessage)}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className={`px-5 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 ${
+                    className={`px-5 py-2.5 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 ${
                       isDark ? 'bg-[#C58A3A] text-[#1B1208]' : 'bg-[#B8792F] text-[#FAF7F0]'
                     }`}
                   >
@@ -214,7 +214,7 @@ Cut Notes: ${cutInstructions || 'Standard portioning'}`;
                   <button
                     type="button"
                     onClick={() => setSubmitted(false)}
-                    className="px-4 py-2.5 rounded-xl text-xs font-semibold border opacity-75 hover:opacity-100 cursor-pointer"
+                    className="px-4 py-2.5 rounded-lg text-xs font-semibold border opacity-75 hover:opacity-100 cursor-pointer"
                   >
                     {isAmharic ? 'ትዕዛዙን አስተካክል' : 'Modify Order'}
                   </button>
@@ -238,7 +238,7 @@ Cut Notes: ${cutInstructions || 'Standard portioning'}`;
                 </div>
 
                 {error && (
-                  <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-500 text-xs flex items-center gap-2">
+                  <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-500 text-xs flex items-center gap-2">
                     <AlertCircle className="w-4 h-4 shrink-0" />
                     <span>{error}</span>
                   </div>
@@ -298,7 +298,7 @@ Cut Notes: ${cutInstructions || 'Standard portioning'}`;
                   </div>
 
                   {/* Real-time Calculation Summary Bar */}
-                  <div className={`p-3.5 rounded-2xl border flex items-center justify-between ${
+                  <div className={`p-3.5 rounded-xl border flex items-center justify-between ${
                     isDark ? 'bg-[#351E0E] border-amber-500/40 text-[#F4E8D0]' : 'bg-[#FAF3E8] border-amber-500/40 text-[#2A1A0D]'
                   }`}>
                     <div>
@@ -323,7 +323,7 @@ Cut Notes: ${cutInstructions || 'Standard portioning'}`;
                     <select
                       value={orderFrequency}
                       onChange={(e) => setOrderFrequency(e.target.value as any)}
-                      className={`w-full px-3.5 py-2 rounded-xl text-xs border focus:outline-none ${
+                      className={`w-full px-3.5 py-2 rounded-lg text-xs border focus:outline-none ${
                         isDark ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0]' : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#2A1A0D]'
                       }`}
                     >
@@ -340,7 +340,7 @@ Cut Notes: ${cutInstructions || 'Standard portioning'}`;
                     <select
                       value={establishmentType}
                       onChange={(e) => setEstablishmentType(e.target.value)}
-                      className={`w-full px-3.5 py-2 rounded-xl text-xs border focus:outline-none ${
+                      className={`w-full px-3.5 py-2 rounded-lg text-xs border focus:outline-none ${
                         isDark ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0]' : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#2A1A0D]'
                       }`}
                     >
@@ -363,7 +363,7 @@ Cut Notes: ${cutInstructions || 'Standard portioning'}`;
                       placeholder={isAmharic ? 'ለምሳሌ፡ ቦሌ ባህላዊ ሬስቶራንት' : 'e.g. Bole Traditional Restaurant'}
                       value={businessName}
                       onChange={(e) => setBusinessName(e.target.value)}
-                      className={`w-full px-3.5 py-2 rounded-xl text-xs border focus:outline-none ${
+                      className={`w-full px-3.5 py-2 rounded-lg text-xs border focus:outline-none ${
                         isDark ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0]' : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#2A1A0D]'
                       }`}
                     />
@@ -378,7 +378,7 @@ Cut Notes: ${cutInstructions || 'Standard portioning'}`;
                       placeholder={isAmharic ? 'ለምሳሌ፡ ሼፍ ዳዊት' : 'e.g. Chef Dawit'}
                       value={contactPerson}
                       onChange={(e) => setContactPerson(e.target.value)}
-                      className={`w-full px-3.5 py-2 rounded-xl text-xs border focus:outline-none ${
+                      className={`w-full px-3.5 py-2 rounded-lg text-xs border focus:outline-none ${
                         isDark ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0]' : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#2A1A0D]'
                       }`}
                     />
@@ -396,7 +396,7 @@ Cut Notes: ${cutInstructions || 'Standard portioning'}`;
                       placeholder="e.g. +251 91 123 4567"
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
-                      className={`w-full px-3.5 py-2 rounded-xl text-xs border focus:outline-none ${
+                      className={`w-full px-3.5 py-2 rounded-lg text-xs border focus:outline-none ${
                         isDark ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0]' : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#2A1A0D]'
                       }`}
                     />
@@ -410,7 +410,7 @@ Cut Notes: ${cutInstructions || 'Standard portioning'}`;
                       type="date"
                       value={deliveryDate}
                       onChange={(e) => setDeliveryDate(e.target.value)}
-                      className={`w-full px-3.5 py-2 rounded-xl text-xs border focus:outline-none ${
+                      className={`w-full px-3.5 py-2 rounded-lg text-xs border focus:outline-none ${
                         isDark ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0]' : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#2A1A0D]'
                       }`}
                     />
@@ -427,7 +427,7 @@ Cut Notes: ${cutInstructions || 'Standard portioning'}`;
                     placeholder={isAmharic ? 'ለምሳሌ፡ ቦሌ አትላስ ወይም ካዛንቺስ' : 'e.g. Addis Ababa, Bole near Atlas or Kazanchis'}
                     value={kitchenAddress}
                     onChange={(e) => setKitchenAddress(e.target.value)}
-                    className={`w-full px-3.5 py-2 rounded-xl text-xs border focus:outline-none ${
+                    className={`w-full px-3.5 py-2 rounded-lg text-xs border focus:outline-none ${
                       isDark ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0]' : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#2A1A0D]'
                     }`}
                   />
@@ -443,7 +443,7 @@ Cut Notes: ${cutInstructions || 'Standard portioning'}`;
                     placeholder={isAmharic ? 'ለምሳሌ፡ ለክትፎ የሚሆን ቀይ ስጋ፣ ለቁርጥ የሚሆን ለስላሳ ስጋ፣ ለወጥ የሚሆን...' : 'e.g. Fine trim without sinew for kitfo, thick prime portions for kurt, lean stew cubes for wot...'}
                     value={cutInstructions}
                     onChange={(e) => setCutInstructions(e.target.value)}
-                    className={`w-full px-3.5 py-2 rounded-xl text-xs border focus:outline-none resize-none ${
+                    className={`w-full px-3.5 py-2 rounded-lg text-xs border focus:outline-none resize-none ${
                       isDark ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0]' : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#2A1A0D]'
                     }`}
                   />
@@ -452,7 +452,7 @@ Cut Notes: ${cutInstructions || 'Standard portioning'}`;
                 <div className="pt-2">
                   <button
                     type="submit"
-                    className={`w-full py-3.5 rounded-xl font-bold text-xs sm:text-sm transition-all shadow-md cursor-pointer ${
+                    className={`w-full py-3.5 rounded-lg font-bold text-xs sm:text-sm transition-all shadow-md cursor-pointer ${
                       isDark ? 'bg-[#C58A3A] hover:bg-[#E0B15A] text-[#1B1208]' : 'bg-[#B8792F] hover:bg-[#9E6523] text-[#FAF7F0]'
                     }`}
                   >
@@ -467,7 +467,7 @@ Cut Notes: ${cutInstructions || 'Standard portioning'}`;
           <div className="lg:col-span-5 space-y-4">
             {/* Official Price Card */}
             <div
-              className={`p-6 rounded-3xl border space-y-3.5 ${
+              className={`p-6 rounded-xl border space-y-3.5 ${
                 isDark ? 'bg-[#2A1A0D] border-[#4A2C16]' : 'bg-[#F1E8D8] border-[#E4D4BC]'
               }`}
             >
@@ -500,7 +500,7 @@ Cut Notes: ${cutInstructions || 'Standard portioning'}`;
 
             {/* Quality & Delivery Standards */}
             <div
-              className={`p-5 rounded-3xl border text-xs space-y-2.5 ${
+              className={`p-5 rounded-xl border text-xs space-y-2.5 ${
                 isDark ? 'bg-[#1B1208] border-[#4A2C16]' : 'bg-[#FAF7F0] border-[#E4D4BC]'
               }`}
             >
@@ -518,7 +518,7 @@ Cut Notes: ${cutInstructions || 'Standard portioning'}`;
 
             {/* Other Services Switcher Quick Links */}
             <div
-              className={`p-5 rounded-3xl border text-xs space-y-2 ${
+              className={`p-5 rounded-xl border text-xs space-y-2 ${
                 isDark ? 'bg-[#1B1208] border-[#4A2C16]' : 'bg-[#FAF7F0] border-[#E4D4BC]'
               }`}
             >

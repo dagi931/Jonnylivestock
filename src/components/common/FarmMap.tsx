@@ -42,7 +42,7 @@ export const FarmMap: React.FC = () => {
 
   return (
     <div
-      className={`rounded-3xl border overflow-hidden transition-all shadow-sm ${
+      className={`rounded-xl border overflow-hidden transition-colors shadow-xs ${
         isDark ? 'bg-[#2A1A0D] border-[#4A2C16]' : 'bg-[#F1E8D8] border-[#E4D4BC]'
       }`}
     >
@@ -86,7 +86,7 @@ export const FarmMap: React.FC = () => {
             href={googleMapsDirectionsUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs transform hover:-translate-y-0.5 ${
+            className={`px-3.5 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors shadow-xs ${
               isDark
                 ? 'bg-[#C58A3A] hover:bg-[#E0B15A] text-[#1B1208]'
                 : 'bg-[#B8792F] hover:bg-[#9E6523] text-[#FAF7F0]'
@@ -108,7 +108,7 @@ export const FarmMap: React.FC = () => {
         />
 
         {/* Floating Farm Location Card */}
-        <div className="absolute top-3 left-3 z-10 max-w-xs p-3.5 rounded-2xl bg-black/85 backdrop-blur-md text-[#FAF7F0] border border-white/15 shadow-xl text-xs space-y-1.5">
+        <div className="absolute top-3 left-3 z-10 max-w-xs p-3.5 rounded-xl bg-black/90 text-[#FAF7F0] border border-white/15 shadow-lg text-xs space-y-1.5">
           <div className="flex items-center gap-1.5 font-serif font-bold text-sm text-[#E0B15A]">
             <MapPin className="w-4 h-4 text-red-500 shrink-0" />
             <span>{business.name}</span>
@@ -129,7 +129,7 @@ export const FarmMap: React.FC = () => {
             href={googleMapsViewUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="px-3.5 py-1.5 rounded-xl bg-black/85 backdrop-blur-md text-[#FAF7F0] border border-white/20 text-xs font-semibold flex items-center gap-1.5 hover:bg-black transition-colors shadow-md"
+            className="px-3.5 py-1.5 rounded-lg bg-black/85 text-[#FAF7F0] border border-white/20 text-xs font-semibold flex items-center gap-1.5 hover:bg-black transition-colors shadow-xs"
           >
             <ExternalLink className="w-3.5 h-3.5 text-[#E0B15A]" />
             <span>{isAmharic ? 'በሙሉ ካርታ ክፈት' : 'Open in Full Map'}</span>

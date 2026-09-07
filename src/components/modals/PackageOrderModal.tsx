@@ -414,7 +414,7 @@ export const PackageOrderModal: React.FC<PackageOrderModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 w-screen h-screen h-[100dvh] bg-black/90 backdrop-blur-md flex flex-col overflow-hidden animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 w-screen h-screen h-[100dvh] bg-black/85 flex flex-col overflow-hidden animate-in fade-in duration-200">
       <div
         className={`relative w-full h-full flex flex-col overflow-hidden ${
           isDark
@@ -424,10 +424,10 @@ export const PackageOrderModal: React.FC<PackageOrderModalProps> = ({
       >
         {/* Full-Width Top Header Bar */}
         <header
-          className={`px-4 sm:px-8 py-3.5 sm:py-4 border-b shrink-0 flex items-center justify-between gap-4 z-20 shadow-xs backdrop-blur-md ${
+          className={`px-4 sm:px-8 py-3.5 sm:py-4 border-b shrink-0 flex items-center justify-between gap-4 z-20 shadow-xs ${
             isDark
-              ? 'bg-[#1C1208]/95 border-[#4A2C16]'
-              : 'bg-[#FAF7F0]/95 border-[#E4D4BC]'
+              ? 'bg-[#1C1208] border-[#4A2C16]'
+              : 'bg-[#FAF7F0] border-[#E4D4BC]'
           }`}
         >
           <div className="flex items-center gap-3 min-w-0">
@@ -445,7 +445,7 @@ export const PackageOrderModal: React.FC<PackageOrderModalProps> = ({
               <span className="text-xs font-semibold hidden sm:inline">{isAmharic ? 'ተመለስ' : 'Back'}</span>
             </button>
 
-            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-500 shrink-0 shadow-inner">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-500 shrink-0">
               <Gift className="w-5 h-5" />
             </div>
 
@@ -871,7 +871,7 @@ export const PackageOrderModal: React.FC<PackageOrderModalProps> = ({
                 {/* Right Column (5 cols on lg): Single Unified Checkout Card */}
                 <div className="lg:col-span-5 lg:sticky lg:top-4">
                   <div
-                    className={`p-5 sm:p-6 rounded-3xl border shadow-md space-y-5 ${
+                    className={`p-5 sm:p-6 rounded-xl border shadow-xs space-y-5 ${
                       isDark ? 'bg-[#1D130A] border-[#4A2C16]' : 'bg-white border-[#E4D4BC]'
                     }`}
                   >

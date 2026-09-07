@@ -162,7 +162,7 @@ export const Services: React.FC = () => {
           <div className="mt-5 flex flex-wrap items-center gap-3">
             <Link
               to="/packages"
-              className="px-4 py-2 rounded-xl font-bold text-xs sm:text-sm transition-all shadow-xs inline-flex items-center gap-1.5 bg-amber-500 hover:bg-amber-600 text-black"
+              className="px-4 py-2 rounded-lg font-bold text-xs sm:text-sm transition-colors shadow-xs inline-flex items-center gap-1.5 bg-amber-500 hover:bg-amber-600 text-black"
             >
               <Gift className="w-4 h-4" />
               <span>{isAmharic ? 'የበዓል ጥቅሎችና ቅርጫቶች' : 'Holiday Packages & Hampers'}</span>
@@ -171,7 +171,7 @@ export const Services: React.FC = () => {
             <button
               type="button"
               onClick={() => setIsMeatModalOpen(true)}
-              className={`px-4 py-2 rounded-xl font-bold text-xs sm:text-sm transition-all shadow-xs inline-flex items-center gap-1.5 cursor-pointer ${
+              className={`px-4 py-2 rounded-lg font-bold text-xs sm:text-sm transition-colors shadow-xs inline-flex items-center gap-1.5 cursor-pointer ${
                 isDark
                   ? 'bg-[#C58A3A] hover:bg-[#E0B15A] text-[#1B1208]'
                   : 'bg-[#B8792F] hover:bg-[#9E6523] text-[#FAF7F0]'
@@ -183,7 +183,7 @@ export const Services: React.FC = () => {
 
             <a
               href="#delivery"
-              className={`px-4 py-2 rounded-xl font-semibold text-xs sm:text-sm border transition-colors ${
+              className={`px-4 py-2 rounded-lg font-semibold text-xs sm:text-sm border transition-colors ${
                 isDark
                   ? 'bg-[#2A1A0D] border-[#4A2C16] text-[#F4E8D0] hover:border-[#C58A3A]'
                   : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#241A12] hover:border-[#B8792F]'
@@ -231,14 +231,14 @@ export const Services: React.FC = () => {
             <div className="lg:col-span-4 flex flex-col sm:flex-row lg:flex-col gap-2.5">
               <Link
                 to="/packages"
-                className="w-full py-3.5 px-5 rounded-2xl bg-amber-500 hover:bg-amber-600 text-black font-bold text-xs sm:text-sm transition-all shadow-md flex items-center justify-center gap-2"
+                className="w-full py-3 px-5 rounded-lg bg-amber-500 hover:bg-amber-600 text-black font-bold text-xs sm:text-sm transition-colors shadow-xs flex items-center justify-center gap-2"
               >
                 <Sparkles className="w-4 h-4" />
                 <span>{isAmharic ? 'ጥቅል ማዘጋጃውን ይክፈቱ' : 'Open Package Builder'}</span>
               </Link>
               <Link
                 to="/my-reservations"
-                className={`w-full py-3 px-5 rounded-2xl border text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2 ${
+                className={`w-full py-2.5 px-5 rounded-lg border text-xs sm:text-sm font-semibold transition-colors flex items-center justify-center gap-2 ${
                   isDark ? 'border-[#4A2C16] hover:bg-[#2A1A0D]' : 'border-[#E4D4BC] hover:bg-[#FAF7F0]'
                 }`}
               >
@@ -348,7 +348,7 @@ export const Services: React.FC = () => {
                             }
                             setIsMeatModalOpen(true);
                           }}
-                          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-black font-bold text-xs shadow-sm transition-all active:scale-[0.98] cursor-pointer"
+                          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-black font-bold text-xs shadow-xs transition-colors cursor-pointer"
                         >
                           <Scale className="w-3.5 h-3.5" />
                           <span>{isAmharic ? 'የበሬ ስጋ በኪሎ እዘዝ (ኦንላይን)' : 'Order Raw Meat in KG'}</span>
@@ -364,7 +364,7 @@ export const Services: React.FC = () => {
                         )}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-sm transition-all active:scale-[0.98]"
+                        className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs shadow-xs transition-colors"
                       >
                         <MessageSquare className="w-3.5 h-3.5 text-white" />
                         <span>{isAmharic ? 'በዋትስአፕ ይጠይቁ / ይዘዙ' : 'Inquire on WhatsApp'}</span>
@@ -372,7 +372,7 @@ export const Services: React.FC = () => {
 
                       <a
                         href={getPhoneCallLink(business.phone)}
-                        className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border text-xs font-semibold transition-all ${
+                        className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg border text-xs font-semibold transition-colors ${
                           isDark
                             ? 'border-[#4A2C16] text-[#D8C5A8] hover:bg-white/5'
                             : 'border-[#E4D4BC] text-[#746556] hover:bg-black/5'
@@ -404,7 +404,7 @@ export const Services: React.FC = () => {
               return (
                 <div
                   key={idx}
-                  className={`p-6 rounded-3xl border space-y-3 ${
+                  className={`p-6 rounded-xl border space-y-3 ${
                     isDark ? 'bg-[#24170D] border-[#4A2C16]' : 'bg-white border-[#E4D4BC]'
                   }`}
                 >

@@ -143,28 +143,28 @@ export const MyReservations: React.FC = () => {
       switch (status) {
         case 'pending_verification':
           return (
-            <span className="px-3 py-1 rounded-full text-xs font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30 flex items-center gap-1.5">
-              <Clock className="w-3.5 h-3.5 animate-pulse" />
+            <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-500/15 text-amber-400 border border-amber-500/30 flex items-center gap-1.5">
+              <Clock className="w-3.5 h-3.5" />
               <span>{isAmharic ? 'ክፍያ በመጠባበቅ ላይ' : 'Payment Review Pending'}</span>
             </span>
           );
         case 'verified':
           return (
-            <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center gap-1.5">
+            <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center gap-1.5">
               <ShieldCheck className="w-3.5 h-3.5" />
               <span>{isAmharic ? 'ክፍያ ተረጋግጧል' : 'Payment Confirmed'}</span>
             </span>
           );
         case 'delivery_pending':
           return (
-            <span className="px-3 py-1 rounded-full text-xs font-bold bg-blue-500/15 text-blue-400 border border-blue-500/30 flex items-center gap-1.5">
-              <Truck className="w-3.5 h-3.5 animate-pulse" />
+            <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-500/15 text-blue-400 border border-blue-500/30 flex items-center gap-1.5">
+              <Truck className="w-3.5 h-3.5" />
               <span>{isAmharic ? 'በማድረስ ሂደት ላይ' : 'Out for Delivery'}</span>
             </span>
           );
         case 'pickup_ready':
           return (
-            <span className="px-3 py-1 rounded-full text-xs font-bold bg-blue-500/15 text-blue-400 border border-blue-500/30 flex items-center gap-1.5">
+            <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-500/15 text-blue-400 border border-blue-500/30 flex items-center gap-1.5">
               <MapPin className="w-3.5 h-3.5" />
               <span>{isAmharic ? 'ለርክክብ ዝግጁ ነው' : 'Ready for Farm Pickup'}</span>
             </span>
@@ -172,14 +172,14 @@ export const MyReservations: React.FC = () => {
         case 'delivered':
         case 'completed':
           return (
-            <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 flex items-center gap-1.5">
+            <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 flex items-center gap-1.5">
               <CheckCircle2 className="w-3.5 h-3.5" />
               <span>{isAmharic ? 'ተጠናቋል' : 'Order Completed'}</span>
             </span>
           );
         default:
           return (
-            <span className="px-3 py-1 rounded-full text-xs font-bold bg-neutral-500/15 text-neutral-400 border border-neutral-500/30">
+            <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-neutral-500/15 text-neutral-400 border border-neutral-500/30">
               {status}
             </span>
           );
@@ -189,35 +189,35 @@ export const MyReservations: React.FC = () => {
       switch (status) {
         case 'reservation_pending':
           return (
-            <span className="px-3 py-1 rounded-full text-xs font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30 flex items-center gap-1.5">
-              <Clock className="w-3.5 h-3.5 animate-pulse" />
+            <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-500/15 text-amber-400 border border-amber-500/30 flex items-center gap-1.5">
+              <Clock className="w-3.5 h-3.5" />
               <span>{isAmharic ? 'የቅድመ-ክፍያ ማረጋገጫ' : 'Deposit Review Pending'}</span>
             </span>
           );
         case 'reserved':
           return (
-            <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center gap-1.5">
+            <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center gap-1.5">
               <ShieldCheck className="w-3.5 h-3.5" />
               <span>{isAmharic ? 'ይዞታው ተረጋግጧል (ተቆልፏል)' : 'Reservation Confirmed (Locked)'}</span>
             </span>
           );
         case 'final_payment_pending':
           return (
-            <span className="px-3 py-1 rounded-full text-xs font-bold bg-purple-500/15 text-purple-400 border border-purple-500/30 flex items-center gap-1.5">
-              <Clock className="w-3.5 h-3.5 animate-pulse" />
+            <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-purple-500/15 text-purple-400 border border-purple-500/30 flex items-center gap-1.5">
+              <Clock className="w-3.5 h-3.5" />
               <span>{isAmharic ? 'የመጨረሻ ክፍያ ማረጋገጫ' : 'Final Slip Review Pending'}</span>
             </span>
           );
         case 'delivery_pending':
           return (
-            <span className="px-3 py-1 rounded-full text-xs font-bold bg-blue-500/15 text-blue-400 border border-blue-500/30 flex items-center gap-1.5">
-              <Truck className="w-3.5 h-3.5 animate-pulse" />
+            <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-500/15 text-blue-400 border border-blue-500/30 flex items-center gap-1.5">
+              <Truck className="w-3.5 h-3.5" />
               <span>{isAmharic ? 'በማድረስ ሂደት ላይ' : 'Out for Delivery'}</span>
             </span>
           );
         case 'pickup_ready':
           return (
-            <span className="px-3 py-1 rounded-full text-xs font-bold bg-blue-500/15 text-blue-400 border border-blue-500/30 flex items-center gap-1.5">
+            <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-500/15 text-blue-400 border border-blue-500/30 flex items-center gap-1.5">
               <MapPin className="w-3.5 h-3.5" />
               <span>{isAmharic ? 'ለርክክብ ዝግጁ ነው' : 'Ready for Farm Pickup'}</span>
             </span>
@@ -226,14 +226,14 @@ export const MyReservations: React.FC = () => {
         case 'verified':
         case 'delivered':
           return (
-            <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 flex items-center gap-1.5">
+            <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 flex items-center gap-1.5">
               <CheckCircle2 className="w-3.5 h-3.5" />
               <span>{isAmharic ? 'ሙሉ በሙሉ ተጠናቋል' : 'Fully Settled & Sold'}</span>
             </span>
           );
         default:
           return (
-            <span className="px-3 py-1 rounded-full text-xs font-bold bg-neutral-500/15 text-neutral-400 border border-neutral-500/30">
+            <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-neutral-500/15 text-neutral-400 border border-neutral-500/30">
               {status}
             </span>
           );
@@ -276,7 +276,7 @@ export const MyReservations: React.FC = () => {
             <div className="flex flex-wrap items-center gap-3">
               <Link
                 to="/packages"
-                className="flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-amber-500 hover:bg-amber-600 text-black font-bold text-xs sm:text-sm transition-all shadow-lg shadow-amber-500/20"
+                className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-neutral-950 font-semibold text-xs sm:text-sm transition-colors shadow-xs"
               >
                 <Gift className="w-4 h-4" />
                 <span>{isAmharic ? 'ጥቅሎች & ከብቶች' : 'Browse Livestock & Packages'}</span>
@@ -287,13 +287,13 @@ export const MyReservations: React.FC = () => {
           {/* Quick Tabs & Search Filter */}
           <div className="mt-8 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-4 border-t border-black/5 dark:border-white/5">
             {/* Tabs */}
-            <div className="w-full sm:w-auto flex items-center p-1 rounded-2xl bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 gap-1 overflow-x-auto no-scrollbar">
+            <div className="w-full sm:w-auto flex items-center p-1 rounded-xl bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 gap-1 overflow-x-auto no-scrollbar">
               <button
                 type="button"
                 onClick={() => setActiveTab('all')}
-                className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 sm:shrink ${
+                className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-lg text-xs font-semibold transition-colors cursor-pointer whitespace-nowrap shrink-0 sm:shrink ${
                   activeTab === 'all'
-                    ? 'bg-amber-500 text-black shadow-sm'
+                    ? 'bg-amber-500 text-neutral-950 shadow-xs'
                     : 'opacity-70 hover:opacity-100 hover:bg-black/5 dark:hover:bg-white/5'
                 }`}
               >
@@ -301,7 +301,7 @@ export const MyReservations: React.FC = () => {
                 <span className="hidden sm:inline">{isAmharic ? 'ሁሉም ግብይቶች' : 'All Transactions'}</span>
                 <span className="sm:hidden">{isAmharic ? 'ሁሉም' : 'All'}</span>
                 <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-mono font-bold shrink-0 min-w-[18px] text-center ${
-                  activeTab === 'all' ? 'bg-black/20 text-black' : 'bg-black/10 dark:bg-white/10'
+                  activeTab === 'all' ? 'bg-black/20 text-neutral-950' : 'bg-black/10 dark:bg-white/10'
                 }`}>
                   {orders.length}
                 </span>
@@ -310,9 +310,9 @@ export const MyReservations: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setActiveTab('direct')}
-                className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 sm:shrink ${
+                className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-lg text-xs font-semibold transition-colors cursor-pointer whitespace-nowrap shrink-0 sm:shrink ${
                   activeTab === 'direct'
-                    ? 'bg-amber-500 text-black shadow-sm'
+                    ? 'bg-amber-500 text-neutral-950 shadow-xs'
                     : 'opacity-70 hover:opacity-100 hover:bg-black/5 dark:hover:bg-white/5'
                 }`}
               >
@@ -320,7 +320,7 @@ export const MyReservations: React.FC = () => {
                 <span className="hidden sm:inline">{isAmharic ? 'የቀጥታ ትዕዛዞች (100%)' : 'Direct Purchases (Full)'}</span>
                 <span className="sm:hidden">{isAmharic ? 'ቀጥታ' : 'Direct (Full)'}</span>
                 <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-mono font-bold shrink-0 min-w-[18px] text-center ${
-                  activeTab === 'direct' ? 'bg-black/20 text-black' : 'bg-black/10 dark:bg-white/10'
+                  activeTab === 'direct' ? 'bg-black/20 text-neutral-950' : 'bg-black/10 dark:bg-white/10'
                 }`}>
                   {directOrders.length}
                 </span>
@@ -329,9 +329,9 @@ export const MyReservations: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setActiveTab('reservation')}
-                className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 sm:shrink ${
+                className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-lg text-xs font-semibold transition-colors cursor-pointer whitespace-nowrap shrink-0 sm:shrink ${
                   activeTab === 'reservation'
-                    ? 'bg-amber-500 text-black shadow-sm'
+                    ? 'bg-amber-500 text-neutral-950 shadow-xs'
                     : 'opacity-70 hover:opacity-100 hover:bg-black/5 dark:hover:bg-white/5'
                 }`}
               >
@@ -339,7 +339,7 @@ export const MyReservations: React.FC = () => {
                 <span className="hidden sm:inline">{isAmharic ? 'ይዞታዎች (50%)' : 'Reservations (50%)'}</span>
                 <span className="sm:hidden">{isAmharic ? 'ይዞታዎች' : 'Reservations'}</span>
                 <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-mono font-bold shrink-0 min-w-[18px] text-center ${
-                  activeTab === 'reservation' ? 'bg-black/20 text-black' : 'bg-black/10 dark:bg-white/10'
+                  activeTab === 'reservation' ? 'bg-black/20 text-neutral-950' : 'bg-black/10 dark:bg-white/10'
                 }`}>
                   {reservations.length}
                 </span>
@@ -354,7 +354,7 @@ export const MyReservations: React.FC = () => {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder={isAmharic ? 'በትዕዛዝ ቁጥር ወይም በስም ፈልግ...' : 'Search by Order ID or item...'}
-                className="w-full pl-9 pr-3 py-2.5 rounded-xl text-xs bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 focus:outline-none focus:border-amber-500 transition-colors"
+                className="w-full pl-9 pr-3 py-2.5 rounded-lg text-xs bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 focus:outline-none focus:border-amber-500 transition-colors"
               />
             </div>
           </div>
@@ -365,12 +365,12 @@ export const MyReservations: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
         {!isAuthenticated ? (
           <div
-            className={`p-8 sm:p-10 rounded-3xl border text-center max-w-lg mx-auto space-y-4 ${
+            className={`p-8 sm:p-10 rounded-2xl border text-center max-w-lg mx-auto space-y-4 ${
               isDark ? 'bg-[#24170D] border-[#4A2C16]' : 'bg-white border-[#E4D4BC]'
             }`}
           >
-            <div className="w-14 h-14 rounded-2xl bg-amber-500/15 text-amber-500 flex items-center justify-center mx-auto shadow-inner">
-              <ShieldCheck className="w-7 h-7" />
+            <div className="w-12 h-12 rounded-xl bg-amber-500/15 text-amber-500 flex items-center justify-center mx-auto shadow-inner">
+              <ShieldCheck className="w-6 h-6" />
             </div>
             <h3 className="font-serif font-bold text-xl sm:text-2xl">
               {isAmharic ? 'ትዕዛዞችን ለመከታተል ይግቡ ወይም ይመዝገቡ' : 'Sign In to Track Your Orders'}
@@ -384,14 +384,14 @@ export const MyReservations: React.FC = () => {
               <button
                 type="button"
                 onClick={() => openAuthModal('login')}
-                className="w-full sm:w-auto px-7 py-3 rounded-2xl bg-amber-500 hover:bg-amber-600 text-black font-bold text-xs sm:text-sm transition-all shadow-md active:scale-98 cursor-pointer"
+                className="w-full sm:w-auto px-7 py-2.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-neutral-950 font-semibold text-xs sm:text-sm transition-colors shadow-xs cursor-pointer"
               >
                 {isAmharic ? 'ይግቡ' : 'Sign In'}
               </button>
               <button
                 type="button"
                 onClick={() => openAuthModal('register')}
-                className={`w-full sm:w-auto px-7 py-3 rounded-2xl border font-bold text-xs sm:text-sm transition-all active:scale-98 cursor-pointer ${
+                className={`w-full sm:w-auto px-7 py-2.5 rounded-lg border font-semibold text-xs sm:text-sm transition-colors cursor-pointer ${
                   isDark
                     ? 'border-amber-500/40 text-amber-400 hover:bg-amber-500/10'
                     : 'border-[#B8792F]/50 text-[#8B4513] hover:bg-amber-50'
@@ -408,15 +408,15 @@ export const MyReservations: React.FC = () => {
           </div>
         ) : displayedOrders.length === 0 ? (
           <div
-            className={`p-12 rounded-3xl border text-center max-w-lg mx-auto space-y-4 ${
+            className={`p-10 rounded-2xl border text-center max-w-lg mx-auto space-y-4 ${
               isDark ? 'bg-[#24170D] border-[#4A2C16]' : 'bg-white border-[#E4D4BC]'
             }`}
           >
-            <div className="w-14 h-14 rounded-2xl bg-amber-500/15 text-amber-500 flex items-center justify-center mx-auto">
+            <div className="w-12 h-12 rounded-xl bg-amber-500/15 text-amber-500 flex items-center justify-center mx-auto">
               {activeTab === 'reservation' ? (
-                <ShieldCheck className="w-7 h-7" />
+                <ShieldCheck className="w-6 h-6" />
               ) : (
-                <ShoppingBag className="w-7 h-7" />
+                <ShoppingBag className="w-6 h-6" />
               )}
             </div>
             <h3 className="font-serif font-bold text-xl">
@@ -437,7 +437,7 @@ export const MyReservations: React.FC = () => {
             </p>
             <Link
               to="/packages"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-amber-500 hover:bg-amber-600 text-black font-bold text-xs transition-all shadow-lg"
+              className="inline-flex items-center gap-2 px-6 py-2.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-neutral-950 font-semibold text-xs transition-colors shadow-xs"
             >
               <Sparkles className="w-4 h-4" />
               <span>{isAmharic ? 'ከብቶች & ጥቅሎችን ይመልከቱ' : 'Explore Packages & Livestock'}</span>
@@ -453,7 +453,7 @@ export const MyReservations: React.FC = () => {
               return (
                 <div
                   key={order.id}
-                  className={`rounded-3xl border overflow-hidden p-6 transition-all duration-200 shadow-md ${
+                  className={`rounded-xl border overflow-hidden p-5 sm:p-6 transition-colors shadow-xs ${
                     isDark ? 'bg-[#24170D] border-[#4A2C16]' : 'bg-white border-[#E4D4BC]'
                   }`}
                 >
@@ -527,7 +527,7 @@ export const MyReservations: React.FC = () => {
                             setSelectedOrderForFinalPay(order);
                             setIsFinalModalOpen(true);
                           }}
-                          className="w-full sm:w-auto px-5 py-2.5 rounded-2xl bg-amber-500 hover:bg-amber-600 text-black font-bold text-xs sm:text-sm transition-all shadow-lg shadow-amber-500/20 flex items-center justify-center gap-2 cursor-pointer"
+                          className="w-full sm:w-auto px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-neutral-950 font-semibold text-xs sm:text-sm transition-colors shadow-xs flex items-center justify-center gap-2 cursor-pointer"
                         >
                           <CreditCard className="w-4 h-4" />
                           <span>
@@ -541,7 +541,7 @@ export const MyReservations: React.FC = () => {
                           href={order.paymentSlipUrl}
                           target="_blank"
                           rel="noreferrer"
-                          className="px-3.5 py-2 rounded-xl border text-xs font-semibold hover:bg-black/5 dark:hover:bg-white/5 transition-colors flex items-center gap-1.5 opacity-80"
+                          className="px-3 py-1.5 rounded-lg border text-xs font-semibold hover:bg-black/5 dark:hover:bg-white/5 transition-colors flex items-center gap-1.5 opacity-80"
                         >
                           <Eye className="w-3.5 h-3.5" />
                           <span>{isRes ? (isAmharic ? 'የቅድመ-ክፍያ ደረሰኝ' : 'Deposit Slip') : (isAmharic ? 'የክፍያ ደረሰኝ' : 'Payment Slip')}</span>
@@ -553,7 +553,7 @@ export const MyReservations: React.FC = () => {
                           href={order.finalPaymentSlipUrl}
                           target="_blank"
                           rel="noreferrer"
-                          className="px-3.5 py-2 rounded-xl border text-xs font-semibold hover:bg-black/5 dark:hover:bg-white/5 transition-colors flex items-center gap-1.5 text-emerald-500 border-emerald-500/30"
+                          className="px-3 py-1.5 rounded-lg border text-xs font-semibold hover:bg-black/5 dark:hover:bg-white/5 transition-colors flex items-center gap-1.5 text-emerald-500 border-emerald-500/30"
                         >
                           <Eye className="w-3.5 h-3.5" />
                           <span>{isAmharic ? 'የመጨረሻ ደረሰኝ' : 'Final Slip'}</span>
@@ -567,7 +567,7 @@ export const MyReservations: React.FC = () => {
                     {isRes ? (
                       <>
                         <div
-                          className={`p-3.5 rounded-2xl border ${
+                          className={`p-3.5 rounded-xl border ${
                             isDark ? 'bg-[#1D130A] border-[#4A2C16]' : 'bg-[#FAF7F0] border-[#E4D4BC]'
                           }`}
                         >
@@ -580,7 +580,7 @@ export const MyReservations: React.FC = () => {
                         </div>
 
                         <div
-                          className={`p-3.5 rounded-2xl border ${
+                          className={`p-3.5 rounded-xl border ${
                             isDark ? 'bg-[#1D130A] border-[#4A2C16]' : 'bg-[#FAF7F0] border-[#E4D4BC]'
                           }`}
                         >
@@ -594,7 +594,7 @@ export const MyReservations: React.FC = () => {
                         </div>
 
                         <div
-                          className={`p-3.5 rounded-2xl border ${
+                          className={`p-3.5 rounded-xl border ${
                             isDark ? 'bg-[#1D130A] border-[#4A2C16]' : 'bg-[#FAF7F0] border-[#E4D4BC]'
                           }`}
                         >
@@ -617,7 +617,7 @@ export const MyReservations: React.FC = () => {
                     ) : (
                       <>
                         <div
-                          className={`p-3.5 rounded-2xl border ${
+                          className={`p-3.5 rounded-xl border ${
                             isDark ? 'bg-[#1D130A] border-[#4A2C16]' : 'bg-[#FAF7F0] border-[#E4D4BC]'
                           }`}
                         >
@@ -630,7 +630,7 @@ export const MyReservations: React.FC = () => {
                         </div>
 
                         <div
-                          className={`p-3.5 rounded-2xl border ${
+                          className={`p-3.5 rounded-xl border ${
                             isDark ? 'bg-[#1D130A] border-[#4A2C16]' : 'bg-[#FAF7F0] border-[#E4D4BC]'
                           }`}
                         >
@@ -643,7 +643,7 @@ export const MyReservations: React.FC = () => {
                         </div>
 
                         <div
-                          className={`p-3.5 rounded-2xl border ${
+                          className={`p-3.5 rounded-xl border ${
                             isDark ? 'bg-[#1D130A] border-[#4A2C16]' : 'bg-[#FAF7F0] border-[#E4D4BC]'
                           }`}
                         >
@@ -662,7 +662,7 @@ export const MyReservations: React.FC = () => {
 
                   {/* Delivery Detail Banner if delivery requested */}
                   {order.isDelivery && (
-                    <div className="mt-4 p-3.5 rounded-2xl bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                    <div className="mt-4 p-3.5 rounded-xl bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                       <div className="flex items-start sm:items-center gap-2.5">
                         <Truck className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5 sm:mt-0" />
                         <div>
@@ -708,7 +708,7 @@ export const MyReservations: React.FC = () => {
 
                   {/* Admin Notes if provided */}
                   {order.adminNotes && (
-                    <div className="mt-4 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs">
+                    <div className="mt-4 p-3 rounded-lg bg-amber-500/10 border border-amber-500/20 text-xs">
                       <span className="font-bold">{isAmharic ? 'የአድሚን ማስታወሻ:' : 'Admin Note:'}</span> {order.adminNotes}
                     </div>
                   )}

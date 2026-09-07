@@ -218,13 +218,13 @@ export const MeatByKgPromoSection: React.FC = () => {
                 onClick={() => {
                   setIsMeatModalOpen(true);
                 }}
-                className="w-full inline-flex items-center justify-between px-6 py-4 rounded-2xl bg-amber-500 hover:bg-amber-600 text-black font-extrabold text-sm sm:text-base shadow-xl transition-all active:scale-[0.98] group cursor-pointer"
+                className="w-full inline-flex items-center justify-between px-6 py-3.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-black font-bold text-sm sm:text-base transition-colors group cursor-pointer"
               >
                 <div className="flex items-center gap-3">
                   <Beef className="w-5 h-5 text-black shrink-0" />
                   <span>{isAmharic ? 'የበሬ ስጋ በኪሎ እዘዝ' : 'Order Beef in KG Online'}</span>
                 </div>
-                <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
+                <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
               </button>
 
               {/* Secondary Actions Row */}
@@ -233,7 +233,7 @@ export const MeatByKgPromoSection: React.FC = () => {
                   href={getWhatsAppLink(business.whatsapp, whatsappInquiryText)}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className={`inline-flex items-center justify-center gap-2 px-4 py-3 rounded-2xl border font-bold text-xs sm:text-sm transition-all ${
+                  className={`inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border font-semibold text-xs sm:text-sm transition-colors ${
                     isDark
                       ? 'border-[#3D2311] bg-[#1E1207] text-[#25D366] hover:bg-[#2A190A]'
                       : 'border-[#E4D4BC] bg-white text-[#128C7E] hover:bg-[#FAF3E8]'
@@ -245,7 +245,7 @@ export const MeatByKgPromoSection: React.FC = () => {
 
                 <a
                   href={getPhoneCallLink(business.phone)}
-                  className={`inline-flex items-center justify-center gap-2 px-4 py-3 rounded-2xl border font-bold text-xs sm:text-sm transition-all ${
+                  className={`inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border font-semibold text-xs sm:text-sm transition-colors ${
                     isDark
                       ? 'border-[#3D2311] bg-[#1E1207] text-[#F4E8D0] hover:bg-[#2A190A]'
                       : 'border-[#E4D4BC] bg-white text-[#241A12] hover:bg-[#FAF3E8]'
@@ -311,9 +311,9 @@ export const MeatByKgPromoSection: React.FC = () => {
               {beefDishes.map((dish) => (
                 <div
                   key={dish.id}
-                  className={`rounded-2xl border overflow-hidden transition-all duration-200 hover:border-amber-500/50 flex flex-col ${
+                  className={`rounded-xl border overflow-hidden transition-colors duration-150 hover:border-amber-500/50 flex flex-col ${
                     isDark
-                      ? 'bg-[#180F07]/90 border-[#3D2311]'
+                      ? 'bg-[#180F07] border-[#3D2311]'
                       : 'bg-white border-[#E8DAC6]'
                   }`}
                 >
@@ -325,7 +325,7 @@ export const MeatByKgPromoSection: React.FC = () => {
                       className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
                       loading="lazy"
                     />
-                    <div className="absolute top-2 left-2 sm:top-3 sm:left-3 px-1.5 py-0.5 sm:px-2.5 sm:py-1 rounded-md sm:rounded-lg text-[9.5px] sm:text-[11px] font-bold bg-black/75 backdrop-blur-md text-white border border-white/10">
+                    <div className="absolute top-2 left-2 sm:top-3 sm:left-3 px-1.5 py-0.5 sm:px-2.5 sm:py-1 rounded-md sm:rounded-lg text-[9.5px] sm:text-[11px] font-bold bg-black/85 text-white border border-white/10">
                       {dish.badge}
                     </div>
                   </div>

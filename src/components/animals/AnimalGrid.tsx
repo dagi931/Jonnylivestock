@@ -47,18 +47,18 @@ export const AnimalGrid: React.FC<AnimalGridProps> = ({
   if (animals.length === 0) {
     return (
       <div
-        className={`rounded-3xl border p-8 sm:p-12 text-center my-4 flex flex-col items-center justify-center max-w-xl mx-auto transition-colors ${
+        className={`rounded-xl border p-8 sm:p-10 text-center my-4 flex flex-col items-center justify-center max-w-xl mx-auto transition-colors shadow-xs ${
           isDark
             ? 'bg-[#2A1A0D] border-[#4A2C16] text-[#D8C5A8]'
             : 'bg-[#F1E8D8] border-[#E4D4BC] text-[#746556]'
         }`}
       >
         <div
-          className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-3 ${
+          className={`w-12 h-12 rounded-xl flex items-center justify-center mb-3 ${
             isDark ? 'bg-[#1B1208] text-[#C58A3A] border border-[#4A2C16]' : 'bg-[#FAF7F0] text-[#B8792F] border border-[#E4D4BC]'
           }`}
         >
-          <SearchX className="w-7 h-7" />
+          <SearchX className="w-6 h-6" />
         </div>
         <h3
           className={`font-serif font-bold text-lg sm:text-xl mb-1.5 ${
@@ -75,7 +75,7 @@ export const AnimalGrid: React.FC<AnimalGridProps> = ({
           <button
             type="button"
             onClick={onResetFilters}
-            className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all shadow-sm ${
+            className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-colors shadow-xs ${
               isDark
                 ? 'bg-[#C58A3A] hover:bg-[#E0B15A] text-[#1B1208]'
                 : 'bg-[#B8792F] hover:bg-[#9E6523] text-[#FAF7F0]'

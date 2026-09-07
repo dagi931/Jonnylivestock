@@ -43,11 +43,7 @@ export const Hero: React.FC = () => {
             >
               {t.hero.headlineLine1}<br />
               <span
-                className={
-                  isDark
-                    ? 'text-transparent bg-clip-text bg-gradient-to-r from-[#C58A3A] to-[#E0B15A]'
-                    : 'text-[#B8792F]'
-                }
+                className={isDark ? 'text-[#E0B15A]' : 'text-[#B8792F]'}
               >
                 {t.hero.headlineHighlight}
               </span>
@@ -70,7 +66,7 @@ export const Hero: React.FC = () => {
             <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
               <Link
                 to="/sheep"
-                className={`inline-flex items-center justify-center gap-1.5 px-4 sm:px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm transition-all duration-150 shadow-sm transform hover:-translate-y-0.5 ${
+                className={`inline-flex items-center justify-center gap-1.5 px-4 sm:px-5 py-2.5 rounded-lg font-semibold text-xs sm:text-sm transition-colors duration-150 ${
                   isDark
                     ? 'bg-[#C58A3A] hover:bg-[#E0B15A] text-[#1B1208]'
                     : 'bg-[#B8792F] hover:bg-[#9E6523] text-[#FAF7F0]'
@@ -82,9 +78,9 @@ export const Hero: React.FC = () => {
 
               <Link
                 to="/goats"
-                className={`inline-flex items-center justify-center gap-1.5 px-4 sm:px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm transition-all duration-150 border transform hover:-translate-y-0.5 ${
+                className={`inline-flex items-center justify-center gap-1.5 px-4 sm:px-5 py-2.5 rounded-lg font-semibold text-xs sm:text-sm transition-colors duration-150 border ${
                   isDark
-                    ? 'bg-[#1B1208]/85 hover:bg-[#2A1A0D] text-[#F4E8D0] border-[#4A2C16]'
+                    ? 'bg-[#1B1208]/90 hover:bg-[#2A1A0D] text-[#F4E8D0] border-[#4A2C16]'
                     : 'bg-[#FAF7F0] hover:bg-[#F1E8D8] text-[#241A12] border-[#E4D4BC]'
                 }`}
               >
@@ -94,9 +90,9 @@ export const Hero: React.FC = () => {
 
               <Link
                 to="/cows"
-                className={`inline-flex items-center justify-center gap-1.5 px-4 sm:px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm transition-all duration-150 border transform hover:-translate-y-0.5 ${
+                className={`inline-flex items-center justify-center gap-1.5 px-4 sm:px-5 py-2.5 rounded-lg font-semibold text-xs sm:text-sm transition-colors duration-150 border ${
                   isDark
-                    ? 'bg-[#1B1208]/85 hover:bg-[#2A1A0D] text-[#E0B15A] border-[#C58A3A]/40'
+                    ? 'bg-[#1B1208]/90 hover:bg-[#2A1A0D] text-[#E0B15A] border-[#C58A3A]/40'
                     : 'bg-[#F1E8D8] hover:bg-[#E4D4BC] text-[#4A2C16] border-[#B8792F]/40'
                 }`}
               >

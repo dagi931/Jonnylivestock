@@ -57,13 +57,13 @@ export const DeliveryDashboard: React.FC = () => {
     <div className="space-y-8 animate-in fade-in-50 duration-200">
       {/* Dashboard Banner */}
       <div
-        className={`p-6 sm:p-8 rounded-3xl border ${
+        className={`p-6 sm:p-8 rounded-xl border ${
           isDark ? 'bg-[#2A1A0D] border-[#4A2C16]' : 'bg-[#F1E8D8] border-[#E4D4BC]'
         }`}
       >
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-start gap-3.5">
-            <div className="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-500 flex items-center justify-center shrink-0">
+            <div className="w-12 h-12 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center shrink-0">
               <Truck className="w-6 h-6" />
             </div>
             <div>
@@ -82,7 +82,7 @@ export const DeliveryDashboard: React.FC = () => {
           <div className="flex items-center gap-2 shrink-0">
             <a
               href={getPhoneCallLink(business.phone)}
-              className={`px-4 py-2 rounded-xl text-xs font-bold border flex items-center gap-1.5 transition-colors ${
+              className={`px-4 py-2 rounded-lg text-xs font-bold border flex items-center gap-1.5 transition-colors ${
                 isDark ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0]' : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#2A1A0D]'
               }`}
             >
@@ -98,7 +98,7 @@ export const DeliveryDashboard: React.FC = () => {
         
         {/* Left Form: Direct Delivery Customization */}
         <div
-          className={`lg:col-span-7 p-6 sm:p-7 rounded-3xl border ${
+          className={`lg:col-span-7 p-6 sm:p-7 rounded-xl border ${
             isDark ? 'bg-[#2A1A0D] border-[#4A2C16]' : 'bg-[#F1E8D8] border-[#E4D4BC]'
           }`}
         >
@@ -117,7 +117,7 @@ export const DeliveryDashboard: React.FC = () => {
                   href={`https://wa.me/${business.whatsapp}?text=${encodeURIComponent(whatsappMessage)}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className={`px-5 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 ${
+                  className={`px-5 py-2.5 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 ${
                     isDark ? 'bg-[#C58A3A] text-[#1B1208]' : 'bg-[#B8792F] text-[#FAF7F0]'
                   }`}
                 >
@@ -127,7 +127,7 @@ export const DeliveryDashboard: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setSubmitted(false)}
-                  className="px-4 py-2.5 rounded-xl text-xs font-semibold border opacity-75 hover:opacity-100"
+                  className="px-4 py-2.5 rounded-lg text-xs font-semibold border opacity-75 hover:opacity-100"
                 >
                   Modify Details
                 </button>
@@ -140,7 +140,7 @@ export const DeliveryDashboard: React.FC = () => {
               </h3>
 
               {error && (
-                <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-500 text-xs flex items-center gap-2">
+                <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-500 text-xs flex items-center gap-2">
                   <AlertCircle className="w-4 h-4 shrink-0" />
                   <span>{error}</span>
                 </div>
@@ -155,7 +155,7 @@ export const DeliveryDashboard: React.FC = () => {
                   <select
                     value={animalType}
                     onChange={(e) => setAnimalType(e.target.value as any)}
-                    className={`w-full px-3.5 py-2 rounded-xl text-xs border focus:outline-none ${
+                    className={`w-full px-3.5 py-2 rounded-lg text-xs border focus:outline-none ${
                       isDark ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0]' : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#2A1A0D]'
                     }`}
                   >
@@ -176,7 +176,7 @@ export const DeliveryDashboard: React.FC = () => {
                     max="50"
                     value={animalCount}
                     onChange={(e) => setAnimalCount(e.target.value)}
-                    className={`w-full px-3.5 py-2 rounded-xl text-xs border focus:outline-none ${
+                    className={`w-full px-3.5 py-2 rounded-lg text-xs border focus:outline-none ${
                       isDark ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0]' : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#2A1A0D]'
                     }`}
                   />
@@ -192,7 +192,7 @@ export const DeliveryDashboard: React.FC = () => {
                   <select
                     value={subCity}
                     onChange={(e) => setSubCity(e.target.value)}
-                    className={`w-full px-3.5 py-2 rounded-xl text-xs border focus:outline-none ${
+                    className={`w-full px-3.5 py-2 rounded-lg text-xs border focus:outline-none ${
                       isDark ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0]' : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#2A1A0D]'
                     }`}
                   >
@@ -211,7 +211,7 @@ export const DeliveryDashboard: React.FC = () => {
                     placeholder="e.g. Near Medhanialem Church or Kebele 02"
                     value={specificAddress}
                     onChange={(e) => setSpecificAddress(e.target.value)}
-                    className={`w-full px-3.5 py-2 rounded-xl text-xs border focus:outline-none ${
+                    className={`w-full px-3.5 py-2 rounded-lg text-xs border focus:outline-none ${
                       isDark ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0]' : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#2A1A0D]'
                     }`}
                   />
@@ -228,7 +228,7 @@ export const DeliveryDashboard: React.FC = () => {
                     type="date"
                     value={preferredDate}
                     onChange={(e) => setPreferredDate(e.target.value)}
-                    className={`w-full px-3.5 py-2 rounded-xl text-xs border focus:outline-none ${
+                    className={`w-full px-3.5 py-2 rounded-lg text-xs border focus:outline-none ${
                       isDark ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0]' : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#2A1A0D]'
                     }`}
                   />
@@ -243,7 +243,7 @@ export const DeliveryDashboard: React.FC = () => {
                     placeholder="e.g. +251 91 123 4567"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    className={`w-full px-3.5 py-2 rounded-xl text-xs border focus:outline-none ${
+                    className={`w-full px-3.5 py-2 rounded-lg text-xs border focus:outline-none ${
                       isDark ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0]' : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#2A1A0D]'
                     }`}
                   />
@@ -260,7 +260,7 @@ export const DeliveryDashboard: React.FC = () => {
                   placeholder="e.g. Abebe Bekele"
                   value={customerName}
                   onChange={(e) => setCustomerName(e.target.value)}
-                  className={`w-full px-3.5 py-2 rounded-xl text-xs border focus:outline-none ${
+                  className={`w-full px-3.5 py-2 rounded-lg text-xs border focus:outline-none ${
                     isDark ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0]' : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#2A1A0D]'
                   }`}
                 />
@@ -275,7 +275,7 @@ export const DeliveryDashboard: React.FC = () => {
                   placeholder="e.g. Compound gate code, narrow street entrance, compound grass yard for tethering..."
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  className={`w-full px-3.5 py-2 rounded-xl text-xs border focus:outline-none resize-none ${
+                  className={`w-full px-3.5 py-2 rounded-lg text-xs border focus:outline-none resize-none ${
                     isDark ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0]' : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#2A1A0D]'
                   }`}
                 />
@@ -284,7 +284,7 @@ export const DeliveryDashboard: React.FC = () => {
               <div className="pt-2">
                 <button
                   type="submit"
-                  className={`w-full py-3 rounded-xl font-bold text-xs sm:text-sm transition-all shadow-sm ${
+                  className={`w-full py-3 rounded-lg font-bold text-xs sm:text-sm transition-all shadow-sm ${
                     isDark ? 'bg-[#C58A3A] hover:bg-[#E0B15A] text-[#1B1208]' : 'bg-[#B8792F] hover:bg-[#9E6523] text-[#FAF7F0]'
                   }`}
                 >
@@ -294,11 +294,10 @@ export const DeliveryDashboard: React.FC = () => {
             </form>
           )}
         </div>
-
         {/* Right Column: Key Logistics & Standards */}
         <div className="lg:col-span-5 space-y-4">
           <div
-            className={`p-6 rounded-3xl border space-y-3.5 ${
+            className={`p-6 rounded-xl border space-y-3.5 ${
               isDark ? 'bg-[#2A1A0D] border-[#4A2C16]' : 'bg-[#F1E8D8] border-[#E4D4BC]'
             }`}
           >

@@ -80,14 +80,14 @@ export const Navbar: React.FC = () => {
 
   return (
     <header
-      className={`sticky top-0 z-50 transition-all duration-200 ${
+      className={`sticky top-0 z-50 transition-colors duration-200 ${
         scrolled
           ? isDark
-            ? 'bg-[#1B1208]/95 backdrop-blur-md shadow-lg border-b border-[#4A2C16]/80'
-            : 'bg-[#FAF7F0]/95 backdrop-blur-md shadow-sm border-b border-[#E4D4BC]'
+            ? 'bg-[#1B1208] border-b border-[#4A2C16] shadow-sm'
+            : 'bg-[#FAF7F0] border-b border-[#E4D4BC] shadow-xs'
           : isDark
-            ? 'bg-[#1B1208] border-b border-[#4A2C16]/50'
-            : 'bg-[#FAF7F0] border-b border-[#E4D4BC]/60'
+            ? 'bg-[#1B1208] border-b border-[#4A2C16]/60'
+            : 'bg-[#FAF7F0] border-b border-[#E4D4BC]/70'
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -98,17 +98,17 @@ export const Navbar: React.FC = () => {
             className="flex items-center gap-2.5 group focus:outline-none focus-visible:ring-2 focus-visible:ring-[#C58A3A] rounded-lg shrink-0"
           >
             <div
-              className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center font-serif font-bold text-base sm:text-lg transition-transform duration-200 group-hover:scale-105 ${
+              className={`w-9 h-9 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center font-serif font-bold text-base sm:text-lg transition-colors ${
                 isDark
-                  ? 'bg-gradient-to-br from-[#4A2C16] to-[#2A1A0D] text-[#E0B15A] border border-[#C58A3A]/40 shadow-inner'
-                  : 'bg-gradient-to-br from-[#FAF7F0] to-[#F1E8D8] text-[#B8792F] border border-[#B8792F]/40 shadow-sm'
+                  ? 'bg-[#2A1A0D] text-[#E0B15A] border border-[#4A2C16]'
+                  : 'bg-[#F1E8D8] text-[#B8792F] border border-[#E4D4BC]'
               }`}
             >
               <span>JL</span>
             </div>
             <span
               className={`font-serif font-bold text-lg sm:text-xl tracking-tight transition-colors ${
-                isDark ? 'text-[#F4E8D0] group-hover:text-[#E0B15A]' : 'text-[#2A1A0D] group-hover:text-[#B8792F]'
+                isDark ? 'text-[#F4E8D0] group-hover:text-[#E0B15A]' : 'text-[#241A12] group-hover:text-[#B8792F]'
               }`}
             >
               {business.name}
@@ -122,15 +122,15 @@ export const Navbar: React.FC = () => {
                 key={link.path}
                 to={link.path}
                 className={({ isActive }) =>
-                  `px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-150 relative ${
+                  `px-3 py-1.5 rounded-lg text-sm transition-colors duration-150 ${
                     isActive
                       ? isDark
-                        ? 'text-[#E0B15A] bg-[#2A1A0D] border border-[#4A2C16] font-semibold shadow-xs'
-                        : 'text-[#B8792F] bg-[#F1E8D8] border border-[#E4D4BC] font-semibold shadow-xs'
+                        ? 'text-[#E0B15A] bg-[#2A1A0D] font-semibold border border-[#4A2C16]'
+                        : 'text-[#B8792F] bg-[#F1E8D8] font-semibold border border-[#E4D4BC]'
                       : isDark
-                        ? 'text-[#D8C5A8] hover:text-[#F4E8D0] hover:bg-[#2A1A0D]/50'
-                        : 'text-[#746556] hover:text-[#2A1A0D] hover:bg-[#F1E8D8]/50'
-                  } ${link.isSpecial ? 'font-bold' : ''}`
+                        ? 'text-[#D8C5A8] hover:text-[#F4E8D0] hover:bg-[#2A1A0D]/50 font-medium'
+                        : 'text-[#746556] hover:text-[#2A1A0D] hover:bg-[#F1E8D8]/50 font-medium'
+                  } ${link.isSpecial ? 'font-semibold' : ''}`
                 }
               >
                 {link.isSpecial ? (
@@ -255,7 +255,7 @@ export const Navbar: React.FC = () => {
 
       {/* Mobile Backdrop Overlay */}
       <div
-        className={`fixed inset-x-0 top-16 sm:top-18 bottom-0 bg-black/50 backdrop-blur-sm transition-opacity duration-300 lg:hidden z-40 ${
+        className={`fixed inset-x-0 top-16 sm:top-18 bottom-0 bg-black/60 transition-opacity duration-300 lg:hidden z-40 ${
           isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
         }`}
         onClick={() => setIsOpen(false)}
@@ -314,7 +314,11 @@ export const Navbar: React.FC = () => {
               <Link
                 to="/my-orders"
                 onClick={() => setIsOpen(false)}
-                className="p-2.5 rounded-xl bg-amber-500/15 border border-amber-500/40 text-amber-700 dark:text-amber-400 text-xs font-bold flex items-center gap-1.5 justify-center shadow-xs"
+                className={`p-2.5 rounded-lg border text-xs font-semibold flex items-center gap-1.5 justify-center transition-colors ${
+                  isDark
+                    ? 'bg-[#2A1A0D] border-[#4A2C16] text-[#E0B15A] hover:bg-[#3A2412]'
+                    : 'bg-[#F1E8D8] border-[#E4D4BC] text-[#B8792F] hover:bg-[#EFE8DC]'
+                }`}
               >
                 <ShoppingBag className="w-3.5 h-3.5" />
                 <span>{isAmharic ? 'ትዕዛዞች & ይዞታዎች' : 'Orders & Reservations'}</span>
@@ -322,7 +326,11 @@ export const Navbar: React.FC = () => {
               <Link
                 to="/my-packages"
                 onClick={() => setIsOpen(false)}
-                className="p-2.5 rounded-xl bg-amber-500/15 border border-amber-500/40 text-amber-700 dark:text-amber-400 text-xs font-bold flex items-center gap-1.5 justify-center shadow-xs"
+                className={`p-2.5 rounded-lg border text-xs font-semibold flex items-center gap-1.5 justify-center transition-colors ${
+                  isDark
+                    ? 'bg-[#2A1A0D] border-[#4A2C16] text-[#E0B15A] hover:bg-[#3A2412]'
+                    : 'bg-[#F1E8D8] border-[#E4D4BC] text-[#B8792F] hover:bg-[#EFE8DC]'
+                }`}
               >
                 <Bookmark className="w-3.5 h-3.5" />
                 <span>My Packages</span>
@@ -338,7 +346,7 @@ export const Navbar: React.FC = () => {
                   setIsOpen(false);
                   openAuthModal('login');
                 }}
-                className={`w-full py-2.5 px-4 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-colors shadow-xs ${
+                className={`w-full py-2.5 px-4 rounded-lg text-xs font-bold flex items-center justify-center gap-2 transition-colors ${
                   isDark
                     ? 'bg-[#C58A3A] text-[#1B1208] hover:bg-[#E0B15A]'
                     : 'bg-[#B8792F] text-white hover:bg-[#9E6523]'

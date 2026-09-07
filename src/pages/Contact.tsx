@@ -137,13 +137,13 @@ export const Contact: React.FC = () => {
             
             {/* Phone Card */}
             <div
-              className={`p-5 rounded-2xl border transition-all ${
+              className={`p-5 rounded-xl border transition-all ${
                 isDark ? 'bg-[#2A1A0D] border-[#4A2C16] shadow-rustic' : 'bg-[#F1E8D8] border-[#E4D4BC] shadow-premium'
               }`}
             >
               <div className="flex items-start gap-3.5">
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${isDark ? 'bg-[#1B1208] text-[#C58A3A] border border-[#4A2C16]' : 'bg-[#FAF7F0] text-[#B8792F] border border-[#E4D4BC]'}`}>
-                  <Phone className="w-5 h-5" />
+                <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${isDark ? 'bg-[#1B1208] text-[#C58A3A] border border-[#4A2C16]' : 'bg-[#FAF7F0] text-[#B8792F] border border-[#E4D4BC]'}`}>
+                  <Phone className="w-4 h-4" />
                 </div>
                 <div className="flex-1">
                   <span className="block text-[11px] uppercase tracking-wider font-semibold opacity-70">
@@ -166,13 +166,13 @@ export const Contact: React.FC = () => {
 
             {/* WhatsApp Card */}
             <div
-              className={`p-5 rounded-2xl border transition-all ${
+              className={`p-5 rounded-xl border transition-all ${
                 isDark ? 'bg-[#2A1A0D] border-[#4A2C16] shadow-rustic' : 'bg-[#F1E8D8] border-[#E4D4BC] shadow-premium'
               }`}
             >
               <div className="flex items-start gap-3.5">
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${isDark ? 'bg-[#1B1208] text-[#25D366] border border-[#4A2C16]' : 'bg-[#FAF7F0] text-[#25D366] border border-[#E4D4BC]'}`}>
-                  <MessageSquare className="w-5 h-5" />
+                <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${isDark ? 'bg-[#1B1208] text-[#25D366] border border-[#4A2C16]' : 'bg-[#FAF7F0] text-[#25D366] border border-[#E4D4BC]'}`}>
+                  <MessageSquare className="w-4 h-4" />
                 </div>
                 <div className="flex-1">
                   <span className="block text-[11px] uppercase tracking-wider font-semibold opacity-70">
@@ -197,7 +197,7 @@ export const Contact: React.FC = () => {
 
             {/* Location & Hours Card */}
             <div
-              className={`p-5 rounded-2xl border space-y-3 ${
+              className={`p-5 rounded-xl border space-y-3 ${
                 isDark ? 'bg-[#2A1A0D] border-[#4A2C16]' : 'bg-[#F1E8D8] border-[#E4D4BC]'
               }`}
             >
@@ -224,7 +224,7 @@ export const Contact: React.FC = () => {
 
             {/* Disclaimer pill */}
             <div
-              className={`p-3.5 rounded-xl border text-xs leading-relaxed flex items-start gap-2.5 ${
+              className={`p-3.5 rounded-lg border text-xs leading-relaxed flex items-start gap-2.5 ${
                 isDark ? 'bg-[#1B1208] border-[#4A2C16] text-[#D8C5A8]' : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#746556]'
               }`}
             >
@@ -239,14 +239,14 @@ export const Contact: React.FC = () => {
           {/* Right Column: Contact Form */}
           <div className="lg:col-span-7">
             <div
-              className={`p-5 sm:p-7 rounded-3xl border transition-all ${
+              className={`p-5 sm:p-7 rounded-xl border transition-all ${
                 isDark ? 'bg-[#2A1A0D] border-[#4A2C16] shadow-rustic' : 'bg-[#F1E8D8] border-[#E4D4BC] shadow-premium'
               }`}
             >
               {isSuccess ? (
                 <div className="text-center py-8 space-y-3">
-                  <div className="w-14 h-14 rounded-full bg-green-500/20 text-green-400 border border-green-500/30 flex items-center justify-center mx-auto">
-                    <CheckCircle2 className="w-8 h-8" />
+                  <div className="w-12 h-12 rounded-full bg-green-500/20 text-green-400 border border-green-500/30 flex items-center justify-center mx-auto">
+                    <CheckCircle2 className="w-7 h-7" />
                   </div>
                   <h3 className="font-serif font-bold text-xl">{t.contactPage.successTitle}</h3>
                   <p className="text-xs sm:text-sm opacity-85 max-w-md mx-auto leading-relaxed">
@@ -259,7 +259,7 @@ export const Contact: React.FC = () => {
                     <button
                       type="button"
                       onClick={handleReset}
-                      className={`px-5 py-2 rounded-xl text-xs sm:text-sm font-semibold border transition-colors ${
+                      className={`px-5 py-2 rounded-lg text-xs sm:text-sm font-semibold border transition-colors ${
                         isDark
                           ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0] hover:border-[#C58A3A]'
                           : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#241A12] hover:border-[#B8792F]'
@@ -296,7 +296,7 @@ export const Contact: React.FC = () => {
                           placeholder={isAmharic ? 'ለምሳሌ፡ አበበ በቀለ' : 'e.g. Abebe Bekele'}
                           value={formData.name}
                           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                          className={`w-full px-3.5 py-2 rounded-xl text-sm border focus:outline-none focus:ring-2 transition-all ${
+                          className={`w-full px-3.5 py-2 rounded-lg text-sm border focus:outline-none focus:ring-2 transition-all ${
                             errors.name ? 'border-red-500 ring-1 ring-red-500' : ''
                           } ${
                             isDark
@@ -321,7 +321,7 @@ export const Contact: React.FC = () => {
                           placeholder={isAmharic ? 'ለምሳሌ፡ +251 91 123 4567' : 'e.g. +251 91 123 4567'}
                           value={formData.phone}
                           onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                          className={`w-full px-3.5 py-2 rounded-xl text-sm border focus:outline-none focus:ring-2 transition-all ${
+                          className={`w-full px-3.5 py-2 rounded-lg text-sm border focus:outline-none focus:ring-2 transition-all ${
                             errors.phone ? 'border-red-500 ring-1 ring-red-500' : ''
                           } ${
                             isDark
@@ -349,7 +349,7 @@ export const Contact: React.FC = () => {
                           placeholder={isAmharic ? 'ለምሳሌ፡ abebe@example.com' : 'e.g. abebe@example.com'}
                           value={formData.email}
                           onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                          className={`w-full px-3.5 py-2 rounded-xl text-sm border focus:outline-none focus:ring-2 transition-all ${
+                          className={`w-full px-3.5 py-2 rounded-lg text-sm border focus:outline-none focus:ring-2 transition-all ${
                             errors.email ? 'border-red-500 ring-1 ring-red-500' : ''
                           } ${
                             isDark
@@ -374,7 +374,7 @@ export const Contact: React.FC = () => {
                           placeholder="e.g. SH-001 or CW-001"
                           value={formData.animalId}
                           onChange={(e) => setFormData({ ...formData, animalId: e.target.value })}
-                          className={`w-full px-3.5 py-2 rounded-xl text-sm border focus:outline-none focus:ring-2 transition-all ${
+                          className={`w-full px-3.5 py-2 rounded-lg text-sm border focus:outline-none focus:ring-2 transition-all ${
                             isDark
                               ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0] focus:ring-[#C58A3A]'
                               : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#241A12] focus:ring-[#B8792F]'
@@ -392,7 +392,7 @@ export const Contact: React.FC = () => {
                         <select
                           value={formData.serviceNeeded}
                           onChange={(e) => setFormData({ ...formData, serviceNeeded: e.target.value })}
-                          className={`w-full px-3.5 py-2 rounded-xl text-sm border appearance-none pr-10 focus:outline-none focus:ring-2 transition-all ${
+                          className={`w-full px-3.5 py-2 rounded-lg text-sm border appearance-none pr-10 focus:outline-none focus:ring-2 transition-all ${
                             isDark
                               ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0] focus:ring-[#C58A3A]'
                               : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#241A12] focus:ring-[#B8792F]'
@@ -420,7 +420,7 @@ export const Contact: React.FC = () => {
                         placeholder={isAmharic ? 'ስለሚፈልጉት እንስሳ፣ ማድረሻ አድራሻ ወይም ልዩ የስጋ ዝግጅት ትዕዛዝ ይጻፉልን...' : 'Tell us about the animal you want, delivery destination, or specific service instructions...'}
                         value={formData.message}
                         onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                        className={`w-full px-3.5 py-2 rounded-xl text-sm border focus:outline-none focus:ring-2 transition-all resize-none ${
+                        className={`w-full px-3.5 py-2 rounded-lg text-sm border focus:outline-none focus:ring-2 transition-all resize-none ${
                           errors.message ? 'border-red-500 ring-1 ring-red-500' : ''
                         } ${
                           isDark
@@ -441,7 +441,7 @@ export const Contact: React.FC = () => {
                       <button
                         type="submit"
                         disabled={isSubmitting}
-                        className={`w-full sm:w-auto px-6 py-2.5 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all shadow-sm transform hover:-translate-y-0.5 active:scale-[0.99] disabled:opacity-50 ${
+                        className={`w-full sm:w-auto px-6 py-2.5 rounded-lg font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-colors shadow-xs disabled:opacity-50 cursor-pointer ${
                           isDark
                             ? 'bg-[#C58A3A] hover:bg-[#E0B15A] text-[#1B1208]'
                             : 'bg-[#B8792F] hover:bg-[#9E6523] text-[#FAF7F0]'

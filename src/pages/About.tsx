@@ -58,10 +58,10 @@ export const About: React.FC = () => {
             {t.aboutPage.heroDesc}
           </p>
 
-          {/* Credibility Pill Badges */}
-          <div className="mt-6 flex flex-wrap items-center gap-2 sm:gap-3">
+          {/* Credibility Meta Row */}
+          <div className="mt-6 flex flex-wrap items-center gap-3 text-xs">
             <div
-              className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border text-xs font-normal ${
+              className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-medium ${
                 isDark
                   ? 'border-[#4A2C16] bg-[#2A1A0D]/80 text-[#D8C5A8]'
                   : 'border-[#E4D4BC] bg-[#F1E8D8]/80 text-[#746556]'
@@ -72,7 +72,7 @@ export const About: React.FC = () => {
             </div>
 
             <div
-              className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border text-xs font-normal ${
+              className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-medium ${
                 isDark
                   ? 'border-[#4A2C16] bg-[#2A1A0D]/80 text-[#D8C5A8]'
                   : 'border-[#E4D4BC] bg-[#F1E8D8]/80 text-[#746556]'
@@ -83,7 +83,7 @@ export const About: React.FC = () => {
             </div>
 
             <div
-              className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border text-xs font-normal ${
+              className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-medium ${
                 isDark
                   ? 'border-[#4A2C16] bg-[#2A1A0D]/80 text-[#D8C5A8]'
                   : 'border-[#E4D4BC] bg-[#F1E8D8]/80 text-[#746556]'
@@ -97,7 +97,7 @@ export const About: React.FC = () => {
 
         {/* 2-Column Story Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-10 items-center mb-12">
-          <div className="relative rounded-3xl overflow-hidden aspect-[4/3] border shadow-lg" style={{ borderColor: isDark ? '#4A2C16' : '#E4D4BC' }}>
+          <div className="relative rounded-xl overflow-hidden aspect-[4/3] border shadow-xs" style={{ borderColor: isDark ? '#4A2C16' : '#E4D4BC' }}>
             <img
               src="https://images.unsplash.com/photo-1546445317-29f4545e9d53?auto=format&fit=crop&w=1200&q=80"
               alt="Healthy cattle and livestock pasture"
@@ -147,12 +147,12 @@ export const About: React.FC = () => {
         {/* 3 Categories Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
           <div
-            className={`p-6 rounded-3xl border transition-all ${
+            className={`p-6 rounded-xl border transition-all ${
               isDark ? 'bg-[#2A1A0D] border-[#4A2C16] shadow-rustic' : 'bg-[#F1E8D8] border-[#E4D4BC] shadow-premium'
             }`}
           >
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-4 bg-[#1B1208] text-[#C58A3A] border border-[#4A2C16]">
-              <Award className="w-5 h-5" />
+            <div className="w-9 h-9 rounded-lg flex items-center justify-center mb-4 bg-[#1B1208] text-[#C58A3A] border border-[#4A2C16]">
+              <Award className="w-4 h-4" />
             </div>
             <h3 className={`font-serif font-bold text-lg mb-1.5 ${isDark ? 'text-[#F4E8D0]' : 'text-[#241A12]'}`}>
               {t.aboutPage.sheepCardTitle}
@@ -166,12 +166,12 @@ export const About: React.FC = () => {
           </div>
 
           <div
-            className={`p-6 rounded-3xl border transition-all ${
+            className={`p-6 rounded-xl border transition-all ${
               isDark ? 'bg-[#2A1A0D] border-[#4A2C16] shadow-rustic' : 'bg-[#F1E8D8] border-[#E4D4BC] shadow-premium'
             }`}
           >
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-4 bg-[#1B1208] text-[#C58A3A] border border-[#4A2C16]">
-              <ShieldCheck className="w-5 h-5" />
+            <div className="w-9 h-9 rounded-lg flex items-center justify-center mb-4 bg-[#1B1208] text-[#C58A3A] border border-[#4A2C16]">
+              <ShieldCheck className="w-4 h-4" />
             </div>
             <h3 className={`font-serif font-bold text-lg mb-1.5 ${isDark ? 'text-[#F4E8D0]' : 'text-[#241A12]'}`}>
               {t.aboutPage.goatCardTitle}
@@ -185,12 +185,12 @@ export const About: React.FC = () => {
           </div>
 
           <div
-            className={`p-6 rounded-3xl border transition-all ${
+            className={`p-6 rounded-xl border transition-all ${
               isDark ? 'bg-[#2A1A0D] border-[#4A2C16] shadow-rustic' : 'bg-[#F1E8D8] border-[#E4D4BC] shadow-premium'
             }`}
           >
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-4 bg-[#1B1208] text-[#C58A3A] border border-[#4A2C16]">
-              <Sparkles className="w-5 h-5" />
+            <div className="w-9 h-9 rounded-lg flex items-center justify-center mb-4 bg-[#1B1208] text-[#C58A3A] border border-[#4A2C16]">
+              <Sparkles className="w-4 h-4" />
             </div>
             <h3 className={`font-serif font-bold text-lg mb-1.5 ${isDark ? 'text-[#F4E8D0]' : 'text-[#241A12]'}`}>
               {t.aboutPage.cowCardTitle}
@@ -206,7 +206,7 @@ export const About: React.FC = () => {
 
         {/* Why Choose Us Section */}
         <div
-          className={`p-8 sm:p-10 rounded-3xl border mb-12 ${
+          className={`p-8 sm:p-10 rounded-xl border mb-12 ${
             isDark ? 'bg-[#2A1A0D] border-[#4A2C16]' : 'bg-[#F1E8D8] border-[#E4D4BC]'
           }`}
         >
@@ -235,7 +235,7 @@ export const About: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-4 gap-1.5 sm:gap-5">
-            <div className={`p-2 sm:p-4 rounded-xl sm:rounded-2xl border flex flex-col items-center sm:items-start text-center sm:text-left ${isDark ? 'bg-[#1B1208] border-[#4A2C16]' : 'bg-[#FAF7F0] border-[#E4D4BC]'}`}>
+            <div className={`p-2 sm:p-4 rounded-lg border flex flex-col items-center sm:items-start text-center sm:text-left ${isDark ? 'bg-[#1B1208] border-[#4A2C16]' : 'bg-[#FAF7F0] border-[#E4D4BC]'}`}>
               <ShieldCheck className="w-4 h-4 sm:w-5 sm:h-5 text-amber-500 mb-1 sm:mb-2 shrink-0" />
               <h3 className="font-serif font-bold text-[10.5px] sm:text-sm mb-0.5 sm:mb-1 leading-tight">{t.aboutPage.trust1Title}</h3>
               <p className="hidden sm:block text-xs opacity-80 leading-relaxed">
@@ -243,7 +243,7 @@ export const About: React.FC = () => {
               </p>
             </div>
 
-            <div className={`p-2 sm:p-4 rounded-xl sm:rounded-2xl border flex flex-col items-center sm:items-start text-center sm:text-left ${isDark ? 'bg-[#1B1208] border-[#4A2C16]' : 'bg-[#FAF7F0] border-[#E4D4BC]'}`}>
+            <div className={`p-2 sm:p-4 rounded-lg border flex flex-col items-center sm:items-start text-center sm:text-left ${isDark ? 'bg-[#1B1208] border-[#4A2C16]' : 'bg-[#FAF7F0] border-[#E4D4BC]'}`}>
               <Award className="w-4 h-4 sm:w-5 sm:h-5 text-amber-500 mb-1 sm:mb-2 shrink-0" />
               <h3 className="font-serif font-bold text-[10.5px] sm:text-sm mb-0.5 sm:mb-1 leading-tight">{t.aboutPage.trust2Title}</h3>
               <p className="hidden sm:block text-xs opacity-80 leading-relaxed">
@@ -251,7 +251,7 @@ export const About: React.FC = () => {
               </p>
             </div>
 
-            <div className={`p-2 sm:p-4 rounded-xl sm:rounded-2xl border flex flex-col items-center sm:items-start text-center sm:text-left ${isDark ? 'bg-[#1B1208] border-[#4A2C16]' : 'bg-[#FAF7F0] border-[#E4D4BC]'}`}>
+            <div className={`p-2 sm:p-4 rounded-lg border flex flex-col items-center sm:items-start text-center sm:text-left ${isDark ? 'bg-[#1B1208] border-[#4A2C16]' : 'bg-[#FAF7F0] border-[#E4D4BC]'}`}>
               <Truck className="w-4 h-4 sm:w-5 sm:h-5 text-amber-500 mb-1 sm:mb-2 shrink-0" />
               <h3 className="font-serif font-bold text-[10.5px] sm:text-sm mb-0.5 sm:mb-1 leading-tight">{t.aboutPage.trust3Title}</h3>
               <p className="hidden sm:block text-xs opacity-80 leading-relaxed">
@@ -259,7 +259,7 @@ export const About: React.FC = () => {
               </p>
             </div>
 
-            <div className={`p-2 sm:p-4 rounded-xl sm:rounded-2xl border flex flex-col items-center sm:items-start text-center sm:text-left ${isDark ? 'bg-[#1B1208] border-[#4A2C16]' : 'bg-[#FAF7F0] border-[#E4D4BC]'}`}>
+            <div className={`p-2 sm:p-4 rounded-lg border flex flex-col items-center sm:items-start text-center sm:text-left ${isDark ? 'bg-[#1B1208] border-[#4A2C16]' : 'bg-[#FAF7F0] border-[#E4D4BC]'}`}>
               <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-amber-500 mb-1 sm:mb-2 shrink-0" />
               <h3 className="font-serif font-bold text-[10.5px] sm:text-sm mb-0.5 sm:mb-1 leading-tight">{t.aboutPage.trust4Title}</h3>
               <p className="hidden sm:block text-xs opacity-80 leading-relaxed">

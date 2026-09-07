@@ -135,12 +135,12 @@ export const AnimalDetails: React.FC = () => {
     return (
       <div className="min-h-[70vh] flex items-center justify-center px-4 py-16">
         <div
-          className={`max-w-md w-full rounded-3xl border p-8 text-center shadow-xl ${
+          className={`max-w-md w-full rounded-xl border p-8 text-center shadow-md ${
             isDark ? 'bg-[#2A1A0D] border-[#4A2C16]' : 'bg-[#F1E8D8] border-[#E4D4BC]'
           }`}
         >
-          <div className="w-16 h-16 rounded-2xl bg-amber-500/20 text-amber-500 border border-amber-500/30 flex items-center justify-center mx-auto mb-4">
-            <AlertTriangle className="w-8 h-8" />
+          <div className="w-14 h-14 rounded-xl bg-amber-500/20 text-amber-500 border border-amber-500/30 flex items-center justify-center mx-auto mb-4">
+            <AlertTriangle className="w-7 h-7" />
           </div>
           <h1 className="font-serif font-bold text-2xl mb-2">{t.detailsPage.animalNotFound}</h1>
           <p className="text-sm opacity-80 mb-6">
@@ -269,7 +269,7 @@ export const AnimalDetails: React.FC = () => {
           <div className="lg:col-span-6 space-y-5">
             {/* Main Animal Details & Booking Card */}
             <div
-              className={`p-5 sm:p-7 rounded-2xl sm:rounded-3xl border shadow-sm space-y-5 ${
+              className={`p-5 sm:p-7 rounded-xl border shadow-xs space-y-5 ${
                 isDark ? 'bg-[#2A1A0D] border-[#4A2C16]' : 'bg-[#F1E8D8] border-[#E4D4BC]'
               }`}
             >
@@ -303,7 +303,7 @@ export const AnimalDetails: React.FC = () => {
 
                 {/* Integrated Price & 50% Deposit Bar */}
                 <div
-                  className={`mt-3.5 p-3.5 sm:p-4 rounded-xl sm:rounded-2xl border flex items-center justify-between gap-2.5 ${
+                  className={`mt-3.5 p-3.5 sm:p-4 rounded-lg border flex items-center justify-between gap-2.5 ${
                     isDark
                       ? 'bg-[#1B1208] border-[#4A2C16]'
                       : 'bg-[#FAF7F0] border-[#E4D4BC]'
@@ -466,13 +466,13 @@ export const AnimalDetails: React.FC = () => {
                         setBuyModalMode('deposit');
                         setIsBuyModalOpen(true);
                       }}
-                      className="w-full py-3.5 px-4 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-between gap-2 bg-amber-500 hover:bg-amber-600 text-black shadow-lg hover:shadow-xl hover:scale-[1.005] active:scale-[0.99] transition-all cursor-pointer"
+                      className="w-full py-3 px-4 rounded-lg text-xs sm:text-sm font-bold flex items-center justify-between gap-2 bg-amber-500 hover:bg-amber-600 text-black transition-colors cursor-pointer"
                     >
                       <span className="flex items-center gap-1.5 sm:gap-2 min-w-0">
                         <ShieldCheck className="w-4 h-4 shrink-0" />
                         <span className="truncate">{isAmharic ? 'በ50% ቅድመ-ክፍያ ያስይዙ' : 'Reserve with 50% Deposit'}</span>
                       </span>
-                      <span className="font-mono font-black text-xs sm:text-sm bg-black/10 px-2.5 py-0.5 rounded-lg shrink-0 whitespace-nowrap">
+                      <span className="font-mono font-bold text-xs sm:text-sm bg-black/10 px-2 py-0.5 rounded shrink-0 whitespace-nowrap">
                         {formatPrice(depositWithServices)}
                       </span>
                     </button>
@@ -484,7 +484,7 @@ export const AnimalDetails: React.FC = () => {
                         setBuyModalMode('full');
                         setIsBuyModalOpen(true);
                       }}
-                      className={`w-full py-2.5 px-3 sm:px-4 rounded-xl text-xs font-semibold border flex items-center justify-between gap-2 transition-all cursor-pointer ${
+                      className={`w-full py-2.5 px-3 sm:px-4 rounded-lg text-xs font-semibold border flex items-center justify-between gap-2 transition-colors cursor-pointer ${
                         isDark
                           ? 'bg-[#1B1208] border-[#4A2C16] text-[#D8C5A8] hover:border-[#C58A3A] hover:text-[#F4E8D0]'
                           : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#746556] hover:border-[#B8792F] hover:text-[#241A12]'
@@ -503,7 +503,7 @@ export const AnimalDetails: React.FC = () => {
                       {/* Call Seller */}
                       <a
                         href={getPhoneCallLink(business.phone)}
-                        className={`py-2.5 px-2.5 sm:px-3 rounded-xl text-xs font-bold border flex items-center justify-center gap-1.5 transition-colors ${
+                        className={`py-2.5 px-2.5 sm:px-3 rounded-lg text-xs font-semibold border flex items-center justify-center gap-1.5 transition-colors ${
                           isDark
                             ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0] hover:border-[#C58A3A]'
                             : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#241A12] hover:border-[#B8792F]'
@@ -552,7 +552,7 @@ export const AnimalDetails: React.FC = () => {
 
             {/* SEPARATE CARD: OPTIONAL FARM SERVICES & PREPARATION */}
             <div
-              className={`p-5 sm:p-6 rounded-2xl sm:rounded-3xl border shadow-sm space-y-3.5 ${
+              className={`p-5 sm:p-6 rounded-xl border shadow-xs space-y-3.5 ${
                 isDark ? 'bg-[#2A1A0D] border-[#4A2C16]' : 'bg-[#F1E8D8] border-[#E4D4BC]'
               }`}
             >

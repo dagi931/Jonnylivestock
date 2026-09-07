@@ -72,14 +72,14 @@ export const AnimalCard: React.FC<AnimalCardProps> = ({
         transitionDuration: '650ms',
         transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)',
       }}
-      className={`group relative rounded-xl sm:rounded-2xl border flex flex-col overflow-hidden hover:-translate-y-1 active:-translate-y-0.5 cursor-pointer select-none transition-all self-start h-fit w-full ${
+      className={`group relative rounded-xl border flex flex-col overflow-hidden cursor-pointer select-none transition-colors self-start h-fit w-full ${
         isInView
           ? 'opacity-100 translate-y-0 scale-100'
           : 'opacity-0 translate-y-7 scale-[0.98]'
       } ${
         isDark
-          ? 'bg-[#2A1A0D] border-[#4A2C16] hover:border-[#C58A3A]/70 shadow-sm hover:shadow-lg'
-          : 'bg-[#F1E8D8] border-[#E4D4BC] hover:border-[#B8792F]/70 shadow-sm hover:shadow-md'
+          ? 'bg-[#2A1A0D] border-[#4A2C16] hover:border-[#C58A3A] shadow-xs'
+          : 'bg-[#F1E8D8] border-[#E4D4BC] hover:border-[#B8792F] shadow-xs'
       }`}
     >
       {/* Compact Image Container */}
@@ -98,7 +98,7 @@ export const AnimalCard: React.FC<AnimalCardProps> = ({
 
         {/* Top Badges: Animal ID & Status Tag */}
         <div className="absolute top-1.5 sm:top-2.5 inset-x-1.5 sm:inset-x-2.5 flex items-center justify-between gap-1 z-20">
-          <span className="px-1.5 py-0.5 rounded text-[9px] sm:text-[11px] font-mono font-bold tracking-wider uppercase bg-black/70 text-[#FAF7F0] backdrop-blur-sm border border-white/10 shadow-xs">
+          <span className="px-1.5 py-0.5 rounded text-[9px] sm:text-[11px] font-mono font-bold tracking-wider uppercase bg-black/80 text-[#FAF7F0] border border-white/10 shadow-xs">
             {animal.id}
           </span>
           <StatusBadge status={displayStatus} size="sm" />
@@ -106,7 +106,7 @@ export const AnimalCard: React.FC<AnimalCardProps> = ({
 
         {/* Video Indicator */}
         {animal.video && (
-          <div className="absolute bottom-1.5 left-1.5 sm:bottom-2 sm:left-2 flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-black/70 text-[#E0B15A] text-[9px] sm:text-[10px] font-medium backdrop-blur-sm border border-white/10 z-20">
+          <div className="absolute bottom-1.5 left-1.5 sm:bottom-2 sm:left-2 flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-black/80 text-[#E0B15A] text-[9px] sm:text-[10px] font-medium border border-white/10 z-20">
             <Video className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
             <span>{isAmharic ? 'ቪዲዮ' : 'Video'}</span>
           </div>

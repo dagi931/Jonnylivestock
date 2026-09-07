@@ -51,8 +51,8 @@ export default {
         sans: ['Plus Jakarta Sans', 'Inter', 'system-ui', 'sans-serif'],
       },
       boxShadow: {
-        'rustic': '0 4px 20px -2px rgba(27, 18, 8, 0.4), 0 2px 6px -2px rgba(27, 18, 8, 0.2)',
-        'premium': '0 4px 20px -2px rgba(42, 26, 13, 0.08), 0 2px 6px -2px rgba(42, 26, 13, 0.04)',
+        'rustic': '0 2px 8px -1px rgba(0, 0, 0, 0.25), 0 1px 3px -1px rgba(0, 0, 0, 0.15)',
+        'premium': '0 2px 8px -1px rgba(42, 26, 13, 0.06), 0 1px 3px -1px rgba(42, 26, 13, 0.03)',
       }
     },
   },

@@ -67,21 +67,21 @@ export const HowItWorks: React.FC = () => {
           </div>
         </AnimatedReveal>
 
-        {/* Steps Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative">
+        {/* Steps Grid - Clean Editorial Flow */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {steps.map((item, idx) => {
             const Icon = item.icon;
             return (
               <AnimatedReveal key={idx} direction="up" delay={80 + idx * 90} className="h-full">
                 <div
-                  className={`h-full relative p-6 rounded-2xl border flex flex-col items-start transition-all hover:-translate-y-1 ${
+                  className={`h-full p-6 rounded-xl border flex flex-col items-start transition-colors ${
                     isDark
-                      ? 'bg-[#2A1A0D] border-[#4A2C16] shadow-rustic'
-                      : 'bg-[#FAF7F0] border-[#E4D4BC] shadow-premium'
+                      ? 'bg-[#2A1A0D] border-[#4A2C16]'
+                      : 'bg-[#FAF7F0] border-[#E4D4BC]'
                   }`}
                 >
-                  {/* Step Number Tag */}
-                  <div className="flex items-center justify-between w-full mb-4">
+                  {/* Step Number Tag & Icon */}
+                  <div className="flex items-center justify-between w-full mb-4 pb-3 border-b border-black/5 dark:border-white/5">
                     <span
                       className={`font-serif font-extrabold text-2xl tracking-wider ${
                         isDark ? 'text-[#C58A3A]' : 'text-[#B8792F]'
@@ -90,7 +90,7 @@ export const HowItWorks: React.FC = () => {
                       {item.step}
                     </span>
                     <div
-                      className={`w-9 h-9 rounded-xl flex items-center justify-center ${
+                      className={`w-8 h-8 rounded-lg flex items-center justify-center ${
                         isDark
                           ? 'bg-[#1B1208] text-[#E0B15A] border border-[#4A2C16]'
                           : 'bg-[#F1E8D8] text-[#B8792F] border border-[#E4D4BC]'
@@ -101,7 +101,7 @@ export const HowItWorks: React.FC = () => {
                   </div>
 
                   <h3
-                    className={`font-serif font-bold text-lg mb-2 ${
+                    className={`font-serif font-bold text-base sm:text-lg mb-2 ${
                       isDark ? 'text-[#F4E8D0]' : 'text-[#241A12]'
                     }`}
                   >

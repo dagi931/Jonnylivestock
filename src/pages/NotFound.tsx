@@ -10,12 +10,12 @@ export const NotFound: React.FC = () => {
   return (
     <div className="min-h-[70vh] flex items-center justify-center px-4 py-16">
       <div
-        className={`max-w-lg w-full rounded-3xl border p-8 sm:p-12 text-center shadow-xl transition-all ${
+        className={`max-w-lg w-full rounded-2xl border p-8 sm:p-10 text-center shadow-md transition-all ${
           isDark ? 'bg-[#2A1A0D] border-[#4A2C16]' : 'bg-[#F1E8D8] border-[#E4D4BC]'
         }`}
       >
-        <div className="w-16 h-16 rounded-2xl bg-amber-500/20 text-amber-500 border border-amber-500/30 flex items-center justify-center mx-auto mb-5">
-          <Compass className="w-8 h-8" />
+        <div className="w-14 h-14 rounded-xl bg-amber-500/20 text-amber-500 border border-amber-500/30 flex items-center justify-center mx-auto mb-5">
+          <Compass className="w-7 h-7" />
         </div>
 
         <span
@@ -45,7 +45,7 @@ export const NotFound: React.FC = () => {
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
           <Link
             to="/"
-            className={`w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-colors ${
+            className={`w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold transition-colors ${
               isDark
                 ? 'bg-[#C58A3A] hover:bg-[#E0B15A] text-[#1B1208]'
                 : 'bg-[#B8792F] hover:bg-[#9E6523] text-[#FAF7F0]'
@@ -57,7 +57,7 @@ export const NotFound: React.FC = () => {
 
           <Link
             to="/sheep"
-            className={`w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-5 py-2.5 rounded-xl text-sm font-semibold border transition-colors ${
+            className={`w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-5 py-2.5 rounded-lg text-sm font-semibold border transition-colors ${
               isDark
                 ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0] hover:border-[#C58A3A]'
                 : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#2A1A0D] hover:border-[#B8792F]'

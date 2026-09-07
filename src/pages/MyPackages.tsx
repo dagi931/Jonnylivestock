@@ -98,11 +98,11 @@ export const MyPackages: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
         {!isAuthenticated ? (
           <div
-            className={`p-10 rounded-3xl border text-center max-w-lg mx-auto space-y-4 ${
+            className={`p-8 sm:p-10 rounded-2xl border text-center max-w-lg mx-auto space-y-4 ${
               isDark ? 'bg-[#24170D] border-[#4A2C16]' : 'bg-white border-[#E4D4BC]'
             }`}
           >
-            <div className="w-12 h-12 rounded-2xl bg-amber-500/15 text-amber-500 flex items-center justify-center mx-auto">
+            <div className="w-12 h-12 rounded-xl bg-amber-500/15 text-amber-500 flex items-center justify-center mx-auto">
               <Bookmark className="w-6 h-6" />
             </div>
             <h3 className="font-serif font-bold text-xl">
@@ -115,13 +115,13 @@ export const MyPackages: React.FC = () => {
             </p>
             <button
               onClick={() => openAuthModal('login')}
-              className="px-6 py-2.5 rounded-2xl bg-amber-500 hover:bg-amber-600 text-black font-bold text-xs transition-all shadow-md cursor-pointer"
+              className="px-6 py-2.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-neutral-950 font-semibold text-xs transition-colors shadow-xs cursor-pointer"
             >
               {isAmharic ? 'ይግቡ' : 'Sign In'}
             </button>
           </div>
         ) : loading ? (
-          <div className="text-center py-20 opacity-80 animate-in fade-in duration-200">
+          <div className="text-center py-20 opacity-80 animate-in fade-in duration-150">
             <div className="w-8 h-8 rounded-full border-2 border-amber-500 border-t-transparent animate-spin mx-auto mb-3" />
             <p className="text-xs font-semibold text-amber-500">
               {isAmharic ? 'በመጫን ላይ...' : 'Loading...'}
@@ -129,12 +129,12 @@ export const MyPackages: React.FC = () => {
           </div>
         ) : savedPackages.length === 0 ? (
           <div
-            className={`p-12 rounded-3xl border text-center max-w-lg mx-auto space-y-4 ${
+            className={`p-10 rounded-2xl border text-center max-w-lg mx-auto space-y-4 ${
               isDark ? 'bg-[#24170D] border-[#4A2C16]' : 'bg-white border-[#E4D4BC]'
             }`}
           >
-            <div className="w-14 h-14 rounded-2xl bg-amber-500/15 text-amber-500 flex items-center justify-center mx-auto">
-              <Gift className="w-7 h-7" />
+            <div className="w-12 h-12 rounded-xl bg-amber-500/15 text-amber-500 flex items-center justify-center mx-auto">
+              <Gift className="w-6 h-6" />
             </div>
             <h3 className="font-serif font-bold text-xl">
               {isAmharic ? 'እስካሁን ምንም የተቀመጠ ጥቅል የለም' : 'No Saved Packages Yet'}
@@ -146,7 +146,7 @@ export const MyPackages: React.FC = () => {
             </p>
             <Link
               to="/packages"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-amber-500 hover:bg-amber-600 text-black font-bold text-xs transition-all shadow-lg"
+              className="inline-flex items-center gap-2 px-6 py-2.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-neutral-950 font-semibold text-xs transition-colors shadow-xs"
             >
               <Sparkles className="w-4 h-4" />
               <span>{isAmharic ? 'የጥቅል ማዘጋጃን ክፈት' : 'Open Package Builder'}</span>
@@ -157,7 +157,7 @@ export const MyPackages: React.FC = () => {
             {savedPackages.map((pkg) => (
               <div
                 key={pkg.id}
-                className={`rounded-3xl border overflow-hidden flex flex-col justify-between transition-all duration-300 hover:shadow-xl ${
+                className={`rounded-xl border overflow-hidden flex flex-col justify-between transition-colors shadow-xs ${
                   isDark ? 'bg-[#24170D] border-[#4A2C16]' : 'bg-white border-[#E4D4BC]'
                 }`}
               >
@@ -187,7 +187,7 @@ export const MyPackages: React.FC = () => {
                       {pkg.items.map((item, idx) => (
                         <div
                           key={idx}
-                          className={`p-2 rounded-xl border flex items-center justify-between text-xs ${
+                          className={`p-2 rounded-lg border flex items-center justify-between text-xs ${
                             isDark ? 'bg-[#1D130A] border-[#4A2C16]' : 'bg-[#FAF7F0] border-[#E4D4BC]'
                           }`}
                         >
@@ -216,7 +216,7 @@ export const MyPackages: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => handleOrder(pkg)}
-                    className="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-black font-bold text-xs transition-all shadow-md flex items-center justify-center gap-1.5 cursor-pointer"
+                    className="w-full py-2.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-neutral-950 font-semibold text-xs transition-colors shadow-xs flex items-center justify-center gap-1.5 cursor-pointer"
                   >
                     <Gift className="w-3.5 h-3.5" />
                     <span>{isAmharic ? 'ይዘዙ / በ50% ይያዙ' : 'Order / 50% Reserve Now'}</span>

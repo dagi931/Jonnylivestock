@@ -64,10 +64,10 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({
 
   return (
     <span
-      className={`inline-flex items-center gap-1.5 font-semibold ${radiusClass} border backdrop-blur-sm shadow-sm ${config.bg} ${sizeClasses[size]} ${className}`}
+      className={`inline-flex items-center gap-1.5 font-medium ${radiusClass} border ${config.bg} ${sizeClasses[size]} ${className}`}
       aria-label={`Status: ${config.label}`}
     >
-      <span className={`rounded-full animate-pulse ${config.dot} ${dotSizes[size]}`} aria-hidden="true" />
+      <span className={`rounded-full ${config.dot} ${dotSizes[size]}`} aria-hidden="true" />
       <span>{config.label}</span>
     </span>
   );

@@ -303,9 +303,9 @@ export const MeatByKgOrderModal: React.FC<MeatByKgOrderModalProps> = ({
   const selectedBank = bankAccounts.find((b) => b.id === selectedBankId) || bankAccounts[0];
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/75 flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-150">
       <div
-        className={`relative w-full max-w-2xl max-h-[92vh] rounded-3xl border shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200 ${
+        className={`relative w-full max-w-2xl max-h-[92vh] rounded-2xl border shadow-xl flex flex-col overflow-hidden ${
           isDark ? 'bg-[#1E140A] border-[#4A2C16] text-[#F4E8D0]' : 'bg-white border-[#E4D4BC] text-[#2A1A0D]'
         }`}
       >
@@ -315,7 +315,7 @@ export const MeatByKgOrderModal: React.FC<MeatByKgOrderModalProps> = ({
           style={{ borderColor: isDark ? '#4A2C16' : '#E4D4BC' }}
         >
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-amber-500/15 text-amber-500 flex items-center justify-center shadow-xs">
+            <div className="w-10 h-10 rounded-xl bg-amber-500/15 text-amber-500 flex items-center justify-center shadow-xs">
               <Beef className="w-5 h-5" />
             </div>
             <div>
@@ -344,8 +344,8 @@ export const MeatByKgOrderModal: React.FC<MeatByKgOrderModalProps> = ({
         {completedOrderId ? (
           /* Success Screen */
           <div className="p-6 sm:p-8 text-center space-y-4 my-auto overflow-y-auto">
-            <div className="w-16 h-16 rounded-3xl bg-emerald-500/20 text-emerald-500 border border-emerald-500/30 flex items-center justify-center mx-auto shadow-sm">
-              <CheckCircle2 className="w-8 h-8" />
+            <div className="w-14 h-14 rounded-full bg-emerald-500/20 text-emerald-500 border border-emerald-500/30 flex items-center justify-center mx-auto shadow-xs">
+              <CheckCircle2 className="w-7 h-7" />
             </div>
             <div>
               <h3 className="font-serif font-bold text-2xl text-emerald-500">
@@ -844,14 +844,14 @@ export const MeatByKgOrderModal: React.FC<MeatByKgOrderModalProps> = ({
                 <button
                   type="button"
                   onClick={onClose}
-                  className="w-1/3 sm:w-auto px-4 py-2.5 rounded-xl border font-semibold text-xs opacity-75 hover:opacity-100 transition-opacity cursor-pointer"
+                  className="w-1/3 sm:w-auto px-4 py-2.5 rounded-lg border font-semibold text-xs opacity-75 hover:opacity-100 transition-opacity cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="flex-1 sm:flex-none px-6 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-black font-extrabold text-xs shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  className="flex-1 sm:flex-none px-6 py-2.5 rounded-lg bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-neutral-950 font-semibold text-xs shadow-xs transition-colors flex items-center justify-center gap-2 cursor-pointer"
                 >
                   {isSubmitting ? (
                     <>

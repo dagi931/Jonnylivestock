@@ -137,11 +137,11 @@ export const ServiceRequestModal: React.FC<ServiceRequestModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/80 backdrop-blur-md p-3 sm:p-4 md:p-6">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/75 p-3 sm:p-4 md:p-6 animate-in fade-in duration-150">
       <div className="min-h-full flex items-center justify-center py-4 sm:py-6">
         <div className="fixed inset-0" onClick={handleResetAndClose} aria-hidden="true" />
         <div
-          className={`relative w-full max-w-xl max-h-[90vh] overflow-y-auto rounded-3xl border shadow-2xl p-6 sm:p-8 z-10 animate-in fade-in zoom-in-95 duration-200 ${
+          className={`relative w-full max-w-xl max-h-[90vh] overflow-y-auto rounded-2xl border shadow-xl p-6 sm:p-7 z-10 ${
             isDark
               ? 'bg-[#2A1A0D] border-[#4A2C16] text-[#F4E8D0]'
               : 'bg-[#F1E8D8] border-[#E4D4BC] text-[#2A1A0D]'
@@ -573,7 +573,7 @@ export const ServiceRequestModal: React.FC<ServiceRequestModalProps> = ({
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className={`flex-1 py-3 px-4 rounded-xl text-sm font-semibold transition-all shadow-md flex items-center justify-center gap-2 ${
+                  className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-semibold transition-colors shadow-xs flex items-center justify-center gap-2 ${
                     isDark
                       ? 'bg-[#C58A3A] hover:bg-[#E0B15A] text-[#1B1208]'
                       : 'bg-[#B8792F] hover:bg-[#9E6523] text-[#FAF7F0]'
@@ -585,7 +585,7 @@ export const ServiceRequestModal: React.FC<ServiceRequestModalProps> = ({
                 <button
                   type="button"
                   onClick={onClose}
-                  className={`py-3 px-4 rounded-xl text-sm font-semibold border transition-colors ${
+                  className={`py-2.5 px-4 rounded-lg text-sm font-semibold border transition-colors ${
                     isDark
                       ? 'bg-[#1B1208] border-[#4A2C16] text-[#D8C5A8] hover:text-[#F4E8D0]'
                       : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#746556] hover:text-[#2A1A0D]'

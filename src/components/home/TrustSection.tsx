@@ -63,31 +63,31 @@ export const TrustSection: React.FC = () => {
           </div>
         </AnimatedReveal>
 
-        {/* Feature Cards: 1 Row on Mobile (grid-cols-4), Minimized & Less Content */}
-        <div className="grid grid-cols-4 gap-1.5 sm:gap-6">
+        {/* Feature Cards: Clean, Intentional Grid */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
           {features.map((feature, idx) => {
             const Icon = feature.icon;
             return (
               <AnimatedReveal key={idx} direction="up" delay={80 + idx * 80} className="h-full">
                 <div
-                  className={`h-full p-2 sm:p-6 rounded-xl sm:rounded-2xl border transition-all duration-200 flex flex-col items-center sm:items-start text-center sm:text-left justify-start hover:-translate-y-1 ${
+                  className={`h-full p-4 sm:p-6 rounded-xl border flex flex-col items-start text-left transition-colors ${
                     isDark
-                      ? 'bg-[#2A1A0D] border-[#4A2C16] shadow-rustic hover:border-[#C58A3A]/50'
-                      : 'bg-[#F1E8D8] border-[#E4D4BC] shadow-premium hover:border-[#B8792F]/50'
+                      ? 'bg-[#2A1A0D] border-[#4A2C16] hover:border-[#C58A3A]/40'
+                      : 'bg-[#FAF7F0] border-[#E4D4BC] hover:border-[#B8792F]/40'
                   }`}
                 >
                   <div
-                    className={`w-7 h-7 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center mb-1.5 sm:mb-4 shrink-0 ${
+                    className={`w-9 h-9 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center mb-3 sm:mb-4 shrink-0 ${
                       isDark
                         ? 'bg-[#1B1208] text-[#C58A3A] border border-[#4A2C16]'
-                        : 'bg-[#FAF7F0] text-[#B8792F] border border-[#E4D4BC]'
+                        : 'bg-[#F1E8D8] text-[#B8792F] border border-[#E4D4BC]'
                     }`}
                   >
-                    <Icon className="w-3.5 h-3.5 sm:w-5 sm:h-5" />
+                    <Icon className="w-4 h-4 sm:w-5 sm:h-5" />
                   </div>
 
                   <h3
-                    className={`font-serif font-bold text-[10.5px] sm:text-lg mb-0.5 sm:mb-1.5 leading-tight sm:leading-normal ${
+                    className={`font-serif font-bold text-sm sm:text-base mb-1.5 leading-snug ${
                       isDark ? 'text-[#F4E8D0]' : 'text-[#241A12]'
                     }`}
                   >
@@ -95,7 +95,7 @@ export const TrustSection: React.FC = () => {
                   </h3>
 
                   <p
-                    className={`hidden sm:block text-xs sm:text-sm leading-relaxed ${
+                    className={`text-xs sm:text-sm leading-relaxed ${
                       isDark ? 'text-[#D8C5A8]' : 'text-[#746556]'
                     }`}
                   >

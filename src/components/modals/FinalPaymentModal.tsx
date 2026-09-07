@@ -270,9 +270,9 @@ export const FinalPaymentModal: React.FC<FinalPaymentModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/75 flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-150">
       <div
-        className={`relative w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden border transition-all my-6 ${
+        className={`relative w-full max-w-2xl rounded-2xl shadow-xl overflow-hidden border transition-all my-6 ${
           isDark
             ? 'bg-[#1D130A] border-[#4A2C16] text-[#F4E8D0]'
             : 'bg-white border-[#E4D4BC] text-[#241A12]'
@@ -280,12 +280,12 @@ export const FinalPaymentModal: React.FC<FinalPaymentModalProps> = ({
       >
         {/* Header */}
         <div
-          className={`px-6 py-5 flex items-center justify-between border-b ${
+          className={`px-6 py-4 flex items-center justify-between border-b ${
             isDark ? 'bg-[#2A1A0D] border-[#4A2C16]' : 'bg-[#FAF7F0] border-[#E4D4BC]'
           }`}
         >
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-500">
+            <div className="w-10 h-10 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-500">
               <ShieldCheck className="w-5 h-5" />
             </div>
             <div>
@@ -300,18 +300,18 @@ export const FinalPaymentModal: React.FC<FinalPaymentModalProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-xl text-neutral-400 hover:text-neutral-200 hover:bg-black/10 dark:hover:bg-white/10 transition-colors cursor-pointer"
+            className="p-1.5 rounded-lg text-neutral-400 hover:text-neutral-200 hover:bg-black/10 dark:hover:bg-white/10 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Body */}
-        <div className="p-5 sm:p-7 max-h-[82vh] overflow-y-auto space-y-6">
+        <div className="p-5 sm:p-6 max-h-[82vh] overflow-y-auto space-y-6">
           {isSuccess ? (
             <div className="text-center py-6 space-y-4 animate-in zoom-in-95 duration-200">
-              <div className="w-16 h-16 rounded-full bg-emerald-500/15 border-2 border-emerald-500/30 text-emerald-500 flex items-center justify-center mx-auto shadow-lg">
-                <CheckCircle2 className="w-9 h-9" />
+              <div className="w-14 h-14 rounded-full bg-emerald-500/15 border-2 border-emerald-500/30 text-emerald-500 flex items-center justify-center mx-auto">
+                <CheckCircle2 className="w-8 h-8" />
               </div>
               <h4 className="font-serif font-bold text-2xl text-emerald-500">
                 {isAmharic ? 'የቀሪ ክፍያ ደረሰኝ በተሳካ ሁኔታ ገብቷል!' : 'Final Balance Receipt Submitted!'}
@@ -328,7 +328,7 @@ export const FinalPaymentModal: React.FC<FinalPaymentModalProps> = ({
 
               {/* Summary Card */}
               <div
-                className={`p-4 rounded-2xl border text-left text-xs space-y-2.5 max-w-md mx-auto ${
+                className={`p-4 rounded-xl border text-left text-xs space-y-2.5 max-w-md mx-auto ${
                   isDark ? 'bg-[#24170D] border-[#4A2C16]' : 'bg-[#FAF7F0] border-[#E4D4BC]'
                 }`}
               >
@@ -358,7 +358,7 @@ export const FinalPaymentModal: React.FC<FinalPaymentModalProps> = ({
 
               {/* Admin Direct Contacts */}
               <div
-                className={`p-4 rounded-2xl border max-w-md mx-auto space-y-2 ${
+                className={`p-4 rounded-xl border max-w-md mx-auto space-y-2 ${
                   isDark ? 'bg-[#2A1A0D] border-[#C18A45]/30' : 'bg-[#F4EEDB] border-[#C18A45]/30'
                 }`}
               >
@@ -369,7 +369,7 @@ export const FinalPaymentModal: React.FC<FinalPaymentModalProps> = ({
                 <div className="grid grid-cols-2 gap-2 pt-1">
                   <a
                     href={`tel:${business.phone}`}
-                    className="flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-[#C18A45] text-white text-xs font-bold shadow hover:bg-[#A06E35] transition-colors"
+                    className="flex items-center justify-center gap-2 py-2 px-3 rounded-lg bg-[#C18A45] text-white text-xs font-semibold hover:bg-[#A06E35] transition-colors"
                   >
                     <Phone className="w-3.5 h-3.5" />
                     <span>{business.displayPhone}</span>
@@ -378,7 +378,7 @@ export const FinalPaymentModal: React.FC<FinalPaymentModalProps> = ({
                     href={`https://wa.me/${business.whatsapp}?text=Hello,%20I%20have%20submitted%20final%20payment%20for%20order%20${order.id}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-emerald-600 text-white text-xs font-bold shadow hover:bg-emerald-700 transition-colors"
+                    className="flex items-center justify-center gap-2 py-2 px-3 rounded-lg bg-emerald-600 text-white text-xs font-semibold hover:bg-emerald-700 transition-colors"
                   >
                     <MessageSquare className="w-3.5 h-3.5" />
                     <span>WhatsApp</span>
@@ -388,7 +388,7 @@ export const FinalPaymentModal: React.FC<FinalPaymentModalProps> = ({
 
               <button
                 onClick={onClose}
-                className="w-full max-w-md py-3.5 rounded-2xl bg-amber-500 hover:bg-amber-600 text-black font-bold text-sm transition-all shadow-lg cursor-pointer"
+                className="w-full max-w-md py-3 rounded-lg bg-amber-500 hover:bg-amber-400 text-neutral-950 font-semibold text-sm transition-colors cursor-pointer"
               >
                 {isAmharic ? 'ተጠናቋል (ዝጋ)' : 'Done / Return to Reservations'}
               </button>
@@ -397,7 +397,7 @@ export const FinalPaymentModal: React.FC<FinalPaymentModalProps> = ({
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Order Breakdown Summary Box */}
               <div
-                className={`p-4 sm:p-5 rounded-2xl border space-y-2.5 text-xs sm:text-sm ${
+                className={`p-4 sm:p-5 rounded-xl border space-y-2.5 text-xs sm:text-sm ${
                   isDark ? 'bg-[#24170D] border-[#4A2C16]' : 'bg-[#FAF7F0] border-[#E4D4BC]'
                 }`}
               >
@@ -442,7 +442,7 @@ export const FinalPaymentModal: React.FC<FinalPaymentModalProps> = ({
               </div>
 
               {/* Delivery Fulfillment Section (Functional when finishing reservation) */}
-              <div className="space-y-3 p-4 sm:p-5 rounded-2xl border bg-black/[0.02] dark:bg-white/[0.02] border-black/10 dark:border-white/10">
+              <div className="space-y-3 p-4 sm:p-5 rounded-xl border bg-black/[0.02] dark:bg-white/[0.02] border-black/10 dark:border-white/10">
                 <div className="flex items-center justify-between">
                   <label className="text-xs font-bold uppercase tracking-wider opacity-80 flex items-center gap-2">
                     <Truck className="w-4 h-4 text-amber-500" />
@@ -459,9 +459,9 @@ export const FinalPaymentModal: React.FC<FinalPaymentModalProps> = ({
                   <button
                     type="button"
                     onClick={() => setIsDelivery(true)}
-                    className={`p-3 rounded-2xl border text-left transition-all cursor-pointer flex items-center gap-2.5 ${
+                    className={`p-3 rounded-xl border text-left transition-colors cursor-pointer flex items-center gap-2.5 ${
                       isDelivery
-                        ? 'bg-amber-500/15 border-amber-500 text-amber-500 font-bold shadow-xs ring-1 ring-amber-500/30'
+                        ? 'bg-amber-500/15 border-amber-500 text-amber-500 font-bold ring-1 ring-amber-500/30'
                         : isDark
                         ? 'bg-[#1B1208] border-[#4A2C16] opacity-70 hover:opacity-100'
                         : 'bg-white border-[#E4D4BC] opacity-70 hover:opacity-100'
@@ -477,9 +477,9 @@ export const FinalPaymentModal: React.FC<FinalPaymentModalProps> = ({
                   <button
                     type="button"
                     onClick={() => setIsDelivery(false)}
-                    className={`p-3 rounded-2xl border text-left transition-all cursor-pointer flex items-center gap-2.5 ${
+                    className={`p-3 rounded-xl border text-left transition-colors cursor-pointer flex items-center gap-2.5 ${
                       !isDelivery
-                        ? 'bg-amber-500/15 border-amber-500 text-amber-500 font-bold shadow-xs ring-1 ring-amber-500/30'
+                        ? 'bg-amber-500/15 border-amber-500 text-amber-500 font-bold ring-1 ring-amber-500/30'
                         : isDark
                         ? 'bg-[#1B1208] border-[#4A2C16] opacity-70 hover:opacity-100'
                         : 'bg-white border-[#E4D4BC] opacity-70 hover:opacity-100'
@@ -510,7 +510,7 @@ export const FinalPaymentModal: React.FC<FinalPaymentModalProps> = ({
                     />
                   </div>
                 ) : (
-                  <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-400 flex items-center gap-2">
+                  <div className="p-3.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-400 flex items-center gap-2">
                     <CheckCircle2 className="w-4 h-4 shrink-0" />
                     <span>
                       {isAmharic
@@ -523,7 +523,7 @@ export const FinalPaymentModal: React.FC<FinalPaymentModalProps> = ({
 
               {/* Bank Transfer Details */}
               <div
-                className={`p-4 sm:p-5 rounded-2xl border space-y-3 ${
+                className={`p-4 sm:p-5 rounded-xl border space-y-3 ${
                   isDark ? 'bg-[#24170D] border-[#4A2C16]' : 'bg-[#FAF7F0] border-[#E4D4BC]'
                 }`}
               >
@@ -547,9 +547,9 @@ export const FinalPaymentModal: React.FC<FinalPaymentModalProps> = ({
                       key={b.id}
                       type="button"
                       onClick={() => setSelectedBankId(b.id)}
-                      className={`p-2.5 rounded-xl border text-center transition-all cursor-pointer ${
+                      className={`p-2.5 rounded-lg border text-center transition-colors cursor-pointer ${
                         selectedBankId === b.id
-                          ? 'bg-amber-500 text-black font-bold border-amber-500 shadow-sm'
+                          ? 'bg-amber-500 text-neutral-950 font-bold border-amber-500 shadow-xs'
                           : isDark
                             ? 'bg-[#1D130A] border-[#4A2C16] text-[#F4E8D0] hover:border-amber-500/50'
                             : 'bg-white border-[#E4D4BC] text-[#241A12] hover:border-amber-500/50'
@@ -562,7 +562,7 @@ export const FinalPaymentModal: React.FC<FinalPaymentModalProps> = ({
 
                 {selectedBank && (
                   <div
-                    className={`p-3.5 rounded-xl border space-y-1.5 text-xs ${
+                    className={`p-3.5 rounded-lg border space-y-1.5 text-xs ${
                       isDark ? 'bg-[#1B1208] border-[#4A2C16]' : 'bg-white border-[#E4D4BC]'
                     }`}
                   >
@@ -607,7 +607,7 @@ export const FinalPaymentModal: React.FC<FinalPaymentModalProps> = ({
                   onDragLeave={() => setIsDragging(false)}
                   onDrop={handleDrop}
                   onClick={() => fileInputRef.current?.click()}
-                  className={`p-5 rounded-2xl border-2 border-dashed cursor-pointer text-center transition-all ${
+                  className={`p-5 rounded-xl border-2 border-dashed cursor-pointer text-center transition-colors ${
                     isDragging
                       ? 'border-amber-500 bg-amber-500/10'
                       : slipPreviewUrl
@@ -630,7 +630,7 @@ export const FinalPaymentModal: React.FC<FinalPaymentModalProps> = ({
                       <img
                         src={slipPreviewUrl}
                         alt="Payment Slip Preview"
-                        className="max-h-36 mx-auto rounded-xl shadow-md object-contain border"
+                        className="max-h-36 mx-auto rounded-lg shadow-sm object-contain border"
                       />
                       <div className="text-xs font-bold text-emerald-500 flex items-center justify-center gap-1">
                         <CheckCircle2 className="w-4 h-4" /> {isAmharic ? 'ደረሰኝ ተያይዟል' : 'Slip Attached'} ({slipFile?.name})
@@ -661,7 +661,7 @@ export const FinalPaymentModal: React.FC<FinalPaymentModalProps> = ({
                     value={transactionRef}
                     onChange={e => setTransactionRef(e.target.value)}
                     placeholder={isAmharic ? 'የግብይት መለያ (Transaction Ref / ID)' : 'Transaction ID / Ref (Optional)'}
-                    className={`w-full px-3.5 py-2.5 rounded-xl border text-xs focus:outline-none focus:ring-2 focus:ring-amber-500 ${
+                    className={`w-full px-3.5 py-2.5 rounded-lg border text-xs focus:outline-none focus:ring-2 focus:ring-amber-500 ${
                       isDark ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0]' : 'bg-white border-[#E4D4BC]'
                     }`}
                   />
@@ -672,7 +672,7 @@ export const FinalPaymentModal: React.FC<FinalPaymentModalProps> = ({
                     value={customerNotes}
                     onChange={e => setCustomerNotes(e.target.value)}
                     placeholder={isAmharic ? 'ተጨማሪ ማስታወሻ ወይም የማድረሻ መመሪያ' : 'Delivery instructions or note (Optional)'}
-                    className={`w-full px-3.5 py-2.5 rounded-xl border text-xs focus:outline-none focus:ring-2 focus:ring-amber-500 ${
+                    className={`w-full px-3.5 py-2.5 rounded-lg border text-xs focus:outline-none focus:ring-2 focus:ring-amber-500 ${
                       isDark ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0]' : 'bg-white border-[#E4D4BC]'
                     }`}
                   />
@@ -680,7 +680,7 @@ export const FinalPaymentModal: React.FC<FinalPaymentModalProps> = ({
               </div>
 
               {submitError && (
-                <div className="p-3 rounded-xl bg-red-500/15 border border-red-500/30 text-red-400 text-xs flex items-center gap-2">
+                <div className="p-3 rounded-lg bg-red-500/15 border border-red-500/30 text-red-400 text-xs flex items-center gap-2">
                   <AlertCircle className="w-4 h-4 shrink-0" />
                   <span>{submitError}</span>
                 </div>
@@ -689,7 +689,7 @@ export const FinalPaymentModal: React.FC<FinalPaymentModalProps> = ({
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full py-3.5 rounded-2xl bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-black font-bold text-sm tracking-wide transition-all shadow-lg shadow-amber-500/25 flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full py-3 rounded-lg bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-neutral-950 font-semibold text-sm transition-colors shadow-sm flex items-center justify-center gap-2 cursor-pointer"
               >
                 {isSubmitting ? (
                   <>

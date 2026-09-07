@@ -69,7 +69,7 @@ export const AnimalFilters: React.FC<AnimalFiltersProps> = ({
             placeholder={isAmharic ? 'ዝርያ፣ መለያ ቁጥር፣ ቀለም...' : 'Breed, ID, color...'}
             value={filters.searchQuery}
             onChange={(e) => onUpdateFilter('searchQuery', e.target.value)}
-            className={`w-full pl-8 pr-7 py-2 rounded-xl text-xs border transition-all focus:outline-none focus:ring-2 ${
+            className={`w-full pl-8 pr-7 py-2 rounded-lg text-xs border transition-all focus:outline-none focus:ring-2 ${
               isDark
                 ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0] placeholder-[#D8C5A8]/40 focus:ring-[#C58A3A]'
                 : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#2A1A0D] placeholder-[#746556]/40 focus:ring-[#B8792F]'
@@ -96,7 +96,7 @@ export const AnimalFilters: React.FC<AnimalFiltersProps> = ({
           <select
             value={filters.sortBy}
             onChange={(e) => onUpdateFilter('sortBy', e.target.value as SortOption)}
-            className={`w-full px-3 py-2 rounded-xl text-xs border appearance-none pr-8 font-medium cursor-pointer focus:outline-none focus:ring-2 ${
+            className={`w-full px-3 py-2 rounded-lg text-xs border appearance-none pr-8 font-medium cursor-pointer focus:outline-none focus:ring-2 ${
               isDark
                 ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0] focus:ring-[#C58A3A]'
                 : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#2A1A0D] focus:ring-[#B8792F]'
@@ -121,7 +121,7 @@ export const AnimalFilters: React.FC<AnimalFiltersProps> = ({
           <select
             value={filters.breed}
             onChange={(e) => onUpdateFilter('breed', e.target.value)}
-            className={`w-full px-3 py-2 rounded-xl text-xs border appearance-none pr-8 font-medium cursor-pointer focus:outline-none focus:ring-2 ${
+            className={`w-full px-3 py-2 rounded-lg text-xs border appearance-none pr-8 font-medium cursor-pointer focus:outline-none focus:ring-2 ${
               isDark
                 ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0] focus:ring-[#C58A3A]'
                 : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#2A1A0D] focus:ring-[#B8792F]'
@@ -236,7 +236,7 @@ export const AnimalFilters: React.FC<AnimalFiltersProps> = ({
             onChange={(e) =>
               onUpdateFilter('minPrice', e.target.value ? Number(e.target.value) : null)
             }
-            className={`w-1/2 px-2.5 py-1.5 rounded-xl text-xs border focus:outline-none focus:ring-1 ${
+            className={`w-1/2 px-2.5 py-1.5 rounded-lg text-xs border focus:outline-none focus:ring-1 ${
               isDark
                 ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0] placeholder-[#D8C5A8]/40 focus:ring-[#C58A3A]'
                 : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#2A1A0D] placeholder-[#746556]/40 focus:ring-[#B8792F]'
@@ -252,7 +252,7 @@ export const AnimalFilters: React.FC<AnimalFiltersProps> = ({
             onChange={(e) =>
               onUpdateFilter('maxPrice', e.target.value ? Number(e.target.value) : null)
             }
-            className={`w-1/2 px-2.5 py-1.5 rounded-xl text-xs border focus:outline-none focus:ring-1 ${
+            className={`w-1/2 px-2.5 py-1.5 rounded-lg text-xs border focus:outline-none focus:ring-1 ${
               isDark
                 ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0] placeholder-[#D8C5A8]/40 focus:ring-[#C58A3A]'
                 : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#2A1A0D] placeholder-[#746556]/40 focus:ring-[#B8792F]'
@@ -289,7 +289,7 @@ export const AnimalFilters: React.FC<AnimalFiltersProps> = ({
             onChange={(e) =>
               onUpdateFilter('minWeight', e.target.value ? Number(e.target.value) : null)
             }
-            className={`w-1/2 px-2.5 py-1.5 rounded-xl text-xs border focus:outline-none focus:ring-1 ${
+            className={`w-1/2 px-2.5 py-1.5 rounded-lg text-xs border focus:outline-none focus:ring-1 ${
               isDark
                 ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0] placeholder-[#D8C5A8]/40 focus:ring-[#C58A3A]'
                 : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#2A1A0D] placeholder-[#746556]/40 focus:ring-[#B8792F]'
@@ -304,7 +304,7 @@ export const AnimalFilters: React.FC<AnimalFiltersProps> = ({
             onChange={(e) =>
               onUpdateFilter('maxWeight', e.target.value ? Number(e.target.value) : null)
             }
-            className={`w-1/2 px-2.5 py-1.5 rounded-xl text-xs border focus:outline-none focus:ring-1 ${
+            className={`w-1/2 px-2.5 py-1.5 rounded-lg text-xs border focus:outline-none focus:ring-1 ${
               isDark
                 ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0] placeholder-[#D8C5A8]/40 focus:ring-[#C58A3A]'
                 : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#2A1A0D] placeholder-[#746556]/40 focus:ring-[#B8792F]'
@@ -357,7 +357,7 @@ export const AnimalFilters: React.FC<AnimalFiltersProps> = ({
       {/* Mobile Drawer */}
       {mobileOpen && (
         <div
-          className={`lg:hidden mb-6 p-5 rounded-3xl border shadow-md animate-in slide-in-from-top-2 duration-150 ${
+          className={`lg:hidden mb-6 p-5 rounded-xl border shadow-xs animate-in slide-in-from-top-2 duration-150 ${
             isDark ? 'bg-[#2A1A0D] border-[#4A2C16]' : 'bg-[#F1E8D8] border-[#E4D4BC]'
           }`}
         >
@@ -368,7 +368,7 @@ export const AnimalFilters: React.FC<AnimalFiltersProps> = ({
       {/* Desktop Sticky Left Sidebar Panel */}
       <aside className="hidden lg:block w-full">
         <div
-          className={`sticky top-24 rounded-3xl border p-5 transition-all shadow-sm ${
+          className={`sticky top-24 rounded-xl border p-5 transition-colors shadow-xs ${
             isDark ? 'bg-[#2A1A0D] border-[#4A2C16]' : 'bg-[#F1E8D8] border-[#E4D4BC]'
           }`}
         >

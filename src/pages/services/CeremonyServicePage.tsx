@@ -87,7 +87,7 @@ export const CeremonyServicePage: React.FC = () => {
         <div className="mb-6 flex items-center justify-between">
           <Link
             to="/services"
-            className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold border transition-colors ${
+            className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
               isDark
                 ? 'bg-[#2A1A0D] border-[#4A2C16] text-[#F4E8D0] hover:border-[#C58A3A]'
                 : 'bg-[#F1E8D8] border-[#E4D4BC] text-[#2A1A0D] hover:border-[#B8792F]'
@@ -100,7 +100,7 @@ export const CeremonyServicePage: React.FC = () => {
           <div className="flex items-center gap-2">
             <a
               href={getPhoneCallLink(business.phone)}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
                 isDark ? 'bg-[#C58A3A] hover:bg-[#E0B15A] text-[#1B1208]' : 'bg-[#B8792F] hover:bg-[#9E6523] text-[#FAF7F0]'
               }`}
             >
@@ -112,13 +112,13 @@ export const CeremonyServicePage: React.FC = () => {
 
         {/* Dedicated Service Hero Banner */}
         <div
-          className={`p-6 sm:p-8 rounded-3xl border mb-8 ${
+          className={`p-6 sm:p-8 rounded-xl border mb-8 ${
             isDark ? 'bg-[#2A1A0D] border-[#4A2C16]' : 'bg-[#F1E8D8] border-[#E4D4BC]'
           }`}
         >
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-500 flex items-center justify-center shrink-0">
+              <div className="w-12 h-12 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center shrink-0">
                 <PartyPopper className="w-6 h-6" />
               </div>
               <div>
@@ -143,7 +143,7 @@ export const CeremonyServicePage: React.FC = () => {
           
           {/* Form */}
           <div
-            className={`lg:col-span-7 p-6 sm:p-7 rounded-3xl border ${
+            className={`lg:col-span-7 p-6 sm:p-7 rounded-xl border ${
               isDark ? 'bg-[#2A1A0D] border-[#4A2C16]' : 'bg-[#F1E8D8] border-[#E4D4BC]'
             }`}
           >
@@ -168,7 +168,7 @@ export const CeremonyServicePage: React.FC = () => {
                     href={`https://wa.me/${business.whatsapp}?text=${encodeURIComponent(whatsappMessage)}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className={`px-5 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 ${
+                    className={`px-5 py-2.5 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 ${
                       isDark ? 'bg-[#C58A3A] text-[#1B1208]' : 'bg-[#B8792F] text-[#FAF7F0]'
                     }`}
                   >
@@ -178,7 +178,7 @@ export const CeremonyServicePage: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setSubmitted(false)}
-                    className="px-4 py-2.5 rounded-xl text-xs font-semibold border opacity-75 hover:opacity-100"
+                    className="px-4 py-2.5 rounded-lg text-xs font-semibold border opacity-75 hover:opacity-100"
                   >
                     {isAmharic ? 'ዝርዝሩን አስተካክል' : 'Modify Details'}
                   </button>
@@ -196,7 +196,7 @@ export const CeremonyServicePage: React.FC = () => {
                 </div>
 
                 {error && (
-                  <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-500 text-xs flex items-center gap-2">
+                  <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-500 text-xs flex items-center gap-2">
                     <AlertCircle className="w-4 h-4 shrink-0" />
                     <span>{error}</span>
                   </div>
@@ -210,7 +210,7 @@ export const CeremonyServicePage: React.FC = () => {
                   <select
                     value={eventType}
                     onChange={(e) => setEventType(e.target.value)}
-                    className={`w-full px-3.5 py-2 rounded-xl text-xs border focus:outline-none ${
+                    className={`w-full px-3.5 py-2 rounded-lg text-xs border focus:outline-none ${
                       isDark ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0]' : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#2A1A0D]'
                     }`}
                   >
@@ -232,7 +232,7 @@ export const CeremonyServicePage: React.FC = () => {
                       max="100"
                       value={sheepCount}
                       onChange={(e) => setSheepCount(e.target.value)}
-                      className={`w-full px-3 py-2 rounded-xl text-xs border text-center font-bold ${
+                      className={`w-full px-3 py-2 rounded-lg text-xs border text-center font-bold ${
                         isDark ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0]' : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#2A1A0D]'
                       }`}
                     />
@@ -248,7 +248,7 @@ export const CeremonyServicePage: React.FC = () => {
                       max="100"
                       value={goatCount}
                       onChange={(e) => setGoatCount(e.target.value)}
-                      className={`w-full px-3 py-2 rounded-xl text-xs border text-center font-bold ${
+                      className={`w-full px-3 py-2 rounded-lg text-xs border text-center font-bold ${
                         isDark ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0]' : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#2A1A0D]'
                       }`}
                     />
@@ -264,7 +264,7 @@ export const CeremonyServicePage: React.FC = () => {
                       max="20"
                       value={cowCount}
                       onChange={(e) => setCowCount(e.target.value)}
-                      className={`w-full px-3 py-2 rounded-xl text-xs border text-center font-bold ${
+                      className={`w-full px-3 py-2 rounded-lg text-xs border text-center font-bold ${
                         isDark ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0]' : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#2A1A0D]'
                       }`}
                     />
@@ -282,7 +282,7 @@ export const CeremonyServicePage: React.FC = () => {
                       placeholder={isAmharic ? 'ለምሳሌ፡ ካዛንቺስ አዳራሽ ወይም ቦሌ ቤት' : 'e.g. Kazanchis Banquet Hall or Bole House'}
                       value={venueLocation}
                       onChange={(e) => setVenueLocation(e.target.value)}
-                      className={`w-full px-3.5 py-2 rounded-xl text-xs border focus:outline-none ${
+                      className={`w-full px-3.5 py-2 rounded-lg text-xs border focus:outline-none ${
                         isDark ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0]' : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#2A1A0D]'
                       }`}
                     />
@@ -296,7 +296,7 @@ export const CeremonyServicePage: React.FC = () => {
                       type="date"
                       value={eventDate}
                       onChange={(e) => setEventDate(e.target.value)}
-                      className={`w-full px-3.5 py-2 rounded-xl text-xs border focus:outline-none ${
+                      className={`w-full px-3.5 py-2 rounded-lg text-xs border focus:outline-none ${
                         isDark ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0]' : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#2A1A0D]'
                       }`}
                     />
@@ -314,7 +314,7 @@ export const CeremonyServicePage: React.FC = () => {
                       placeholder={isAmharic ? 'ለምሳሌ፡ ዮናስ ግርማ' : 'e.g. Yonas Girma'}
                       value={customerName}
                       onChange={(e) => setCustomerName(e.target.value)}
-                      className={`w-full px-3.5 py-2 rounded-xl text-xs border focus:outline-none ${
+                      className={`w-full px-3.5 py-2 rounded-lg text-xs border focus:outline-none ${
                         isDark ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0]' : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#2A1A0D]'
                       }`}
                     />
@@ -329,7 +329,7 @@ export const CeremonyServicePage: React.FC = () => {
                       placeholder="e.g. +251 93 111 2233"
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
-                      className={`w-full px-3.5 py-2 rounded-xl text-xs border focus:outline-none ${
+                      className={`w-full px-3.5 py-2 rounded-lg text-xs border focus:outline-none ${
                         isDark ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0]' : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#2A1A0D]'
                       }`}
                     />
@@ -337,7 +337,7 @@ export const CeremonyServicePage: React.FC = () => {
                 </div>
 
                 {/* 5. Include Worker Assistance Toggle */}
-                <label className={`flex items-center gap-3 p-3 rounded-2xl border cursor-pointer select-none ${
+                <label className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer select-none ${
                   needWorker
                     ? isDark ? 'bg-[#4A2C16]/50 border-[#C58A3A]' : 'bg-[#F1E8D8] border-[#B8792F]'
                     : isDark ? 'bg-[#1B1208] border-[#4A2C16]' : 'bg-[#FAF7F0] border-[#E4D4BC]'
@@ -369,7 +369,7 @@ export const CeremonyServicePage: React.FC = () => {
                     placeholder={isAmharic ? 'ለምሳሌ፡ የደብረ ብርሃን በግ፣ በጠዋት እንዲደርስ...' : 'e.g. Prefer heavy Debrebirhan rams, specific arrival morning timing...'}
                     value={specialRequests}
                     onChange={(e) => setSpecialRequests(e.target.value)}
-                    className={`w-full px-3.5 py-2 rounded-xl text-xs border focus:outline-none resize-none ${
+                    className={`w-full px-3.5 py-2 rounded-lg text-xs border focus:outline-none resize-none ${
                       isDark ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0]' : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#2A1A0D]'
                     }`}
                   />
@@ -378,7 +378,7 @@ export const CeremonyServicePage: React.FC = () => {
                 <div className="pt-2">
                   <button
                     type="submit"
-                    className={`w-full py-3 rounded-xl font-bold text-xs sm:text-sm transition-all shadow-sm ${
+                    className={`w-full py-3 rounded-lg font-bold text-xs sm:text-sm transition-all shadow-sm cursor-pointer ${
                       isDark ? 'bg-[#C58A3A] hover:bg-[#E0B15A] text-[#1B1208]' : 'bg-[#B8792F] hover:bg-[#9E6523] text-[#FAF7F0]'
                     }`}
                   >
@@ -392,7 +392,7 @@ export const CeremonyServicePage: React.FC = () => {
           {/* Right Column: Holiday Assurance */}
           <div className="lg:col-span-5 space-y-4">
             <div
-              className={`p-6 rounded-3xl border space-y-3.5 ${
+              className={`p-6 rounded-xl border space-y-3.5 ${
                 isDark ? 'bg-[#2A1A0D] border-[#4A2C16]' : 'bg-[#F1E8D8] border-[#E4D4BC]'
               }`}
             >
@@ -425,7 +425,7 @@ export const CeremonyServicePage: React.FC = () => {
 
             {/* Other Services Switcher Quick Links */}
             <div
-              className={`p-5 rounded-3xl border text-xs space-y-2 ${
+              className={`p-5 rounded-xl border text-xs space-y-2 ${
                 isDark ? 'bg-[#1B1208] border-[#4A2C16]' : 'bg-[#FAF7F0] border-[#E4D4BC]'
               }`}
             >

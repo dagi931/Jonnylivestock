@@ -96,13 +96,13 @@ export const SlipPreviewModal: React.FC<SlipPreviewModalProps> = ({
       {/* ============================================================ */}
       {/* 1. PRIMARY DETAILS & APPROVAL MODAL (COMPACT PREVIEW AT FIRST) */}
       {/* ============================================================ */}
-      <div className="fixed inset-0 z-50 overflow-y-auto bg-black/85 backdrop-blur-md p-2 sm:p-4 md:p-6 flex items-center justify-center">
+      <div className="fixed inset-0 z-50 overflow-y-auto bg-black/75 p-2 sm:p-4 md:p-6 flex items-center justify-center animate-in fade-in duration-150">
         {/* Background Backdrop */}
         <div className="fixed inset-0" onClick={onClose} aria-hidden="true" />
 
         {/* Modal Container */}
         <div
-          className={`relative w-full max-w-4xl h-auto max-h-[92dvh] sm:max-h-[92vh] flex flex-col rounded-3xl border shadow-2xl z-10 overflow-hidden animate-in fade-in zoom-in-95 duration-200 ${
+          className={`relative w-full max-w-4xl h-auto max-h-[92dvh] sm:max-h-[92vh] flex flex-col rounded-2xl border shadow-xl z-10 overflow-hidden ${
             isDark
               ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0]'
               : 'bg-white border-[#E4D4BC] text-[#2A1A0D]'
@@ -110,7 +110,9 @@ export const SlipPreviewModal: React.FC<SlipPreviewModalProps> = ({
         >
           {/* Modal Header */}
           <div
-            className="flex justify-between items-center px-4 sm:px-6 py-3.5 border-b shrink-0 sticky top-0 z-20 backdrop-blur-md"
+            className={`flex justify-between items-center px-4 sm:px-6 py-3.5 border-b shrink-0 sticky top-0 z-20 ${
+              isDark ? 'bg-[#1B1208]' : 'bg-white'
+            }`}
             style={{ borderColor: isDark ? '#4A2C16' : '#E4D4BC' }}
           >
             <div className="min-w-0 pr-2">
@@ -123,11 +125,11 @@ export const SlipPreviewModal: React.FC<SlipPreviewModalProps> = ({
                   <span
                     className={`px-2 py-0.5 rounded-md text-[10.5px] font-bold shrink-0 ${
                       order.status === 'reservation_pending'
-                        ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30 animate-pulse'
+                        ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30'
                         : order.status === 'final_payment_pending'
-                        ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30 animate-pulse'
+                        ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30'
                         : order.status === 'pending_verification'
-                        ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30 animate-pulse'
+                        ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30'
                         : order.status === 'reserved'
                         ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
                         : order.status === 'delivery_pending'
@@ -368,7 +370,7 @@ export const SlipPreviewModal: React.FC<SlipPreviewModalProps> = ({
 
                       {/* Hover Overlay with Expand Hint */}
                       <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-1.5 text-white p-2">
-                        <ZoomIn className="w-6 h-6 text-[#C18A45] animate-bounce" />
+                        <ZoomIn className="w-6 h-6 text-[#C18A45]" />
                         <span className="text-xs font-bold">{isAmharic ? 'ለማስፋት ፎቶውን ይጫኑ' : 'Click Picture to Expand'}</span>
                         <span className="text-[10px] opacity-75">{isAmharic ? 'ሙሉ ጥራት ያለውን ደረሰኝ ይመልከቱ' : 'View full high-res receipt'}</span>
                       </div>
@@ -487,7 +489,7 @@ export const SlipPreviewModal: React.FC<SlipPreviewModalProps> = ({
 
           {/* Modal Sticky Footer: Direct Verification Buttons */}
           <div
-            className="p-4 border-t sticky bottom-0 z-20 backdrop-blur-md bg-inherit shrink-0 space-y-2.5"
+            className="p-4 border-t sticky bottom-0 z-20 bg-inherit shrink-0 space-y-2.5"
             style={{ borderColor: isDark ? '#4A2C16' : '#E4D4BC' }}
           >
             {/* 1. Pending 50% Deposit Approval */}
@@ -665,7 +667,7 @@ export const SlipPreviewModal: React.FC<SlipPreviewModalProps> = ({
       {/* 2. EXPANDED PICTURE LIGHTBOX (OPENS WHEN SLIP IS CLICKED!) */}
       {/* ============================================================ */}
       {isSlipExpanded && currentSlip && (
-        <div className="fixed inset-0 z-[60] overflow-hidden bg-black/95 backdrop-blur-xl flex flex-col animate-in fade-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-[60] overflow-hidden bg-black/95 flex flex-col animate-in fade-in zoom-in-95 duration-200">
           {/* Top Bar */}
           <div className="flex items-center justify-between px-4 sm:px-8 py-4 border-b border-white/10 shrink-0 text-white bg-black/40">
             <div className="flex items-center gap-3">
@@ -751,12 +753,12 @@ export const SlipPreviewModal: React.FC<SlipPreviewModalProps> = ({
             onClick={() => setIsSlipExpanded(false)}
           >
             {currentSlip.endsWith('.pdf') ? (
-              <iframe src={currentSlip} className="w-full h-[85vh] rounded-2xl max-w-5xl" title="Payment Slip PDF" />
+              <iframe src={currentSlip} className="w-full h-[85vh] rounded-xl max-w-5xl" title="Payment Slip PDF" />
             ) : (
               <img
                 src={currentSlip}
                 alt="Expanded Payment Receipt"
-                className="max-h-[86vh] max-w-[94vw] w-auto object-contain rounded-2xl shadow-2xl border border-white/20"
+                className="max-h-[86vh] max-w-[94vw] w-auto object-contain rounded-xl shadow-xl border border-white/20"
                 onClick={(e) => e.stopPropagation()}
               />
             )}

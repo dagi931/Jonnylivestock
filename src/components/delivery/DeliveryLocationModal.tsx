@@ -585,7 +585,7 @@ export const DeliveryLocationModal: React.FC<DeliveryLocationModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] w-screen h-screen h-[100dvh] bg-black/95 backdrop-blur-md flex flex-col overflow-hidden animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-[100] w-screen h-screen h-[100dvh] bg-black/85 flex flex-col overflow-hidden animate-in fade-in duration-200">
       <div
         className={`relative w-full h-full flex flex-col overflow-hidden ${
           isDark
@@ -615,15 +615,15 @@ export const DeliveryLocationModal: React.FC<DeliveryLocationModalProps> = ({
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
-            <div className="hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-xs font-mono opacity-80">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <div className="hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-xs font-mono opacity-80">
+              <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
               <span>Full Screen Map</span>
             </div>
 
             <button
               type="button"
               onClick={onClose}
-              className="p-2 rounded-xl opacity-70 hover:opacity-100 hover:bg-black/10 dark:hover:bg-white/10 transition-all cursor-pointer flex items-center gap-1.5 text-xs"
+              className="p-2 rounded-lg opacity-70 hover:opacity-100 hover:bg-black/10 dark:hover:bg-white/10 transition-colors cursor-pointer flex items-center gap-1.5 text-xs"
               title="Close (Esc)"
             >
               <X className="w-5 h-5" />
@@ -652,7 +652,7 @@ export const DeliveryLocationModal: React.FC<DeliveryLocationModalProps> = ({
                     ? 'ሆቴል፣ ህንፃ፣ ሞል ወይም ሰፈር ይፈልጉ (ቦሌ፣ ሲኤምሲ፣ ካዛንቺስ፣ አያት፣ ሳርቤት...)'
                     : 'Search landmark, building, street, sub-city (e.g. Skylight, Hilton, Edna Mall, CMC, Ayat, Sarbet...)'
                 }
-                className={`w-full pl-9 pr-8 py-2 rounded-xl border text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#C18A45] transition-all ${
+                className={`w-full pl-9 pr-8 py-2 rounded-lg border text-xs sm:text-sm focus:outline-none focus:ring-1.5 focus:ring-[#C18A45] transition-colors ${
                   isDark
                     ? 'bg-[#24170D] border-[#4A2C16] text-[#F4E8D0]'
                     : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#2A1A0D]'
@@ -676,7 +676,7 @@ export const DeliveryLocationModal: React.FC<DeliveryLocationModalProps> = ({
               {/* Autocomplete Dropdown */}
               {showSearchResults && searchResults.length > 0 && (
                 <div
-                  className={`absolute left-0 right-0 top-full mt-1.5 z-50 rounded-2xl border shadow-2xl max-h-60 overflow-y-auto ${
+                  className={`absolute left-0 right-0 top-full mt-1.5 z-50 rounded-xl border shadow-xl max-h-60 overflow-y-auto ${
                     isDark ? 'bg-[#24170D] border-[#4A2C16]' : 'bg-white border-[#E4D4BC]'
                   }`}
                 >
@@ -731,9 +731,9 @@ export const DeliveryLocationModal: React.FC<DeliveryLocationModalProps> = ({
 
           {/* Action Prompt Banner if no location chosen yet */}
           {!hasSelectedLocation && (
-            <div className="p-2.5 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-500 text-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 shadow-xs">
+            <div className="p-2.5 rounded-lg bg-amber-500/15 border border-amber-500/30 text-amber-500 text-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 shadow-xs">
               <div className="flex items-center gap-2">
-                <Navigation className="w-4 h-4 text-amber-500 shrink-0 animate-bounce" />
+                <Navigation className="w-4 h-4 text-amber-500 shrink-0" />
                 <span className="font-semibold">
                   {isAmharic
                     ? 'እባክዎ የመሳሪያዎትን መገኛ (GPS) ይጠቀሙ ወይም ካርታው ላይ ጠቅ በማድረግ መዳረሻዎን ይምረጡ'
@@ -797,7 +797,7 @@ export const DeliveryLocationModal: React.FC<DeliveryLocationModalProps> = ({
 
           {/* Floating Instructions Banner (Shifted for Leaflet's zoom buttons) */}
           <div className="absolute top-3 left-14 sm:left-16 z-10 pointer-events-none">
-            <div className="px-3 py-1.5 rounded-xl bg-black/85 backdrop-blur-md text-white text-xs font-medium shadow-lg flex items-center gap-2 pointer-events-auto border border-white/10">
+            <div className="px-3 py-1.5 rounded-lg bg-black/90 text-white text-xs font-medium shadow-md flex items-center gap-2 pointer-events-auto border border-white/10">
               <MapPin className="w-3.5 h-3.5 text-[#C18A45]" />
               <span>{isAmharic ? 'በካርታው ላይ ጠቅ ያድርጉ ወይም 📍 ፒኑን ወደ በርዎ ያንቀሳቅሱ' : 'Click anywhere on map or drag 📍 pin to your exact compound/gate'}</span>
             </div>
@@ -809,13 +809,13 @@ export const DeliveryLocationModal: React.FC<DeliveryLocationModalProps> = ({
               type="button"
               onClick={handleRecenter}
               title={isAmharic ? 'ወደ ፒኑ ተመለስ' : 'Recenter on Pin'}
-              className="p-2 sm:px-3 sm:py-1.5 rounded-xl bg-black/85 backdrop-blur-md text-white shadow-lg border border-white/10 hover:bg-black pointer-events-auto cursor-pointer flex items-center gap-1.5 text-xs transition-transform active:scale-95"
+              className="p-2 sm:px-3 sm:py-1.5 rounded-lg bg-black/90 text-white shadow-md border border-white/10 hover:bg-black pointer-events-auto cursor-pointer flex items-center gap-1.5 text-xs transition-transform active:scale-95"
             >
               <Crosshair className="w-4 h-4 text-amber-400" />
               <span className="hidden sm:inline font-medium">{isAmharic ? 'ወደ ፒኑ ተመለስ' : 'Recenter'}</span>
             </button>
 
-            <div className="px-3 py-1.5 rounded-xl bg-black/85 backdrop-blur-md text-white text-xs font-mono font-bold shadow-lg flex items-center gap-2 border border-white/10 pointer-events-auto">
+            <div className="px-3 py-1.5 rounded-lg bg-black/90 text-white text-xs font-mono font-bold shadow-md flex items-center gap-2 border border-white/10 pointer-events-auto">
               <Route className="w-3.5 h-3.5 text-emerald-400" />
               {isRouting ? (
                 <span className="flex items-center gap-1 text-[11px] text-amber-400">
@@ -836,7 +836,7 @@ export const DeliveryLocationModal: React.FC<DeliveryLocationModalProps> = ({
 
         {/* Selected Location Details & Confirmation Footer */}
         <div
-          className="px-4 py-3 sm:px-6 sm:py-3.5 border-t space-y-2.5 shrink-0 z-20 shadow-2xl bg-white/95 dark:bg-[#1A1108]/95 backdrop-blur-md"
+          className="px-4 py-3 sm:px-6 sm:py-3.5 border-t space-y-2.5 shrink-0 z-20 shadow-lg bg-white dark:bg-[#1A1108]"
           style={{ borderColor: isDark ? '#4A2C16' : '#E4D4BC' }}
         >
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
@@ -882,7 +882,7 @@ export const DeliveryLocationModal: React.FC<DeliveryLocationModalProps> = ({
                   value={customNotes}
                   onChange={(e) => setCustomNotes(e.target.value)}
                   placeholder={isAmharic ? 'የቤት ቁጥር / መለያ ምልክት...' : 'House # / Landmark (optional)...'}
-                  className={`w-full px-3 py-2 rounded-xl border text-xs sm:text-sm focus:outline-none focus:ring-1.5 focus:ring-[#C18A45] ${
+                  className={`w-full px-3 py-2 rounded-lg border text-xs sm:text-sm focus:outline-none focus:ring-1.5 focus:ring-[#C18A45] ${
                     isDark ? 'bg-[#24170D] border-[#4A2C16] text-[#F4E8D0]' : 'bg-white border-[#E4D4BC] text-[#2A1A0D]'
                   }`}
                 />
@@ -892,7 +892,7 @@ export const DeliveryLocationModal: React.FC<DeliveryLocationModalProps> = ({
                 <button
                   type="button"
                   onClick={onClose}
-                  className="flex-1 sm:flex-initial px-4 py-2 rounded-xl border text-xs sm:text-sm font-semibold hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer"
+                  className="flex-1 sm:flex-initial px-4 py-2 rounded-lg border text-xs sm:text-sm font-semibold hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer"
                   style={{ borderColor: isDark ? '#4A2C16' : '#E4D4BC' }}
                 >
                   {isAmharic ? 'ይቅር' : 'Cancel'}
@@ -900,7 +900,7 @@ export const DeliveryLocationModal: React.FC<DeliveryLocationModalProps> = ({
                 <button
                   type="button"
                   onClick={handleConfirmLocation}
-                  className="flex-1 sm:flex-initial px-6 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-black font-black text-xs sm:text-sm shadow-lg hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  className="flex-1 sm:flex-initial px-6 py-2.5 rounded-lg bg-[#C58A3A] hover:bg-[#b57a2c] text-[#1B1208] font-bold text-xs sm:text-sm shadow-sm transition-colors flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <Check className="w-4 h-4 stroke-[3]" />
                   <span>{isAmharic ? 'ይህንን ቦታ አረጋግጥ' : 'Confirm Location'}</span>

@@ -218,32 +218,32 @@ export const PackageBuilder: React.FC = () => {
             {/* View Switcher Tabs */}
             <div className="pt-3 flex justify-center">
               <div
-                className={`p-1 rounded-2xl border flex items-center gap-1 ${
+                className={`p-1 rounded-lg border flex items-center gap-1 ${
                   isDark ? 'bg-[#2A1A0D] border-[#4A2C16]' : 'bg-[#FAF7F0] border-[#E4D4BC]'
                 }`}
               >
                 <button
                   type="button"
                   onClick={() => setActiveTab('premade')}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+                  className={`flex items-center gap-2 px-3.5 py-1.5 rounded-md text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
                     activeTab === 'premade'
-                      ? 'bg-amber-500 text-black shadow-sm'
+                      ? 'bg-amber-500 text-black shadow-xs'
                       : 'text-stone-700 dark:text-[#F4EAD9] bg-transparent hover:bg-black/5 dark:hover:bg-[rgba(244,234,217,0.08)]'
                   }`}
                 >
-                  <Gift className="w-4 h-4" />
+                  <Gift className="w-3.5 h-3.5" />
                   <span>{isAmharic ? 'የተዘጋጁ ጥቅሎች' : 'Curated Packages'}</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setActiveTab('builder')}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+                  className={`flex items-center gap-2 px-3.5 py-1.5 rounded-md text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
                     activeTab === 'builder'
-                      ? 'bg-amber-500 text-black shadow-sm'
+                      ? 'bg-amber-500 text-black shadow-xs'
                       : 'text-stone-700 dark:text-[#F4EAD9] bg-transparent hover:bg-black/5 dark:hover:bg-[rgba(244,234,217,0.08)]'
                   }`}
                 >
-                  <Sparkles className="w-4 h-4" />
+                  <Sparkles className="w-3.5 h-3.5" />
                   <span>{isAmharic ? 'የራስዎን ጥቅል ያዘጋጁ' : 'Custom Package Builder'}</span>
                 </button>
               </div>
@@ -290,7 +290,7 @@ export const PackageBuilder: React.FC = () => {
                     <div
                       onTouchStart={() => handleTouchCard(pkg.id)}
                       onTouchEnd={() => handleTouchCard(pkg.id)}
-                      className={`self-start h-fit w-full group rounded-2xl border overflow-hidden transition-all duration-300 hover:shadow-lg flex flex-col justify-between select-none ${
+                      className={`self-start h-fit w-full group rounded-xl border overflow-hidden transition-all duration-200 hover:border-amber-500/40 flex flex-col justify-between select-none ${
                         isDark ? 'bg-[#24170D] border-[#4A2C16]' : 'bg-white border-[#E4D4BC]'
                       }`}
                     >
@@ -307,7 +307,7 @@ export const PackageBuilder: React.FC = () => {
                           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-transparent" />
 
                           <div className="absolute top-2.5 left-2.5 flex flex-wrap gap-1">
-                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-600 text-white flex items-center gap-1 shadow-xs">
+                            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-700 text-white flex items-center gap-1 shadow-xs">
                               <Truck className="w-2.5 h-2.5" /> {isAmharic ? 'ነፃ ማድረሻ' : 'Free Delivery'}
                             </span>
                           </div>
@@ -319,7 +319,7 @@ export const PackageBuilder: React.FC = () => {
                             if (isSoldOut) {
                               return (
                                 <div className="absolute top-2.5 right-2.5">
-                                  <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-red-600 text-white shadow-xs">
+                                  <span className="px-2 py-0.5 rounded text-[9px] font-bold bg-red-750 text-white shadow-xs">
                                     {isAmharic ? 'አልቋል' : 'Sold Out'}
                                   </span>
                                 </div>
@@ -419,7 +419,7 @@ export const PackageBuilder: React.FC = () => {
                                 <button
                                   type="button"
                                   disabled
-                                  className="w-full py-2 rounded-xl bg-stone-700/60 text-stone-300 font-bold text-xs cursor-not-allowed opacity-80 flex items-center justify-center gap-1"
+                                  className="w-full py-2 rounded-lg bg-stone-700/60 text-stone-300 font-bold text-xs cursor-not-allowed opacity-80 flex items-center justify-center gap-1"
                                 >
                                   <span>{isAmharic ? 'አልቋል (Out of Stock)' : 'Sold Out'}</span>
                                 </button>
@@ -429,7 +429,7 @@ export const PackageBuilder: React.FC = () => {
                               <button
                                 type="button"
                                 onClick={() => handleOrderPreMade(pkg)}
-                                className="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-black font-bold text-xs transition-all shadow-sm flex items-center justify-center gap-1.5 cursor-pointer active:scale-[0.99]"
+                                className="w-full py-2.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-black font-bold text-xs transition-colors shadow-xs flex items-center justify-center gap-1.5 cursor-pointer"
                               >
                                 <Gift className="w-3.5 h-3.5 shrink-0" />
                                 <span>{isAmharic ? 'ይዘዙ / በ50% ይያዙ' : 'Order / 50% Reserve'}</span>
@@ -454,7 +454,7 @@ export const PackageBuilder: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setActiveCategoryFilter('all')}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                     activeCategoryFilter === 'all'
                       ? 'bg-amber-500 text-black shadow-xs'
                       : isDark
@@ -472,7 +472,7 @@ export const PackageBuilder: React.FC = () => {
                       key={cat.id}
                       type="button"
                       onClick={() => setActiveCategoryFilter(cat.id)}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                         activeCategoryFilter === cat.id
                           ? 'bg-amber-500 text-black shadow-xs'
                           : isDark
@@ -502,17 +502,17 @@ export const PackageBuilder: React.FC = () => {
                           onClick={() => toggleItem(item)}
                           onTouchStart={() => handleTouchCard(item.id)}
                           onTouchEnd={() => handleTouchCard(item.id)}
-                          className={`h-full group p-3.5 rounded-2xl border cursor-pointer transition-all duration-150 flex gap-3 select-none ${
+                          className={`h-full group p-3.5 rounded-xl border cursor-pointer transition-all duration-150 flex gap-3 select-none ${
                             isSelected
                               ? isDark
-                                ? 'bg-amber-500/10 border-amber-500 shadow-sm'
-                                : 'bg-amber-50 border-amber-500 shadow-sm'
+                                ? 'bg-amber-500/10 border-amber-500 shadow-xs'
+                                : 'bg-amber-50 border-amber-500 shadow-xs'
                               : isDark
                               ? 'bg-[#24170D] border-[#4A2C16] hover:border-amber-500/40'
                               : 'bg-white border-[#E4D4BC] hover:border-amber-500/40'
                           }`}
                         >
-                          <div className="w-16 h-16 rounded-xl overflow-hidden shrink-0 bg-black/5">
+                          <div className="w-16 h-16 rounded-lg overflow-hidden shrink-0 bg-black/5">
                             <img
                               src={item.image}
                               alt={item.name}
@@ -529,7 +529,7 @@ export const PackageBuilder: React.FC = () => {
                                 </h4>
                                 <button
                                   type="button"
-                                  className={`w-5 h-5 rounded-md flex items-center justify-center shrink-0 transition-colors ${
+                                  className={`w-5 h-5 rounded flex items-center justify-center shrink-0 transition-colors ${
                                     isSelected
                                       ? 'bg-amber-500 text-black'
                                       : 'bg-black/10 dark:bg-white/10 opacity-60'
@@ -563,7 +563,7 @@ export const PackageBuilder: React.FC = () => {
             {/* Right 4 Cols: Sticky Custom Package Summary (Minimal and clean, no nested cards) */}
             <div className="lg:col-span-4 sticky top-24 space-y-4">
               <div
-                className={`p-5 rounded-3xl border shadow-md space-y-4 ${
+                className={`p-5 rounded-xl border shadow-xs space-y-4 ${
                   isDark ? 'bg-[#24170D] border-[#4A2C16]' : 'bg-white border-[#E4D4BC]'
                 }`}
               >
@@ -576,7 +576,7 @@ export const PackageBuilder: React.FC = () => {
                     type="text"
                     value={packageName}
                     onChange={e => setPackageName(e.target.value)}
-                    className={`w-full px-3 py-2 rounded-xl border text-xs font-bold focus:outline-none focus:border-amber-500 ${
+                    className={`w-full px-3 py-2 rounded-lg border text-xs font-semibold focus:outline-none focus:border-amber-500 ${
                       isDark ? 'bg-[#1D130A] border-[#4A2C16] text-[#F4E8D0]' : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#241A12]'
                     }`}
                   />
@@ -685,7 +685,7 @@ export const PackageBuilder: React.FC = () => {
                 </div>
 
                 {saveSuccessMsg && (
-                  <div className="p-2.5 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-500 text-xs flex items-center gap-2">
+                  <div className="p-2.5 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-500 text-xs flex items-center gap-2">
                     <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
                     <span>{saveSuccessMsg}</span>
                   </div>
@@ -697,7 +697,7 @@ export const PackageBuilder: React.FC = () => {
                     type="button"
                     disabled={!isEligible}
                     onClick={handleOrderCustom}
-                    className="w-full py-3 rounded-2xl bg-amber-500 hover:bg-amber-600 disabled:opacity-40 disabled:cursor-not-allowed text-black font-bold text-xs sm:text-sm transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer"
+                    className="w-full py-2.5 rounded-lg bg-amber-500 hover:bg-amber-600 disabled:opacity-40 disabled:cursor-not-allowed text-black font-bold text-xs sm:text-sm transition-colors shadow-xs flex items-center justify-center gap-2 cursor-pointer"
                   >
                     <Gift className="w-4 h-4" />
                     <span>{isAmharic ? 'ይዘዙ / በ50% ይያዙ' : 'Proceed to Order / 50% Reserve'}</span>
@@ -707,7 +707,7 @@ export const PackageBuilder: React.FC = () => {
                     type="button"
                     disabled={!isEligible}
                     onClick={handleSaveToMyPackages}
-                    className={`w-full py-2 rounded-2xl border text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                    className={`w-full py-2 rounded-lg border text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 cursor-pointer ${
                       !isEligible
                         ? 'opacity-30 cursor-not-allowed'
                         : isDark

@@ -20,7 +20,7 @@ export const ImageGallery: React.FC<ImageGalleryProps> = ({ images, alt }) => {
     <div className="space-y-4">
       {/* Main Image Container (Refined Compact Aspect Ratio) */}
       <div
-        className={`relative aspect-[16/10] sm:aspect-[16/11] max-h-[340px] sm:max-h-[400px] w-full rounded-2xl sm:rounded-3xl overflow-hidden border group shadow-md ${
+        className={`relative aspect-[16/10] sm:aspect-[16/11] max-h-[340px] sm:max-h-[400px] w-full rounded-xl overflow-hidden border group shadow-sm ${
           isDark ? 'bg-[#1B1208] border-[#4A2C16]' : 'bg-[#FAF7F0] border-[#E4D4BC]'
         }`}
       >
@@ -34,7 +34,7 @@ export const ImageGallery: React.FC<ImageGalleryProps> = ({ images, alt }) => {
         <button
           onClick={() => setIsLightboxOpen(true)}
           type="button"
-          className="absolute bottom-3 right-3 sm:bottom-4 sm:right-4 p-2 sm:p-2.5 rounded-xl bg-black/70 hover:bg-black/90 text-[#FAF7F0] backdrop-blur-sm border border-white/20 transition-all opacity-90 sm:opacity-0 sm:group-hover:opacity-100 focus:opacity-100 cursor-pointer shadow-md"
+          className="absolute bottom-3 right-3 sm:bottom-4 sm:right-4 p-2 sm:p-2.5 rounded-lg bg-black/80 hover:bg-black text-[#FAF7F0] border border-white/20 transition-all opacity-90 sm:opacity-0 sm:group-hover:opacity-100 focus:opacity-100 cursor-pointer shadow-xs"
           title="Open Fullscreen Gallery"
           aria-label="Open Fullscreen Gallery"
         >
@@ -43,7 +43,7 @@ export const ImageGallery: React.FC<ImageGalleryProps> = ({ images, alt }) => {
 
         {/* Counter Badge */}
         {images.length > 1 && (
-          <div className="absolute top-3 right-3 sm:top-4 sm:right-4 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full bg-black/70 text-[#FAF7F0] text-[10px] sm:text-xs font-mono font-bold backdrop-blur-sm border border-white/10 shadow-xs">
+          <div className="absolute top-3 right-3 sm:top-4 sm:right-4 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-md bg-black/80 text-[#FAF7F0] text-[10px] sm:text-xs font-mono font-bold border border-white/10 shadow-xs">
             {selectedIndex + 1} / {images.length}
           </div>
         )}
@@ -79,7 +79,7 @@ export const ImageGallery: React.FC<ImageGalleryProps> = ({ images, alt }) => {
 
       {/* Fullscreen Lightbox Modal */}
       {isLightboxOpen && (
-        <div className="fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4">
           <button
             onClick={() => setIsLightboxOpen(false)}
             className="absolute top-6 right-6 p-3 rounded-full bg-white/10 hover:bg-white/20 text-[#FAF7F0] transition-colors"
@@ -92,7 +92,7 @@ export const ImageGallery: React.FC<ImageGalleryProps> = ({ images, alt }) => {
             <img
               src={images[selectedIndex]}
               alt={`${alt} fullscreen`}
-              className="max-h-[75vh] w-auto max-w-full object-contain rounded-2xl shadow-2xl"
+              className="max-h-[75vh] w-auto max-w-full object-contain rounded-xl shadow-xl"
             />
             {images.length > 1 && (
               <div className="flex items-center gap-2 mt-4">

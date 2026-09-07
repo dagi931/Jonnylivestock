@@ -65,8 +65,8 @@ export const CelebrationPackagesSection: React.FC = () => {
   return (
     <section
       className={`py-12 sm:py-16 border-y ${isDark
-          ? 'bg-gradient-to-b from-[#1F150A] via-[#24170D] to-[#1F150A] border-[#4A2C16]'
-          : 'bg-gradient-to-b from-[#FAF7F0] via-[#F6EFE2] to-[#FAF7F0] border-[#E4D4BC]'
+          ? 'bg-[#1F150A] border-[#4A2C16]'
+          : 'bg-[#FAF7F0] border-[#E4D4BC]'
         }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -167,8 +167,8 @@ export const CelebrationPackagesSection: React.FC = () => {
                 <div
                   onTouchStart={() => handleTouchPkg(pkg.id)}
                   onTouchEnd={() => handleTouchPkg(pkg.id)}
-                  className={`self-start h-fit w-full rounded-2xl sm:rounded-3xl border overflow-hidden flex flex-col justify-between transition-all duration-300 ease-out hover:shadow-xl group cursor-pointer select-none ${isDark ? 'bg-[#1D130A] border-[#4A2C16]' : 'bg-white border-[#E4D4BC]'
-                    } ${isExpanded ? 'ring-1 ring-amber-500/40 shadow-lg' : ''}`}
+                  className={`self-start h-fit w-full rounded-xl border overflow-hidden flex flex-col justify-between transition-colors group cursor-pointer select-none ${isDark ? 'bg-[#1D130A] border-[#4A2C16] hover:border-[#C58A3A]/40' : 'bg-white border-[#E4D4BC] hover:border-[#B8792F]/40'
+                    } ${isExpanded ? 'ring-1 ring-amber-500/40 shadow-sm' : ''}`}
                 >
                   <div>
                     {/* Compact Image */}

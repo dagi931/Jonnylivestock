@@ -327,11 +327,11 @@ export const UserAuthModal: React.FC = () => {
   };
 
   return (
-    <div className="fixed inset-0 z-[100] overflow-y-auto bg-black/80 backdrop-blur-md p-3 sm:p-4 md:p-6">
+    <div className="fixed inset-0 z-[100] overflow-y-auto bg-black/75 p-3 sm:p-4 md:p-6">
       <div className="min-h-full flex items-center justify-center py-4 sm:py-6">
         <div className="fixed inset-0" onClick={closeAuthModal} aria-hidden="true" />
         <div
-          className={`relative w-full max-w-md max-h-[90vh] overflow-y-auto rounded-3xl border shadow-2xl p-6 sm:p-8 z-10 animate-in fade-in zoom-in-95 duration-200 ${
+          className={`relative w-full max-w-md max-h-[90vh] overflow-y-auto rounded-2xl border shadow-xl p-6 sm:p-8 z-10 animate-in fade-in zoom-in-95 duration-200 ${
             isDark
               ? 'bg-[#2A1A0D] border-[#4A2C16] text-[#F4E8D0]'
               : 'bg-[#FDFBF7] border-[#E4D4BC] text-[#2A1A0D]'
@@ -353,8 +353,8 @@ export const UserAuthModal: React.FC = () => {
 
           {/* Prompt Message Banner (e.g. Account Required for Ordering) */}
           {authPromptMessage && step !== 'success' && (
-            <div className="mb-5 p-3.5 rounded-2xl bg-amber-500/15 border-2 border-amber-500/40 text-amber-500 flex items-start gap-3 shadow-md animate-in fade-in slide-in-from-top-2">
-              <div className="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-500 flex items-center justify-center shrink-0 mt-0.5">
+            <div className="mb-5 p-3.5 rounded-xl bg-amber-500/15 border border-amber-500/40 text-amber-500 flex items-start gap-3 shadow-xs animate-in fade-in slide-in-from-top-2">
+              <div className="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-500 flex items-center justify-center shrink-0 mt-0.5">
                 <AlertCircle className="w-5 h-5" />
               </div>
               <div className="flex-1">
@@ -373,8 +373,8 @@ export const UserAuthModal: React.FC = () => {
           {/* ========================================================== */}
           {step === 'success' ? (
             <div className="text-center py-6 px-3 space-y-4 animate-in fade-in zoom-in-95 duration-200">
-              <div className="w-16 h-16 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-500 flex items-center justify-center mx-auto shadow-inner">
-                <CheckCircle2 className="w-9 h-9" />
+              <div className="w-14 h-14 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-500 flex items-center justify-center mx-auto shadow-inner">
+                <CheckCircle2 className="w-8 h-8" />
               </div>
 
               <div>
@@ -389,7 +389,7 @@ export const UserAuthModal: React.FC = () => {
               </div>
 
               {/* Account Quick Summary Pill */}
-              <div className={`p-3 rounded-xl border text-xs text-left max-w-xs mx-auto ${
+              <div className={`p-3 rounded-lg border text-xs text-left max-w-xs mx-auto ${
                 isDark ? 'bg-[#1B1208] border-[#3D2513]' : 'bg-[#FAF6EE] border-[#E8DCCB]'
               }`}>
                 <div className="flex items-center justify-between gap-2">
@@ -416,7 +416,7 @@ export const UserAuthModal: React.FC = () => {
                     closeAuthModal();
                     navigate('/', { replace: true, state: { accountCreated: true, userName: createdUserName || name } });
                   }}
-                  className="w-full py-3 rounded-xl bg-gradient-to-r from-[#C18A45] to-[#A06E35] text-white font-bold text-sm shadow-lg hover:shadow-xl hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  className="w-full py-2.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-black font-bold text-xs sm:text-sm shadow-xs transition-colors flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <span>{isAmharic ? 'ወደ ዋናው ገጽ ሂድ' : 'Continue to Home Page'}</span>
                   <ArrowRight className="w-4 h-4" />
@@ -440,8 +440,8 @@ export const UserAuthModal: React.FC = () => {
               </button>
 
               <div className="text-center mb-6">
-                <div className="w-14 h-14 rounded-2xl bg-[#C18A45]/15 border border-[#C18A45]/30 text-[#C18A45] flex items-center justify-center mx-auto mb-3 shadow-inner">
-                  <KeyRound className="w-7 h-7" />
+                <div className="w-12 h-12 rounded-xl bg-[#C18A45]/15 border border-[#C18A45]/30 text-[#C18A45] flex items-center justify-center mx-auto mb-3 shadow-inner">
+                  <KeyRound className="w-6 h-6" />
                 </div>
                 <h2 className="text-xl sm:text-2xl font-bold font-serif">
                   {isAmharic ? 'የይለፍ ቃል ዳግም ማስጀመሪያ' : 'Reset Your Password'}
@@ -459,14 +459,14 @@ export const UserAuthModal: React.FC = () => {
 
               {/* Status alerts */}
               {infoMessage && (
-                <div className="mb-4 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs flex items-center gap-2">
+                <div className="mb-4 p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 shrink-0" />
                   <span>{infoMessage}</span>
                 </div>
               )}
 
               {error && (
-                <div className="mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-xs flex items-center gap-2">
+                <div className="mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-xs flex items-center gap-2">
                   <AlertCircle className="w-4 h-4 shrink-0" />
                   <span>{error}</span>
                 </div>
@@ -488,7 +488,7 @@ export const UserAuthModal: React.FC = () => {
                         onChange={(e) => setEmail(e.target.value)}
                         placeholder="you@example.com"
                         autoFocus
-                        className={`w-full pl-10 pr-4 py-2.5 rounded-xl border text-sm transition-all focus:outline-none focus:ring-2 focus:ring-[#C18A45] ${
+                        className={`w-full pl-10 pr-4 py-2.5 rounded-lg border text-sm transition-all focus:outline-none focus:ring-2 focus:ring-[#C18A45] ${
                           isDark
                             ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0] placeholder-[#D8C5A8]/40'
                             : 'bg-white border-[#E4D4BC] text-[#2A1A0D] placeholder-[#746556]/40'
@@ -500,10 +500,10 @@ export const UserAuthModal: React.FC = () => {
                   <button
                     type="submit"
                     disabled={isLoading || !email.trim()}
-                    className="w-full py-3 rounded-xl bg-gradient-to-r from-[#C18A45] to-[#A06E35] text-white font-bold text-sm shadow-lg hover:shadow-xl hover:scale-[1.01] active:scale-[0.99] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
+                    className="w-full py-2.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-black font-bold text-xs sm:text-sm shadow-xs transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
                   >
                     {isLoading ? (
-                      <span className="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      <span className="inline-block w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />
                     ) : (
                       <>
                         <KeyRound className="w-4 h-4" />
@@ -529,7 +529,7 @@ export const UserAuthModal: React.FC = () => {
                       onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
                       placeholder="123456"
                       autoFocus
-                      className={`w-full py-3 px-4 text-center font-mono text-2xl font-extrabold tracking-[0.35em] rounded-2xl border shadow-inner transition-all focus:outline-none focus:ring-2 focus:ring-[#C18A45] ${
+                      className={`w-full py-3 px-4 text-center font-mono text-2xl font-extrabold tracking-[0.35em] rounded-xl border shadow-inner transition-all focus:outline-none focus:ring-2 focus:ring-[#C18A45] ${
                         isDark
                           ? 'bg-[#1B1208] border-[#4A2C16] text-[#E0B15A] placeholder-[#D8C5A8]/20'
                           : 'bg-white border-[#E4D4BC] text-[#8F6026] placeholder-[#746556]/20'
@@ -549,7 +549,7 @@ export const UserAuthModal: React.FC = () => {
                         value={newPassword}
                         onChange={(e) => setNewPassword(e.target.value)}
                         placeholder="••••••••"
-                        className={`w-full pl-10 pr-10 py-2.5 rounded-xl border text-sm transition-all focus:outline-none focus:ring-2 focus:ring-[#C18A45] ${
+                        className={`w-full pl-10 pr-10 py-2.5 rounded-lg border text-sm transition-all focus:outline-none focus:ring-2 focus:ring-[#C18A45] ${
                           isDark
                             ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0] placeholder-[#D8C5A8]/40'
                             : 'bg-white border-[#E4D4BC] text-[#2A1A0D] placeholder-[#746556]/40'
@@ -577,7 +577,7 @@ export const UserAuthModal: React.FC = () => {
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
                         placeholder="••••••••"
-                        className={`w-full pl-10 pr-4 py-2.5 rounded-xl border text-sm transition-all focus:outline-none focus:ring-2 focus:ring-[#C18A45] ${
+                        className={`w-full pl-10 pr-4 py-2.5 rounded-lg border text-sm transition-all focus:outline-none focus:ring-2 focus:ring-[#C18A45] ${
                           isDark
                             ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0] placeholder-[#D8C5A8]/40'
                             : 'bg-white border-[#E4D4BC] text-[#2A1A0D] placeholder-[#746556]/40'
@@ -589,10 +589,10 @@ export const UserAuthModal: React.FC = () => {
                   <button
                     type="submit"
                     disabled={isLoading || otp.trim().length !== 6 || newPassword.length < 6}
-                    className="w-full py-3 rounded-xl bg-gradient-to-r from-[#C18A45] to-[#A06E35] text-white font-bold text-sm shadow-lg hover:shadow-xl hover:scale-[1.01] active:scale-[0.99] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
+                    className="w-full py-2.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-black font-bold text-xs sm:text-sm shadow-xs transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
                   >
                     {isLoading ? (
-                      <span className="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      <span className="inline-block w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />
                     ) : (
                       <>
                         <CheckCircle2 className="w-4 h-4" />
@@ -642,8 +642,8 @@ export const UserAuthModal: React.FC = () => {
               </button>
 
               <div className="text-center mb-6">
-                <div className="w-14 h-14 rounded-2xl bg-[#C18A45]/15 border border-[#C18A45]/30 text-[#C18A45] flex items-center justify-center mx-auto mb-3 shadow-inner">
-                  <ShieldCheck className="w-7 h-7" />
+                <div className="w-12 h-12 rounded-xl bg-[#C18A45]/15 border border-[#C18A45]/30 text-[#C18A45] flex items-center justify-center mx-auto mb-3 shadow-inner">
+                  <ShieldCheck className="w-6 h-6" />
                 </div>
                 <h2 className="text-xl sm:text-2xl font-bold font-serif">
                   {isAmharic ? 'ኢሜይልዎን ያረጋግጡ' : 'Verify Your Email'}
@@ -665,14 +665,14 @@ export const UserAuthModal: React.FC = () => {
 
               {/* Status alerts */}
               {infoMessage && (
-                <div className="mb-4 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs flex items-center gap-2">
+                <div className="mb-4 p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 shrink-0" />
                   <span>{infoMessage}</span>
                 </div>
               )}
 
               {error && (
-                <div className="mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-xs flex items-center gap-2">
+                <div className="mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-xs flex items-center gap-2">
                   <AlertCircle className="w-4 h-4 shrink-0" />
                   <span>{error}</span>
                 </div>
@@ -693,7 +693,7 @@ export const UserAuthModal: React.FC = () => {
                     onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
                     placeholder="123456"
                     autoFocus
-                    className={`w-full py-3.5 px-4 text-center font-mono text-3xl font-extrabold tracking-[0.4em] rounded-2xl border shadow-inner transition-all focus:outline-none focus:ring-2 focus:ring-[#C18A45] ${
+                    className={`w-full py-3.5 px-4 text-center font-mono text-3xl font-extrabold tracking-[0.4em] rounded-xl border shadow-inner transition-all focus:outline-none focus:ring-2 focus:ring-[#C18A45] ${
                       isDark
                         ? 'bg-[#1B1208] border-[#4A2C16] text-[#E0B15A] placeholder-[#D8C5A8]/20'
                         : 'bg-white border-[#E4D4BC] text-[#8F6026] placeholder-[#746556]/20'
@@ -708,10 +708,10 @@ export const UserAuthModal: React.FC = () => {
                 <button
                   type="submit"
                   disabled={isLoading || otp.trim().length !== 6}
-                  className="w-full py-3 rounded-xl bg-gradient-to-r from-[#C18A45] to-[#A06E35] text-white font-bold text-sm shadow-lg hover:shadow-xl hover:scale-[1.01] active:scale-[0.99] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
+                  className="w-full py-2.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-black font-bold text-xs sm:text-sm shadow-xs transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
                 >
                   {isLoading ? (
-                    <span className="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    <span className="inline-block w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />
                   ) : (
                     <>
                       <CheckCircle2 className="w-4 h-4" />
@@ -748,8 +748,8 @@ export const UserAuthModal: React.FC = () => {
             <div>
               {/* Header */}
               <div className="text-center mb-6">
-                <div className="w-12 h-12 rounded-2xl bg-[#C18A45]/15 border border-[#C18A45]/30 text-[#C18A45] flex items-center justify-center mx-auto mb-3 shadow-inner">
-                  {mode === 'login' ? <LogIn className="w-6 h-6" /> : <UserPlus className="w-6 h-6" />}
+                <div className="w-12 h-12 rounded-xl bg-[#C18A45]/15 border border-[#C18A45]/30 text-[#C18A45] flex items-center justify-center mx-auto mb-3 shadow-inner">
+                  {mode === 'login' ? <LogIn className="w-5 h-5" /> : <UserPlus className="w-5 h-5" />}
                 </div>
                 <h2 className="text-xl sm:text-2xl font-bold font-serif">
                   {mode === 'login'
@@ -772,7 +772,7 @@ export const UserAuthModal: React.FC = () => {
               </div>
 
               {/* Mode Toggle Tabs */}
-              <div className="flex rounded-xl p-1 bg-black/5 dark:bg-white/5 mb-6 border border-black/5 dark:border-white/5">
+              <div className="flex rounded-lg p-1 bg-black/5 dark:bg-white/5 mb-6 border border-black/5 dark:border-white/5">
                 <button
                   type="button"
                   onClick={() => {
@@ -780,9 +780,9 @@ export const UserAuthModal: React.FC = () => {
                     setError(null);
                     setInfoMessage(null);
                   }}
-                  className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  className={`flex-1 py-1.5 rounded-md text-xs font-semibold transition-all cursor-pointer ${
                     mode === 'login'
-                      ? 'bg-[#C18A45] text-white shadow-md'
+                      ? 'bg-amber-500 text-black shadow-xs'
                       : 'hover:bg-black/5 dark:hover:bg-white/5 opacity-70 hover:opacity-100'
                   }`}
                 >
@@ -795,9 +795,9 @@ export const UserAuthModal: React.FC = () => {
                     setError(null);
                     setInfoMessage(null);
                   }}
-                  className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  className={`flex-1 py-1.5 rounded-md text-xs font-semibold transition-all cursor-pointer ${
                     mode === 'register'
-                      ? 'bg-[#C18A45] text-white shadow-md'
+                      ? 'bg-amber-500 text-black shadow-xs'
                       : 'hover:bg-black/5 dark:hover:bg-white/5 opacity-70 hover:opacity-100'
                   }`}
                 >
@@ -807,7 +807,7 @@ export const UserAuthModal: React.FC = () => {
 
               {/* Error Message */}
               {error && (
-                <div className="mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-xs flex items-center gap-2 animate-in fade-in duration-200">
+                <div className="mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-xs flex items-center gap-2 animate-in fade-in duration-200">
                   <AlertCircle className="w-4 h-4 shrink-0" />
                   <span>{error}</span>
                 </div>
@@ -828,7 +828,7 @@ export const UserAuthModal: React.FC = () => {
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                         placeholder="e.g. Dawit Bekele"
-                        className={`w-full pl-10 pr-4 py-2.5 rounded-xl border text-sm transition-all focus:outline-none focus:ring-2 focus:ring-[#C18A45] ${
+                        className={`w-full pl-10 pr-4 py-2.5 rounded-lg border text-sm transition-all focus:outline-none focus:ring-2 focus:ring-[#C18A45] ${
                           isDark
                             ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0] placeholder-[#D8C5A8]/40'
                             : 'bg-white border-[#E4D4BC] text-[#2A1A0D] placeholder-[#746556]/40'
@@ -850,10 +850,10 @@ export const UserAuthModal: React.FC = () => {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="you@example.com"
-                      className={`w-full pl-10 pr-4 py-2.5 rounded-xl border text-sm transition-all focus:outline-none focus:ring-2 focus:ring-[#C18A45] ${
+                      className={`w-full pl-10 pr-4 py-2.5 rounded-lg border text-sm transition-all focus:outline-none focus:ring-2 focus:ring-[#C18A45] ${
                         isDark
                           ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0] placeholder-[#D8C5A8]/40'
-                          : 'bg-white border-[#E4D4BC] text-[#2A1A0D] placeholder-[#746556]/40'
+                            : 'bg-white border-[#E4D4BC] text-[#2A1A0D] placeholder-[#746556]/40'
                       }`}
                     />
                   </div>
@@ -877,7 +877,7 @@ export const UserAuthModal: React.FC = () => {
                         value={phone}
                         onChange={(e) => setPhone(e.target.value)}
                         placeholder="+251 910 194 903"
-                        className={`w-full pl-10 pr-4 py-2.5 rounded-xl border text-sm transition-all focus:outline-none focus:ring-2 focus:ring-[#C18A45] ${
+                        className={`w-full pl-10 pr-4 py-2.5 rounded-lg border text-sm transition-all focus:outline-none focus:ring-2 focus:ring-[#C18A45] ${
                           isDark
                             ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0] placeholder-[#D8C5A8]/40'
                             : 'bg-white border-[#E4D4BC] text-[#2A1A0D] placeholder-[#746556]/40'
@@ -899,7 +899,7 @@ export const UserAuthModal: React.FC = () => {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="••••••••"
-                      className={`w-full pl-10 pr-10 py-2.5 rounded-xl border text-sm transition-all focus:outline-none focus:ring-2 focus:ring-[#C18A45] ${
+                      className={`w-full pl-10 pr-10 py-2.5 rounded-lg border text-sm transition-all focus:outline-none focus:ring-2 focus:ring-[#C18A45] ${
                         isDark
                           ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0] placeholder-[#D8C5A8]/40'
                           : 'bg-white border-[#E4D4BC] text-[#2A1A0D] placeholder-[#746556]/40'
@@ -937,10 +937,10 @@ export const UserAuthModal: React.FC = () => {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full mt-2 py-3 rounded-xl bg-gradient-to-r from-[#C18A45] to-[#A06E35] text-white font-bold text-sm shadow-lg hover:shadow-xl hover:scale-[1.01] active:scale-[0.99] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
+                  className="w-full mt-2 py-2.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-black font-bold text-xs sm:text-sm shadow-xs transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
                 >
                   {isLoading ? (
-                    <span className="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    <span className="inline-block w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />
                   ) : mode === 'login' ? (
                     <>
                       <LogIn className="w-4 h-4" />

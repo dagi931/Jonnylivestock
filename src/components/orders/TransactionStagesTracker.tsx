@@ -201,7 +201,7 @@ export const TransactionStagesTracker: React.FC<TransactionStagesTrackerProps> =
     <div className="space-y-4">
       {/* If Rejected Banner */}
       {isRejected ? (
-        <div className="p-4 rounded-2xl bg-red-500/10 border border-red-500/30 text-red-400 flex items-start gap-3">
+        <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 flex items-start gap-3">
           <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5 text-red-500" />
           <div className="space-y-1">
             <h4 className="font-bold text-sm">
@@ -227,9 +227,9 @@ export const TransactionStagesTracker: React.FC<TransactionStagesTrackerProps> =
               return (
                 <div
                   key={stage.id}
-                  className={`relative p-3.5 rounded-2xl border transition-all duration-300 flex flex-col justify-between ${
+                  className={`relative p-3.5 rounded-xl border transition-colors flex flex-col justify-between ${
                     isCurrent
-                      ? 'bg-amber-500/10 border-amber-500/40 shadow-sm ring-1 ring-amber-500/20'
+                      ? 'bg-amber-500/10 border-amber-500/40 shadow-xs ring-1 ring-amber-500/20'
                       : isCompleted
                       ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-500'
                       : 'bg-black/5 dark:bg-white/5 border-black/10 dark:border-white/10 opacity-50'
@@ -239,11 +239,11 @@ export const TransactionStagesTracker: React.FC<TransactionStagesTrackerProps> =
                     {/* Header: Stage Number & Status Pill */}
                     <div className="flex items-center justify-between mb-2">
                       <div
-                        className={`w-7 h-7 rounded-xl flex items-center justify-center font-bold text-xs ${
+                        className={`w-7 h-7 rounded-lg flex items-center justify-center font-bold text-xs ${
                           isCompleted
-                            ? 'bg-emerald-500 text-white shadow-sm'
+                            ? 'bg-emerald-500 text-white shadow-xs'
                             : isCurrent
-                            ? 'bg-amber-500 text-black shadow-md shadow-amber-500/30 animate-pulse'
+                            ? 'bg-amber-500 text-neutral-950 shadow-xs'
                             : 'bg-black/10 dark:bg-white/10 text-neutral-400'
                         }`}
                       >
