@@ -44,6 +44,7 @@ import {
   MessageSquare,
   AlertTriangle,
   ChevronDown,
+  ChevronUp,
   Edit3,
   RotateCcw,
   Scale,
@@ -168,6 +169,14 @@ export const Admin: React.FC = () => {
 
   // Filtering & Search
   const [orderStatusFilter, setOrderStatusFilter] = useState<string>('all');
+  const [expandedOrderIds, setExpandedOrderIds] = useState<Record<string, boolean>>({});
+
+  const toggleOrderExpanded = (orderId: string) => {
+    setExpandedOrderIds(prev => ({
+      ...prev,
+      [orderId]: !prev[orderId]
+    }));
+  };
   const [selectedTypeFilter, setSelectedTypeFilter] = useState<string>('all');
   const [selectedStatusFilter, setSelectedStatusFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -2289,41 +2298,43 @@ export const Admin: React.FC = () => {
                 </p>
               </div>
 
-              {/* Status Filter */}
-              <div className="flex items-center gap-2">
-                <Filter className="w-3.5 h-3.5 opacity-60 text-[#C18A45]" />
-                <select
-                  value={orderStatusFilter}
-                  onChange={(e) => setOrderStatusFilter(e.target.value)}
-                  className={`px-3.5 py-2 rounded-xl text-xs font-semibold border focus:outline-none shadow-xs transition-colors ${
-                    isDark ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0]' : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#2A1A0D]'
-                  }`}
-                >
-                  <option value="all">
-                    {isAmharic ? 'ሁሉም ትዕዛዞች እና ቅድመ-ይዞታዎች' : 'All Orders & Reservations'} ({ordersList.length})
-                  </option>
-                  <option value="active_reservation">
-                    {isAmharic ? 'የተያዙ (Reservations)' : 'Active Reservation'} ({ordersList.filter(o => o.status === 'reserved' || o.status === 'reservation_pending').length})
-                  </option>
-                  <option value="sold">
-                    {isAmharic ? 'የተሸጡ / የተጠናቀቁ' : 'Sold'} ({ordersList.filter(o => o.status === 'completed' || o.status === 'verified').length})
-                  </option>
-                  <option value="delivery_pending">
-                    {isAmharic ? 'ማድረሻ የሚጠብቁ' : 'Delivery Pending'} ({ordersList.filter(o => o.status === 'delivery_pending' || ((o.status === 'completed' || o.status === 'verified') && Boolean(o.deliveryLocation))).length})
-                  </option>
-                  <option value="delivered">
-                    {isAmharic ? 'የደረሱ' : 'Delivered'} ({ordersList.filter(o => o.status === 'delivered').length})
-                  </option>
-                  <option value="rejected">
-                    {isAmharic ? 'ውድቅ የተደረጉ' : 'Rejected'} ({ordersList.filter(o => o.status === 'rejected').length})
-                  </option>
-                </select>
+              {/* Status Filter & Actions */}
+              <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 w-full sm:w-auto">
+                <div className="flex items-center gap-2 flex-1 sm:flex-initial min-w-[200px]">
+                  <Filter className="w-3.5 h-3.5 opacity-60 text-[#C18A45] shrink-0" />
+                  <select
+                    value={orderStatusFilter}
+                    onChange={(e) => setOrderStatusFilter(e.target.value)}
+                    className={`w-full px-3.5 py-2 rounded-xl text-xs font-semibold border focus:outline-none shadow-xs transition-colors ${
+                      isDark ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0]' : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#2A1A0D]'
+                    }`}
+                  >
+                    <option value="all">
+                      {isAmharic ? 'ሁሉም ትዕዛዞች እና ቅድመ-ይዞታዎች' : 'All Orders & Reservations'} ({ordersList.length})
+                    </option>
+                    <option value="active_reservation">
+                      {isAmharic ? 'የተያዙ (Reservations)' : 'Active Reservation'} ({ordersList.filter(o => o.status === 'reserved' || o.status === 'reservation_pending').length})
+                    </option>
+                    <option value="sold">
+                      {isAmharic ? 'የተሸጡ / የተጠናቀቁ' : 'Sold'} ({ordersList.filter(o => o.status === 'completed' || o.status === 'verified').length})
+                    </option>
+                    <option value="delivery_pending">
+                      {isAmharic ? 'ማድረሻ የሚጠብቁ' : 'Delivery Pending'} ({ordersList.filter(o => o.status === 'delivery_pending' || ((o.status === 'completed' || o.status === 'verified') && Boolean(o.deliveryLocation))).length})
+                    </option>
+                    <option value="delivered">
+                      {isAmharic ? 'የደረሱ' : 'Delivered'} ({ordersList.filter(o => o.status === 'delivered').length})
+                    </option>
+                    <option value="rejected">
+                      {isAmharic ? 'ውድቅ የተደረጉ' : 'Rejected'} ({ordersList.filter(o => o.status === 'rejected').length})
+                    </option>
+                  </select>
+                </div>
 
                 {ordersList.some(o => o.status === 'rejected' && (o.paymentSlipUrl || o.finalPaymentSlipUrl)) && (
                   <button
                     type="button"
                     onClick={() => handleClearAllReceipts('rejected')}
-                    className="px-3 py-2 rounded-xl text-xs font-semibold bg-red-500/15 hover:bg-red-500/25 text-red-400 border border-red-500/30 transition-colors flex items-center gap-1.5 cursor-pointer"
+                    className="px-3 py-2 rounded-xl text-xs font-semibold bg-red-500/15 hover:bg-red-500/25 text-red-400 border border-red-500/30 transition-colors flex items-center gap-1.5 cursor-pointer shrink-0"
                     title={isAmharic ? 'ውድቅ ለተደረጉ ትዕዛዞች ደረሰኞችን አጽዳ' : 'Clear payment receipts for all rejected orders'}
                   >
                     <Trash2 className="w-3.5 h-3.5" />
@@ -2333,141 +2344,352 @@ export const Admin: React.FC = () => {
               </div>
             </div>
 
-            {/* Orders Table */}
-            <div
-              className={`rounded-3xl border overflow-hidden shadow-sm ${
-                isDark ? 'bg-[#2A1A0D] border-[#4A2C16]' : 'bg-[#F1E8D8] border-[#E4D4BC]'
-              }`}
-            >
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs border-collapse">
-                  <thead>
-                    <tr className={`border-b ${isDark ? 'border-[#4A2C16] text-[#D8C5A8]' : 'border-[#E4D4BC] text-[#746556]'}`}>
-                      <th className="py-3.5 px-3.5 uppercase font-semibold">{isAmharic ? 'የትዕዛዝ መለያ' : 'Order ID'}</th>
-                      <th className="py-3.5 px-3.5 uppercase font-semibold">{isAmharic ? 'ደንበኛ' : 'Customer'}</th>
-                      <th className="py-3.5 px-3.5 uppercase font-semibold">{isAmharic ? 'ዝርዝር & ክፍያ' : 'Item & Total'}</th>
-                      <th className="py-3.5 px-3.5 uppercase font-semibold">{isAmharic ? 'የክፍያ ደረሰኝ' : 'Receipt Slip'}</th>
-                      <th className="py-3.5 px-3.5 uppercase font-semibold">{isAmharic ? 'የክፍያ ዘዴ & መለያ' : 'Method & Txn'}</th>
-                      <th className="py-3.5 px-3.5 uppercase font-semibold">{isAmharic ? 'ሁኔታ' : 'Status'}</th>
-                      <th className="py-3.5 px-3.5 uppercase font-semibold text-right">{isAmharic ? 'የማረጋገጫ እርምጃዎች' : 'Verification Actions'}</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y" style={{ borderColor: isDark ? '#4A2C16' : '#E4D4BC' }}>
-                    {isLoadingData && ordersList.length === 0 ? (
-                      <tr>
-                        <td colSpan={7} className="text-center py-12">
-                          <div className="flex flex-col items-center justify-center gap-2 animate-in fade-in duration-200">
-                            <div className="w-8 h-8 rounded-full border-2 border-amber-500 border-t-transparent animate-spin" />
-                            <span className="text-xs font-semibold text-amber-500">
-                              {isAmharic ? 'በመጫን ላይ...' : 'Loading...'}
-                            </span>
-                          </div>
-                        </td>
-                      </tr>
-                    ) : filteredOrders.length === 0 ? (
-                      <tr>
-                        <td colSpan={7} className="text-center py-8 opacity-60">
-                          {isAmharic ? 'ማጣሪያውን የሚያሟላ ትዕዛዝ አልተገኘም' : 'No orders found matching filter'}
-                        </td>
-                      </tr>
-                    ) : (
-                      filteredOrders.map((order) => {
-                        const isRes = order.isReservation || order.depositAmount != null;
-                        const deposit = order.depositAmount || (order.totalAmount * 0.5);
-                        const remaining = order.remainingAmount || (order.totalAmount * 0.5);
+            {/* Orders & Slips Content */}
+            {isLoadingData && ordersList.length === 0 ? (
+              <div className="py-16 text-center">
+                <div className="flex flex-col items-center justify-center gap-2 animate-in fade-in duration-200">
+                  <div className="w-8 h-8 rounded-full border-2 border-amber-500 border-t-transparent animate-spin" />
+                  <span className="text-xs font-semibold text-amber-500">
+                    {isAmharic ? 'በመጫን ላይ...' : 'Loading...'}
+                  </span>
+                </div>
+              </div>
+            ) : filteredOrders.length === 0 ? (
+              <div className={`p-8 text-center rounded-3xl border ${isDark ? 'bg-[#2A1A0D] border-[#4A2C16]' : 'bg-[#F1E8D8] border-[#E4D4BC]'}`}>
+                <p className="text-xs opacity-60">
+                  {isAmharic ? 'ማጣሪያውን የሚያሟላ ትዕዛዝ አልተገኘም' : 'No orders found matching filter'}
+                </p>
+              </div>
+            ) : (
+              <>
+                {/* ============================================================ */}
+                {/* 1. MOBILE PHONE SCREEN VIEW (< 768px) - COMPACT CARD LIST */}
+                {/* ============================================================ */}
+                <div className="block md:hidden space-y-2.5">
+                  {filteredOrders.map((order) => {
+                    const isRes = order.isReservation || order.depositAmount != null;
+                    const deposit = order.depositAmount || (order.totalAmount * 0.5);
+                    const remaining = order.remainingAmount || (order.totalAmount * 0.5);
+                    const isExpanded = Boolean(expandedOrderIds[order.id]);
 
-                        return (
-                          <tr key={order.id} className={`hover:bg-black/5 dark:hover:bg-white/5 transition-colors ${isDark ? 'text-[#F4E8D0]' : 'text-[#2A1A0D]'}`}>
-                            {/* Order ID & Type */}
-                            <td className="py-3 px-3.5 font-mono font-bold">
-                              <div className="text-amber-500 font-semibold">{order.id}</div>
-                              <span className="text-[10px] opacity-50 block">
+                    return (
+                      <div
+                        key={order.id}
+                        className={`rounded-2xl border transition-all overflow-hidden shadow-xs ${
+                          isDark ? 'bg-[#2A1A0D] border-[#4A2C16]' : 'bg-[#F1E8D8] border-[#E4D4BC]'
+                        }`}
+                      >
+                        {/* Collapsed Clean Row (Minimal Height ~70px) */}
+                        <div className="p-3">
+                          {/* Row 1: Order ID, Date, Item Type & Status Badge */}
+                          <div className="flex items-center justify-between gap-1.5 mb-1.5">
+                            <div className="flex items-center gap-1.5 min-w-0">
+                              <span className="font-mono font-bold text-xs text-amber-500 truncate">
+                                #{order.id}
+                              </span>
+                              <span className="text-[10px] opacity-60 shrink-0">
                                 {new Date(order.createdAt).toLocaleDateString()}
                               </span>
                               {order.isPackage && !(order.packageDetails as any)?.isMeatByKg && (
-                                <span className="inline-block px-1.5 py-0.5 mt-1 rounded-md text-[9.5px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30">
-                                  {isAmharic ? 'የጥቅል ትዕዛዝ' : 'Package Order'}
+                                <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30 shrink-0">
+                                  {isAmharic ? 'ጥቅል' : 'Pkg'}
                                 </span>
                               )}
                               {(order.packageDetails as any)?.isMeatByKg && (
-                                <span className="inline-block px-1.5 py-0.5 mt-1 rounded-md text-[9.5px] font-bold bg-rose-500/15 text-rose-400 border border-rose-500/30">
-                                  {isAmharic ? 'ስጋ በኪሎ' : 'Meat in KG'}
+                                <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-rose-500/15 text-rose-400 border border-rose-500/30 shrink-0">
+                                  {isAmharic ? 'ስጋ' : 'Meat'}
                                 </span>
                               )}
                               {isRes && (
-                                <span className="inline-block px-1.5 py-0.5 mt-1 rounded-md text-[9.5px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 ml-1">
-                                  {isAmharic ? '50% ቅድመ-ይዞታ' : '50% Reserve'}
+                                <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 shrink-0">
+                                  50%
                                 </span>
                               )}
-                            </td>
+                            </div>
 
-                            {/* Customer */}
-                            <td className="py-3 px-3.5">
-                              <strong className="block text-xs sm:text-sm font-semibold">{order.customerName}</strong>
-                              <span className="text-[11px] opacity-70 block">{order.customerPhone}</span>
-                              {order.deliveryLocation && (
-                                <span className="text-[10px] opacity-60 truncate max-w-[150px] flex items-center gap-1 block" title={order.deliveryLocation}>
-                                  <MapPin className="w-2.5 h-2.5 shrink-0 text-[#C18A45]" />
-                                  <span>{order.deliveryLocation}</span>
+                            {/* Status Badge */}
+                            <div className="shrink-0">
+                              {order.status === 'reservation_pending' && (
+                                <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30 animate-pulse">
+                                  {isAmharic ? '50% ምርመራ' : '50% Review'}
                                 </span>
                               )}
-                              {(order.packageDetails as any)?.isDelivery && (
-                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 mt-0.5 rounded text-[9.5px] font-bold bg-[#C18A45]/10 text-[#C18A45] border border-[#C18A45]/20">
+                              {order.status === 'reserved' && (
+                                <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30">
+                                  {isAmharic ? 'የተያዘ' : 'Reserved'}
+                                </span>
+                              )}
+                              {order.status === 'final_payment_pending' && (
+                                <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30 animate-pulse">
+                                  {isAmharic ? 'ቀሪ 50% ምርመራ' : 'Final Review'}
+                                </span>
+                              )}
+                              {order.status === 'pending_verification' && (
+                                <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30 animate-pulse">
+                                  {isAmharic ? 'ሙሉ ደረሰኝ' : 'Full Review'}
+                                </span>
+                              )}
+                              {order.status === 'delivery_pending' && (
+                                <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-[#C18A45]/15 text-[#C18A45] border border-[#C18A45]/30 inline-flex items-center gap-1">
                                   <Truck className="w-2.5 h-2.5" />
-                                  <span>{isAmharic ? 'እስከ ደጃፍ ማድረሻ' : 'Doorstep Delivery'}</span>
+                                  <span>{isAmharic ? 'ማድረስ' : 'Delivery'}</span>
                                 </span>
                               )}
-                            </td>
+                              {order.status === 'delivered' && (
+                                <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 inline-flex items-center gap-1">
+                                  <CheckCircle2 className="w-2.5 h-2.5" />
+                                  <span>{isAmharic ? 'ደርሷል' : 'Delivered'}</span>
+                                </span>
+                              )}
+                              {(order.status === 'completed' || order.status === 'verified') && (
+                                <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                                  ✓ {isAmharic ? 'የተሸጠ' : 'Sold'}
+                                </span>
+                              )}
+                              {order.status === 'rejected' && (
+                                <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-red-500/15 text-red-400 border border-red-500/30">
+                                  {isAmharic ? 'ውድቅ' : 'Rejected'}
+                                </span>
+                              )}
+                            </div>
+                          </div>
 
-                            {/* Item & Price */}
-                            <td className="py-3 px-3.5">
-                              <div className="font-semibold text-xs">
+                          {/* Row 2: Customer Name, Item brief & Price */}
+                          <div className="flex items-center justify-between gap-2 mb-2">
+                            <div className="min-w-0 flex-1">
+                              <div className="text-xs font-bold truncate">
+                                {order.customerName}
+                              </div>
+                              <div className="text-[11px] opacity-75 truncate">
                                 {(order.packageDetails as any)?.isMeatByKg ? (
-                                  <span className="text-rose-400 font-bold">
+                                  <span className="text-rose-400 font-medium">
                                     {(order.packageDetails as any).cut} ({(order.packageDetails as any).kg} KG)
                                   </span>
                                 ) : (
                                   order.packageName || order.animalBreed || (isAmharic ? 'የከብት አይነት' : 'Livestock Item')
                                 )}
                               </div>
-                              {order.animalId && (
-                                <span className="text-[10px] font-mono opacity-60 block">ID: {order.animalId}</span>
-                              )}
-                              {(order.packageDetails as any)?.isMeatByKg && (
-                                <span className="text-[10px] font-mono opacity-70 block">
-                                  {isAmharic ? 'የኪሎ ዋጋ' : 'Rate'}: {formatPrice((order.packageDetails as any).pricePerKg)} / KG
-                                </span>
-                              )}
-                              <div className={`font-bold text-xs sm:text-sm ${isDark ? 'text-[#E0B15A]' : 'text-[#B8792F]'}`}>
-                                {isAmharic ? 'ድምር' : 'Total'}: {formatPrice(order.totalAmount)}
+                            </div>
+
+                            <div className="text-right shrink-0">
+                              <div className={`font-bold text-xs sm:text-sm font-mono ${isDark ? 'text-[#E0B15A]' : 'text-[#B8792F]'}`}>
+                                {formatPrice(order.totalAmount)}
                               </div>
                               {isRes && (
-                                <div className="text-[10px] space-y-0.5 mt-0.5">
-                                  <span className="text-emerald-500 font-semibold block">{isAmharic ? '50% ቅድመ ክፍያ' : '50% Deposit'}: {formatPrice(deposit)}</span>
-                                  <span className="text-amber-500 font-semibold block">{isAmharic ? 'ቀሪ ሂሳብ' : 'Remaining'}: {formatPrice(remaining)}</span>
+                                <div className="text-[9.5px] text-emerald-500 font-semibold">
+                                  {isAmharic ? '50% ቅድመ' : 'Deposit'}: {formatPrice(deposit)}
                                 </div>
                               )}
-                            </td>
+                            </div>
+                          </div>
 
-                            {/* Slip Preview Thumbnails (Initial + Final) */}
-                            <td className="py-3 px-3.5">
-                              <div className="space-y-1.5">
-                                {order.paymentSlipUrl ? (
-                                  <div className="flex items-center gap-1">
+                          {/* Row 3: Receipt Slips Preview, Quick Actions & View More Toggle */}
+                          <div className="flex items-center justify-between gap-2 pt-1 border-t border-black/5 dark:border-white/5">
+                            {/* Receipt Slips Thumbnails */}
+                            <div className="flex items-center gap-1.5 overflow-x-auto py-0.5">
+                              {order.paymentSlipUrl ? (
+                                <button
+                                  type="button"
+                                  onClick={() => setSelectedSlipOrder(order)}
+                                  className="flex items-center gap-1 p-0.5 pr-1.5 rounded-lg border border-[#C18A45]/30 hover:border-[#C18A45] bg-black/5 dark:bg-white/5 cursor-pointer shrink-0 transition-all"
+                                  title={isAmharic ? 'የቅድመ-ክፍያ ደረሰኝን ለመመርመር ይጫኑ' : 'Click to inspect slip'}
+                                >
+                                  <img
+                                    src={order.paymentSlipUrl}
+                                    alt="Slip"
+                                    className="w-7 h-7 object-cover rounded"
+                                  />
+                                  <span className="text-[9.5px] font-bold text-[#C18A45]">
+                                    {isRes ? (isAmharic ? 'ቅድመ' : 'Deposit') : (isAmharic ? 'ደረሰኝ' : 'Slip')}
+                                  </span>
+                                </button>
+                              ) : null}
+
+                              {order.finalPaymentSlipUrl ? (
+                                <button
+                                  type="button"
+                                  onClick={() => setSelectedSlipOrder({
+                                    ...order,
+                                    paymentSlipUrl: order.finalPaymentSlipUrl!
+                                  })}
+                                  className="flex items-center gap-1 p-0.5 pr-1.5 rounded-lg border border-emerald-500/30 hover:border-emerald-500 bg-emerald-500/10 cursor-pointer shrink-0 transition-all"
+                                  title={isAmharic ? 'የመጨረሻ 50% ደረሰኝን ለመመርመር ይጫኑ' : 'Click to inspect final slip'}
+                                >
+                                  <img
+                                    src={order.finalPaymentSlipUrl}
+                                    alt="Final Slip"
+                                    className="w-7 h-7 object-cover rounded"
+                                  />
+                                  <span className="text-[9.5px] font-bold text-emerald-400">
+                                    {isAmharic ? 'የመጨረሻ' : 'Final'}
+                                  </span>
+                                </button>
+                              ) : null}
+
+                              {!order.paymentSlipUrl && !order.finalPaymentSlipUrl && (
+                                <span className="text-[10px] opacity-40 italic">
+                                  {isAmharic ? 'ደረሰኝ የለም' : 'No slip'}
+                                </span>
+                              )}
+                            </div>
+
+                            {/* Quick Action & View More Button */}
+                            <div className="flex items-center gap-1.5 shrink-0">
+                              {/* Quick Approve buttons */}
+                              {order.status === 'reservation_pending' && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleVerifyReservation(order.id)}
+                                  className="px-2 py-1 rounded-md bg-amber-500 hover:bg-amber-600 text-black font-bold text-[10.5px] shadow transition-all flex items-center gap-1 cursor-pointer"
+                                >
+                                  <Check className="w-3 h-3" />
+                                  <span>{isAmharic ? 'አጽድቅ' : 'Approve'}</span>
+                                </button>
+                              )}
+                              {order.status === 'final_payment_pending' && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleVerifyFinalPayment(order.id)}
+                                  className="px-2 py-1 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[10.5px] shadow transition-all flex items-center gap-1 cursor-pointer"
+                                >
+                                  <Check className="w-3 h-3" />
+                                  <span>{isAmharic ? 'ሸጥ' : 'Sell'}</span>
+                                </button>
+                              )}
+                              {order.status === 'pending_verification' && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleVerifyOrder(order.id)}
+                                  className="px-2 py-1 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[10.5px] shadow transition-all flex items-center gap-1 cursor-pointer"
+                                >
+                                  <Check className="w-3 h-3" />
+                                  <span>{isAmharic ? 'አረጋግጥ' : 'Verify'}</span>
+                                </button>
+                              )}
+
+                              {/* View More / View Less Toggle Button */}
+                              <button
+                                type="button"
+                                onClick={() => toggleOrderExpanded(order.id)}
+                                className={`flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-semibold border transition-colors cursor-pointer ${
+                                  isExpanded
+                                    ? 'bg-[#C18A45]/20 text-[#C18A45] border-[#C18A45]/40'
+                                    : 'bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 border-transparent text-[#C18A45]'
+                                }`}
+                              >
+                                <span>{isExpanded ? (isAmharic ? 'ዝርዝር ደብቅ' : 'View Less') : (isAmharic ? 'ዝርዝር አሳይ' : 'View More')}</span>
+                                {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Expanded Drawer (Hidden by default, opened by View More) */}
+                        {isExpanded && (
+                          <div className={`p-3 border-t text-xs space-y-2.5 ${
+                            isDark ? 'bg-black/25 border-[#4A2C16]' : 'bg-[#EAE1D0]/70 border-[#E4D4BC]'
+                          }`}>
+                            {/* Customer Phone & Delivery */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pb-2 border-b border-black/10 dark:border-white/10">
+                              <div>
+                                <span className="text-[10px] uppercase font-bold opacity-60 block mb-0.5">
+                                  {isAmharic ? 'ስልክ ቁጥር' : 'Customer Phone'}
+                                </span>
+                                <a
+                                  href={getPhoneCallLink(order.customerPhone)}
+                                  className="inline-flex items-center gap-1 text-emerald-500 font-mono font-semibold hover:underline"
+                                >
+                                  <Phone className="w-3 h-3" />
+                                  <span>{order.customerPhone}</span>
+                                </a>
+                              </div>
+
+                              <div>
+                                <span className="text-[10px] uppercase font-bold opacity-60 block mb-0.5">
+                                  {isAmharic ? 'የማድረሻ ቦታ' : 'Delivery Address'}
+                                </span>
+                                {order.deliveryLocation ? (
+                                  <div className="flex items-start gap-1 text-[11px]">
+                                    <MapPin className="w-3 h-3 shrink-0 text-[#C18A45] mt-0.5" />
+                                    <span className="break-words">{order.deliveryLocation}</span>
+                                  </div>
+                                ) : (
+                                  <span className="text-[11px] opacity-60 italic">
+                                    {isAmharic ? 'ከእርሻ ርክክብ (Pickup)' : 'Farm Pickup'}
+                                  </span>
+                                )}
+                                {(order.packageDetails as any)?.isDelivery && (
+                                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 mt-1 rounded text-[9px] font-bold bg-[#C18A45]/10 text-[#C18A45] border border-[#C18A45]/20">
+                                    <Truck className="w-2.5 h-2.5" />
+                                    <span>{isAmharic ? 'እስከ ደጃፍ ማድረሻ' : 'Doorstep Delivery'}</span>
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Payment Method, Transaction Ref & Financials */}
+                            <div className="grid grid-cols-2 gap-2 pb-2 border-b border-black/10 dark:border-white/10">
+                              <div>
+                                <span className="text-[10px] uppercase font-bold opacity-60 block mb-0.5">
+                                  {isAmharic ? 'የክፍያ ዘዴ & መለያ' : 'Payment & Txn'}
+                                </span>
+                                <div className="font-semibold text-[11px]">{order.paymentMethod}</div>
+                                {order.transactionReference ? (
+                                  <div className="font-mono text-[10px] opacity-75 break-all">
+                                    Txn: {order.transactionReference}
+                                  </div>
+                                ) : (
+                                  <div className="text-[10px] opacity-50 italic">No Txn Ref</div>
+                                )}
+                              </div>
+
+                              <div>
+                                <span className="text-[10px] uppercase font-bold opacity-60 block mb-0.5">
+                                  {isAmharic ? 'የክፍያ ዝርዝር' : 'Financials'}
+                                </span>
+                                <div className="text-[11px]">
+                                  {isAmharic ? 'ጠቅላላ' : 'Total'}: <strong className="text-amber-500 font-mono">{formatPrice(order.totalAmount)}</strong>
+                                </div>
+                                {isRes && (
+                                  <div className="text-[10px] space-y-0.5">
+                                    <div className="text-emerald-500">
+                                      {isAmharic ? '50% ቅድመ' : 'Deposit'}: {formatPrice(deposit)}
+                                    </div>
+                                    <div className="text-amber-500">
+                                      {isAmharic ? 'ቀሪ' : 'Remaining'}: {formatPrice(remaining)}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Receipt Slips Management */}
+                            <div className="space-y-1.5 pb-2 border-b border-black/10 dark:border-white/10">
+                              <span className="text-[10px] uppercase font-bold opacity-60 block">
+                                {isAmharic ? 'የደረሰኞች ምርመራ እና አስተዳደር' : 'Receipt Slips & Management'}
+                              </span>
+                              <div className="flex flex-wrap items-center gap-2">
+                                {order.paymentSlipUrl && (
+                                  <div className="flex items-center gap-1 p-1 rounded-xl border border-[#C18A45]/30 bg-black/10 dark:bg-white/5">
                                     <button
                                       type="button"
                                       onClick={() => setSelectedSlipOrder(order)}
-                                      className="group relative inline-flex items-center gap-1.5 p-1 rounded-lg border border-[#C18A45]/30 hover:border-[#C18A45] transition-all bg-black/10 dark:bg-white/5 cursor-pointer"
-                                      title={isAmharic ? 'ደረሰኙን ለመመርመር ይጫኑ' : 'Click to inspect initial slip'}
+                                      className="flex items-center gap-1.5 cursor-pointer pr-1"
+                                      title={isAmharic ? 'ደረሰኝ መርምር' : 'Inspect slip'}
                                     >
                                       <img
                                         src={order.paymentSlipUrl}
-                                        alt="Receipt"
-                                        className="w-9 h-9 object-cover rounded-md"
+                                        alt="Initial Receipt"
+                                        className="w-9 h-9 object-cover rounded-lg"
                                       />
-                                      <span className="text-[10px] font-bold text-[#C18A45] pr-1">
-                                        {isRes ? (isAmharic ? 'የቅድመ-ክፍያ ደረሰኝ' : 'Deposit Slip') : (isAmharic ? 'ሙሉ ደረሰኝ' : 'Full Slip')}
-                                      </span>
+                                      <div className="text-left">
+                                        <span className="text-[10px] font-bold text-[#C18A45] block">
+                                          {isRes ? (isAmharic ? 'ቅድመ-ክፍያ ደረሰኝ' : 'Deposit Slip') : (isAmharic ? 'ሙሉ ደረሰኝ' : 'Full Slip')}
+                                        </span>
+                                        <span className="text-[9px] opacity-60 flex items-center gap-0.5">
+                                          <Eye className="w-2.5 h-2.5" /> {isAmharic ? 'ተመልከት' : 'View'}
+                                        </span>
+                                      </div>
                                     </button>
                                     <button
                                       type="button"
@@ -2481,29 +2703,32 @@ export const Admin: React.FC = () => {
                                       <Trash2 className="w-3.5 h-3.5" />
                                     </button>
                                   </div>
-                                ) : (
-                                  <span className="text-[10px] opacity-40 block">{isAmharic ? 'ደረሰኝ አልተያያዘም' : 'No Deposit Slip'}</span>
                                 )}
 
                                 {order.finalPaymentSlipUrl && (
-                                  <div className="flex items-center gap-1">
+                                  <div className="flex items-center gap-1 p-1 rounded-xl border border-emerald-500/30 bg-emerald-500/10">
                                     <button
                                       type="button"
                                       onClick={() => setSelectedSlipOrder({
                                         ...order,
                                         paymentSlipUrl: order.finalPaymentSlipUrl!
                                       })}
-                                      className="group relative inline-flex items-center gap-1.5 p-1 rounded-lg border border-emerald-500/30 hover:border-emerald-500 transition-all bg-emerald-500/10 cursor-pointer"
-                                      title={isAmharic ? 'የቀሪ 50% ደረሰኝን ለመመርመር ይጫኑ' : 'Click to inspect final 50% balance slip'}
+                                      className="flex items-center gap-1.5 cursor-pointer pr-1"
+                                      title={isAmharic ? 'የመጨረሻ ደረሰኝ መርምር' : 'Inspect final slip'}
                                     >
                                       <img
                                         src={order.finalPaymentSlipUrl}
                                         alt="Final Receipt"
-                                        className="w-9 h-9 object-cover rounded-md"
+                                        className="w-9 h-9 object-cover rounded-lg"
                                       />
-                                      <span className="text-[10px] font-bold text-emerald-400 pr-1">
-                                        {isAmharic ? 'የመጨረሻ ደረሰኝ' : 'Final Slip'}
-                                      </span>
+                                      <div className="text-left">
+                                        <span className="text-[10px] font-bold text-emerald-400 block">
+                                          {isAmharic ? 'የመጨረሻ ደረሰኝ' : 'Final Slip'}
+                                        </span>
+                                        <span className="text-[9px] opacity-60 flex items-center gap-0.5 text-emerald-400">
+                                          <Eye className="w-2.5 h-2.5" /> {isAmharic ? 'ተመልከት' : 'View'}
+                                        </span>
+                                      </div>
                                     </button>
                                     <button
                                       type="button"
@@ -2519,202 +2744,581 @@ export const Admin: React.FC = () => {
                                   </div>
                                 )}
                               </div>
-                            </td>
+                            </div>
 
-                            {/* Method */}
-                            <td className="py-3 px-3.5">
-                              <div className="font-semibold text-xs">{order.paymentMethod}</div>
-                              {order.transactionReference && (
-                                <span className="text-[10px] font-mono opacity-70 block">
-                                  {isAmharic ? 'መለያ' : 'Txn'}: {order.transactionReference}
-                                </span>
-                              )}
-                            </td>
-
-                            {/* Status Badge (Rectangular & Unified Colors) */}
-                            <td className="py-3 px-3.5">
-                              {order.status === 'reservation_pending' && (
-                                <span className="inline-block px-2.5 py-1 rounded-md text-[10.5px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30 animate-pulse">
-                                  {isAmharic ? '50% ቅድመ-ክፍያ ምርመራ ይጠብቃል' : '50% Deposit Review Pending'}
-                                </span>
-                              )}
-                              {order.status === 'reserved' && (
-                                <span className="inline-block px-2.5 py-1 rounded-md text-[10.5px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30">
-                                  {isAmharic ? 'የተያዘ (50% የተከፈለ)' : 'Active Reservation (50% Paid)'}
-                                </span>
-                              )}
-                              {order.status === 'final_payment_pending' && (
-                                <span className="inline-block px-2.5 py-1 rounded-md text-[10.5px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30 animate-pulse">
-                                  {isAmharic ? 'የቀሪ 50% ደረሰኝ ምርመራ ይጠብቃል' : 'Final 50% Slip Review Pending'}
-                                </span>
-                              )}
-                              {order.status === 'pending_verification' && (
-                                <span className="inline-block px-2.5 py-1 rounded-md text-[10.5px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30 animate-pulse">
-                                  {isAmharic ? 'የሙሉ ክፍያ ደረሰኝ ምርመራ ይጠብቃል' : 'Full Slip Review Pending'}
-                                </span>
-                              )}
-                              {order.status === 'delivery_pending' && (
-                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[10.5px] font-bold bg-[#C18A45]/15 text-[#C18A45] border border-[#C18A45]/30">
-                                  <Truck className="w-3 h-3" />
-                                  <span>{isAmharic ? 'ማድረስ ይጠበቃል' : 'Delivery Pending'}</span>
-                                </span>
-                              )}
-                              {order.status === 'delivered' && (
-                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[10.5px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
-                                  <CheckCircle2 className="w-3 h-3" />
-                                  <span>{isAmharic ? 'ለደንበኛ ደርሷል' : 'Delivered to Customer'}</span>
-                                </span>
-                              )}
-                              {(order.status === 'completed' || order.status === 'verified') && (
-                                <span className="inline-block px-2.5 py-1 rounded-md text-[10.5px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
-                                  ✓ {isAmharic ? 'የተሸጠ' : 'Sold'}
-                                </span>
-                              )}
-                              {order.status === 'rejected' && (
-                                <span className="inline-block px-2.5 py-1 rounded-md text-[10.5px] font-bold bg-red-500/15 text-red-400 border border-red-500/30">
-                                  {isAmharic ? 'ውድቅ ተደርጓል' : 'Rejected'}
-                                </span>
-                              )}
-                            </td>
-
-                            {/* Actions */}
-                            <td className="py-3 px-3.5 text-right">
-                              <div className="inline-flex flex-wrap items-center justify-end gap-1.5">
-                                {/* 1. Deposit Review Pending Action */}
+                            {/* Extended Workflow Actions */}
+                            <div className="space-y-1.5">
+                              <span className="text-[10px] uppercase font-bold opacity-60 block">
+                                {isAmharic ? 'የአስተዳዳሪ እርምጃዎች' : 'Workflow Actions'}
+                              </span>
+                              <div className="flex flex-wrap items-center gap-1.5">
                                 {order.status === 'reservation_pending' && (
                                   <>
                                     <button
+                                      type="button"
                                       onClick={() => handleVerifyReservation(order.id)}
-                                      className="px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-black font-bold text-xs shadow transition-all flex items-center gap-1 cursor-pointer"
-                                      title={isAmharic ? 'የ50% ቅድመ ክፍያን ያጽድቁ' : 'Approve 50% deposit and lock/reserve item'}
+                                      className="px-2.5 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-black font-bold text-xs shadow transition-all flex items-center gap-1 cursor-pointer"
                                     >
                                       <Check className="w-3.5 h-3.5" />
                                       <span>{isAmharic ? '50% ቅድመ-ክፍያ አጽድቅ' : 'Approve 50% Deposit'}</span>
                                     </button>
                                     <button
+                                      type="button"
                                       onClick={() => handleRejectOrder(order.id)}
-                                      className="p-1.5 rounded-lg bg-red-500/15 hover:bg-red-500/25 text-red-400 transition-colors cursor-pointer"
-                                      title={isAmharic ? 'ደረሰኙን ውድቅ አድርግ' : 'Reject deposit slip'}
+                                      className="px-2.5 py-1.5 rounded-lg bg-red-500/15 hover:bg-red-500/25 text-red-400 border border-red-500/30 text-xs font-bold transition-colors flex items-center gap-1 cursor-pointer"
                                     >
-                                      <X className="w-4 h-4" />
+                                      <X className="w-3.5 h-3.5" />
+                                      <span>{isAmharic ? 'ውድቅ አድርግ' : 'Reject Slip'}</span>
                                     </button>
                                   </>
                                 )}
 
-                                {/* 2. Final 50% Balance Review Pending Action */}
                                 {order.status === 'final_payment_pending' && (
                                   <>
                                     <button
+                                      type="button"
                                       onClick={() => handleVerifyFinalPayment(order.id)}
-                                      className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow transition-all flex items-center gap-1 cursor-pointer"
-                                      title={isAmharic ? 'ቀሪውን 50% ክፍያ ያጽድቁ እና ከብቱን የተሸጠ ያድርጉ' : 'Verify final balance and mark animal as SOLD'}
+                                      className="px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow transition-all flex items-center gap-1 cursor-pointer"
                                     >
                                       <Check className="w-3.5 h-3.5" />
                                       <span>{isAmharic ? 'ቀሪውን አጽድቅ & ሸጥ' : 'Approve Final & Mark Sold'}</span>
                                     </button>
                                     <button
+                                      type="button"
                                       onClick={() => handleRejectOrder(order.id)}
-                                      className="p-1.5 rounded-lg bg-red-500/15 hover:bg-red-500/25 text-red-400 transition-colors cursor-pointer"
-                                      title={isAmharic ? 'የመጨረሻ ደረሰኙን ውድቅ አድርግ' : 'Reject final slip'}
+                                      className="px-2.5 py-1.5 rounded-lg bg-red-500/15 hover:bg-red-500/25 text-red-400 border border-red-500/30 text-xs font-bold transition-colors flex items-center gap-1 cursor-pointer"
                                     >
-                                      <X className="w-4 h-4" />
+                                      <X className="w-3.5 h-3.5" />
+                                      <span>{isAmharic ? 'ውድቅ አድርግ' : 'Reject Slip'}</span>
                                     </button>
                                   </>
                                 )}
 
-                                {/* 3. Standard Full Payment Action */}
                                 {order.status === 'pending_verification' && (
                                   <>
                                     <button
+                                      type="button"
                                       onClick={() => handleVerifyOrder(order.id)}
-                                      className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow transition-all flex items-center gap-1 cursor-pointer"
-                                      title={isAmharic ? 'ክፍያውን ያጽድቁ እና ከብቱን የተሸጠ ያድርጉ' : 'Verify payment and mark animal as SOLD'}
+                                      className="px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow transition-all flex items-center gap-1 cursor-pointer"
                                     >
                                       <Check className="w-3.5 h-3.5" />
                                       <span>{isAmharic ? 'አረጋግጥ & ሸጥ' : 'Verify & Mark Sold'}</span>
                                     </button>
                                     <button
+                                      type="button"
                                       onClick={() => handleRejectOrder(order.id)}
-                                      className="p-1.5 rounded-lg bg-red-500/15 hover:bg-red-500/25 text-red-400 transition-colors cursor-pointer"
-                                      title={isAmharic ? 'ደረሰኙን ውድቅ አድርግ' : 'Reject slip'}
+                                      className="px-2.5 py-1.5 rounded-lg bg-red-500/15 hover:bg-red-500/25 text-red-400 border border-red-500/30 text-xs font-bold transition-colors flex items-center gap-1 cursor-pointer"
                                     >
-                                      <X className="w-4 h-4" />
+                                      <X className="w-3.5 h-3.5" />
+                                      <span>{isAmharic ? 'ውድቅ አድርግ' : 'Reject Slip'}</span>
                                     </button>
                                   </>
                                 )}
 
-                                {/* 4. Already Reserved */}
                                 {order.status === 'reserved' && (
                                   <span className="text-[11px] text-amber-500 font-medium">
                                     {isAmharic ? `ቀሪውን ${formatPrice(remaining)} ከደንበኛ ይጠብቃል` : `Awaiting remaining ${formatPrice(remaining)} from customer`}
                                   </span>
                                 )}
 
-                                {/* 5. Delivery Flow Actions */}
                                 {order.isDelivery && (
                                   <>
                                     {order.status === 'verified' && (
                                       <button
                                         type="button"
                                         onClick={() => handleApproveDelivery(order.id, 'delivery_pending')}
-                                        className="px-2.5 py-1 rounded-lg bg-amber-500 hover:bg-amber-600 text-black font-bold text-[11px] shadow transition-all flex items-center gap-1 cursor-pointer"
-                                        title={isAmharic ? 'ተሽከርካሪ ላክ (በጉዞ ላይ አድርግ)' : 'Dispatch delivery vehicle'}
+                                        className="px-2.5 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-black font-bold text-xs shadow transition-all flex items-center gap-1 cursor-pointer"
                                       >
-                                        <Truck className="w-3 h-3" />
-                                        <span>{isAmharic ? 'ላክ' : 'Dispatch'}</span>
+                                        <Truck className="w-3.5 h-3.5" />
+                                        <span>{isAmharic ? 'ተሽከርካሪ ላክ' : 'Dispatch Delivery'}</span>
                                       </button>
                                     )}
                                     {order.status === 'delivery_pending' && (
                                       <button
                                         type="button"
                                         onClick={() => handleApproveDelivery(order.id, 'delivered')}
-                                        className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] shadow transition-all flex items-center gap-1 cursor-pointer"
-                                        title={isAmharic ? 'መድረሱን አረጋግጥ እና አጠናቅቅ' : 'Confirm delivered to customer door'}
+                                        className="px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow transition-all flex items-center gap-1 cursor-pointer"
                                       >
-                                        <Check className="w-3 h-3" />
-                                        <span>{isAmharic ? 'ደርሷል (አጠናቅቅ)' : 'Delivered'}</span>
+                                        <Check className="w-3.5 h-3.5" />
+                                        <span>{isAmharic ? 'ደርሷል (አጠናቅቅ)' : 'Confirm Delivered'}</span>
                                       </button>
                                     )}
                                   </>
                                 )}
 
-                                {/* Farm Pickup Flow Actions */}
                                 {!order.isDelivery && (
                                   <>
                                     {order.status === 'verified' && (
                                       <button
                                         type="button"
                                         onClick={() => handleUpdatePickupStatus(order.id, 'pickup_ready')}
-                                        className="px-2.5 py-1 rounded-lg bg-blue-500 hover:bg-blue-600 text-white font-bold text-[11px] shadow transition-all flex items-center gap-1 cursor-pointer"
-                                        title={isAmharic ? 'ለእርሻ ርክክብ ዝግጁ አድርግ' : 'Mark livestock ready for farm pickup'}
+                                        className="px-2.5 py-1.5 rounded-lg bg-blue-500 hover:bg-blue-600 text-white font-bold text-xs shadow transition-all flex items-center gap-1 cursor-pointer"
                                       >
-                                        <Package className="w-3 h-3" />
-                                        <span>{isAmharic ? 'ለርክክብ ዝግጁ' : 'Ready'}</span>
+                                        <Package className="w-3.5 h-3.5" />
+                                        <span>{isAmharic ? 'ለርክክብ ዝግጁ አድርግ' : 'Ready for Pickup'}</span>
                                       </button>
                                     )}
                                     {order.status === 'pickup_ready' && (
                                       <button
                                         type="button"
                                         onClick={() => handleUpdatePickupStatus(order.id, 'completed')}
-                                        className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] shadow transition-all flex items-center gap-1 cursor-pointer"
-                                        title={isAmharic ? 'ደንበኛ ከብቱን ተረክቧል፣ ግብይቱን አጠናቅቅ' : 'Customer picked up livestock, complete transaction'}
+                                        className="px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow transition-all flex items-center gap-1 cursor-pointer"
                                       >
-                                        <Check className="w-3 h-3" />
-                                        <span>{isAmharic ? 'ተረክበዋል' : 'Picked Up'}</span>
+                                        <Check className="w-3.5 h-3.5" />
+                                        <span>{isAmharic ? 'ተረክበዋል (አጠናቅቅ)' : 'Mark Picked Up'}</span>
                                       </button>
                                     )}
                                   </>
                                 )}
                               </div>
-                            </td>
-                          </tr>
-                        );
-                      })
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* ============================================================ */}
+                {/* 2. DESKTOP & TABLET TABLE VIEW (>= 768px) - CLEAN & COMPACT */}
+                {/* ============================================================ */}
+                <div
+                  className={`hidden md:block rounded-3xl border overflow-hidden shadow-sm ${
+                    isDark ? 'bg-[#2A1A0D] border-[#4A2C16]' : 'bg-[#F1E8D8] border-[#E4D4BC]'
+                  }`}
+                >
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-xs border-collapse">
+                      <thead>
+                        <tr className={`border-b ${isDark ? 'border-[#4A2C16] text-[#D8C5A8]' : 'border-[#E4D4BC] text-[#746556]'}`}>
+                          <th className="py-3 px-3 uppercase font-semibold whitespace-nowrap">{isAmharic ? 'የትዕዛዝ መለያ' : 'Order ID'}</th>
+                          <th className="py-3 px-3 uppercase font-semibold whitespace-nowrap">{isAmharic ? 'ደንበኛ' : 'Customer'}</th>
+                          <th className="py-3 px-3 uppercase font-semibold whitespace-nowrap">{isAmharic ? 'ዝርዝር & ክፍያ' : 'Item & Total'}</th>
+                          <th className="py-3 px-3 uppercase font-semibold whitespace-nowrap">{isAmharic ? 'የክፍያ ደረሰኝ' : 'Receipt Slip'}</th>
+                          <th className="py-3 px-3 uppercase font-semibold whitespace-nowrap">{isAmharic ? 'የክፍያ ዘዴ' : 'Method'}</th>
+                          <th className="py-3 px-3 uppercase font-semibold whitespace-nowrap">{isAmharic ? 'ሁኔታ' : 'Status'}</th>
+                          <th className="py-3 px-3 uppercase font-semibold text-right whitespace-nowrap">{isAmharic ? 'እርምጃዎች' : 'Actions'}</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y" style={{ borderColor: isDark ? '#4A2C16' : '#E4D4BC' }}>
+                        {filteredOrders.map((order) => {
+                          const isRes = order.isReservation || order.depositAmount != null;
+                          const deposit = order.depositAmount || (order.totalAmount * 0.5);
+                          const remaining = order.remainingAmount || (order.totalAmount * 0.5);
+                          const isExpanded = Boolean(expandedOrderIds[order.id]);
+
+                          return (
+                            <React.Fragment key={order.id}>
+                              <tr className={`hover:bg-black/5 dark:hover:bg-white/5 transition-colors ${isDark ? 'text-[#F4E8D0]' : 'text-[#2A1A0D]'}`}>
+                                {/* Order ID & Type */}
+                                <td className="py-2.5 px-3 font-mono">
+                                  <div className="text-amber-500 font-bold whitespace-nowrap">#{order.id}</div>
+                                  <div className="text-[10px] opacity-60 whitespace-nowrap">
+                                    {new Date(order.createdAt).toLocaleDateString()}
+                                  </div>
+                                  <div className="flex flex-wrap gap-1 mt-0.5">
+                                    {order.isPackage && !(order.packageDetails as any)?.isMeatByKg && (
+                                      <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30">
+                                        {isAmharic ? 'ጥቅል' : 'Pkg'}
+                                      </span>
+                                    )}
+                                    {(order.packageDetails as any)?.isMeatByKg && (
+                                      <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-rose-500/15 text-rose-400 border border-rose-500/30">
+                                        {isAmharic ? 'ስጋ' : 'Meat'}
+                                      </span>
+                                    )}
+                                    {isRes && (
+                                      <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                                        50%
+                                      </span>
+                                    )}
+                                  </div>
+                                </td>
+
+                                {/* Customer */}
+                                <td className="py-2.5 px-3 max-w-[140px]">
+                                  <strong className="block text-xs font-semibold truncate">{order.customerName}</strong>
+                                  <a
+                                    href={getPhoneCallLink(order.customerPhone)}
+                                    className="text-[11px] opacity-75 block hover:underline font-mono truncate"
+                                  >
+                                    {order.customerPhone}
+                                  </a>
+                                </td>
+
+                                {/* Item & Price */}
+                                <td className="py-2.5 px-3 max-w-[150px]">
+                                  <div className="font-semibold text-xs truncate">
+                                    {(order.packageDetails as any)?.isMeatByKg ? (
+                                      <span className="text-rose-400 font-bold">
+                                        {(order.packageDetails as any).cut} ({(order.packageDetails as any).kg} KG)
+                                      </span>
+                                    ) : (
+                                      order.packageName || order.animalBreed || (isAmharic ? 'የከብት አይነት' : 'Livestock Item')
+                                    )}
+                                  </div>
+                                  <div className={`font-bold text-xs sm:text-sm font-mono whitespace-nowrap ${isDark ? 'text-[#E0B15A]' : 'text-[#B8792F]'}`}>
+                                    {formatPrice(order.totalAmount)}
+                                  </div>
+                                </td>
+
+                                {/* Receipt Slip Thumbnails */}
+                                <td className="py-2.5 px-3">
+                                  <div className="flex items-center gap-1.5">
+                                    {order.paymentSlipUrl ? (
+                                      <div className="flex items-center gap-1">
+                                        <button
+                                          type="button"
+                                          onClick={() => setSelectedSlipOrder(order)}
+                                          className="flex items-center gap-1 p-0.5 pr-1.5 rounded-lg border border-[#C18A45]/30 hover:border-[#C18A45] bg-black/10 dark:bg-white/5 cursor-pointer transition-all shrink-0"
+                                          title={isAmharic ? 'ደረሰኝ መርምር' : 'Inspect slip'}
+                                        >
+                                          <img
+                                            src={order.paymentSlipUrl}
+                                            alt="Slip"
+                                            className="w-7 h-7 object-cover rounded"
+                                          />
+                                          <span className="text-[9.5px] font-bold text-[#C18A45]">
+                                            {isRes ? (isAmharic ? 'ቅድመ' : 'Deposit') : (isAmharic ? 'ደረሰኝ' : 'Slip')}
+                                          </span>
+                                        </button>
+                                        <button
+                                          type="button"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleClearReceipt(order.id, 'initial');
+                                          }}
+                                          className="p-1 rounded text-red-400 hover:bg-red-500/20 transition-colors"
+                                          title={isAmharic ? 'ደረሰኝ ሰርዝ' : 'Clear Receipt'}
+                                        >
+                                          <Trash2 className="w-3 h-3" />
+                                        </button>
+                                      </div>
+                                    ) : (
+                                      <span className="text-[10px] opacity-40 italic">{isAmharic ? 'የለም' : 'None'}</span>
+                                    )}
+
+                                    {order.finalPaymentSlipUrl && (
+                                      <div className="flex items-center gap-1">
+                                        <button
+                                          type="button"
+                                          onClick={() => setSelectedSlipOrder({
+                                            ...order,
+                                            paymentSlipUrl: order.finalPaymentSlipUrl!
+                                          })}
+                                          className="flex items-center gap-1 p-0.5 pr-1.5 rounded-lg border border-emerald-500/30 hover:border-emerald-500 bg-emerald-500/10 cursor-pointer transition-all shrink-0"
+                                          title={isAmharic ? 'የመጨረሻ ደረሰኝ መርምር' : 'Inspect final slip'}
+                                        >
+                                          <img
+                                            src={order.finalPaymentSlipUrl}
+                                            alt="Final Slip"
+                                            className="w-7 h-7 object-cover rounded"
+                                          />
+                                          <span className="text-[9.5px] font-bold text-emerald-400">
+                                            {isAmharic ? 'የመጨረሻ' : 'Final'}
+                                          </span>
+                                        </button>
+                                        <button
+                                          type="button"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleClearReceipt(order.id, 'final');
+                                          }}
+                                          className="p-1 rounded text-red-400 hover:bg-red-500/20 transition-colors"
+                                          title={isAmharic ? 'የመጨረሻ ደረሰኝ ሰርዝ' : 'Clear Final Slip'}
+                                        >
+                                          <Trash2 className="w-3 h-3" />
+                                        </button>
+                                      </div>
+                                    )}
+                                  </div>
+                                </td>
+
+                                {/* Method */}
+                                <td className="py-2.5 px-3">
+                                  <div className="font-semibold text-xs whitespace-nowrap">{order.paymentMethod}</div>
+                                  {order.transactionReference && (
+                                    <span className="text-[10px] font-mono opacity-70 block truncate max-w-[110px]" title={order.transactionReference}>
+                                      {order.transactionReference}
+                                    </span>
+                                  )}
+                                </td>
+
+                                {/* Status */}
+                                <td className="py-2.5 px-3 whitespace-nowrap">
+                                  {order.status === 'reservation_pending' && (
+                                    <span className="inline-block px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30 animate-pulse">
+                                      {isAmharic ? '50% ምርመራ' : '50% Review'}
+                                    </span>
+                                  )}
+                                  {order.status === 'reserved' && (
+                                    <span className="inline-block px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30">
+                                      {isAmharic ? 'የተያዘ' : 'Reserved'}
+                                    </span>
+                                  )}
+                                  {order.status === 'final_payment_pending' && (
+                                    <span className="inline-block px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30 animate-pulse">
+                                      {isAmharic ? 'ቀሪ 50% ምርመራ' : 'Final Review'}
+                                    </span>
+                                  )}
+                                  {order.status === 'pending_verification' && (
+                                    <span className="inline-block px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30 animate-pulse">
+                                      {isAmharic ? 'ሙሉ ደረሰኝ' : 'Full Review'}
+                                    </span>
+                                  )}
+                                  {order.status === 'delivery_pending' && (
+                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-[#C18A45]/15 text-[#C18A45] border border-[#C18A45]/30">
+                                      <Truck className="w-2.5 h-2.5" />
+                                      <span>{isAmharic ? 'ማድረስ' : 'Delivery'}</span>
+                                    </span>
+                                  )}
+                                  {order.status === 'delivered' && (
+                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                                      <CheckCircle2 className="w-2.5 h-2.5" />
+                                      <span>{isAmharic ? 'ደርሷል' : 'Delivered'}</span>
+                                    </span>
+                                  )}
+                                  {(order.status === 'completed' || order.status === 'verified') && (
+                                    <span className="inline-block px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                                      ✓ {isAmharic ? 'የተሸጠ' : 'Sold'}
+                                    </span>
+                                  )}
+                                  {order.status === 'rejected' && (
+                                    <span className="inline-block px-2 py-0.5 rounded-md text-[10px] font-bold bg-red-500/15 text-red-400 border border-red-500/30">
+                                      {isAmharic ? 'ውድቅ' : 'Rejected'}
+                                    </span>
+                                  )}
+                                </td>
+
+                                {/* Actions & View More Button */}
+                                <td className="py-2.5 px-3 text-right whitespace-nowrap">
+                                  <div className="inline-flex items-center justify-end gap-1.5">
+                                    {order.status === 'reservation_pending' && (
+                                      <>
+                                        <button
+                                          onClick={() => handleVerifyReservation(order.id)}
+                                          className="px-2 py-1 rounded-md bg-amber-500 hover:bg-amber-600 text-black font-bold text-[10.5px] shadow transition-all flex items-center gap-1 cursor-pointer"
+                                          title={isAmharic ? 'የ50% ቅድመ ክፍያን ያጽድቁ' : 'Approve 50% deposit'}
+                                        >
+                                          <Check className="w-3 h-3" />
+                                          <span>{isAmharic ? 'አጽድቅ' : 'Approve'}</span>
+                                        </button>
+                                        <button
+                                          onClick={() => handleRejectOrder(order.id)}
+                                          className="p-1 rounded-md bg-red-500/15 hover:bg-red-500/25 text-red-400 transition-colors cursor-pointer"
+                                          title={isAmharic ? 'ደረሰኙን ውድቅ አድርግ' : 'Reject slip'}
+                                        >
+                                          <X className="w-3.5 h-3.5" />
+                                        </button>
+                                      </>
+                                    )}
+
+                                    {order.status === 'final_payment_pending' && (
+                                      <>
+                                        <button
+                                          onClick={() => handleVerifyFinalPayment(order.id)}
+                                          className="px-2 py-1 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[10.5px] shadow transition-all flex items-center gap-1 cursor-pointer"
+                                          title={isAmharic ? 'ቀሪውን 50% ክፍያ ያጽድቁ እና ከብቱን የተሸጠ ያድርጉ' : 'Verify final balance and mark animal as SOLD'}
+                                        >
+                                          <Check className="w-3 h-3" />
+                                          <span>{isAmharic ? 'ሸጥ' : 'Sell'}</span>
+                                        </button>
+                                        <button
+                                          onClick={() => handleRejectOrder(order.id)}
+                                          className="p-1 rounded-md bg-red-500/15 hover:bg-red-500/25 text-red-400 transition-colors cursor-pointer"
+                                          title={isAmharic ? 'የመጨረሻ ደረሰኙን ውድቅ አድርግ' : 'Reject slip'}
+                                        >
+                                          <X className="w-3.5 h-3.5" />
+                                        </button>
+                                      </>
+                                    )}
+
+                                    {order.status === 'pending_verification' && (
+                                      <>
+                                        <button
+                                          onClick={() => handleVerifyOrder(order.id)}
+                                          className="px-2 py-1 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[10.5px] shadow transition-all flex items-center gap-1 cursor-pointer"
+                                          title={isAmharic ? 'ክፍያውን ያጽድቁ እና ከብቱን የተሸጠ ያድርጉ' : 'Verify payment and mark animal as SOLD'}
+                                        >
+                                          <Check className="w-3 h-3" />
+                                          <span>{isAmharic ? 'አረጋግጥ' : 'Verify'}</span>
+                                        </button>
+                                        <button
+                                          onClick={() => handleRejectOrder(order.id)}
+                                          className="p-1 rounded-md bg-red-500/15 hover:bg-red-500/25 text-red-400 transition-colors cursor-pointer"
+                                          title={isAmharic ? 'ደረሰኙን ውድቅ አድርግ' : 'Reject slip'}
+                                        >
+                                          <X className="w-3.5 h-3.5" />
+                                        </button>
+                                      </>
+                                    )}
+
+                                    {order.isDelivery && (
+                                      <>
+                                        {order.status === 'verified' && (
+                                          <button
+                                            type="button"
+                                            onClick={() => handleApproveDelivery(order.id, 'delivery_pending')}
+                                            className="px-2 py-1 rounded-md bg-amber-500 hover:bg-amber-600 text-black font-bold text-[10.5px] shadow transition-all flex items-center gap-1 cursor-pointer"
+                                            title={isAmharic ? 'ተሽከርካሪ ላክ' : 'Dispatch delivery'}
+                                          >
+                                            <Truck className="w-3 h-3" />
+                                            <span>{isAmharic ? 'ላክ' : 'Dispatch'}</span>
+                                          </button>
+                                        )}
+                                        {order.status === 'delivery_pending' && (
+                                          <button
+                                            type="button"
+                                            onClick={() => handleApproveDelivery(order.id, 'delivered')}
+                                            className="px-2 py-1 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[10.5px] shadow transition-all flex items-center gap-1 cursor-pointer"
+                                            title={isAmharic ? 'መድረሱን አረጋግጥ እና አጠናቅቅ' : 'Confirm delivered'}
+                                          >
+                                            <Check className="w-3 h-3" />
+                                            <span>{isAmharic ? 'ደርሷል' : 'Delivered'}</span>
+                                          </button>
+                                        )}
+                                      </>
+                                    )}
+
+                                    {!order.isDelivery && (
+                                      <>
+                                        {order.status === 'verified' && (
+                                          <button
+                                            type="button"
+                                            onClick={() => handleUpdatePickupStatus(order.id, 'pickup_ready')}
+                                            className="px-2 py-1 rounded-md bg-blue-500 hover:bg-blue-600 text-white font-bold text-[10.5px] shadow transition-all flex items-center gap-1 cursor-pointer"
+                                            title={isAmharic ? 'ለእርሻ ርክክብ ዝግጁ አድርግ' : 'Ready for farm pickup'}
+                                          >
+                                            <Package className="w-3 h-3" />
+                                            <span>{isAmharic ? 'ዝግጁ' : 'Ready'}</span>
+                                          </button>
+                                        )}
+                                        {order.status === 'pickup_ready' && (
+                                          <button
+                                            type="button"
+                                            onClick={() => handleUpdatePickupStatus(order.id, 'completed')}
+                                            className="px-2 py-1 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[10.5px] shadow transition-all flex items-center gap-1 cursor-pointer"
+                                            title={isAmharic ? 'ተረክበዋል' : 'Picked up'}
+                                          >
+                                            <Check className="w-3 h-3" />
+                                            <span>{isAmharic ? 'ተረክበዋል' : 'Picked Up'}</span>
+                                          </button>
+                                        )}
+                                      </>
+                                    )}
+
+                                    {/* View More / View Less Toggle Button */}
+                                    <button
+                                      type="button"
+                                      onClick={() => toggleOrderExpanded(order.id)}
+                                      className={`flex items-center gap-1 px-2 py-1 rounded-md text-[10.5px] font-semibold border transition-colors cursor-pointer ${
+                                        isExpanded
+                                          ? 'bg-[#C18A45]/20 text-[#C18A45] border-[#C18A45]/40'
+                                          : 'bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 border-transparent text-[#C18A45]'
+                                      }`}
+                                      title={isExpanded ? (isAmharic ? 'ዝርዝር ደብቅ' : 'Hide Details') : (isAmharic ? 'ዝርዝር አሳይ' : 'View Details')}
+                                    >
+                                      <span>{isExpanded ? (isAmharic ? 'ደብቅ' : 'Less') : (isAmharic ? 'ተጨማሪ' : 'More')}</span>
+                                      {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+
+                              {/* Desktop Accordion Sub-row when View More is open */}
+                              {isExpanded && (
+                                <tr className={`border-b ${isDark ? 'bg-black/25 border-[#4A2C16]' : 'bg-[#EAE1D0]/60 border-[#E4D4BC]'}`}>
+                                  <td colSpan={7} className="p-3.5">
+                                    <div className="grid grid-cols-3 gap-4 text-xs">
+                                      <div>
+                                        <span className="text-[10px] font-bold opacity-60 uppercase block mb-1">
+                                          {isAmharic ? 'የማድረሻ ዝርዝር & ስልክ' : 'Delivery & Contact'}
+                                        </span>
+                                        <div className="mb-1">
+                                          <a
+                                            href={getPhoneCallLink(order.customerPhone)}
+                                            className="inline-flex items-center gap-1 text-emerald-500 font-mono font-semibold hover:underline"
+                                          >
+                                            <Phone className="w-3 h-3" />
+                                            <span>{order.customerPhone}</span>
+                                          </a>
+                                        </div>
+                                        {order.deliveryLocation ? (
+                                          <div className="flex items-start gap-1 text-[11px]">
+                                            <MapPin className="w-3 h-3 text-[#C18A45] shrink-0 mt-0.5" />
+                                            <span className="break-words">{order.deliveryLocation}</span>
+                                          </div>
+                                        ) : (
+                                          <span className="opacity-60 italic text-[11px]">
+                                            {isAmharic ? 'ከእርሻ ርክክብ (Farm Pickup)' : 'Farm Pickup'}
+                                          </span>
+                                        )}
+                                        {(order.packageDetails as any)?.isDelivery && (
+                                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 mt-1 rounded text-[9px] font-bold bg-[#C18A45]/10 text-[#C18A45] border border-[#C18A45]/20">
+                                            <Truck className="w-2.5 h-2.5" />
+                                            <span>{isAmharic ? 'እስከ ደጃፍ ማድረሻ' : 'Doorstep Delivery'}</span>
+                                          </span>
+                                        )}
+                                      </div>
+
+                                      <div>
+                                        <span className="text-[10px] font-bold opacity-60 uppercase block mb-1">
+                                          {isAmharic ? 'የክፍያ ዝርዝር' : 'Financial Breakdown'}
+                                        </span>
+                                        <div className="text-[11px]">
+                                          {isAmharic ? 'ጠቅላላ' : 'Total'}: <strong className="text-amber-500 font-mono">{formatPrice(order.totalAmount)}</strong>
+                                        </div>
+                                        {isRes && (
+                                          <div className="text-[10.5px] space-y-0.5 mt-0.5">
+                                            <div className="text-emerald-500">
+                                              {isAmharic ? '50% ቅድመ ክፍያ' : '50% Deposit'}: {formatPrice(deposit)}
+                                            </div>
+                                            <div className="text-amber-500">
+                                              {isAmharic ? 'ቀሪ ሂሳብ' : 'Remaining'}: {formatPrice(remaining)}
+                                            </div>
+                                          </div>
+                                        )}
+                                        {order.animalId && (
+                                          <div className="text-[10px] font-mono opacity-70 mt-1">
+                                            Animal ID: {order.animalId}
+                                          </div>
+                                        )}
+                                      </div>
+
+                                      <div>
+                                        <span className="text-[10px] font-bold opacity-60 uppercase block mb-1">
+                                          {isAmharic ? 'የግብይት መለያ & ማስታወሻ' : 'Transaction & Details'}
+                                        </span>
+                                        <div className="font-mono text-[11px] opacity-80 break-all mb-1">
+                                          Txn: {order.transactionReference || '-'}
+                                        </div>
+                                        <div className="text-[10px] opacity-60">
+                                          Method: <strong className="opacity-90">{order.paymentMethod}</strong>
+                                        </div>
+                                        {order.customerEmail && (
+                                          <div className="text-[10px] opacity-75 mt-1 font-mono truncate">
+                                            {order.customerEmail}
+                                          </div>
+                                        )}
+                                        {(order as any).notes && (
+                                          <div className="text-[10px] opacity-70 mt-1 italic">
+                                            "{(order as any).notes}"
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
+                                  </td>
+                                </tr>
+                              )}
+                            </React.Fragment>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         )}
 
