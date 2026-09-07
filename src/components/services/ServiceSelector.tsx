@@ -44,19 +44,19 @@ export const ServiceSelector: React.FC<ServiceSelectorProps> = ({
 
         if (isAmharic) {
           if (service.id === 'meat-by-kg') {
-            title = '01. ስጋ በኪሎ ለሆቴሎችና ሬስቶራንቶች';
+            title = 'ስጋ በኪሎ ለሆቴሎችና ሬስቶራንቶች';
             desc = 'የበግ፣ የፍየልና የበሬ ስጋ በኪሎ የታረደ አቅርቦት።';
           } else if (service.id === 'fresh-slaughtered-sheep') {
-            title = '02. የታረደ ትኩስ በግ ማድረስ';
+            title = 'የታረደ ትኩስ በግ ማድረስ';
             desc = 'ከእርሻችን የታረደና የጸዳ በግ እስከ ቤትዎ ድረስ።';
           } else if (service.id === 'delivery') {
-            title = '03. የቀጥታ ከብትና በጎች ማጓጓዝ';
+            title = 'የቀጥታ ከብትና በጎች ማጓጓዝ';
             desc = 'ከአዋሬ እርሻችን አስተማማኝ የቀጥታ እንስሳት ማጓጓዝ።';
           } else if (service.id === 'slaughter-prep') {
-            title = '04. በቦታው ላይ የዕርድና የስጋ ዝግጅት';
+            title = 'በቦታው ላይ የዕርድና የስጋ ዝግጅት';
             desc = '1 ባለሙያ ተመድቦ ንጽህናው የተጠበቀ የዕርድና የስጋ ዝግጅት።';
           } else if (service.id === 'events-ceremonies') {
-            title = '05. ለበዓላት፣ ለሰርግና ለተለያዩ ዝግጅቶች';
+            title = 'ለበዓላት፣ ለሰርግና ለተለያዩ ዝግጅቶች';
             desc = 'ለታላላቅ ዝግጅቶች ሙሉ የእንስሳትና የስጋ አቅርቦት።';
           }
         }

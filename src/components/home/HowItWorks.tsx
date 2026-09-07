@@ -105,7 +105,7 @@ export const HowItWorks: React.FC = () => {
                       isDark ? 'text-[#F4E8D0]' : 'text-[#241A12]'
                     }`}
                   >
-                    {item.title}
+                    {item.title.replace(/^\d+\.\s*/, '')}
                   </h3>
 
                   <p

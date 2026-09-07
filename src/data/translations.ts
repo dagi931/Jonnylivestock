@@ -498,11 +498,11 @@ export const translations: Record<Language, Translations> = {
       badge: 'ቀላል ሂደት',
       title: 'እንዴት ይሰራል?',
       subtitle: 'ያለ ምንም ውጣ ውረድ ጥራት ያላቸውን ከብቶችና በጎች የሚመርጡበት ቀላል መንገድ።',
-      step1Title: '01. ይመልከቱ',
+      step1Title: 'ይመልከቱ',
       step1Desc: 'በእውነተኛ ፎቶና በትክክለኛ ክብደት የቀረቡትን በጎች፣ ፍየሎችና ከብቶች በድረ-ገጻችን ይመልከቱ።',
-      step2Title: '02. ይምረጡ',
+      step2Title: 'ይምረጡ',
       step2Desc: 'ፎቶውን፣ ክብደቱን፣ ዝርያውን፣ ዋጋውንና ቪዲዮውን በማየት የሚፈልጉትን እንስሳ ይምረጡ።',
-      step3Title: '03. ያነጋግሩ',
+      step3Title: 'ያነጋግሩ',
       step3Desc: 'በስልክ ወይም በዋትስአፕ በቀጥታ በመደወል ቦታ ያስይዙ፤ የማድረሻና የዕርድ አገልግሎት ያዝዙ።'
     },
     servicesOverview: {
