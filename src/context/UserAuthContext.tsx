@@ -28,7 +28,18 @@ export const UserAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const [user, setUser] = useState<UserProfile | null>(() => {
     const saved = localStorage.getItem('jonny_user_profile');
-    return saved ? JSON.parse(saved) : null;
+    if (!saved) return null;
+    try {
+      const parsed = JSON.parse(saved);
+      if (parsed.role === 'admin') {
+        localStorage.removeItem('jonny_user_profile');
+        localStorage.removeItem('jonny_user_token');
+        return null;
+      }
+      return parsed;
+    } catch {
+      return null;
+    }
   });
 
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -77,6 +88,12 @@ export const UserAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       localStorage.setItem('jonny_user_profile', JSON.stringify(res.user));
 
       if (res.user.role === 'admin') {
+        // Admin accounts must only be logged into the admin portal
+        localStorage.removeItem('jonny_user_token');
+        localStorage.removeItem('jonny_user_refresh_token');
+        localStorage.removeItem('jonny_user_token_issued_at');
+        localStorage.removeItem('jonny_user_profile');
+
         localStorage.setItem('jonny_admin_token', res.token);
         if (res.refreshToken) {
           localStorage.setItem('jonny_admin_refresh_token', res.refreshToken);
@@ -90,6 +107,11 @@ export const UserAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           role: 'Livestock Administrator',
           phone: res.user.phone
         }));
+
+        setIsAuthModalOpen(false);
+        setAuthPromptMessage(null);
+        window.location.replace('/admin');
+        return { success: true, user: res.user };
       }
 
       window.dispatchEvent(new Event('auth_change'));

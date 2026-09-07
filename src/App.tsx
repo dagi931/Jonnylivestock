@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 import { LanguageProvider } from './context/LanguageContext';
-import { AdminAuthProvider } from './context/AdminAuthContext';
+import { AdminAuthProvider, useAdminAuth } from './context/AdminAuthContext';
 import { UserAuthProvider } from './context/UserAuthContext';
 import { RealtimeProvider } from './context/RealtimeContext';
 import { UserAuthModal } from './components/modals/UserAuthModal';
@@ -65,6 +65,28 @@ const AppContent: React.FC = () => {
   const { theme } = useTheme();
   const isDark = theme === 'design7';
   const location = useLocation();
+  const { isAuthenticated: isAdminAuth } = useAdminAuth();
+
+  // Strict Admin Isolation: When authenticated as Admin, ONLY the Admin Dashboard is displayed.
+  // Any attempt to navigate back or access customer storefront routes is immediately redirected to /admin.
+  if (isAdminAuth) {
+    return (
+      <div
+        className={`min-h-screen flex flex-col transition-colors duration-300 ${
+          isDark ? 'bg-[#1B1208] text-[#F4E8D0]' : 'bg-[#FAF7F0] text-[#241A12]'
+        }`}
+      >
+        <ScrollToTop />
+        <main className="flex-1">
+          <Routes>
+            <Route path="/admin" element={<Admin />} />
+            <Route path="*" element={<Navigate to="/admin" replace />} />
+          </Routes>
+        </main>
+      </div>
+    );
+  }
+
   const isAdminPage = location.pathname.startsWith('/admin');
 
   return (

@@ -60,7 +60,7 @@ import {
   UtensilsCrossed,
   Info
 } from 'lucide-react';
-import { Link, useSearchParams, useNavigate } from 'react-router-dom';
+import { useSearchParams, Link } from 'react-router-dom';
 import { PreMadePackage, PackageCatalogItem } from '../types/package';
 
 type AdminTab = 'overview' | 'orders' | 'inventory' | 'packages' | 'raw_meat' | 'delivery' | 'demand' | 'messages' | 'settings';
@@ -83,7 +83,6 @@ const getAnimalFirstImage = (animal: Animal | null | undefined): string => {
 };
 
 export const Admin: React.FC = () => {
-  const navigate = useNavigate();
   const { isAuthenticated: isAdminAuth, user: adminUser, token: adminToken, login, logout } = useAdminAuth();
   const { isAuthenticated: isUserAuth, user: currentUser, logout: userLogout } = useUserAuth();
   const { theme } = useTheme();
@@ -106,26 +105,30 @@ export const Admin: React.FC = () => {
     localStorage.removeItem('jonny_user_token_issued_at');
     localStorage.removeItem('jonny_user_profile');
     sessionStorage.clear();
-    // 1. Immediately switch route in memory to Home so Admin unmounts instantly
-    navigate('/', { replace: true });
-    // 2. Clear auth contexts & replace URL
     logout();
     userLogout();
     window.location.replace('/');
   };
 
-  // Unified admin authentication state: Avoid prompting for password twice
-  const isAuthenticated = Boolean(
-    isAdminAuth || (isUserAuth && currentUser?.role === 'admin')
-  );
+  // Strictly admin portal authentication state
+  const isAuthenticated = isAdminAuth;
+  const user = adminUser;
 
-  const user = adminUser || (currentUser?.role === 'admin' ? {
-    id: currentUser.id,
-    email: currentUser.email,
-    name: currentUser.name,
-    role: 'Livestock Administrator',
-    phone: currentUser.phone
-  } : null);
+  // Intercept browser back button so admin stays securely inside the admin portal
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    window.history.pushState(null, '', window.location.href);
+
+    const handlePopState = () => {
+      window.history.pushState(null, '', window.location.href);
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [isAuthenticated]);
 
   // Login Form States
   const [emailInput, setEmailInput] = useState('');
@@ -3467,10 +3470,9 @@ export const Admin: React.FC = () => {
                       filteredAnimals.map((animal) => (
                       <tr key={animal.id} className={`hover:bg-black/10 transition-colors ${isDark ? 'text-[#F4E8D0]' : 'text-[#2A1A0D]'}`}>
                         <td className="py-3 px-3.5 font-mono font-bold">
-                          <Link to={`/animals/${animal.id}`} className="hover:underline inline-flex items-center gap-1">
+                          <span className="inline-flex items-center gap-1 text-[#C18A45]">
                             <span>{animal.id}</span>
-                            <ArrowUpRight className="w-3 h-3 opacity-60" />
-                          </Link>
+                          </span>
                         </td>
                         <td className="py-3 px-3.5">
                           <div className="capitalize font-semibold">{animal.breed}</div>

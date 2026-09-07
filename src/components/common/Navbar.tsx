@@ -9,15 +9,11 @@ import {
   Menu,
   X,
   ChevronRight,
-  BarChart3,
   User,
   LogOut,
   LogIn,
   Gift,
-  ShieldCheck,
   Bookmark,
-  CreditCard,
-  Layers,
   ShoppingBag
 } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
@@ -60,17 +56,14 @@ export const Navbar: React.FC = () => {
     window.location.replace('/');
   };
 
-  const isAdminUser = isAuthenticated && user?.role === 'admin';
-
   interface NavLinkItem {
     name: string;
     path: string;
     isSpecial?: boolean;
-    isAdmin?: boolean;
   }
 
-  // Base public navigation links (Admin is completely excluded for regular visitors & customers)
-  const baseNavLinks: NavLinkItem[] = [
+  // Public navigation links
+  const navLinks: NavLinkItem[] = [
     { name: t.nav.home, path: '/' },
     { name: t.nav.sheep, path: '/sheep' },
     { name: t.nav.goats, path: '/goats' },
@@ -84,11 +77,6 @@ export const Navbar: React.FC = () => {
     { name: t.nav.about, path: '/about' },
     { name: t.nav.contact, path: '/contact' }
   ];
-
-  // ONLY show Admin tab if logged in and user role matches 'admin'
-  const navLinks: NavLinkItem[] = isAdminUser
-    ? [...baseNavLinks, { name: t.nav.admin, path: '/admin', isAdmin: true }]
-    : baseNavLinks;
 
   return (
     <header
@@ -145,12 +133,7 @@ export const Navbar: React.FC = () => {
                   } ${link.isSpecial ? 'font-bold' : ''}`
                 }
               >
-                {link.isAdmin ? (
-                  <span className="flex items-center gap-1.5 text-amber-500 font-bold">
-                    <BarChart3 className="w-3.5 h-3.5" />
-                    <span>{link.name}</span>
-                  </span>
-                ) : link.isSpecial ? (
+                {link.isSpecial ? (
                   <span className="flex items-center gap-1.5 text-amber-500">
                     <Gift className="w-3.5 h-3.5" />
                     <span>{link.name}</span>
@@ -171,20 +154,13 @@ export const Navbar: React.FC = () => {
                   type="button"
                   onClick={() => setUserDropdownOpen(!userDropdownOpen)}
                   className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all ${
-                    isAdminUser
-                      ? 'bg-amber-500/15 border-amber-500/40 text-amber-500 hover:bg-amber-500/25'
-                      : isDark
-                        ? 'bg-[#2A1A0D] border-[#4A2C16] text-[#E0B15A] hover:bg-[#3A2412]'
-                        : 'bg-[#F1E8D8] border-[#E4D4BC] text-[#B8792F] hover:bg-[#EFE8DC]'
+                    isDark
+                      ? 'bg-[#2A1A0D] border-[#4A2C16] text-[#E0B15A] hover:bg-[#3A2412]'
+                      : 'bg-[#F1E8D8] border-[#E4D4BC] text-[#B8792F] hover:bg-[#EFE8DC]'
                   }`}
                 >
                   <User className="w-3.5 h-3.5 text-[#C18A45]" />
                   <span className="max-w-[100px] truncate">{user.name.split(' ')[0]}</span>
-                  {isAdminUser && (
-                    <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-amber-500 text-black uppercase">
-                      Admin
-                    </span>
-                  )}
                 </button>
 
                 {userDropdownOpen && (
@@ -196,57 +172,11 @@ export const Navbar: React.FC = () => {
                     <div className="px-3 py-2 border-b border-black/10 dark:border-white/10 mb-1">
                       <div className="font-bold text-xs truncate flex items-center justify-between">
                         <span>{user.name}</span>
-                        {isAdminUser && (
-                          <span className="text-[9px] px-1.5 py-0.5 bg-amber-500/20 text-amber-400 rounded-md font-mono">
-                            ADMIN
-                          </span>
-                        )}
                       </div>
                       <div className="text-[10px] opacity-60 truncate">{user.email}</div>
                     </div>
 
-                    {/* ONLY show Admin Panel in menu if role === 'admin' */}
-                    {isAdminUser ? (
-                      <>
-                        <Link
-                          to="/admin"
-                          onClick={() => setUserDropdownOpen(false)}
-                          className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 transition-colors mb-1"
-                        >
-                          <BarChart3 className="w-3.5 h-3.5" />
-                          <span>Admin Control Center</span>
-                        </Link>
-
-                        <Link
-                          to="/admin?tab=orders&filter=active_reservation"
-                          onClick={() => setUserDropdownOpen(false)}
-                          className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs hover:bg-[#C18A45]/15 hover:text-[#C18A45] transition-colors"
-                        >
-                          <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
-                          <span>All Active Reservations</span>
-                        </Link>
-
-                        <Link
-                          to="/admin?tab=orders"
-                          onClick={() => setUserDropdownOpen(false)}
-                          className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs hover:bg-[#C18A45]/15 hover:text-[#C18A45] transition-colors"
-                        >
-                          <CreditCard className="w-3.5 h-3.5 text-amber-500" />
-                          <span>All Orders & Slips</span>
-                        </Link>
-
-                        <Link
-                          to="/admin?tab=inventory"
-                          onClick={() => setUserDropdownOpen(false)}
-                          className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs hover:bg-[#C18A45]/15 hover:text-[#C18A45] transition-colors"
-                        >
-                          <Layers className="w-3.5 h-3.5 text-blue-400" />
-                          <span>Livestock Inventory</span>
-                        </Link>
-                      </>
-                    ) : (
-                      <>
-                        {/* Customer Personal Links */}
+                    {/* Customer Personal Links */}
                         <Link
                           to="/my-orders"
                           onClick={() => setUserDropdownOpen(false)}
@@ -264,8 +194,6 @@ export const Navbar: React.FC = () => {
                           <Bookmark className="w-3.5 h-3.5 text-amber-500" />
                           <span>{isAmharic ? 'የተቀመጡ ጥቅሎች' : 'My Saved Packages'}</span>
                         </Link>
-                      </>
-                    )}
 
                     <button
                       type="button"
@@ -364,11 +292,6 @@ export const Navbar: React.FC = () => {
               <div>
                 <div className="font-bold text-xs flex items-center gap-2">
                   <span className={isDark ? 'text-[#F4E8D0]' : 'text-[#241A12]'}>{user.name}</span>
-                  {isAdminUser && (
-                    <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-500 text-black">
-                      ADMIN
-                    </span>
-                  )}
                 </div>
                 <div className={`text-[11px] font-medium mt-0.5 ${isDark ? 'text-[#D8C5A8]' : 'text-[#746556]'}`}>
                   {user.email}
@@ -388,45 +311,22 @@ export const Navbar: React.FC = () => {
           {/* Quick Links for User in Mobile */}
           {isAuthenticated && (
             <div className={`grid grid-cols-2 gap-2 pb-2.5 mb-2.5 border-b ${isDark ? 'border-[#4A2C16]' : 'border-[#E4D4BC]'}`}>
-              {isAdminUser ? (
-                <>
-                  <Link
-                    to="/admin?tab=orders&filter=active_reservation"
-                    onClick={() => setIsOpen(false)}
-                    className="p-2.5 rounded-xl bg-emerald-500/15 border border-emerald-500/40 text-emerald-700 dark:text-emerald-400 text-xs font-bold flex items-center gap-1.5 justify-center shadow-xs"
-                  >
-                    <ShieldCheck className="w-3.5 h-3.5" />
-                    <span>All Reservations</span>
-                  </Link>
-                  <Link
-                    to="/admin"
-                    onClick={() => setIsOpen(false)}
-                    className="p-2.5 rounded-xl bg-amber-500/15 border border-amber-500/40 text-amber-700 dark:text-amber-400 text-xs font-bold flex items-center gap-1.5 justify-center shadow-xs"
-                  >
-                    <BarChart3 className="w-3.5 h-3.5" />
-                    <span>Admin Center</span>
-                  </Link>
-                </>
-              ) : (
-                <>
-                  <Link
-                    to="/my-orders"
-                    onClick={() => setIsOpen(false)}
-                    className="p-2.5 rounded-xl bg-amber-500/15 border border-amber-500/40 text-amber-700 dark:text-amber-400 text-xs font-bold flex items-center gap-1.5 justify-center shadow-xs"
-                  >
-                    <ShoppingBag className="w-3.5 h-3.5" />
-                    <span>{isAmharic ? 'ትዕዛዞች & ይዞታዎች' : 'Orders & Reservations'}</span>
-                  </Link>
-                  <Link
-                    to="/my-packages"
-                    onClick={() => setIsOpen(false)}
-                    className="p-2.5 rounded-xl bg-amber-500/15 border border-amber-500/40 text-amber-700 dark:text-amber-400 text-xs font-bold flex items-center gap-1.5 justify-center shadow-xs"
-                  >
-                    <Bookmark className="w-3.5 h-3.5" />
-                    <span>My Packages</span>
-                  </Link>
-                </>
-              )}
+              <Link
+                to="/my-orders"
+                onClick={() => setIsOpen(false)}
+                className="p-2.5 rounded-xl bg-amber-500/15 border border-amber-500/40 text-amber-700 dark:text-amber-400 text-xs font-bold flex items-center gap-1.5 justify-center shadow-xs"
+              >
+                <ShoppingBag className="w-3.5 h-3.5" />
+                <span>{isAmharic ? 'ትዕዛዞች & ይዞታዎች' : 'Orders & Reservations'}</span>
+              </Link>
+              <Link
+                to="/my-packages"
+                onClick={() => setIsOpen(false)}
+                className="p-2.5 rounded-xl bg-amber-500/15 border border-amber-500/40 text-amber-700 dark:text-amber-400 text-xs font-bold flex items-center gap-1.5 justify-center shadow-xs"
+              >
+                <Bookmark className="w-3.5 h-3.5" />
+                <span>My Packages</span>
+              </Link>
             </div>
           )}
 
@@ -468,9 +368,7 @@ export const Navbar: React.FC = () => {
               }
             >
               <div className="flex items-center gap-2.5">
-                {link.isAdmin ? (
-                  <BarChart3 className="w-4 h-4 text-amber-600 dark:text-amber-500" />
-                ) : link.isSpecial ? (
+                {link.isSpecial ? (
                   <Gift className="w-4 h-4 text-amber-600 dark:text-amber-500" />
                 ) : null}
                 <span>{link.name}</span>

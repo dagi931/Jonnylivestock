@@ -21,11 +21,11 @@ const AdminAuthContext = createContext<AdminAuthContextType | undefined>(undefin
 
 export const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [token, setToken] = useState<string | null>(() => {
-    return localStorage.getItem('jonny_admin_token') || localStorage.getItem('jonny_user_token');
+    return localStorage.getItem('jonny_admin_token');
   });
 
   const [user, setUser] = useState<AdminUser | null>(() => {
-    const saved = localStorage.getItem('jonny_admin_user') || localStorage.getItem('jonny_user_profile');
+    const saved = localStorage.getItem('jonny_admin_user');
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
@@ -96,8 +96,8 @@ export const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   useEffect(() => {
     const syncAdminAuth = () => {
-      const savedToken = localStorage.getItem('jonny_admin_token') || localStorage.getItem('jonny_user_token');
-      const savedUser = localStorage.getItem('jonny_admin_user') || localStorage.getItem('jonny_user_profile');
+      const savedToken = localStorage.getItem('jonny_admin_token');
+      const savedUser = localStorage.getItem('jonny_admin_user');
       if (savedToken && savedUser) {
         try {
           const parsed = JSON.parse(savedUser);
@@ -227,7 +227,7 @@ export const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         };
 
         const nowStr = String(Date.now());
-        // Synchronously save admin & user storage tokens immediately (15m access + 7d refresh)
+        // Strictly save admin storage tokens (admin portal only)
         localStorage.setItem('jonny_admin_token', res.token);
         if (res.refreshToken) {
           localStorage.setItem('jonny_admin_refresh_token', res.refreshToken);
@@ -236,12 +236,11 @@ export const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         localStorage.setItem('jonny_admin_last_active', nowStr);
         localStorage.setItem('jonny_admin_user', JSON.stringify(adminData));
 
-        localStorage.setItem('jonny_user_token', res.token);
-        if (res.refreshToken) {
-          localStorage.setItem('jonny_user_refresh_token', res.refreshToken);
-        }
-        localStorage.setItem('jonny_user_token_issued_at', nowStr);
-        localStorage.setItem('jonny_user_profile', JSON.stringify(res.user));
+        // Ensure customer user session is completely clear
+        localStorage.removeItem('jonny_user_token');
+        localStorage.removeItem('jonny_user_refresh_token');
+        localStorage.removeItem('jonny_user_token_issued_at');
+        localStorage.removeItem('jonny_user_profile');
 
         setToken(res.token);
         setUser(adminData);
