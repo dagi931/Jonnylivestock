@@ -83,18 +83,21 @@ const getAnimalFirstImage = (animal: Animal | null | undefined): string => {
 };
 
 export const Admin: React.FC = () => {
-  const { isAuthenticated: isAdminAuth, user: adminUser, token: adminToken, login, logout } = useAdminAuth();
-  const { isAuthenticated: isUserAuth, user: currentUser, logout: userLogout } = useUserAuth();
+  const { isAuthenticated: isAdminAuth, user: adminUser, token: adminToken, login } = useAdminAuth();
+  const { isAuthenticated: isUserAuth, user: currentUser } = useUserAuth();
   const { theme } = useTheme();
   const isDark = theme === 'design7';
   const { isAmharic } = useLanguage();
 
   // Flag to prevent admin login page flicker when signing out
-  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(() => {
+    return typeof window !== 'undefined' && sessionStorage.getItem('jonny_admin_logging_out') === '1';
+  });
 
   const handleAdminLogout = () => {
     setIsLoggingOut(true);
     setIsMobileSidebarOpen(false);
+    sessionStorage.setItem('jonny_admin_logging_out', '1');
     localStorage.removeItem('jonny_admin_token');
     localStorage.removeItem('jonny_admin_refresh_token');
     localStorage.removeItem('jonny_admin_token_issued_at');
@@ -104,9 +107,6 @@ export const Admin: React.FC = () => {
     localStorage.removeItem('jonny_user_refresh_token');
     localStorage.removeItem('jonny_user_token_issued_at');
     localStorage.removeItem('jonny_user_profile');
-    sessionStorage.clear();
-    logout();
-    userLogout();
     window.location.replace('/');
   };
 
@@ -117,6 +117,10 @@ export const Admin: React.FC = () => {
   // Intercept browser back button so admin stays securely inside the admin portal
   useEffect(() => {
     if (!isAuthenticated) return;
+
+    sessionStorage.removeItem('jonny_admin_signing_in');
+    sessionStorage.removeItem('jonny_admin_logging_out');
+    setIsLoggingOut(false);
 
     window.history.pushState(null, '', window.location.href);
 
@@ -1608,10 +1612,12 @@ export const Admin: React.FC = () => {
       const res = await login(emailInput, passwordInput);
       if (!res.success) {
         setLoginError(res.error || 'Login failed');
+        setIsLoggingIn(false);
+      } else {
+        sessionStorage.setItem('jonny_admin_signing_in', '1');
       }
     } catch {
       setLoginError('Authentication failed');
-    } finally {
       setIsLoggingIn(false);
     }
   };
@@ -1620,8 +1626,26 @@ export const Admin: React.FC = () => {
   // ==========================================
   // VIEW 0: EXITING / SIGNING OUT (Direct to home, prevent login flash)
   // ==========================================
-  if (isLoggingOut) {
+  const isLoggingOutActive = isLoggingOut || (typeof window !== 'undefined' && sessionStorage.getItem('jonny_admin_logging_out') === '1');
+  if (isLoggingOutActive) {
     return <div className={`min-h-screen ${isDark ? 'bg-[#1B1208]' : 'bg-[#FAF7F0]'}`} />;
+  }
+
+  // ==========================================
+  // VIEW 0B: SIGNING IN TRANSITION (Prevent login form flash)
+  // ==========================================
+  const isSigningInActive = isLoggingIn || (typeof window !== 'undefined' && sessionStorage.getItem('jonny_admin_signing_in') === '1');
+  if (isSigningInActive && !isAuthenticated && !loginError) {
+    return (
+      <div className={`min-h-screen flex items-center justify-center ${isDark ? 'bg-[#1B1208]' : 'bg-[#FAF7F0]'}`}>
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-10 h-10 border-4 border-[#C58A3A] border-t-transparent rounded-full animate-spin" />
+          <p className={`text-sm font-medium ${isDark ? 'text-[#D8C5A8]' : 'text-[#746556]'}`}>
+            {isAmharic ? 'ወደ አስተዳዳሪ ፖርታል በመግባት ላይ...' : 'Loading Admin Portal...'}
+          </p>
+        </div>
+      </div>
+    );
   }
 
   // ==========================================

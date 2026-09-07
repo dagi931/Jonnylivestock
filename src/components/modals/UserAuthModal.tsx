@@ -114,7 +114,8 @@ export const UserAuthModal: React.FC = () => {
         if (res.success) {
           closeAuthModal();
           if (res.user?.role === 'admin') {
-            navigate('/admin');
+            // Already handled cleanly by window.location.replace('/admin') in UserAuthContext
+            return;
           } else {
             navigate('/');
           }

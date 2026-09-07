@@ -46,11 +46,11 @@ export const Navbar: React.FC = () => {
   const handleFullLogout = () => {
     setUserDropdownOpen(false);
     setIsOpen(false);
+    sessionStorage.setItem('jonny_admin_logging_out', '1');
     localStorage.removeItem('jonny_user_token');
     localStorage.removeItem('jonny_user_profile');
     localStorage.removeItem('jonny_admin_token');
     localStorage.removeItem('jonny_admin_user');
-    sessionStorage.clear();
     userLogout();
     adminLogout();
     window.location.replace('/');

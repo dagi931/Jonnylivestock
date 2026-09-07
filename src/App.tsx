@@ -67,61 +67,64 @@ const AppContent: React.FC = () => {
   const location = useLocation();
   const { isAuthenticated: isAdminAuth } = useAdminAuth();
 
+  const isAdminPage = location.pathname.startsWith('/admin');
+  const showCustomerChrome = !isAdminAuth && !isAdminPage;
+
+  // Cleanup transition flags once cleanly on customer storefront pages
+  useEffect(() => {
+    if (!isAdminPage) {
+      sessionStorage.removeItem('jonny_admin_logging_out');
+      sessionStorage.removeItem('jonny_admin_signing_in');
+    }
+  }, [isAdminPage]);
+
   // Strict Admin Isolation: When authenticated as Admin, ONLY the Admin Dashboard is displayed.
   // Any attempt to navigate back or access customer storefront routes is immediately redirected to /admin.
-  if (isAdminAuth) {
-    return (
-      <div
-        className={`min-h-screen flex flex-col transition-colors duration-300 ${
-          isDark ? 'bg-[#1B1208] text-[#F4E8D0]' : 'bg-[#FAF7F0] text-[#241A12]'
-        }`}
-      >
-        <ScrollToTop />
-        <main className="flex-1">
+  if (isAdminAuth && !isAdminPage) {
+    return <Navigate to="/admin" replace />;
+  }
+
+  return (
+    <div
+      className={`min-h-screen flex flex-col transition-colors duration-300 ${
+        isDark ? 'bg-[#1B1208] text-[#F4E8D0]' : 'bg-[#FAF7F0] text-[#241A12]'
+      }`}
+    >
+      <ScrollToTop />
+      {showCustomerChrome && <Navbar />}
+      {showCustomerChrome && <UserAuthModal />}
+      <main className="flex-1">
+        {isAdminAuth ? (
           <Routes>
             <Route path="/admin" element={<Admin />} />
             <Route path="*" element={<Navigate to="/admin" replace />} />
           </Routes>
-        </main>
-      </div>
-    );
-  }
+        ) : (
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/sheep" element={<Sheep />} />
+            <Route path="/goats" element={<Goats />} />
+            <Route path="/cows" element={<Cows />} />
+            <Route path="/animals/:id" element={<AnimalDetails />} />
 
-  const isAdminPage = location.pathname.startsWith('/admin');
+            {/* Packages & Custom Builder */}
+            <Route path="/packages" element={<PackageBuilder />} />
+            <Route path="/my-packages" element={<MyPackages />} />
+            <Route path="/my-reservations" element={<MyReservations />} />
+            <Route path="/my-orders" element={<MyReservations />} />
 
-  return (
-    <div
-      className={`min-h-screen flex flex-col transition-colors duration-300 ${isDark ? 'bg-[#1B1208] text-[#F4E8D0]' : 'bg-[#FAF7F0] text-[#241A12]'
-        }`}
-    >
-      <ScrollToTop />
-      {!isAdminPage && <Navbar />}
-      <UserAuthModal />
-      <main className="flex-1">
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/sheep" element={<Sheep />} />
-          <Route path="/goats" element={<Goats />} />
-          <Route path="/cows" element={<Cows />} />
-          <Route path="/animals/:id" element={<AnimalDetails />} />
+            {/* Main Services Page (No redundant form pages) */}
+            <Route path="/services" element={<Services />} />
+            <Route path="/services/*" element={<Navigate to="/services" replace />} />
 
-          {/* Packages & Custom Builder */}
-          <Route path="/packages" element={<PackageBuilder />} />
-          <Route path="/my-packages" element={<MyPackages />} />
-          <Route path="/my-reservations" element={<MyReservations />} />
-          <Route path="/my-orders" element={<MyReservations />} />
-
-          {/* Main Services Page (No redundant form pages) */}
-          <Route path="/services" element={<Services />} />
-          <Route path="/services/*" element={<Navigate to="/services" replace />} />
-
-          <Route path="/about" element={<About />} />
-          <Route path="/contact" element={<Contact />} />
-          <Route path="/admin" element={<Admin />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+            <Route path="/about" element={<About />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/admin" element={<Admin />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        )}
       </main>
-      {!isAdminPage && <Footer />}
+      {showCustomerChrome && <Footer />}
     </div>
   );
 };

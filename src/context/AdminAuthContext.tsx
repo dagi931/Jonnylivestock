@@ -257,8 +257,7 @@ export const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   };
 
   const logout = () => {
-    setToken(null);
-    setUser(null);
+    sessionStorage.setItem('jonny_admin_logging_out', '1');
     localStorage.removeItem('jonny_admin_token');
     localStorage.removeItem('jonny_admin_refresh_token');
     localStorage.removeItem('jonny_admin_token_issued_at');
@@ -268,8 +267,7 @@ export const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     localStorage.removeItem('jonny_user_refresh_token');
     localStorage.removeItem('jonny_user_token_issued_at');
     localStorage.removeItem('jonny_user_profile');
-    sessionStorage.clear();
-    // Redirect directly to home and replace URL in history
+    // Direct redirect to home and replace URL in history
     window.location.replace('/');
   };
 

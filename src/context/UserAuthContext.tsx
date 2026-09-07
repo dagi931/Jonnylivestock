@@ -108,6 +108,7 @@ export const UserAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           phone: res.user.phone
         }));
 
+        sessionStorage.setItem('jonny_admin_signing_in', '1');
         setIsAuthModalOpen(false);
         setAuthPromptMessage(null);
         window.location.replace('/admin');
@@ -210,6 +211,7 @@ export const UserAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   };
 
   const logout = () => {
+    sessionStorage.setItem('jonny_admin_logging_out', '1');
     setToken(null);
     setUser(null);
     localStorage.removeItem('jonny_user_token');
@@ -221,7 +223,6 @@ export const UserAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     localStorage.removeItem('jonny_admin_token_issued_at');
     localStorage.removeItem('jonny_admin_last_active');
     localStorage.removeItem('jonny_admin_user');
-    sessionStorage.clear();
     window.dispatchEvent(new Event('auth_change'));
     window.location.replace('/');
   };
