@@ -351,7 +351,7 @@ export const Services: React.FC = () => {
                           className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-black font-bold text-xs shadow-sm transition-all active:scale-[0.98] cursor-pointer"
                         >
                           <Scale className="w-3.5 h-3.5" />
-                          <span>{isAmharic ? '🥩 የበሬ ስጋ በኪሎ እዘዝ (ኦንላይን)' : '🥩 Order Raw Meat in KG'}</span>
+                          <span>{isAmharic ? 'የበሬ ስጋ በኪሎ እዘዝ (ኦንላይን)' : 'Order Raw Meat in KG'}</span>
                         </button>
                       )}
 

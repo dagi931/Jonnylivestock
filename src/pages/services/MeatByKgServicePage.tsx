@@ -85,7 +85,7 @@ export const MeatByKgServicePage: React.FC = () => {
     setSubmitted(true);
   };
 
-  const whatsappMessage = `Hello ${business.name}, I would like to order PRIME BEEF IN KG (100% Beef from Oxen).
+  const whatsappMessage = `Hello ${business.name}, I would like to order PRIME BEEF IN KG.
 Order Breakdown: [${getOrderSummaryText()}]
 Total Quantity: ${totalKg} KG
 Estimated Total: ${totalPrice.toLocaleString()} ETB
@@ -144,7 +144,7 @@ Cut Notes: ${cutInstructions || 'Standard portioning'}`;
                   </span>
                   <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/15 text-amber-500 border border-amber-500/30">
                     <Beef className="w-3 h-3" />
-                    <span>{isAmharic ? '100% የበሬ ሥጋ ብቻ' : '100% Prime Beef'}</span>
+                    <span>{isAmharic ? 'የበሬ ሥጋ' : 'Prime Beef'}</span>
                   </span>
                 </div>
 
@@ -155,8 +155,8 @@ Cut Notes: ${cutInstructions || 'Standard portioning'}`;
                 </h1>
                 <p className={`text-xs sm:text-sm mt-1 max-w-2xl ${isDark ? 'text-[#D8C5A8]' : 'text-[#746556]'}`}>
                   {isAmharic
-                    ? 'ከምርጥ የሰቡ ሰንጋዎች በኪሎ ግራም በትክክለኛ ሚዛን ተመዝኖ የተዘጋጀ ትኩስ የበሬ ስጋ — ቁርጥ (2,800 ብር/ኪ.ግ)፣ ክትፎ (2,200 ብር/ኪ.ግ)፣ ወጥ (1,800 ብር/ኪ.ግ)።'
-                    : 'Fresh 100% prime Beef extracted from well-fattened oxen in kilograms with certified scale weighing: Kurt (2,800 ETB/kg), Kitfo (2,200 ETB/kg), Wot (1,800 ETB/kg).'}
+                    ? 'በኪሎ ግራም በትክክለኛ ሚዛን ተመዝኖ የተዘጋጀ ትኩስ የበሬ ስጋ — ቁርጥ (2,800 ብር/ኪ.ግ)፣ ክትፎ (2,200 ብር/ኪ.ግ)፣ ወጥ (1,800 ብር/ኪ.ግ)።'
+                    : 'Fresh prime Beef in kilograms with certified scale weighing: Kurt (2,800 ETB/kg), Kitfo (2,200 ETB/kg), Wot (1,800 ETB/kg).'}
                 </p>
               </div>
             </div>
@@ -252,9 +252,9 @@ Cut Notes: ${cutInstructions || 'Standard portioning'}`;
 
                   <div className="space-y-1.5">
                     {[
-                      { id: 'kurt', emoji: '🥩', name: isAmharic ? 'ጥሬ ቁርጥ (Kurt)' : 'Tre Kurt / Tere Siga', desc: isAmharic ? 'ከምርጥ ሰንጋ የተመረጠ ጥሬ ቁርጥ' : 'Prime tender raw cuts from oxen', price: 2800, val: kurtKg, set: setKurtKg, parsed: parsedKurt },
-                      { id: 'kitfo', emoji: '🍽️', name: isAmharic ? 'ክትፎ (Kitfo)' : 'Kitfo Cut', desc: isAmharic ? 'ያለ ጅማትና ስብ ለስላሳ ቀይ ስጋ' : 'Extra-lean red beef without sinew', price: 2200, val: kitfoKg, set: setKitfoKg, parsed: parsedKitfo },
-                      { id: 'wot', emoji: '🍲', name: isAmharic ? 'ወጥ (Key / Alicha Wot)' : 'Key / Alicha Wot', desc: isAmharic ? 'ለቀይና ለአልጫ ወጥ ድምቀት' : 'Rich stew chunks for family pots', price: 1800, val: wotKg, set: setWotKg, parsed: parsedWot }
+                      { id: 'kurt', name: isAmharic ? 'ጥሬ ቁርጥ (Kurt)' : 'Tre Kurt / Tere Siga', desc: isAmharic ? 'የተመረጠ ጥሬ ቁርጥ' : 'Prime tender raw beef cuts', price: 2800, val: kurtKg, set: setKurtKg, parsed: parsedKurt },
+                      { id: 'kitfo', name: isAmharic ? 'ክትፎ (Kitfo)' : 'Kitfo Cut', desc: isAmharic ? 'ያለ ጅማትና ስብ ለስላሳ ቀይ ስጋ' : 'Extra-lean red beef without sinew', price: 2200, val: kitfoKg, set: setKitfoKg, parsed: parsedKitfo },
+                      { id: 'wot', name: isAmharic ? 'ወጥ (Key / Alicha Wot)' : 'Key / Alicha Wot', desc: isAmharic ? 'ለቀይና ለአልጫ ወጥ ድምቀት' : 'Rich stew chunks for family pots', price: 1800, val: wotKg, set: setWotKg, parsed: parsedWot }
                     ].map((item) => (
                       <div
                         key={item.id}
@@ -263,7 +263,6 @@ Cut Notes: ${cutInstructions || 'Standard portioning'}`;
                         }`}
                       >
                         <div className="flex items-center gap-2.5 min-w-0">
-                          <span className="text-base shrink-0 select-none">{item.emoji}</span>
                           <div className="min-w-0">
                             <div className="flex items-center gap-2 flex-wrap">
                               <span className="font-bold text-xs sm:text-sm">{item.name}</span>
@@ -479,23 +478,23 @@ Cut Notes: ${cutInstructions || 'Standard portioning'}`;
 
               <div className="space-y-2 pt-2 border-t text-xs opacity-90" style={{ borderColor: isDark ? '#4A2C16' : '#E4D4BC' }}>
                 <div className="flex items-center justify-between py-1 border-b border-black/5 dark:border-white/5">
-                  <span><strong>🥩 {isAmharic ? 'ጥሬ ቁርጥ (Kurt):' : 'Tre Kurt (ቁርጥ):'}</strong></span>
+                  <span><strong>{isAmharic ? 'ጥሬ ቁርጥ (Kurt):' : 'Tre Kurt (ቁርጥ):'}</strong></span>
                   <span className="font-mono text-emerald-500 font-extrabold text-sm">2,800 ETB / kg</span>
                 </div>
                 <div className="flex items-center justify-between py-1 border-b border-black/5 dark:border-white/5">
-                  <span><strong>🍽️ {isAmharic ? 'ክትፎ (Kitfo):' : 'Kitfo Cut (ክትፎ):'}</strong></span>
+                  <span><strong>{isAmharic ? 'ክትፎ (Kitfo):' : 'Kitfo Cut (ክትፎ):'}</strong></span>
                   <span className="font-mono text-emerald-500 font-extrabold text-sm">2,200 ETB / kg</span>
                 </div>
                 <div className="flex items-center justify-between py-1">
-                  <span><strong>🍲 {isAmharic ? 'ወጥ (Wot):' : 'Wot Stew (ወጥ):'}</strong></span>
+                  <span><strong>{isAmharic ? 'ወጥ (Wot):' : 'Wot Stew (ወጥ):'}</strong></span>
                   <span className="font-mono text-emerald-500 font-extrabold text-sm">1,800 ETB / kg</span>
                 </div>
               </div>
 
               <div className="pt-2 text-[11px] opacity-75">
                 {isAmharic
-                  ? '* ሻጩ በአሁኑ ወቅት 100% የበሬ ስጋ (ከከብቶች/ሰንጋዎች) ብቻ ያቀርባል። ሁሉም ስጋዎች በተረጋገጠ ዲጂታል ሚዛን ይመዝናሉ።'
-                  : '* The seller currently provides 100% prime Beef (from oxen/cattle). All orders measured on certified digital scales.'}
+                  ? '* ሁሉም ስጋዎች በተረጋገጠ ዲጂታል ሚዛን ይመዝናሉ።'
+                  : '* All orders are measured on certified digital scales.'}
               </div>
             </div>
 

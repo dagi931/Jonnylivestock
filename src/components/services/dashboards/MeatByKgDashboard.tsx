@@ -73,7 +73,7 @@ export const MeatByKgDashboard: React.FC = () => {
     setSubmitted(true);
   };
 
-  const whatsappMessage = `Hello ${business.name}, I would like to order PRIME BEEF IN KG (100% Beef from Oxen).
+  const whatsappMessage = `Hello ${business.name}, I would like to order PRIME BEEF IN KG.
 Order Breakdown: [${getOrderSummaryText()}]
 Total Quantity: ${totalKg} KG
 Estimated Total: ${totalPrice.toLocaleString()} ETB
@@ -103,14 +103,14 @@ Cut Notes: ${cutInstructions || 'Standard portioning'}`;
                 </span>
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/15 text-amber-500 border border-amber-500/30">
                   <Beef className="w-3 h-3" />
-                  <span>100% Prime Beef Only</span>
+                  <span>Prime Beef</span>
                 </span>
               </div>
               <h2 className={`font-serif font-bold text-xl sm:text-2xl mt-0.5 ${isDark ? 'text-[#F4E8D0]' : 'text-[#2A1A0D]'}`}>
                 Prime Beef Supply in KG (for Hotels, Restaurants & Catering)
               </h2>
               <p className={`text-xs sm:text-sm mt-1 max-w-xl ${isDark ? 'text-[#D8C5A8]' : 'text-[#746556]'}`}>
-                Fresh, hygienic 100% prime Beef extracted in kilograms from fattened oxen — <strong>Kurt (2,800 ETB/kg)</strong>, <strong>Kitfo (2,200 ETB/kg)</strong>, <strong>Wot (1,800 ETB/kg)</strong>.
+                Fresh, hygienic prime Beef in kilograms — <strong>Kurt (2,800 ETB/kg)</strong>, <strong>Kitfo (2,200 ETB/kg)</strong>, <strong>Wot (1,800 ETB/kg)</strong>.
               </p>
             </div>
           </div>
@@ -207,9 +207,9 @@ Cut Notes: ${cutInstructions || 'Standard portioning'}`;
                 </label>
                 <div className="space-y-1.5">
                   {[
-                    { id: 'kurt', emoji: '🥩', name: 'Tre Kurt / Tere Siga (ጥሬ ቁርጥ)', desc: 'Prime tender raw cuts from oxen', price: 2800, val: kurtKg, set: setKurtKg, parsed: parsedKurt },
-                    { id: 'kitfo', emoji: '🍽️', name: 'Kitfo Cut (ክትፎ)', desc: 'Extra-lean red beef without sinew', price: 2200, val: kitfoKg, set: setKitfoKg, parsed: parsedKitfo },
-                    { id: 'wot', emoji: '🍲', name: 'Key / Alicha Wot (ወጥ)', desc: 'Rich stew chunks for family pots', price: 1800, val: wotKg, set: setWotKg, parsed: parsedWot }
+                    { id: 'kurt', name: 'Tre Kurt / Tere Siga (ጥሬ ቁርጥ)', desc: 'Prime tender raw beef cuts', price: 2800, val: kurtKg, set: setKurtKg, parsed: parsedKurt },
+                    { id: 'kitfo', name: 'Kitfo Cut (ክትፎ)', desc: 'Extra-lean red beef without sinew', price: 2200, val: kitfoKg, set: setKitfoKg, parsed: parsedKitfo },
+                    { id: 'wot', name: 'Key / Alicha Wot (ወጥ)', desc: 'Rich stew chunks for family pots', price: 1800, val: wotKg, set: setWotKg, parsed: parsedWot }
                   ].map((item) => (
                     <div
                       key={item.id}
@@ -218,7 +218,6 @@ Cut Notes: ${cutInstructions || 'Standard portioning'}`;
                       }`}
                     >
                       <div className="flex items-center gap-2.5 min-w-0">
-                        <span className="text-base shrink-0 select-none">{item.emoji}</span>
                         <div className="min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
                             <span className="font-bold text-xs sm:text-sm">{item.name}</span>
@@ -434,21 +433,21 @@ Cut Notes: ${cutInstructions || 'Standard portioning'}`;
 
             <div className="space-y-2 pt-2 border-t text-xs opacity-90" style={{ borderColor: isDark ? '#4A2C16' : '#E4D4BC' }}>
               <div className="flex items-center justify-between py-1 border-b border-black/5 dark:border-white/5">
-                <span><strong>🥩 Tre Kurt (ቁርጥ):</strong></span>
+                <span><strong>Tre Kurt (ቁርጥ):</strong></span>
                 <span className="font-mono text-emerald-500 font-extrabold text-sm">2,800 ETB / kg</span>
               </div>
               <div className="flex items-center justify-between py-1 border-b border-black/5 dark:border-white/5">
-                <span><strong>🍽️ Kitfo Cut (ክትፎ):</strong></span>
+                <span><strong>Kitfo Cut (ክትፎ):</strong></span>
                 <span className="font-mono text-emerald-500 font-extrabold text-sm">2,200 ETB / kg</span>
               </div>
               <div className="flex items-center justify-between py-1">
-                <span><strong>🍲 Wot Stew (ወጥ):</strong></span>
+                <span><strong>Wot Stew (ወጥ):</strong></span>
                 <span className="font-mono text-emerald-500 font-extrabold text-sm">1,800 ETB / kg</span>
               </div>
             </div>
 
             <div className="pt-2 text-[11px] opacity-75">
-              * The seller currently provides 100% prime Beef (from fattened Debrebirhan & Arsi cattle). All orders measured on certified digital scales.
+              * All orders are measured on certified digital scales.
             </div>
           </div>
 

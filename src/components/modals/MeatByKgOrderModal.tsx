@@ -56,7 +56,7 @@ export const MeatByKgOrderModal: React.FC<MeatByKgOrderModalProps> = ({
   });
   const [isLoadingPricing, setIsLoadingPricing] = useState(true);
 
-  // Meat Selection States (By default 100% Prime Ox/Beef)
+  // Meat Selection States (Prime Beef)
   const [selectedCut, setSelectedCut] = useState<MeatCutKey>('kitfo');
   const [kg, setKg] = useState<number>(5);
 
@@ -133,7 +133,7 @@ export const MeatByKgOrderModal: React.FC<MeatByKgOrderModalProps> = ({
       desc: isAmharic
         ? 'ለጥሬ ቁርጥ የሚሆን እጅግ ለስላሳና ቅባት የሌለው ምርጥ የበሬ ሥጋ'
         : 'Finely selected extra-tender, sinew-free red beef for traditional raw eating',
-      badge: '⭐ Prime Kurt'
+      badge: 'Prime Kurt'
     },
     {
       id: 'kitfo' as MeatCutKey,
@@ -143,7 +143,7 @@ export const MeatByKgOrderModal: React.FC<MeatByKgOrderModalProps> = ({
       desc: isAmharic
         ? 'ደም ስርና ጅማት ሙሉ በሙሉ የተወገደለት ለስላሳ ቀይ የበሬ ሥጋ'
         : 'Extra-lean red beef trimmed free of sinew, perfect for authentic kitfo dishes',
-      badge: '🔥 Most Popular'
+      badge: 'Most Popular'
     },
     {
       id: 'tibs_wot' as MeatCutKey,
@@ -153,7 +153,7 @@ export const MeatByKgOrderModal: React.FC<MeatByKgOrderModalProps> = ({
       desc: isAmharic
         ? 'ለጥብስና ለቤተሰብ ወጥ ድስ የሚሆን በንጽህና የተቆራረጠ ጣፋጭ የበሬ ሥጋ'
         : 'Rich, stew-sized and pan-fry portioned beef chunks for hearty stews and tibs',
-      badge: '🍲 Great Value'
+      badge: 'Great Value'
     }
   ];
 
@@ -341,9 +341,6 @@ export const MeatByKgOrderModal: React.FC<MeatByKgOrderModalProps> = ({
                 <h2 className="font-serif font-bold text-base sm:text-lg leading-tight">
                   {isAmharic ? 'የበሬ ሥጋ በኪሎ ማዘዣ' : 'Order Prime Beef by the KG'}
                 </h2>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/15 text-amber-500 border border-amber-500/25">
-                  100% Prime Ox
-                </span>
               </div>
               <p className="text-[11px] opacity-75 mt-0.5">
                 {isAmharic
@@ -460,7 +457,7 @@ export const MeatByKgOrderModal: React.FC<MeatByKgOrderModalProps> = ({
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <label className="text-xs font-bold uppercase opacity-80 flex items-center gap-1.5">
-                    <span>1. {isAmharic ? 'የስጋውን አቆራረጥ ይምረጡ' : 'Select Ox Beef Cut'}</span>
+                    <span>1. {isAmharic ? 'የስጋውን አቆራረጥ ይምረጡ' : 'Select Beef Cut'}</span>
                   </label>
                   <span className="text-[10.5px] opacity-60 font-mono">
                     {isLoadingPricing ? 'Loading prices...' : 'Live Certified Prices'}
@@ -751,7 +748,10 @@ export const MeatByKgOrderModal: React.FC<MeatByKgOrderModalProps> = ({
                           className="w-12 h-12 rounded-xl object-cover border"
                         />
                         <div className="text-xs">
-                          <div className="font-bold text-emerald-500">✓ Transfer Slip Attached</div>
+                          <div className="font-bold text-emerald-500 flex items-center gap-1">
+                            <CheckCircle2 className="w-3.5 h-3.5" />
+                            <span>Transfer Slip Attached</span>
+                          </div>
                           <div className="text-[10px] opacity-60 truncate max-w-[200px]">{slipFile?.name}</div>
                         </div>
                       </div>

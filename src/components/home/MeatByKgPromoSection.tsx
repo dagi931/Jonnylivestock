@@ -54,8 +54,8 @@ export const MeatByKgPromoSection: React.FC = () => {
       name: 'Tre Kurt / Tere Siga',
       amharicName: 'ጥሬ ቁርጥ',
       price: prices.kurt,
-      desc: 'Prime tender raw cuts from high-grade fattened oxen',
-      amharicDesc: 'ከምርጥ ሰንጋ የተመረጠ ለጥሬ የሚሆን ለስላሳ ሥጋ',
+      desc: 'Prime tender raw beef cuts',
+      amharicDesc: 'ለጥሬ የሚሆን ለስላሳ የበሬ ሥጋ',
       badge: isAmharic ? 'ለጥሬ ቁርጥ' : 'Prime Raw Cut',
       image: 'https://images.unsplash.com/photo-1603048588665-791ca8aea617?auto=format&fit=crop&w=600&q=80'
     },
@@ -86,7 +86,7 @@ export const MeatByKgPromoSection: React.FC = () => {
   const quickFeatures = [
     {
       icon: Shield,
-      title: isAmharic ? '100% ጥራት ያለው' : '100% Prime Quality'
+      title: isAmharic ? 'ጥራት ያለው' : 'Prime Quality'
     },
     {
       icon: Scale,
@@ -112,10 +112,10 @@ export const MeatByKgPromoSection: React.FC = () => {
     },
     {
       icon: ShieldCheck,
-      title: '100% Prime Fattened Beef',
-      amharicTitle: '100% ጥራት ያለው የበሬ ሥጋ',
+      title: 'Prime Quality Beef',
+      amharicTitle: 'ጥራት ያለው የበሬ ሥጋ',
       desc: 'Inspected prime cuts from healthy cattle raised directly on our farm.',
-      amharicDesc: 'በእርሻችን ከተመረጡ የሰቡ ሰንጋዎች ብቻ የተዘጋጀ።'
+      amharicDesc: 'በእርሻችን ከተመረጡ የሰቡ ከብቶች የተዘጋጀ።'
     },
     {
       icon: Truck,
@@ -184,8 +184,8 @@ export const MeatByKgPromoSection: React.FC = () => {
 
               <p className="text-amber-500 font-bold text-sm sm:text-base lg:text-lg leading-snug">
                 {isAmharic
-                  ? '100% ከምርጥ ሰንጋ በንጽህና የተዘጋጀ የበሬ ስጋ በኪሎግራም'
-                  : '100% Prime Ethiopian Beef Extracted & Precision Weighed by Kilogram'}
+                  ? 'በንጽህና የተዘጋጀ የበሬ ስጋ በኪሎግራም'
+                  : 'Prime Ethiopian Beef Extracted & Precision Weighed by Kilogram'}
               </p>
 
               <p
@@ -202,8 +202,8 @@ export const MeatByKgPromoSection: React.FC = () => {
                   </>
                 ) : (
                   <>
-                    We supply freshly slaughtered and inspected 100% prime Beef sold by the kilogram for hotels, traditional restaurants,
-                    wedding banquets, catering kitchens, and family feasts. Hand-selected from fattened oxen and professionally prepared for{' '}
+                    We supply freshly slaughtered and inspected prime Beef sold by the kilogram for hotels, traditional restaurants,
+                    wedding banquets, catering kitchens, and family feasts. Hand-selected and professionally prepared for{' '}
                     <strong className="font-semibold text-amber-500">Kurt ({prices.kurt.toLocaleString()} ETB/kg)</strong>,{' '}
                     <strong className="font-semibold text-amber-500">Kitfo ({prices.kitfo.toLocaleString()} ETB/kg)</strong>, and{' '}
                     <strong className="font-semibold text-amber-500">Wot ({prices.wot.toLocaleString()} ETB/kg)</strong> with certified digital scale precision and refrigerated delivery.
@@ -223,7 +223,7 @@ export const MeatByKgPromoSection: React.FC = () => {
                       'register',
                       isAmharic
                         ? 'የበሬ ስጋ በኪሎግራም (KG) ለማዘዝ እባክዎ መጀመሪያ ይመዝገቡ ወይም ይግቡ።'
-                        : 'To order fresh ox beef by the KG, please create an account or sign in first.'
+                        : 'To order fresh beef by the KG, please create an account or sign in first.'
                     );
                     return;
                   }
@@ -313,7 +313,7 @@ export const MeatByKgPromoSection: React.FC = () => {
 
               <span className="hidden sm:inline-flex items-center gap-1 text-xs font-mono text-emerald-400 font-bold">
                 <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-                <span>100% Certified Scale</span>
+                <span>Certified Scale</span>
               </span>
             </div>
 
@@ -375,7 +375,7 @@ export const MeatByKgPromoSection: React.FC = () => {
                             'register',
                             isAmharic
                               ? 'የበሬ ስጋ በኪሎግራም (KG) ለማዘዝ እባክዎ መጀመሪያ ይመዝገቡ ወይም ይግቡ።'
-                              : 'To order fresh ox beef by the KG, please create an account or sign in first.'
+                              : 'To order fresh beef by the KG, please create an account or sign in first.'
                           );
                           return;
                         }
