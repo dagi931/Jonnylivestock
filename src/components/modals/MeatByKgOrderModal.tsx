@@ -132,8 +132,7 @@ export const MeatByKgOrderModal: React.FC<MeatByKgOrderModalProps> = ({
       price: pricing.kurtPrice,
       desc: isAmharic
         ? 'ለጥሬ ቁርጥ የሚሆን እጅግ ለስላሳና ቅባት የሌለው ምርጥ የበሬ ሥጋ'
-        : 'Finely selected extra-tender, sinew-free red beef for traditional raw eating',
-      badge: 'Prime Kurt'
+        : 'Finely selected extra-tender, sinew-free red beef for traditional raw eating'
     },
     {
       id: 'kitfo' as MeatCutKey,
@@ -142,8 +141,7 @@ export const MeatByKgOrderModal: React.FC<MeatByKgOrderModalProps> = ({
       price: pricing.kitfoPrice,
       desc: isAmharic
         ? 'ደም ስርና ጅማት ሙሉ በሙሉ የተወገደለት ለስላሳ ቀይ የበሬ ሥጋ'
-        : 'Extra-lean red beef trimmed free of sinew, perfect for authentic kitfo dishes',
-      badge: 'Most Popular'
+        : 'Extra-lean red beef trimmed free of sinew, perfect for authentic kitfo dishes'
     },
     {
       id: 'tibs_wot' as MeatCutKey,
@@ -152,8 +150,7 @@ export const MeatByKgOrderModal: React.FC<MeatByKgOrderModalProps> = ({
       price: pricing.tibsWotPrice,
       desc: isAmharic
         ? 'ለጥብስና ለቤተሰብ ወጥ ድስ የሚሆን በንጽህና የተቆራረጠ ጣፋጭ የበሬ ሥጋ'
-        : 'Rich, stew-sized and pan-fry portioned beef chunks for hearty stews and tibs',
-      badge: 'Great Value'
+        : 'Rich, stew-sized and pan-fry portioned beef chunks for hearty stews and tibs'
     }
   ];
 
@@ -481,20 +478,11 @@ export const MeatByKgOrderModal: React.FC<MeatByKgOrderModalProps> = ({
                         }`}
                       >
                         <div>
-                          <div className="flex items-center justify-between mb-1">
-                            <span
-                              className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
-                                isSelected
-                                  ? 'bg-black/10 text-black font-extrabold border border-black/20'
-                                  : 'bg-black/20 text-amber-500'
-                              }`}
-                            >
-                              {cut.badge}
-                            </span>
-                            {isSelected && <Check className="w-3.5 h-3.5 text-black stroke-[3]" />}
-                          </div>
-                          <div className={`font-serif font-bold text-xs sm:text-sm ${isSelected ? 'text-black font-extrabold' : ''}`}>
-                            {cut.title}
+                          <div className="flex items-start justify-between gap-1 mb-1">
+                            <div className={`font-serif font-bold text-xs sm:text-sm leading-snug ${isSelected ? 'text-black font-extrabold' : ''}`}>
+                              {cut.title}
+                            </div>
+                            {isSelected && <Check className="w-3.5 h-3.5 text-black stroke-[3] shrink-0 mt-0.5" />}
                           </div>
                           <p className={`text-[10.5px] mt-1 line-clamp-2 leading-relaxed ${isSelected ? 'text-black/85 font-medium' : 'opacity-75'}`}>
                             {cut.desc}
