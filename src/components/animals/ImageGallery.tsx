@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useTheme } from '../../context/ThemeContext';
-import { useLanguage } from '../../context/LanguageContext';
 import { Maximize2, X } from 'lucide-react';
 
 interface ImageGalleryProps {
@@ -9,11 +8,10 @@ interface ImageGalleryProps {
   isSold?: boolean;
 }
 
-export const ImageGallery: React.FC<ImageGalleryProps> = ({ images, alt, isSold }) => {
+export const ImageGallery: React.FC<ImageGalleryProps> = ({ images, alt }) => {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const { theme } = useTheme();
-  const { t } = useLanguage();
   const isDark = theme === 'design7';
 
   if (!images || images.length === 0) return null;
@@ -31,15 +29,6 @@ export const ImageGallery: React.FC<ImageGalleryProps> = ({ images, alt, isSold 
           alt={`${alt} - View ${selectedIndex + 1}`}
           className="w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-102"
         />
-
-        {/* SOLD Overlay Banner */}
-        {isSold && (
-          <div className="absolute inset-0 bg-black/55 backdrop-blur-[1px] flex items-center justify-center pointer-events-none z-10">
-            <span className="px-5 py-2 sm:px-6 sm:py-2.5 rounded-2xl bg-red-600/95 text-white font-black text-xs sm:text-base tracking-widest uppercase border-2 border-red-400 shadow-2xl rotate-[-6deg]">
-              {t.common.sold || 'SOLD'}
-            </span>
-          </div>
-        )}
 
         {/* Fullscreen Button - Visible on touch screens & hover on desktop */}
         <button

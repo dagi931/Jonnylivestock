@@ -33,8 +33,8 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({
         };
       case 'sold':
         return {
-          bg: 'bg-red-500/25 text-red-500 dark:text-red-300 border-red-500/50 shadow-xs font-bold',
-          dot: 'bg-red-500',
+          bg: 'bg-red-600/95 text-white border-red-500 shadow-sm font-bold',
+          dot: 'bg-white',
           label: t.common.sold || 'Sold'
         };
       default:

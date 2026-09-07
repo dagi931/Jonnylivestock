@@ -289,7 +289,7 @@ export const AnimalDetails: React.FC = () => {
                       {animal.id}
                     </span>
                   </div>
-                  <StatusBadge status={animal.status} size="sm" />
+                  <StatusBadge status={isSold ? 'sold' : animal.status} size="sm" />
                 </div>
 
                 {/* Breed Title */}

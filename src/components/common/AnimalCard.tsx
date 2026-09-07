@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { Animal } from '../../types/animal';
+import { Animal, AnimalStatus } from '../../types/animal';
 import { StatusBadge } from './StatusBadge';
 import { formatPrice, formatWeight } from '../../utils/formatters';
 import { MapPin, Scale, ArrowRight, Video, ChevronDown } from 'lucide-react';
@@ -59,6 +59,9 @@ export const AnimalCard: React.FC<AnimalCardProps> = ({
     return t.common.female;
   };
 
+  const isSold = animal.status === 'sold' || (animal.quantity !== undefined && animal.quantity <= 0);
+  const displayStatus: AnimalStatus = isSold ? 'sold' : animal.status;
+
   return (
     <div
       ref={cardRef}
@@ -93,22 +96,13 @@ export const AnimalCard: React.FC<AnimalCardProps> = ({
         {/* Subtle Overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 pointer-events-none" />
 
-        {/* Top Badges: Animal ID & Status */}
+        {/* Top Badges: Animal ID & Status Tag */}
         <div className="absolute top-1.5 sm:top-2.5 inset-x-1.5 sm:inset-x-2.5 flex items-center justify-between gap-1 z-20">
           <span className="px-1.5 py-0.5 rounded text-[9px] sm:text-[11px] font-mono font-bold tracking-wider uppercase bg-black/70 text-[#FAF7F0] backdrop-blur-sm border border-white/10 shadow-xs">
             {animal.id}
           </span>
-          <StatusBadge status={animal.status} size="sm" />
+          <StatusBadge status={displayStatus} size="sm" />
         </div>
-
-        {/* SOLD Overlay Banner */}
-        {(animal.status === 'sold' || (animal.quantity !== undefined && animal.quantity <= 0)) && (
-          <div className="absolute inset-0 bg-black/55 backdrop-blur-[1px] flex items-center justify-center pointer-events-none z-10">
-            <span className="px-3.5 py-1 sm:px-4 sm:py-1.5 rounded-xl bg-red-600/95 text-white font-black text-[11px] sm:text-xs tracking-widest uppercase border-2 border-red-400 shadow-2xl rotate-[-6deg]">
-              {t.common.sold || 'SOLD'}
-            </span>
-          </div>
-        )}
 
         {/* Video Indicator */}
         {animal.video && (
@@ -241,7 +235,7 @@ export const AnimalCard: React.FC<AnimalCardProps> = ({
               >
                 {formatPrice(animal.price)}
               </span>
-              {animal.status === 'available' && (
+              {displayStatus === 'available' && (
                 <span className="text-[9px] sm:text-[10.5px] font-bold text-emerald-500 font-mono">
                   (50%: {formatPrice(animal.price * 0.5)})
                 </span>
@@ -252,7 +246,7 @@ export const AnimalCard: React.FC<AnimalCardProps> = ({
           <Link
             to={`/animals/${animal.id}`}
             className={`inline-flex items-center gap-0.5 sm:gap-1 px-1.5 py-1 sm:px-2.5 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-semibold transition-all ${
-              animal.status === 'sold'
+              displayStatus === 'sold'
                 ? isDark
                   ? 'bg-red-950/40 text-red-300 border border-red-800/50 hover:bg-red-900/50'
                   : 'bg-red-50 text-red-700 border border-red-200 hover:bg-red-100'
@@ -261,7 +255,7 @@ export const AnimalCard: React.FC<AnimalCardProps> = ({
                   : 'bg-[#B8792F] hover:bg-[#9E6523] text-[#FAF7F0]'
             }`}
           >
-            <span>{animal.status === 'sold' ? (isAmharic ? 'ተሽጧል (ዝርዝር)' : 'Sold (Details)') : t.common.details}</span>
+            <span>{displayStatus === 'sold' ? (isAmharic ? 'ተሽጧል (ዝርዝር)' : 'Sold (Details)') : t.common.details}</span>
             <ArrowRight className="w-2.5 h-2.5 sm:w-3 sm:h-3 transition-transform group-hover:translate-x-0.5" />
           </Link>
         </div>
