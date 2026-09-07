@@ -248,14 +248,14 @@ export const AnimalCard: React.FC<AnimalCardProps> = ({
             className={`inline-flex items-center gap-0.5 sm:gap-1 px-1.5 py-1 sm:px-2.5 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-semibold transition-all ${
               displayStatus === 'sold'
                 ? isDark
-                  ? 'bg-red-950/40 text-red-300 border border-red-800/50 hover:bg-red-900/50'
-                  : 'bg-red-50 text-red-700 border border-red-200 hover:bg-red-100'
+                  ? 'bg-[#1B1208] text-[#D8C5A8]/50 border border-[#4A2C16]'
+                  : 'bg-[#E4D4BC] text-[#746556]/60 border border-[#E4D4BC]'
                 : isDark
                   ? 'bg-[#C58A3A] hover:bg-[#E0B15A] text-[#1B1208]'
                   : 'bg-[#B8792F] hover:bg-[#9E6523] text-[#FAF7F0]'
             }`}
           >
-            <span>{displayStatus === 'sold' ? (isAmharic ? 'ተሽጧል (ዝርዝር)' : 'Sold (Details)') : t.common.details}</span>
+            <span>{t.common.details}</span>
             <ArrowRight className="w-2.5 h-2.5 sm:w-3 sm:h-3 transition-transform group-hover:translate-x-0.5" />
           </Link>
         </div>
