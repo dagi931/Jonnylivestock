@@ -317,8 +317,8 @@ export const MeatByKgPromoSection: React.FC = () => {
               </span>
             </div>
 
-            {/* 3 Streamlined Cut Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-5 sm:gap-6">
+            {/* 3 Streamlined Cut Cards - 2 in one row on phone screens */}
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-2.5 sm:gap-4 md:gap-6">
               {beefDishes.map((dish) => (
                 <div
                   key={dish.id}
@@ -329,37 +329,37 @@ export const MeatByKgPromoSection: React.FC = () => {
                   }`}
                 >
                   {/* Photo Banner */}
-                  <div className="h-44 sm:h-48 w-full overflow-hidden relative bg-black/20">
+                  <div className="aspect-[4/3] sm:aspect-auto sm:h-44 md:h-48 w-full overflow-hidden relative bg-black/20">
                     <img
                       src={dish.image}
                       alt={dish.name}
                       className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
                       loading="lazy"
                     />
-                    <div className="absolute top-3 left-3 px-2.5 py-1 rounded-lg text-[11px] font-bold bg-black/75 backdrop-blur-md text-white border border-white/10">
+                    <div className="absolute top-2 left-2 sm:top-3 sm:left-3 px-1.5 py-0.5 sm:px-2.5 sm:py-1 rounded-md sm:rounded-lg text-[9.5px] sm:text-[11px] font-bold bg-black/75 backdrop-blur-md text-white border border-white/10">
                       {dish.badge}
                     </div>
                   </div>
 
                   {/* Cut Details */}
-                  <div className="p-4 sm:p-5 flex-1 flex flex-col justify-between space-y-3">
+                  <div className="p-2.5 sm:p-4 md:p-5 flex-1 flex flex-col justify-between space-y-2 sm:space-y-3">
                     <div>
-                      <div className="flex items-center justify-between gap-2">
+                      <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-0.5 sm:gap-2">
                         <h4
-                          className={`font-bold text-base sm:text-lg ${
+                          className={`font-bold text-xs sm:text-base md:text-lg leading-tight truncate ${
                             isDark ? 'text-[#F4E8D0]' : 'text-[#241A12]'
                           }`}
                         >
                           {isAmharic ? dish.amharicName : dish.name}
                         </h4>
-                        <div className="font-mono text-emerald-400 font-extrabold text-base sm:text-lg shrink-0">
+                        <div className="font-mono text-emerald-400 font-extrabold text-xs sm:text-base md:text-lg shrink-0">
                           {dish.price.toLocaleString()}{' '}
-                          <span className="text-xs font-normal text-stone-400">ETB/kg</span>
+                          <span className="text-[9.5px] sm:text-xs font-normal text-stone-400">ETB/kg</span>
                         </div>
                       </div>
 
                       <p
-                        className={`text-xs leading-relaxed mt-2 ${
+                        className={`text-[10.5px] sm:text-xs leading-relaxed mt-1 sm:mt-2 line-clamp-2 sm:line-clamp-3 ${
                           isDark ? 'text-[#D8C5A8]/80' : 'text-[#746556]'
                         }`}
                       >
@@ -381,9 +381,9 @@ export const MeatByKgPromoSection: React.FC = () => {
                         }
                         setIsMeatModalOpen(true);
                       }}
-                      className="w-full py-2.5 rounded-xl border border-amber-500/40 hover:bg-amber-500 hover:text-black text-amber-500 font-bold text-xs transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                      className="w-full py-2 sm:py-2.5 rounded-xl border border-amber-500/40 hover:bg-amber-500 hover:text-black text-amber-500 font-bold text-[11px] sm:text-xs transition-all cursor-pointer flex items-center justify-center gap-1 sm:gap-1.5"
                     >
-                      <Beef className="w-3.5 h-3.5" />
+                      <Beef className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" />
                       <span>{isAmharic ? 'ይህንን ቁራጭ እዘዝ' : 'Order This Cut'}</span>
                     </button>
                   </div>
