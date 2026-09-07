@@ -10,7 +10,13 @@ import { ReservationModal } from '../components/modals/ReservationModal';
 import { ServiceRequestModal } from '../components/modals/ServiceRequestModal';
 import { InquiryModal } from '../components/modals/InquiryModal';
 import { BuyPaymentModal } from '../components/modals/BuyPaymentModal';
-import { ServiceSelector } from '../components/services/ServiceSelector';
+import {
+  AnimalOptionalServicesSelector,
+  AnimalSlaughterOption,
+  SlaughterPricing,
+  getSlaughterFee,
+  getSlaughterServiceLabel
+} from '../components/services/AnimalOptionalServicesSelector';
 import { AnimalCard } from '../components/common/AnimalCard';
 import { business } from '../config/business';
 import { formatPrice, formatWeight, getPhoneCallLink, getWhatsAppLink } from '../utils/formatters';
@@ -31,7 +37,6 @@ import {
   ArrowLeft,
   AlertTriangle,
   Truck,
-  Sparkles,
   CreditCard
 } from 'lucide-react';
 
@@ -48,9 +53,25 @@ export const AnimalDetails: React.FC = () => {
   const [isReservationOpen, setIsReservationOpen] = useState(false);
   const [isServiceModalOpen, setIsServiceModalOpen] = useState(false);
   const [isInquiryOpen, setIsInquiryOpen] = useState(false);
-  const [selectedServices, setSelectedServices] = useState<string[]>([]);
   const [animalData, setAnimalData] = useState<Animal | undefined>(id ? getAnimalById(id) : undefined);
   const [isLoading, setIsLoading] = useState<boolean>(!id || !getAnimalById(id));
+
+  // Optional Services & Fulfillment State
+  const [isDelivery, setIsDelivery] = useState<boolean>(true);
+  const [slaughterOption, setSlaughterOption] = useState<AnimalSlaughterOption>('none');
+  const [slaughterPricing, setSlaughterPricing] = useState<SlaughterPricing>({
+    slaughterFee: 600,
+    travelFee: 200
+  });
+
+  useEffect(() => {
+    // Fetch live slaughter and travel pricing from DB
+    api.getSlaughterPricing().then((pricing) => {
+      if (pricing && pricing.slaughterFee) {
+        setSlaughterPricing(pricing);
+      }
+    });
+  }, []);
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -184,9 +205,20 @@ export const AnimalDetails: React.FC = () => {
     ? (isAmharic ? 'ፍየል' : 'Goat')
     : (isAmharic ? 'ከብት / ላም' : 'Cow');
 
+  const currentSlaughterFee = getSlaughterFee(slaughterOption, slaughterPricing);
+  const totalWithServices = (animal?.price || 0) + currentSlaughterFee;
+  const depositWithServices = Math.round(totalWithServices * 0.5);
+
+  const chosenServiceDetails = slaughterOption !== 'none'
+    ? `${getSlaughterServiceLabel(slaughterOption, isAmharic, slaughterPricing).title} (+${formatPrice(currentSlaughterFee)})`
+    : '';
+  const chosenFulfillmentLabel = isDelivery
+    ? (isAmharic ? 'የእስከ ደጃፍ ማድረሻ' : 'Doorstep Delivery')
+    : (isAmharic ? 'ከእርሻው መውሰድ (Pickup)' : 'Farm Pickup');
+
   const whatsappInquiryText = isAmharic
-    ? `ሰላም ${business.name}፣ ስለ ${animal.breed} (${animal.id}) በዋጋ ${formatPrice(animal.price)} በ${animal.location} ለመጠየቅ ፈልጌ ነበር።${selectedServices.length > 0 ? ` እንዲሁም ተጨማሪ አገልግሎቶች እፈልጋለሁ፡ [${selectedServices.join(', ')}]።` : ''}`
-    : `Hello ${business.name}, I am interested in purchasing ${animal.breed} (${animal.id}) priced at ${formatPrice(animal.price)} in ${animal.location}.${selectedServices.length > 0 ? ` I would also like additional services: [${selectedServices.join(', ')}].` : ''}`;
+    ? `ሰላም ${business.name}፣ ስለ ${animal.breed} (${animal.id}) በዋጋ ${formatPrice(animal.price)} በ${animal.location} ለመጠየቅ ፈልጌ ነበር። የማስረከቢያ ምርጫዬ፡ [${chosenFulfillmentLabel}]${chosenServiceDetails ? `፤ ተጨማሪ አገልግሎት፡ [${chosenServiceDetails}]` : ''}፤ ጠቅላላ ግምት፡ ${formatPrice(totalWithServices)}።`
+    : `Hello ${business.name}, I am interested in purchasing ${animal.breed} (${animal.id}) priced at ${formatPrice(animal.price)} in ${animal.location}. Delivery preference: [${chosenFulfillmentLabel}]${chosenServiceDetails ? `, Add-on: [${chosenServiceDetails}]` : ''}, Estimated total: ${formatPrice(totalWithServices)}.`;
 
   return (
     <div className="min-h-screen py-4 sm:py-10">
@@ -450,7 +482,7 @@ export const AnimalDetails: React.FC = () => {
                         <span className="truncate">{isAmharic ? 'በ50% ቅድመ-ክፍያ ያስይዙ' : 'Reserve with 50% Deposit'}</span>
                       </span>
                       <span className="font-mono font-black text-xs sm:text-sm bg-black/10 px-2.5 py-0.5 rounded-lg shrink-0 whitespace-nowrap">
-                        {formatPrice(animal.price * 0.5)}
+                        {formatPrice(depositWithServices)}
                       </span>
                     </button>
 
@@ -470,14 +502,19 @@ export const AnimalDetails: React.FC = () => {
                         setBuyModalMode('full');
                         setIsBuyModalOpen(true);
                       }}
-                      className={`w-full py-2.5 px-3 sm:px-4 rounded-xl text-xs font-semibold border flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                      className={`w-full py-2.5 px-3 sm:px-4 rounded-xl text-xs font-semibold border flex items-center justify-between gap-2 transition-all cursor-pointer ${
                         isDark
                           ? 'bg-[#1B1208] border-[#4A2C16] text-[#D8C5A8] hover:border-[#C58A3A] hover:text-[#F4E8D0]'
                           : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#746556] hover:border-[#B8792F] hover:text-[#241A12]'
                       }`}
                     >
-                      <CreditCard className="w-3.5 h-3.5 shrink-0" />
-                      <span className="truncate">{isAmharic ? '100% ሙሉ ክፍያ ፈጽመው ይግዙ (Buy in Full)' : 'Buy in Full & Upload Payment Slip'}</span>
+                      <span className="flex items-center gap-2 truncate">
+                        <CreditCard className="w-3.5 h-3.5 shrink-0" />
+                        <span className="truncate">{isAmharic ? '100% ሙሉ ክፍያ (Buy in Full)' : 'Buy in Full'}</span>
+                      </span>
+                      <span className="font-mono font-bold text-xs shrink-0">
+                        {formatPrice(totalWithServices)}
+                      </span>
                     </button>
 
                     <div className="grid grid-cols-2 gap-2">
@@ -544,7 +581,7 @@ export const AnimalDetails: React.FC = () => {
                     <span>{t.detailsPage.optionalServicesTitle}</span>
                   </div>
                   <h3 className={`font-serif font-bold text-sm sm:text-base truncate ${isDark ? 'text-[#F4E8D0]' : 'text-[#241A12]'}`}>
-                    {t.detailsPage.optionalServicesSubtitle}
+                    {isAmharic ? 'የማድረሻ እና የዕርድ አማራጮች' : 'Fulfillment, Delivery & Slaughter Services'}
                   </h3>
                 </div>
                 <Link to="/services" className="text-xs font-semibold hover:underline text-amber-500 shrink-0">
@@ -552,26 +589,68 @@ export const AnimalDetails: React.FC = () => {
                 </Link>
               </div>
 
-              <ServiceSelector
-                selectedServices={selectedServices}
-                onChange={setSelectedServices}
+              <AnimalOptionalServicesSelector
+                isDelivery={isDelivery}
+                onDeliveryChange={setIsDelivery}
+                slaughterOption={slaughterOption}
+                onSlaughterOptionChange={setSlaughterOption}
+                pricing={slaughterPricing}
+                showDeliveryToggle={true}
               />
 
-              {/* Request Custom Service Button if items are checked */}
-              {selectedServices.length > 0 && (
-                <button
-                  type="button"
-                  onClick={() => setIsServiceModalOpen(true)}
-                  className={`w-full mt-2 py-2.5 px-3 rounded-xl text-xs font-bold border flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-sm ${
-                    isDark
-                      ? 'bg-amber-500/15 border-amber-500/40 text-amber-400 hover:bg-amber-500/25'
-                      : 'bg-amber-500/15 border-amber-500/40 text-amber-600 hover:bg-amber-500/25'
-                  }`}
-                >
-                  <Sparkles className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-                  <span>{t.detailsPage.requestAnimalAndServices} ({selectedServices.length})</span>
-                </button>
-              )}
+              {/* Order with Chosen Services Quick Action Bar */}
+              <div
+                className={`p-3 sm:p-3.5 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs ${
+                  isDark ? 'bg-[#1E140A] border-[#4A2C16]' : 'bg-white border-[#E4D4BC]'
+                }`}
+              >
+                <div>
+                  <span className="opacity-70 block text-[10px] uppercase font-semibold">
+                    {isAmharic ? 'የአገልግሎት ክፍያ' : 'Selected Add-on Fee'}
+                  </span>
+                  <span className="font-bold text-amber-500 font-mono text-sm">
+                    {currentSlaughterFee > 0 ? `+${formatPrice(currentSlaughterFee)}` : (isAmharic ? 'ነፃ (0 ብር)' : 'Free (0 ETB)')}
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!isAuthenticated) {
+                        openAuthModal('register');
+                        return;
+                      }
+                      setBuyModalMode('deposit');
+                      setIsBuyModalOpen(true);
+                    }}
+                    className="flex-1 sm:flex-initial px-3.5 py-2 rounded-xl bg-[#C58A3A] hover:bg-[#A06E35] text-white font-bold text-xs transition-colors cursor-pointer shadow-xs flex items-center justify-center gap-1.5"
+                  >
+                    <ShieldCheck className="w-3.5 h-3.5" />
+                    <span>{isAmharic ? 'በቅድመ-ክፍያ ይዘዙ' : 'Reserve with Deposit'}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!isAuthenticated) {
+                        openAuthModal('register');
+                        return;
+                      }
+                      setBuyModalMode('full');
+                      setIsBuyModalOpen(true);
+                    }}
+                    className={`flex-1 sm:flex-initial px-3.5 py-2 rounded-xl border font-bold text-xs transition-colors cursor-pointer flex items-center justify-center gap-1.5 ${
+                      isDark
+                        ? 'border-[#4A2C16] text-[#F4E8D0] hover:bg-[#2A1A0D]'
+                        : 'border-[#E4D4BC] text-[#241A12] hover:bg-[#FAF7F0]'
+                    }`}
+                  >
+                    <CreditCard className="w-3.5 h-3.5" />
+                    <span>{isAmharic ? 'ሙሉ ክፍያ' : 'Buy in Full'}</span>
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -614,6 +693,9 @@ export const AnimalDetails: React.FC = () => {
         onClose={() => setIsBuyModalOpen(false)}
         onOrderComplete={refreshAnimal}
         initialMode={buyModalMode}
+        initialIsDelivery={isDelivery}
+        initialSlaughterOption={slaughterOption}
+        initialSlaughterPricing={slaughterPricing}
       />
 
       {/* Reservation Inquiry Modal */}
@@ -630,7 +712,7 @@ export const AnimalDetails: React.FC = () => {
       {/* Service Request Modal */}
       <ServiceRequestModal
         animal={animal}
-        preSelectedServices={selectedServices}
+        preSelectedServices={[]}
         isOpen={isServiceModalOpen}
         onClose={() => setIsServiceModalOpen(false)}
       />

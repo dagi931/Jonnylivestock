@@ -60,4 +60,37 @@ router.put('/meat-pricing', authenticateToken, requireAdmin, async (req: AuthReq
   }
 });
 
+// ==================== GET SLAUGHTER & SERVICES PRICING (Public) ====================
+router.get('/slaughter-pricing', async (_req: Request, res: Response): Promise<void> => {
+  try {
+    const pricing = await PostgresDB.getSlaughterPricing();
+    res.json({ success: true, data: pricing });
+  } catch (error: any) {
+    console.error('Error fetching slaughter pricing:', error);
+    res.status(500).json({ success: false, error: 'Failed to fetch slaughter pricing' });
+  }
+});
+
+// ==================== UPDATE SLAUGHTER & SERVICES PRICING (Admin only) ====================
+router.put('/slaughter-pricing', authenticateToken, requireAdmin, async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { slaughterFee, travelFee } = req.body;
+    if (slaughterFee === undefined && travelFee === undefined) {
+      res.status(400).json({ success: false, error: 'Slaughter fee or travel fee is required' });
+      return;
+    }
+
+    const updated = await PostgresDB.updateSlaughterPricing({
+      slaughterFee: Number(slaughterFee),
+      travelFee: travelFee !== undefined ? Number(travelFee) : undefined
+    });
+
+    res.json({ success: true, message: 'Slaughter and services pricing updated successfully', data: updated });
+  } catch (error: any) {
+    console.error('Error updating slaughter pricing:', error);
+    res.status(500).json({ success: false, error: 'Failed to update slaughter pricing' });
+  }
+});
+
 export default router;
+

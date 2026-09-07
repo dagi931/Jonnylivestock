@@ -1080,6 +1080,38 @@ class ApiService {
     }
   }
 
+  // ==================== SLAUGHTER & OPTIONAL SERVICES PRICING ====================
+  async getSlaughterPricing(): Promise<{
+    slaughterFee: number;
+    travelFee: number;
+    updatedAt?: string;
+  }> {
+    try {
+      const res = await fetch(`${API_BASE}/settings/slaughter-pricing`);
+      if (!res.ok) throw new Error('Failed to fetch slaughter pricing');
+      const json = await res.json();
+      return json.data || { slaughterFee: 600, travelFee: 200 };
+    } catch {
+      return { slaughterFee: 600, travelFee: 200 };
+    }
+  }
+
+  async updateSlaughterPricing(
+    pricing: { slaughterFee: number; travelFee?: number },
+    token?: string
+  ): Promise<{ success: boolean; data?: any; error?: string }> {
+    try {
+      const res = await fetch(`${API_BASE}/settings/slaughter-pricing`, {
+        method: 'PUT',
+        headers: this.getHeaders(token),
+        body: JSON.stringify(pricing)
+      });
+      return await res.json();
+    } catch (error: any) {
+      return { success: false, error: error.message || 'Failed to update slaughter pricing' };
+    }
+  }
+
   // ==================== DELIVERY & LOGISTICS ====================
   async getDeliveryQuote(params: {
     deliveryAddress?: string;

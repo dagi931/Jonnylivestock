@@ -56,7 +56,9 @@ import {
   Settings,
   Filter,
   Menu,
-  Package
+  Package,
+  UtensilsCrossed,
+  Info
 } from 'lucide-react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { PreMadePackage, PackageCatalogItem } from '../types/package';
@@ -269,6 +271,16 @@ export const Admin: React.FC = () => {
   const [testMeatKg, setTestMeatKg] = useState<number>(5);
   const [testIncludeDelivery, setTestIncludeDelivery] = useState<boolean>(false);
 
+  // Slaughter & Optional Services Pricing State (Base 600, Travel extra 200)
+  const [slaughterPricing, setSlaughterPricing] = useState<{
+    slaughterFee: number;
+    travelFee: number;
+  }>({
+    slaughterFee: 600,
+    travelFee: 200
+  });
+  const [isSavingSlaughterPricing, setIsSavingSlaughterPricing] = useState(false);
+
   // Delivery Fleet & Logistics Settings State
   const [deliveryVehicles, setDeliveryVehicles] = useState<any[]>([
     {
@@ -451,6 +463,23 @@ export const Admin: React.FC = () => {
     }
   };
 
+  const handleSaveSlaughterPricing = async () => {
+    setIsSavingSlaughterPricing(true);
+    try {
+      const activeToken = adminToken || localStorage.getItem('jonny_admin_token') || localStorage.getItem('jonny_user_token') || undefined;
+      const res = await api.updateSlaughterPricing(slaughterPricing, activeToken);
+      if (res.success) {
+        showAlert('success', 'Slaughter & optional services rates updated successfully! Live rates are now active.');
+      } else {
+        showAlert('error', res.error || 'Failed to update slaughter pricing');
+      }
+    } catch (err: any) {
+      showAlert('error', err.message || 'Error updating slaughter pricing');
+    } finally {
+      setIsSavingSlaughterPricing(false);
+    }
+  };
+
   // Load Data from Backend
   const loadDashboardData = async (isSilent: boolean | React.SyntheticEvent = false) => {
     const silent = isSilent === true;
@@ -459,14 +488,15 @@ export const Admin: React.FC = () => {
     }
     try {
       const activeToken = adminToken || localStorage.getItem('jonny_admin_token') || localStorage.getItem('jonny_user_token') || undefined;
-      const [fetchedAnimals, fetchedOrders, notifRes, pkgRes, fetchedMsgs, meatPricingRes, deliveryConfigRes] = await Promise.all([
+      const [fetchedAnimals, fetchedOrders, notifRes, pkgRes, fetchedMsgs, meatPricingRes, deliveryConfigRes, slaughterPricingRes] = await Promise.all([
         api.getAnimals(),
         api.getAllOrders(activeToken),
         api.getNotifications(activeToken),
         api.getPackagesData(),
         api.getContactMessages(),
         api.getMeatPricing(),
-        api.getDeliveryConfig()
+        api.getDeliveryConfig(),
+        api.getSlaughterPricing()
       ]);
 
       if (fetchedAnimals && fetchedAnimals.length > 0) {
@@ -490,6 +520,12 @@ export const Admin: React.FC = () => {
           tibsWotPrice: meatPricingRes.tibsWotPrice ?? 1800,
           available: meatPricingRes.available ?? true,
           notes: (meatPricingRes as any).notes ?? ''
+        });
+      }
+      if (slaughterPricingRes) {
+        setSlaughterPricing({
+          slaughterFee: slaughterPricingRes.slaughterFee ?? 600,
+          travelFee: slaughterPricingRes.travelFee ?? 200
         });
       }
       if (deliveryConfigRes && deliveryConfigRes.success) {
@@ -5089,7 +5125,122 @@ export const Admin: React.FC = () => {
                   </div>
                 </div>
 
-                {/* 3. Interactive Live Route & Capacity Simulator Sandbox */}
+                {/* 3. Slaughter & On-Site Preparation Rates (Configurable by Admin) */}
+                <div
+                  className={`p-5 sm:p-6 rounded-3xl border space-y-4 ${
+                    isDark ? 'bg-[#1E140A] border-[#3D2513]' : 'bg-white border-[#E8DCCB]'
+                  }`}
+                >
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-black/10 dark:border-white/10">
+                    <div>
+                      <h3 className="text-base font-serif font-bold flex items-center gap-2">
+                        <UtensilsCrossed className="w-4 h-4 text-[#C18A45]" />
+                        <span>{isAmharic ? 'የዕርድ እና የስጋ ዝግጅት አገልግሎት ተመኖች' : 'Slaughter & On-Site Preparation Rates'}</span>
+                      </h3>
+                      <p className="text-xs opacity-70 mt-0.5">
+                        {isAmharic
+                          ? 'የዕርድ መነሻ ዋጋ እና የባለሙያ አብሮ መጓዣ አበል ያዘጋጁ። እነዚህ ዋጋዎች በደንበኞች ትዕዛዝ ላይ በቀጥታ ተግባራዊ ይሆናሉ።'
+                          : 'Configure base slaughter fee and worker accompaniment travel fee. Applied automatically to customer orders.'}
+                      </p>
+                    </div>
+
+                    <button
+                      type="button"
+                      disabled={isSavingSlaughterPricing}
+                      onClick={handleSaveSlaughterPricing}
+                      className="px-4 py-2 rounded-xl bg-[#C18A45] hover:bg-[#A06E35] disabled:opacity-50 text-white font-bold text-xs shadow transition-all flex items-center gap-1.5 cursor-pointer self-start sm:self-auto"
+                    >
+                      {isSavingSlaughterPricing ? (
+                        <>
+                          <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                          <span>{isAmharic ? 'ዋጋዎችን በማስቀመጥ ላይ...' : 'Saving Rates...'}</span>
+                        </>
+                      ) : (
+                        <>
+                          <Check className="w-3.5 h-3.5" />
+                          <span>{isAmharic ? 'የዕርድ ዋጋዎችን መዝግብ' : 'Save Slaughter Rates'}</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {/* Base Slaughter Fee */}
+                    <div className={`p-4 rounded-2xl border ${isDark ? 'bg-[#2A1A0D] border-[#4A2C16]' : 'bg-[#FAF7F0] border-[#E4D4BC]'}`}>
+                      <label className="block text-xs font-bold uppercase mb-1 flex items-center justify-between">
+                        <span>{isAmharic ? 'የዕርድ መነሻ ክፍያ (ብር)' : 'Base Slaughter Fee (ETB)'}</span>
+                        <span className="text-[10px] opacity-60 font-mono">Default: 600 ETB</span>
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        step="50"
+                        value={slaughterPricing.slaughterFee}
+                        onChange={(e) =>
+                          setSlaughterPricing((prev) => ({
+                            ...prev,
+                            slaughterFee: Math.max(0, Number(e.target.value) || 0)
+                          }))
+                        }
+                        className="w-full px-3 py-2 rounded-xl border text-sm font-mono font-bold bg-transparent focus:outline-none focus:border-[#C18A45]"
+                      />
+                      <p className="text-[10.5px] opacity-70 mt-1.5 leading-snug">
+                        {isAmharic
+                          ? 'እርሻው ላይ ታርዶ ሲላክ (Send Slaughtered) ወይም ደንበኞች እራሳቸው መጥተው እርሻው ላይ ሲታረድ የሚከፈል መነሻ ተመን።'
+                          : 'Applied when animal is slaughtered at farm before delivery or prepared on-site at farm during pickup.'}
+                      </p>
+                    </div>
+
+                    {/* Travel Extra Fee */}
+                    <div className={`p-4 rounded-2xl border ${isDark ? 'bg-[#2A1A0D] border-[#4A2C16]' : 'bg-[#FAF7F0] border-[#E4D4BC]'}`}>
+                      <label className="block text-xs font-bold uppercase mb-1 flex items-center justify-between">
+                        <span>{isAmharic ? 'የባለሙያ አብሮ መጓዣ ተጨማሪ ክፍያ (ብር)' : 'Worker Accompaniment Travel Extra (ETB)'}</span>
+                        <span className="text-[10px] opacity-60 font-mono">Default: 200 ETB</span>
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        step="50"
+                        value={slaughterPricing.travelFee}
+                        onChange={(e) =>
+                          setSlaughterPricing((prev) => ({
+                            ...prev,
+                            travelFee: Math.max(0, Number(e.target.value) || 0)
+                          }))
+                        }
+                        className="w-full px-3 py-2 rounded-xl border text-sm font-mono font-bold bg-transparent focus:outline-none focus:border-[#C18A45]"
+                      />
+                      <p className="text-[10.5px] opacity-70 mt-1.5 leading-snug">
+                        {isAmharic
+                          ? `የዕርድ ባለሙያው ከማድረሻ መኪናው ጋር አብሮ ሲላክ ወይም ደንበኞች ይዘውት ሲሄዱ የሚጨመር ተጨማሪ ክፍያ (ጠቅላላ፡ ${formatPrice(slaughterPricing.slaughterFee + slaughterPricing.travelFee)})።`
+                          : `Added when slaughterer accompanies delivery vehicle or customer takes him along (Total: ${formatPrice(slaughterPricing.slaughterFee + slaughterPricing.travelFee)}).`}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Summary / Formula Rule Box */}
+                  <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-xs flex items-start gap-2.5">
+                    <Info className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+                    <div className="space-y-1">
+                      <span className="font-bold text-amber-500 block">
+                        {isAmharic ? 'የዋጋ ስሌት ደንብ ማጠቃለያ' : 'Active Rate Calculation Summary'}
+                      </span>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] opacity-90">
+                        <div>
+                          • <strong>{isAmharic ? 'የታረደ መላክ / እርሻው ላይ ማረድ' : 'Send Slaughtered / Farm Slaughter'}:</strong>{' '}
+                          <span className="font-mono font-bold text-amber-500">{formatPrice(slaughterPricing.slaughterFee)}</span>
+                        </div>
+                        <div>
+                          • <strong>{isAmharic ? 'ባለሙያ አብሮ ሲጓዝ / ደንበኞች ይዘው ሲሄዱ' : 'Worker Travels With Delivery / Pickup'}:</strong>{' '}
+                          <span className="font-mono font-bold text-amber-500">{formatPrice(slaughterPricing.slaughterFee + slaughterPricing.travelFee)}</span>{' '}
+                          <span className="text-[10px] opacity-75">({slaughterPricing.slaughterFee} + {slaughterPricing.travelFee})</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 4. Interactive Live Route & Capacity Simulator Sandbox */}
                 <div
                   className={`p-5 sm:p-6 rounded-3xl border space-y-4 ${
                     isDark ? 'bg-[#1E140A] border-[#3D2513]' : 'bg-white border-[#E8DCCB]'

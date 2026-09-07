@@ -1566,6 +1566,45 @@ export class PostgresDB {
     return dataToSave;
   }
 
+  // ==================== SLAUGHTER & OPTIONAL SERVICES PRICING ====================
+  public static async getSlaughterPricing() {
+    try {
+      const setting = await prisma.setting.findUnique({
+        where: { key: 'slaughter_pricing' }
+      });
+      if (setting && setting.value) {
+        return JSON.parse(setting.value);
+      }
+    } catch (e) {
+      console.error('Error fetching slaughter pricing from DB:', e);
+    }
+    // Default prices as requested by user
+    return {
+      slaughterFee: 600,   // Base slaughtering fee (default: 600 ETB)
+      travelFee: 200,      // Extra fee when slaughter worker travels with delivery or customer takes him along (+200 ETB)
+      updatedAt: new Date().toISOString()
+    };
+  }
+
+  public static async updateSlaughterPricing(pricing: {
+    slaughterFee: number;
+    travelFee?: number;
+  }) {
+    const dataToSave = {
+      slaughterFee: Number(pricing.slaughterFee) || 600,
+      travelFee: pricing.travelFee !== undefined ? Number(pricing.travelFee) : 200,
+      updatedAt: new Date().toISOString()
+    };
+
+    await prisma.setting.upsert({
+      where: { key: 'slaughter_pricing' },
+      update: { value: JSON.stringify(dataToSave) },
+      create: { key: 'slaughter_pricing', value: JSON.stringify(dataToSave) }
+    });
+
+    return dataToSave;
+  }
+
   // ==================== CONTACT US MESSAGES ====================
   public static async createContactMessage(data: {
     name: string;
