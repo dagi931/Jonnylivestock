@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTheme } from '../../context/ThemeContext';
 import { useLanguage } from '../../context/LanguageContext';
-import { useUserAuth } from '../../context/UserAuthContext';
 import { business } from '../../config/business';
 import { api } from '../../services/api';
 import { getWhatsAppLink, getPhoneCallLink } from '../../utils/formatters';
@@ -26,7 +25,6 @@ import {
 export const MeatByKgPromoSection: React.FC = () => {
   const { theme } = useTheme();
   const { isAmharic } = useLanguage();
-  const { isAuthenticated, openAuthModal } = useUserAuth();
   const isDark = theme === 'design7';
   const [isMeatModalOpen, setIsMeatModalOpen] = useState(false);
   const [prices, setPrices] = useState({
@@ -218,15 +216,6 @@ export const MeatByKgPromoSection: React.FC = () => {
               <button
                 type="button"
                 onClick={() => {
-                  if (!isAuthenticated) {
-                    openAuthModal(
-                      'register',
-                      isAmharic
-                        ? 'የበሬ ስጋ በኪሎግራም (KG) ለማዘዝ እባክዎ መጀመሪያ ይመዝገቡ ወይም ይግቡ።'
-                        : 'To order fresh beef by the KG, please create an account or sign in first.'
-                    );
-                    return;
-                  }
                   setIsMeatModalOpen(true);
                 }}
                 className="w-full inline-flex items-center justify-between px-6 py-4 rounded-2xl bg-amber-500 hover:bg-amber-600 text-black font-extrabold text-sm sm:text-base shadow-xl transition-all active:scale-[0.98] group cursor-pointer"
@@ -370,15 +359,6 @@ export const MeatByKgPromoSection: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => {
-                        if (!isAuthenticated) {
-                          openAuthModal(
-                            'register',
-                            isAmharic
-                              ? 'የበሬ ስጋ በኪሎግራም (KG) ለማዘዝ እባክዎ መጀመሪያ ይመዝገቡ ወይም ይግቡ።'
-                              : 'To order fresh beef by the KG, please create an account or sign in first.'
-                          );
-                          return;
-                        }
                         setIsMeatModalOpen(true);
                       }}
                       className="w-full py-2 sm:py-2.5 rounded-xl border border-amber-500/40 hover:bg-amber-500 hover:text-black text-amber-500 font-bold text-[11px] sm:text-xs transition-all cursor-pointer flex items-center justify-center gap-1 sm:gap-1.5"

@@ -22,7 +22,6 @@ import { business } from '../config/business';
 import { formatPrice, formatWeight, getPhoneCallLink, getWhatsAppLink } from '../utils/formatters';
 import { useTheme } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
-import { useUserAuth } from '../context/UserAuthContext';
 import { useRealtimeEvent } from '../context/RealtimeContext';
 import {
   Phone,
@@ -45,7 +44,6 @@ export const AnimalDetails: React.FC = () => {
   const navigate = useNavigate();
   const { theme } = useTheme();
   const { t, isAmharic } = useLanguage();
-  const { isAuthenticated, openAuthModal } = useUserAuth();
   const isDark = theme === 'design7';
 
   const [isBuyModalOpen, setIsBuyModalOpen] = useState(false);
@@ -463,15 +461,6 @@ export const AnimalDetails: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => {
-                        if (!isAuthenticated) {
-                          openAuthModal(
-                            'register',
-                            isAmharic
-                              ? `ይህን እንስሳ (${animal.breed} - ${animal.id}) በ50% ቅድመ-ክፍያ ለማስያዝ እባክዎ መጀመሪያ ይመዝገቡ ወይም ይግቡ።`
-                              : `To reserve this animal (${animal.breed} - ${animal.id}) with a 50% deposit, please create an account or sign in first.`
-                          );
-                          return;
-                        }
                         setBuyModalMode('deposit');
                         setIsBuyModalOpen(true);
                       }}
@@ -490,15 +479,6 @@ export const AnimalDetails: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => {
-                        if (!isAuthenticated) {
-                          openAuthModal(
-                            'register',
-                            isAmharic
-                              ? `ይህን እንስሳ (${animal.breed} - ${animal.id}) 100% ሙሉ ክፍያ ፈጽመው ለመግዛት እባክዎ መጀመሪያ ይመዝገቡ ወይም ይግቡ።`
-                              : `To purchase this animal (${animal.breed} - ${animal.id}) in full and upload payment slip, please create an account or sign in first.`
-                          );
-                          return;
-                        }
                         setBuyModalMode('full');
                         setIsBuyModalOpen(true);
                       }}
@@ -617,10 +597,6 @@ export const AnimalDetails: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => {
-                      if (!isAuthenticated) {
-                        openAuthModal('register');
-                        return;
-                      }
                       setBuyModalMode('deposit');
                       setIsBuyModalOpen(true);
                     }}
@@ -633,10 +609,6 @@ export const AnimalDetails: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => {
-                      if (!isAuthenticated) {
-                        openAuthModal('register');
-                        return;
-                      }
                       setBuyModalMode('full');
                       setIsBuyModalOpen(true);
                     }}

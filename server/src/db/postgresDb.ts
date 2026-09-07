@@ -1,6 +1,7 @@
 import prisma from './prisma.js';
 import { Animal, Order, User, AdminNotification, BankAccount, SavedPackage, PackageCatalogItem, PreMadePackage, ContactMessage } from '../types/index.js';
 import { PRE_MADE_PACKAGES } from '../data/packagesData.js';
+import { normalizeEthiopianPhone } from '../utils/phone.js';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -177,6 +178,42 @@ export class PostgresDB {
       role: user.role as User['role'],
       createdAt: user.createdAt.toISOString()
     };
+  }
+
+  public static async findUserByPhone(phone: string): Promise<User | null> {
+    const normalized = normalizeEthiopianPhone(phone);
+    if (!normalized) return null;
+    const user = await prisma.user.findFirst({
+      where: {
+        phone: { in: [normalized, `+251${normalized.slice(1)}`, normalized.slice(1)] }
+      }
+    });
+    if (!user) return null;
+    return {
+      ...user,
+      role: user.role as User['role'],
+      createdAt: user.createdAt.toISOString()
+    };
+  }
+
+  public static async claimGuestOrdersByPhone(userId: string, phone: string): Promise<number> {
+    const normalized = normalizeEthiopianPhone(phone);
+    if (!userId || !normalized) return 0;
+    try {
+      const result = await prisma.order.updateMany({
+        where: {
+          customerPhone: normalized,
+          userId: null
+        },
+        data: {
+          userId
+        }
+      });
+      return result.count;
+    } catch (err) {
+      console.warn('Error claiming guest orders by phone:', err);
+      return 0;
+    }
   }
 
   public static async findUserById(id: string): Promise<User | null> {
@@ -592,9 +629,16 @@ export class PostgresDB {
   }
 
   public static async getOrdersByUserId(userId: string, phone?: string): Promise<Order[]> {
+    const normalizedPhone = phone ? normalizeEthiopianPhone(phone) : undefined;
+
+    // Security & auto-claim: Automatically attach any unlinked guest orders placed with this phone to the user
+    if (userId && normalizedPhone) {
+      await this.claimGuestOrdersByPhone(userId, normalizedPhone);
+    }
+
     const whereConditions: any[] = [{ userId }];
-    if (phone) {
-      whereConditions.push({ customerPhone: phone });
+    if (normalizedPhone) {
+      whereConditions.push({ customerPhone: normalizedPhone, userId: null });
     }
     const orders = await prisma.order.findMany({
       where: {
@@ -606,9 +650,15 @@ export class PostgresDB {
   }
 
   public static async getReservations(userId?: string, phone?: string): Promise<Order[]> {
+    const normalizedPhone = phone ? normalizeEthiopianPhone(phone) : undefined;
+
+    if (userId && normalizedPhone) {
+      await this.claimGuestOrdersByPhone(userId, normalizedPhone);
+    }
+
     const userOrPhoneConditions: any[] = [];
     if (userId) userOrPhoneConditions.push({ userId });
-    if (phone) userOrPhoneConditions.push({ customerPhone: phone });
+    if (normalizedPhone) userOrPhoneConditions.push({ customerPhone: normalizedPhone, userId: null });
 
     const orders = await prisma.order.findMany({
       where: {
@@ -621,9 +671,15 @@ export class PostgresDB {
   }
 
   public static async getDirectOrders(userId?: string, phone?: string): Promise<Order[]> {
+    const normalizedPhone = phone ? normalizeEthiopianPhone(phone) : undefined;
+
+    if (userId && normalizedPhone) {
+      await this.claimGuestOrdersByPhone(userId, normalizedPhone);
+    }
+
     const userOrPhoneConditions: any[] = [];
     if (userId) userOrPhoneConditions.push({ userId });
-    if (phone) userOrPhoneConditions.push({ customerPhone: phone });
+    if (normalizedPhone) userOrPhoneConditions.push({ customerPhone: normalizedPhone, userId: null });
 
     const orders = await prisma.order.findMany({
       where: {
@@ -656,7 +712,7 @@ export class PostgresDB {
         id: orderData.id || `ORD-${Date.now().toString().slice(-6)}`,
         userId: orderData.userId || null,
         customerName: orderData.customerName || 'Valued Customer',
-        customerPhone: orderData.customerPhone || '',
+        customerPhone: normalizeEthiopianPhone(orderData.customerPhone || ''),
         customerEmail: orderData.customerEmail || null,
         deliveryLocation: isDeliveryEffective ? (orderData.deliveryLocation || orderData.deliveryAddress || null) : 'Reservation - Delivery arranged on final payment',
         

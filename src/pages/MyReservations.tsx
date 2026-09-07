@@ -365,27 +365,41 @@ export const MyReservations: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
         {!isAuthenticated ? (
           <div
-            className={`p-10 rounded-3xl border text-center max-w-lg mx-auto space-y-4 ${
+            className={`p-8 sm:p-10 rounded-3xl border text-center max-w-lg mx-auto space-y-4 ${
               isDark ? 'bg-[#24170D] border-[#4A2C16]' : 'bg-white border-[#E4D4BC]'
             }`}
           >
-            <div className="w-12 h-12 rounded-2xl bg-amber-500/15 text-amber-500 flex items-center justify-center mx-auto">
-              <ShieldCheck className="w-6 h-6" />
+            <div className="w-14 h-14 rounded-2xl bg-amber-500/15 text-amber-500 flex items-center justify-center mx-auto shadow-inner">
+              <ShieldCheck className="w-7 h-7" />
             </div>
-            <h3 className="font-serif font-bold text-xl">
-              {isAmharic ? 'ትዕዛዞችን ለመመልከት ይግቡ' : 'Sign In to View Your Orders & Reservations'}
+            <h3 className="font-serif font-bold text-xl sm:text-2xl">
+              {isAmharic ? 'ትዕዛዞችን ለመከታተል ይግቡ ወይም ይመዝገቡ' : 'Sign In to Track Your Orders'}
             </h3>
-            <p className="text-xs opacity-75">
+            <p className="text-xs sm:text-sm opacity-80 leading-relaxed">
               {isAmharic
-                ? 'የቀጥታ ትዕዛዞችዎን፣ የይዞታ ክፍያዎችን እና የትራንስፖርት ሁኔታዎችን በቀላሉ ይከታተሉ።'
-                : 'Access your full purchases, active reservations, pay remaining balances, and view transaction stages.'}
+                ? 'ያለ አካውንት ትዕዛዝ አስገብተው ነበር? በትዕዛዝዎ ወቅት በተጠቀሙበት ስልክ ቁጥር ሲገቡ ወይም መለያ ሲከፍቱ ያለፉት ትዕዛዞችዎ እና ይዞታዎችዎ በራስ-ሰር ተገናኝተው እዚህ ይታያሉ።'
+                : 'Placed an order as a guest? Simply sign in or create an account with the same phone number you used during checkout, and all your past orders and reservations will automatically connect here.'}
             </p>
-            <button
-              onClick={() => openAuthModal('login')}
-              className="px-6 py-2.5 rounded-2xl bg-amber-500 hover:bg-amber-600 text-black font-bold text-xs transition-all shadow-md cursor-pointer"
-            >
-              {isAmharic ? 'ይግቡ' : 'Sign In'}
-            </button>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => openAuthModal('login')}
+                className="w-full sm:w-auto px-7 py-3 rounded-2xl bg-amber-500 hover:bg-amber-600 text-black font-bold text-xs sm:text-sm transition-all shadow-md active:scale-98 cursor-pointer"
+              >
+                {isAmharic ? 'ይግቡ' : 'Sign In'}
+              </button>
+              <button
+                type="button"
+                onClick={() => openAuthModal('register')}
+                className={`w-full sm:w-auto px-7 py-3 rounded-2xl border font-bold text-xs sm:text-sm transition-all active:scale-98 cursor-pointer ${
+                  isDark
+                    ? 'border-amber-500/40 text-amber-400 hover:bg-amber-500/10'
+                    : 'border-[#B8792F]/50 text-[#8B4513] hover:bg-amber-50'
+                }`}
+              >
+                {isAmharic ? 'መለያ ይፍጠሩ' : 'Create Account'}
+              </button>
+            </div>
           </div>
         ) : loading ? (
           <div className="text-center py-20 opacity-60">

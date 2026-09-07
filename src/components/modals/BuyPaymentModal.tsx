@@ -448,6 +448,43 @@ export const BuyPaymentModal: React.FC<BuyPaymentModalProps> = ({
                 </div>
               </div>
 
+              {/* Account Tracking Guidance for Guests */}
+              {!isAuthenticated && (
+                <div
+                  className={`max-w-md mx-auto rounded-2xl p-4 mb-6 border text-left flex items-start gap-3.5 ${
+                    isDark ? 'bg-amber-500/10 border-amber-500/30' : 'bg-amber-50 border-amber-200'
+                  }`}
+                >
+                  <div className="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-500 flex items-center justify-center shrink-0 mt-0.5">
+                    <Sparkles className="w-4 h-4" />
+                  </div>
+                  <div className="space-y-1.5 flex-1">
+                    <h5 className="text-xs font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider">
+                      {isAmharic ? 'የትዕዛዝዎን ሁኔታ መከታተል ይፈልጋሉ?' : 'Want to Track Your Live Status?'}
+                    </h5>
+                    <p className="text-xs opacity-80 leading-relaxed">
+                      {isAmharic
+                        ? `ይህ ትዕዛዝ በስልክ ቁጥርዎ (${completedOrder.customerPhone}) ተመዝግቧል። በማንኛውም ጊዜ የደረሰኝ ማረጋገጫ እና የማድረስ ሂደቱን ለመከታተል በዚህ ስልክ ቁጥርዎ መለያ ይፍጠሩ።`
+                        : `This order is registered under your phone (${completedOrder.customerPhone}). You can track verification, preparation, and delivery live anytime by creating an account with this same phone number.`}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        handleResetAndClose();
+                        openAuthModal('register', isAmharic
+                          ? `በትዕዛዝዎ #${completedOrder.id} የተጠቀሙበትን ስልክ ቁጥር (${completedOrder.customerPhone}) በመጠቀም መለያ ይፍጠሩ።`
+                          : `Create an account using the phone number (${completedOrder.customerPhone}) from your order #${completedOrder.id} to track it anytime.`
+                        );
+                      }}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500 text-black font-bold text-xs hover:bg-amber-600 transition-colors shadow-xs cursor-pointer mt-1"
+                    >
+                      <ShieldCheck className="w-3.5 h-3.5" />
+                      <span>{isAmharic ? 'በዚህ ስልክ መለያ ፍጠር' : 'Create Account to Track Status'}</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+
               <button
                 onClick={handleResetAndClose}
                 className="px-8 py-3 rounded-xl bg-black/10 dark:bg-white/10 hover:bg-black/20 text-sm font-bold transition-colors"

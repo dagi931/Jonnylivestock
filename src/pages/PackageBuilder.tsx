@@ -141,30 +141,11 @@ export const PackageBuilder: React.FC = () => {
   };
 
   const handleOrderPreMade = (pkg: PreMadePackage) => {
-    if (!isAuthenticated) {
-      const title = getPackageTitle(pkg, isAmharic);
-      openAuthModal(
-        'register',
-        isAmharic
-          ? `የበዓል ጥቅል "${title}" ለማዘዝ እባክዎ መጀመሪያ ይመዝገቡ ወይም ይግቡ።`
-          : `To order celebration package "${title}", please create an account or sign in first.`
-      );
-      return;
-    }
     setSelectedPreMade(pkg);
     setIsOrderModalOpen(true);
   };
 
   const handleOrderCustom = () => {
-    if (!isAuthenticated) {
-      openAuthModal(
-        'register',
-        isAmharic
-          ? 'ያዘጋጁትን ልዩ የበዓል ጥቅል ለማዘዝ እባክዎ መጀመሪያ ይመዝገቡ ወይም ይግቡ።'
-          : 'To order your custom celebration bundle, please create an account or sign in first.'
-      );
-      return;
-    }
     if (!isEligible) return;
     setSelectedPreMade(null);
     setIsOrderModalOpen(true);

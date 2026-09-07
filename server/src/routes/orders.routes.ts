@@ -7,6 +7,7 @@ import { DeliveryService } from '../services/delivery.service.js';
 import { realtimeService } from '../services/realtime.service.js';
 import { orderContactLimiter } from '../middleware/rateLimit.middleware.js';
 import { sanitizeErrorMessage } from '../utils/errorHandler.js';
+import { normalizeEthiopianPhone, isValidEthiopianPhone } from '../utils/phone.js';
 
 const router = Router();
 
@@ -41,10 +42,20 @@ router.post(
         customerNotes
       } = req.body;
 
-      if (!customerName || !customerPhone) {
+      const normalizedCustomerPhone = normalizeEthiopianPhone(customerPhone);
+
+      if (!customerName || !customerName.trim()) {
         res.status(400).json({
           success: false,
-          error: 'Customer name and phone number are required'
+          error: 'Customer name is required'
+        });
+        return;
+      }
+
+      if (!normalizedCustomerPhone || !isValidEthiopianPhone(normalizedCustomerPhone)) {
+        res.status(400).json({
+          success: false,
+          error: 'Please enter a valid Ethiopian phone number (e.g. 0911223344 or 0712345678)'
         });
         return;
       }
@@ -236,9 +247,7 @@ router.post(
       const depositAmt = isRes ? Math.round(baseTotal * 0.5) : null;
       const remainingAmt = isRes ? baseTotal - (depositAmt || 0) : 0;
 
-      const resolvedPhone = customerPhone && customerPhone.trim()
-        ? customerPhone.trim()
-        : (req.user && req.user.phone ? req.user.phone : '');
+      const resolvedPhone = normalizedCustomerPhone || (req.user && req.user.phone ? normalizeEthiopianPhone(req.user.phone) : '');
 
       if (req.user && req.user.id && resolvedPhone) {
         if (!req.user.phone || req.user.phone !== resolvedPhone) {
@@ -357,6 +366,33 @@ router.post(
 
       if (!slipUrl) {
         res.status(400).json({ success: false, error: 'Payment receipt/slip is required to finalize reservation' });
+        return;
+      }
+
+      const existingOrder = await PostgresDB.getOrderById(orderId);
+      if (!existingOrder) {
+        res.status(404).json({ success: false, error: 'Reservation order not found' });
+        return;
+      }
+
+      const orderPhone = normalizeEthiopianPhone(existingOrder.customerPhone);
+      const userPhone = req.user?.phone ? normalizeEthiopianPhone(req.user.phone) : '';
+      const providedPhone = req.body.customerPhone ? normalizeEthiopianPhone(String(req.body.customerPhone)) : '';
+
+      const isAdmin = req.user?.role === 'admin';
+      const isOwner = Boolean(
+        req.user && (
+          (existingOrder.userId && existingOrder.userId === req.user.id) ||
+          (orderPhone && userPhone && orderPhone === userPhone)
+        )
+      );
+      const isVerifiedGuest = Boolean(!req.user && providedPhone && orderPhone && providedPhone === orderPhone);
+
+      if (!isAdmin && !isOwner && !isVerifiedGuest) {
+        res.status(403).json({
+          success: false,
+          error: 'Access denied: You must be logged in with the ordering account or provide the phone number used during checkout to finalize this reservation.'
+        });
         return;
       }
 
@@ -570,10 +606,37 @@ router.get('/:id', optionalAuth, async (req: AuthRequest, res: Response): Promis
       return;
     }
 
-    // Customer can only view their own order
-    if (req.user && req.user.role !== 'admin' && order.userId && order.userId !== req.user.id) {
-      res.status(403).json({ success: false, error: 'Access denied' });
+    const orderPhone = normalizeEthiopianPhone(order.customerPhone);
+    const userPhone = req.user?.phone ? normalizeEthiopianPhone(req.user.phone) : '';
+    const queryPhone = req.query.phone ? normalizeEthiopianPhone(String(req.query.phone)) : '';
+
+    // Authorization checks:
+    // 1. Admin can view any order
+    const isAdmin = req.user?.role === 'admin';
+
+    // 2. Authenticated customer who owns this order
+    const isOwner = Boolean(
+      req.user && (
+        (order.userId && order.userId === req.user.id) ||
+        (orderPhone && userPhone && orderPhone === userPhone)
+      )
+    );
+
+    // 3. Guest lookup with verification phone parameter
+    const isVerifiedGuest = Boolean(!req.user && queryPhone && orderPhone && queryPhone === orderPhone);
+
+    if (!isAdmin && !isOwner && !isVerifiedGuest) {
+      res.status(403).json({
+        success: false,
+        error: 'Access denied: Please sign in to view your order, or provide your verification phone number.'
+      });
       return;
+    }
+
+    // If customer is authenticated and this was an unlinked guest order with matching phone, auto-claim it!
+    if (req.user && !order.userId && orderPhone && userPhone && orderPhone === userPhone) {
+      await PostgresDB.claimGuestOrdersByPhone(req.user.id, orderPhone);
+      order.userId = req.user.id;
     }
 
     res.json({ success: true, data: order });

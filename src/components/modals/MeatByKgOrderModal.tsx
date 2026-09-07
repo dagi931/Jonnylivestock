@@ -201,21 +201,6 @@ export const MeatByKgOrderModal: React.FC<MeatByKgOrderModalProps> = ({
     e.preventDefault();
     setSubmitError(null);
 
-    if (!isAuthenticated) {
-      setSubmitError(
-        isAmharic
-          ? 'ትዕዛዝ ለማስገባት እባክዎ መለያ ይፍጠሩ ወይም ይግቡ'
-          : 'Please create an account or sign in before placing an order'
-      );
-      openAuthModal(
-        'register',
-        isAmharic
-          ? 'የበሬ ስጋ በኪሎግራም (KG) ለማዘዝ እባክዎ መጀመሪያ ይመዝገቡ ወይም ይግቡ።'
-          : 'To complete your raw beef by KG order, please create an account or sign in first.'
-      );
-      return;
-    }
-
     if (!customerName.trim()) {
       setSubmitError(isAmharic ? 'እባክዎ ሙሉ ስምዎን ያስገቡ' : 'Please provide your full name');
       return;
@@ -863,36 +848,25 @@ export const MeatByKgOrderModal: React.FC<MeatByKgOrderModalProps> = ({
                 >
                   Cancel
                 </button>
-                {!isAuthenticated ? (
-                  <button
-                    type="button"
-                    onClick={() => openAuthModal('register', isAmharic ? 'የበሬ ስጋ በኪሎ ለማዘዝ እባክዎ መለያ ይፍጠሩ።' : 'Please create an account to order raw beef by the KG.')}
-                    className="flex-1 sm:flex-none px-6 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-black font-extrabold text-xs shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
-                  >
-                    <Check className="w-4 h-4" />
-                    <span>{isAmharic ? 'መለያ ፈጥረው እዘዝ' : 'Create Account to Order'}</span>
-                  </button>
-                ) : (
-                  <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="flex-1 sm:flex-none px-6 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-black font-extrabold text-xs shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
-                  >
-                    {isSubmitting ? (
-                      <>
-                        <RefreshCw className="w-4 h-4 animate-spin" />
-                        <span>Submitting Order...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Check className="w-4 h-4" />
-                        <span>
-                          {isAmharic ? `በ${formatPrice(totalAmount)} እዘዝ` : `Place Order (${formatPrice(totalAmount)})`}
-                        </span>
-                      </>
-                    )}
-                  </button>
-                )}
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="flex-1 sm:flex-none px-6 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-black font-extrabold text-xs shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <RefreshCw className="w-4 h-4 animate-spin" />
+                      <span>Submitting Order...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Check className="w-4 h-4" />
+                      <span>
+                        {isAmharic ? `በ${formatPrice(totalAmount)} እዘዝ` : `Place Order (${formatPrice(totalAmount)})`}
+                      </span>
+                    </>
+                  )}
+                </button>
               </div>
             </div>
           </form>

@@ -301,21 +301,6 @@ export const PackageOrderModal: React.FC<PackageOrderModalProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!isAuthenticated) {
-      setSubmitError(
-        isAmharic
-          ? 'ትዕዛዝ ለማስገባት እባክዎ መለያ ይፍጠሩ ወይም ይግቡ'
-          : 'Please create an account or sign in before placing an order'
-      );
-      openAuthModal(
-        'register',
-        isAmharic
-          ? `የበዓል ጥቅል "${packageName}" ለማዘዝ እባክዎ መጀመሪያ ይመዝገቡ ወይም ይግቡ።`
-          : `To complete your order for "${packageName}", please create an account or sign in first.`
-      );
-      return;
-    }
-
     if (!customerName.trim() || !customerPhone.trim()) {
       setSubmitError('Please fill in your name and phone number');
       return;
@@ -1120,39 +1105,28 @@ export const PackageOrderModal: React.FC<PackageOrderModalProps> = ({
                     )}
 
                     {/* Submit Action */}
-                    {!isAuthenticated ? (
-                      <button
-                        type="button"
-                        onClick={() => openAuthModal('register', isAmharic ? `የበዓል ጥቅል "${packageName}" ለማዘዝ እባክዎ መለያ ይፍጠሩ።` : `Please create an account to order "${packageName}".`)}
-                        className="w-full py-3.5 rounded-2xl bg-amber-500 hover:bg-amber-600 text-black font-bold text-sm tracking-wide transition-all shadow-lg shadow-amber-500/25 flex items-center justify-center gap-2 cursor-pointer"
-                      >
-                        <CheckCircle2 className="w-4 h-4" />
-                        <span>{isAmharic ? 'መለያ ፈጥረው ትዕዛዝዎን ያጠናቅቁ' : 'Create Account to Complete Order'}</span>
-                      </button>
-                    ) : (
-                      <button
-                        type="submit"
-                        disabled={isSubmitting}
-                        className="w-full py-3.5 rounded-2xl bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-black font-bold text-sm tracking-wide transition-all shadow-lg shadow-amber-500/25 flex items-center justify-center gap-2 cursor-pointer"
-                      >
-                        {isSubmitting ? (
-                          <span>{isAmharic ? 'በማስተናገድ ላይ...' : 'Processing...'}</span>
-                        ) : (
-                          <>
-                            <CheckCircle2 className="w-4 h-4" />
-                            <span>
-                              {paymentMode === 'deposit'
-                                ? (isAmharic
-                                    ? `የ50% ቅድመ-ክፍያ ደረሰኝ ላክ (${formatPrice(depositAmount)})`
-                                    : `Submit 50% Reservation Deposit (${formatPrice(depositAmount)})`)
-                                : (isAmharic
-                                    ? `ሙሉ ትዕዛዝ ጨርስ (${formatPrice(grandTotal)})`
-                                    : `Complete Full Order (${formatPrice(grandTotal)})`)}
-                            </span>
-                          </>
-                        )}
-                      </button>
-                    )}
+                    <button
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="w-full py-3.5 rounded-2xl bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-black font-bold text-sm tracking-wide transition-all shadow-lg shadow-amber-500/25 flex items-center justify-center gap-2 cursor-pointer"
+                    >
+                      {isSubmitting ? (
+                        <span>{isAmharic ? 'በማስተናገድ ላይ...' : 'Processing...'}</span>
+                      ) : (
+                        <>
+                          <CheckCircle2 className="w-4 h-4" />
+                          <span>
+                            {paymentMode === 'deposit'
+                              ? (isAmharic
+                                  ? `የ50% ቅድመ-ክፍያ ደረሰኝ ላክ (${formatPrice(depositAmount)})`
+                                  : `Submit 50% Reservation Deposit (${formatPrice(depositAmount)})`)
+                              : (isAmharic
+                                  ? `ሙሉ ትዕዛዝ ጨርስ (${formatPrice(grandTotal)})`
+                                  : `Complete Full Order (${formatPrice(grandTotal)})`)}
+                          </span>
+                        </>
+                      )}
+                    </button>
 
                     {/* Trust & Assurance Footnote */}
                     <div className="pt-1 text-center text-[10.5px] opacity-60 flex items-center justify-center gap-4">

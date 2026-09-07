@@ -6,6 +6,7 @@ import { generateToken, generateTokens, verifyRefreshToken, authenticateToken, A
 import { User } from '../types/index.js';
 import { EmailService } from '../services/email.service.js';
 import { otpLimiter, authLimiter } from '../middleware/rateLimit.middleware.js';
+import { normalizeEthiopianPhone, isValidEthiopianPhone } from '../utils/phone.js';
 
 const router = Router();
 
@@ -44,8 +45,9 @@ router.post('/send-registration-otp', otpLimiter, async (req: AuthRequest, res: 
       res.status(400).json({ success: false, error: 'Email address is required' });
       return;
     }
-    if (!phone || !phone.trim() || phone.trim().length < 8) {
-      res.status(400).json({ success: false, error: 'Valid phone number is required (at least 8 digits)' });
+    const normalizedPhone = normalizeEthiopianPhone(phone);
+    if (!normalizedPhone || !isValidEthiopianPhone(normalizedPhone)) {
+      res.status(400).json({ success: false, error: 'Valid Ethiopian phone number is required (e.g. 0911223344 or 0712345678)' });
       return;
     }
 
@@ -55,6 +57,13 @@ router.post('/send-registration-otp', otpLimiter, async (req: AuthRequest, res: 
     const existingUser = await PostgresDB.findUserByEmail(normalizedEmail);
     if (existingUser) {
       res.status(400).json({ success: false, error: 'An account with this email already exists. Please sign in instead.' });
+      return;
+    }
+
+    // Check if phone number is already registered to an existing account
+    const existingPhoneUser = await PostgresDB.findUserByPhone(normalizedPhone);
+    if (existingPhoneUser) {
+      res.status(400).json({ success: false, error: 'An account with this phone number is already registered. Please sign in instead.' });
       return;
     }
 
@@ -131,9 +140,10 @@ router.post('/verify-registration-otp', authLimiter, async (req: AuthRequest, re
       return;
     }
 
-    const finalPhone = phone ? phone.trim() : pending.phone;
-    if (!finalPhone || finalPhone.length < 8) {
-      res.status(400).json({ success: false, error: 'Valid phone number is required' });
+    const rawPhone = phone ? phone.trim() : pending.phone;
+    const finalPhone = normalizeEthiopianPhone(rawPhone);
+    if (!finalPhone || !isValidEthiopianPhone(finalPhone)) {
+      res.status(400).json({ success: false, error: 'Valid Ethiopian phone number is required (e.g. 0911223344 or 0712345678)' });
       return;
     }
 
@@ -152,6 +162,9 @@ router.post('/verify-registration-otp', authLimiter, async (req: AuthRequest, re
 
     await PostgresDB.createUser(newUser);
     registrationOtpStore.delete(normalizedEmail);
+
+    // Auto-claim all prior guest orders placed with this verified phone number
+    await PostgresDB.claimGuestOrdersByPhone(newUser.id, finalPhone);
 
     const tokens = generateTokens({
       id: newUser.id,
@@ -189,9 +202,22 @@ router.post('/register', authLimiter, async (req: AuthRequest, res: Response): P
       return;
     }
 
-    const existingUser = await PostgresDB.findUserByEmail(email);
+    const normalizedEmail = email.trim().toLowerCase();
+    const existingUser = await PostgresDB.findUserByEmail(normalizedEmail);
     if (existingUser) {
       res.status(400).json({ success: false, error: 'An account with this email already exists' });
+      return;
+    }
+
+    const finalPhone = normalizeEthiopianPhone(phone.trim());
+    if (!finalPhone || !isValidEthiopianPhone(finalPhone)) {
+      res.status(400).json({ success: false, error: 'Valid Ethiopian phone number is required (e.g. 0911223344 or 0712345678)' });
+      return;
+    }
+
+    const existingPhoneUser = await PostgresDB.findUserByPhone(finalPhone);
+    if (existingPhoneUser) {
+      res.status(400).json({ success: false, error: 'An account with this phone number is already registered. Please sign in instead.' });
       return;
     }
 
@@ -201,14 +227,17 @@ router.post('/register', authLimiter, async (req: AuthRequest, res: Response): P
     const newUser: User = {
       id: `USR-${uuidv4().slice(0, 8).toUpperCase()}`,
       name: name.trim(),
-      email: email.trim().toLowerCase(),
-      phone: phone.trim(),
+      email: normalizedEmail,
+      phone: finalPhone,
       passwordHash,
       role: 'customer',
       createdAt: new Date().toISOString()
     };
 
     await PostgresDB.createUser(newUser);
+
+    // Auto-claim all prior guest orders placed with this verified phone number
+    await PostgresDB.claimGuestOrdersByPhone(newUser.id, finalPhone);
 
     const tokens = generateTokens({
       id: newUser.id,
@@ -457,6 +486,11 @@ router.post('/login', authLimiter, async (req: AuthRequest, res: Response): Prom
     if (!isMatch && password !== 'admin123' && password !== 'password123') {
       res.status(401).json({ success: false, error: 'Invalid email or password' });
       return;
+    }
+
+    // Auto-claim any unlinked guest orders placed with this user's phone number
+    if (user.id && user.phone) {
+      await PostgresDB.claimGuestOrdersByPhone(user.id, user.phone);
     }
 
     const tokens = generateTokens({
