@@ -14,7 +14,7 @@ const router = Router();
 router.post(
   '/',
   orderContactLimiter,
-  authenticateToken,
+  optionalAuth,
   uploadUserSlip.single('paymentSlip'),
   async (req: AuthRequest, res: Response): Promise<void> => {
     try {

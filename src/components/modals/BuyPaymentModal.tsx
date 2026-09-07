@@ -207,21 +207,6 @@ export const BuyPaymentModal: React.FC<BuyPaymentModalProps> = ({
     e.preventDefault();
     setSubmitError(null);
 
-    if (!isAuthenticated) {
-      setSubmitError(
-        isAmharic
-          ? 'ትዕዛዝ ለማስገባት እባክዎ መለያ ይፍጠሩ ወይም ይግቡ'
-          : 'Please create an account or sign in before placing an order'
-      );
-      openAuthModal(
-        'register',
-        isAmharic
-          ? `ስለ ${animal.breed} (${animal.id}) ትዕዛዝዎን ለማጠናቀቅ እባክዎ መጀመሪያ ይመዝገቡ ወይም ይግቡ።`
-          : `To complete your order for ${animal.breed} (${animal.id}), please create an account or sign in first.`
-      );
-      return;
-    }
-
     if (!customerName.trim()) {
       setSubmitError(isAmharic ? 'እባክዎ ሙሉ ስምዎን ያስገቡ' : 'Please provide your full name');
       return;
@@ -1020,45 +1005,34 @@ export const BuyPaymentModal: React.FC<BuyPaymentModalProps> = ({
                   {isAmharic ? 'ተመለስ' : 'Cancel'}
                 </button>
 
-                {!isAuthenticated ? (
-                  <button
-                    type="button"
-                    onClick={() => openAuthModal('register', isAmharic ? `ስለ ${animal.breed} (${animal.id}) ትዕዛዝዎን ለማጠናቀቅ እባክዎ ይመዝገቡ።` : `Please create an account to complete your order for ${animal.breed} (${animal.id}).`)}
-                    className="flex-1 py-3.5 px-5 rounded-xl bg-gradient-to-r from-[#C18A45] to-[#A06E35] text-white font-bold text-sm sm:text-base shadow-xl hover:shadow-2xl hover:scale-[1.005] active:scale-[0.99] transition-all flex items-center justify-center gap-2 cursor-pointer"
-                  >
-                    <ShieldCheck className="w-4 h-4" />
-                    <span>{isAmharic ? 'መለያ ፈጥረው ትዕዛዝዎን ያጠናቅቁ' : 'Create Account to Complete Order'}</span>
-                    <ArrowRight className="w-4 h-4 ml-1" />
-                  </button>
-                ) : (
-                  <button
-                    type="submit"
-                    form="payment-form"
-                    disabled={isSubmitting}
-                    className="flex-1 py-3.5 px-5 rounded-xl bg-gradient-to-r from-[#C18A45] to-[#A06E35] text-white font-bold text-sm sm:text-base shadow-xl hover:shadow-2xl hover:scale-[1.005] active:scale-[0.99] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                  >
-                    {isSubmitting ? (
-                      <>
-                        <span className="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                        <span>{isAmharic ? 'ደረሰኝ በመጫን ላይ...' : 'Uploading Slip & Notifying Admin...'}</span>
-                      </>
-                    ) : (
-                      <>
-                        <ShieldCheck className="w-4 h-4" />
-                        <span>
-                          {paymentMode === 'deposit'
-                            ? (isAmharic
-                                ? `የ50% ቅድመ-ክፍያ ደረሰኝ አረጋግጥ (${formatPrice(depositAmount)})`
-                                : `Submit 50% Deposit Slip (${formatPrice(depositAmount)})`)
-                            : (isAmharic
-                                ? `ክፍያዬን አረጋግጥ (${formatPrice(grandTotal)})`
-                                : `Submit Full Payment Slip (${formatPrice(grandTotal)})`)}
-                        </span>
-                        <ArrowRight className="w-4 h-4 ml-1" />
-                      </>
-                    )}
-                  </button>
-                )}
+                <button
+                  type="submit"
+                  form="payment-form"
+                  onClick={handleSubmit}
+                  disabled={isSubmitting}
+                  className="flex-1 py-3.5 px-5 rounded-xl bg-gradient-to-r from-[#C18A45] to-[#A06E35] text-white font-bold text-sm sm:text-base shadow-xl hover:shadow-2xl hover:scale-[1.005] active:scale-[0.99] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <span className="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      <span>{isAmharic ? 'ደረሰኝ በመጫን ላይ...' : 'Uploading Slip & Submitting Order...'}</span>
+                    </>
+                  ) : (
+                    <>
+                      <ShieldCheck className="w-4 h-4" />
+                      <span>
+                        {paymentMode === 'deposit'
+                          ? (isAmharic
+                              ? `የ50% ቅድመ-ክፍያ ደረሰኝ አረጋግጥ (${formatPrice(depositAmount)})`
+                              : `Submit 50% Deposit Slip (${formatPrice(depositAmount)})`)
+                          : (isAmharic
+                              ? `ክፍያዬን አረጋግጥ (${formatPrice(grandTotal)})`
+                              : `Submit Full Payment Slip (${formatPrice(grandTotal)})`)}
+                      </span>
+                      <ArrowRight className="w-4 h-4 ml-1" />
+                    </>
+                  )}
+                </button>
               </div>
             </>
           )}
