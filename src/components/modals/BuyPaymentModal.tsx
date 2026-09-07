@@ -594,16 +594,20 @@ export const BuyPaymentModal: React.FC<BuyPaymentModalProps> = ({
                         onClick={() => setIsDelivery(true)}
                         className={`p-3 rounded-2xl border text-left transition-all cursor-pointer flex items-center gap-2.5 ${
                           isDelivery
-                            ? 'bg-amber-500/15 border-amber-500 text-amber-500 font-bold shadow-xs ring-1 ring-amber-500/30'
+                            ? 'bg-amber-500/20 border-amber-500 text-black font-bold shadow-xs ring-1 ring-amber-500/40'
                             : isDark
-                            ? 'bg-[#1B1208] border-[#4A2C16] opacity-70 hover:opacity-100'
-                            : 'bg-white border-[#E4D4BC] opacity-70 hover:opacity-100'
+                            ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0] opacity-70 hover:opacity-100'
+                            : 'bg-white border-[#E4D4BC] text-[#2A1A0D] opacity-70 hover:opacity-100'
                         }`}
                       >
-                        <Truck className="w-4 h-4 shrink-0 text-[#C18A45]" />
+                        <Truck className={`w-4 h-4 shrink-0 ${isDelivery ? 'text-black' : 'text-[#C18A45]'}`} />
                         <div>
-                          <div className="text-xs font-bold">{isAmharic ? 'በአድራሻዬ ይድረስ' : 'Doorstep Delivery'}</div>
-                          <div className="text-[10px] opacity-70">{isAmharic ? 'የተሽከርካሪ ማጓጓዣ' : 'Road Vehicle Fleet'}</div>
+                          <div className={`text-xs font-bold ${isDelivery ? 'text-black font-extrabold' : ''}`}>
+                            {isAmharic ? 'በአድራሻዬ ይድረስ' : 'Doorstep Delivery'}
+                          </div>
+                          <div className={`text-[10px] ${isDelivery ? 'text-black/80 font-medium' : 'opacity-70'}`}>
+                            {isAmharic ? 'የተሽከርካሪ ማጓጓዣ' : 'Road Vehicle Fleet'}
+                          </div>
                         </div>
                       </button>
 
@@ -612,16 +616,20 @@ export const BuyPaymentModal: React.FC<BuyPaymentModalProps> = ({
                         onClick={() => setIsDelivery(false)}
                         className={`p-3 rounded-2xl border text-left transition-all cursor-pointer flex items-center gap-2.5 ${
                           !isDelivery
-                            ? 'bg-amber-500/15 border-amber-500 text-amber-500 font-bold shadow-xs ring-1 ring-amber-500/30'
+                            ? 'bg-amber-500/20 border-amber-500 text-black font-bold shadow-xs ring-1 ring-amber-500/40'
                             : isDark
-                            ? 'bg-[#1B1208] border-[#4A2C16] opacity-70 hover:opacity-100'
-                            : 'bg-white border-[#E4D4BC] opacity-70 hover:opacity-100'
+                            ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0] opacity-70 hover:opacity-100'
+                            : 'bg-white border-[#E4D4BC] text-[#2A1A0D] opacity-70 hover:opacity-100'
                         }`}
                       >
-                        <MapPin className="w-4 h-4 shrink-0 text-emerald-500" />
+                        <MapPin className={`w-4 h-4 shrink-0 ${!isDelivery ? 'text-black' : 'text-emerald-500'}`} />
                         <div>
-                          <div className="text-xs font-bold">{isAmharic ? 'ከእርሻው መውሰድ (Pickup)' : 'Farm Pickup'}</div>
-                          <div className="text-[10px] opacity-70">{isAmharic ? 'አራት ኪሎ እርሻ (ነፃ)' : 'Arat Kilo Farm (Free)'}</div>
+                          <div className={`text-xs font-bold ${!isDelivery ? 'text-black font-extrabold' : ''}`}>
+                            {isAmharic ? 'ከእርሻው መውሰድ (Pickup)' : 'Farm Pickup'}
+                          </div>
+                          <div className={`text-[10px] ${!isDelivery ? 'text-black/80 font-medium' : 'opacity-70'}`}>
+                            {isAmharic ? 'አራት ኪሎ እርሻ (ነፃ)' : 'Arat Kilo Farm (Free)'}
+                          </div>
                         </div>
                       </button>
                     </div>

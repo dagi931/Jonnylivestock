@@ -567,16 +567,20 @@ export const MeatByKgOrderModal: React.FC<MeatByKgOrderModalProps> = ({
                     onClick={() => setIsDelivery(true)}
                     className={`p-3 rounded-2xl border text-left transition-all cursor-pointer flex items-center gap-3 ${
                       isDelivery
-                        ? 'bg-amber-500/15 border-amber-500 text-amber-400'
+                        ? 'bg-amber-500/20 border-amber-500 text-black shadow-xs ring-1 ring-amber-500/50'
                         : isDark
-                        ? 'bg-black/20 border-[#4A2C16]'
-                        : 'bg-[#FAF7F0] border-[#E4D4BC]'
+                        ? 'bg-black/20 border-[#4A2C16] text-[#F4E8D0]'
+                        : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#2A1A0D]'
                     }`}
                   >
-                    <Truck className="w-5 h-5 shrink-0 text-amber-500" />
+                    <Truck className={`w-5 h-5 shrink-0 ${isDelivery ? 'text-black' : 'text-amber-500'}`} />
                     <div>
-                      <div className="text-xs font-bold">{isAmharic ? 'በአድራሻዬ ይድረስ' : 'Doorstep Delivery'}</div>
-                      <div className="text-[10px] opacity-70">{isAmharic ? 'ወደ ቤትዎ ወይም ሬስቶራንትዎ' : 'Direct to your door / restaurant'}</div>
+                      <div className={`text-xs font-bold ${isDelivery ? 'text-black font-extrabold' : ''}`}>
+                        {isAmharic ? 'በአድራሻዬ ይድረስ' : 'Doorstep Delivery'}
+                      </div>
+                      <div className={`text-[10px] ${isDelivery ? 'text-black/80 font-medium' : 'opacity-70'}`}>
+                        {isAmharic ? 'ወደ ቤትዎ ወይም ሬስቶራንትዎ' : 'Direct to your door / restaurant'}
+                      </div>
                     </div>
                   </button>
 
@@ -585,16 +589,20 @@ export const MeatByKgOrderModal: React.FC<MeatByKgOrderModalProps> = ({
                     onClick={() => setIsDelivery(false)}
                     className={`p-3 rounded-2xl border text-left transition-all cursor-pointer flex items-center gap-3 ${
                       !isDelivery
-                        ? 'bg-amber-500/15 border-amber-500 text-amber-400'
+                        ? 'bg-amber-500/20 border-amber-500 text-black shadow-xs ring-1 ring-amber-500/50'
                         : isDark
-                        ? 'bg-black/20 border-[#4A2C16]'
-                        : 'bg-[#FAF7F0] border-[#E4D4BC]'
+                        ? 'bg-black/20 border-[#4A2C16] text-[#F4E8D0]'
+                        : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#2A1A0D]'
                     }`}
                   >
-                    <MapPin className="w-5 h-5 shrink-0 text-amber-500" />
+                    <MapPin className={`w-5 h-5 shrink-0 ${!isDelivery ? 'text-black' : 'text-amber-500'}`} />
                     <div>
-                      <div className="text-xs font-bold">{isAmharic ? 'ከእርሻው መውሰድ (Pickup)' : 'Farm Pickup'}</div>
-                      <div className="text-[10px] opacity-70">Arat Kilo Farm Facility (Free)</div>
+                      <div className={`text-xs font-bold ${!isDelivery ? 'text-black font-extrabold' : ''}`}>
+                        {isAmharic ? 'ከእርሻው መውሰድ (Pickup)' : 'Farm Pickup'}
+                      </div>
+                      <div className={`text-[10px] ${!isDelivery ? 'text-black/80 font-medium' : 'opacity-70'}`}>
+                        Arat Kilo Farm Facility (Free)
+                      </div>
                     </div>
                   </button>
                 </div>

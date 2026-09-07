@@ -791,18 +791,18 @@ export const PackageOrderModal: React.FC<PackageOrderModalProps> = ({
                             onClick={() => setIsDelivery(true)}
                             className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer flex items-center gap-3 ${
                               isDelivery
-                                ? 'bg-amber-500/15 border-amber-500 text-amber-500 font-semibold ring-1 ring-amber-500/30'
+                                ? 'bg-amber-500/20 border-amber-500 text-black font-semibold ring-1 ring-amber-500/40 shadow-xs'
                                 : isDark
                                   ? 'bg-transparent border-white/10 text-neutral-400 hover:border-white/20'
                                   : 'bg-transparent border-neutral-200 text-neutral-600 hover:border-neutral-300'
                             }`}
                           >
-                            <div className="w-10 h-10 rounded-xl bg-amber-500/20 flex items-center justify-center shrink-0">
+                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${isDelivery ? 'bg-black/10 text-black' : 'bg-amber-500/20 text-amber-500'}`}>
                               <Truck className="w-5 h-5" />
                             </div>
                             <div className="min-w-0">
-                              <div className="text-xs sm:text-sm font-bold truncate">{isAmharic ? 'በአድራሻዬ ይድረስ' : 'Doorstep Delivery'}</div>
-                              <div className="text-[11px] opacity-70 truncate">{isAmharic ? 'ወደ ቤትዎ ወይም ሬስቶራንትዎ' : 'Direct to your door/compound'}</div>
+                              <div className={`text-xs sm:text-sm font-bold truncate ${isDelivery ? 'text-black' : ''}`}>{isAmharic ? 'በአድራሻዬ ይድረስ' : 'Doorstep Delivery'}</div>
+                              <div className={`text-[11px] truncate ${isDelivery ? 'text-black/80 font-medium' : 'opacity-70'}`}>{isAmharic ? 'ወደ ቤትዎ ወይም ሬስቶራንትዎ' : 'Direct to your door/compound'}</div>
                             </div>
                           </button>
 
@@ -811,18 +811,18 @@ export const PackageOrderModal: React.FC<PackageOrderModalProps> = ({
                             onClick={() => setIsDelivery(false)}
                             className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer flex items-center gap-3 ${
                               !isDelivery
-                                ? 'bg-amber-500/15 border-amber-500 text-amber-500 font-semibold ring-1 ring-amber-500/30'
+                                ? 'bg-amber-500/20 border-amber-500 text-black font-semibold ring-1 ring-amber-500/40 shadow-xs'
                                 : isDark
                                   ? 'bg-transparent border-white/10 text-neutral-400 hover:border-white/20'
                                   : 'bg-transparent border-neutral-200 text-neutral-600 hover:border-neutral-300'
                             }`}
                           >
-                            <div className="w-10 h-10 rounded-xl bg-neutral-500/20 flex items-center justify-center shrink-0">
+                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${!isDelivery ? 'bg-black/10 text-black' : 'bg-neutral-500/20 text-neutral-400'}`}>
                               <MapPin className="w-5 h-5" />
                             </div>
                             <div className="min-w-0">
-                              <div className="text-xs sm:text-sm font-bold truncate">{isAmharic ? 'ከእርሻው መውሰድ (Pickup)' : 'Farm Pickup'}</div>
-                              <div className="text-[11px] opacity-70 truncate">Arat Kilo Facility (Free)</div>
+                              <div className={`text-xs sm:text-sm font-bold truncate ${!isDelivery ? 'text-black' : ''}`}>{isAmharic ? 'ከእርሻው መውሰድ (Pickup)' : 'Farm Pickup'}</div>
+                              <div className={`text-[11px] truncate ${!isDelivery ? 'text-black/80 font-medium' : 'opacity-70'}`}>Arat Kilo Facility (Free)</div>
                             </div>
                           </button>
                         </div>
