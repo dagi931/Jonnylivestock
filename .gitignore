@@ -45,3 +45,8 @@ server/receipts/*
 
 # Temporary scratch and benchmark files
 scratch/
+
+# Database dumps
+*.sql
+*.dump
+
