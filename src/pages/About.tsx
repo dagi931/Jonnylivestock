@@ -5,8 +5,7 @@ import { useTheme } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
 import { ShieldCheck, MapPin, Award, CheckCircle2, Truck, Sparkles } from 'lucide-react';
 import { useInView } from '../hooks/useInView';
-
-const FarmMap = React.lazy(() => import('../components/common/FarmMap').then(m => ({ default: m.FarmMap })));
+import { FarmMap } from '../components/common/FarmMap';
 
 export const About: React.FC = () => {
   const { theme } = useTheme();
@@ -102,8 +101,8 @@ export const About: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-10 items-center mb-12">
           <div className="relative rounded-3xl overflow-hidden aspect-[4/3] border shadow-lg" style={{ borderColor: isDark ? '#4A2C16' : '#E4D4BC' }}>
             <img
-              src="https://images.unsplash.com/photo-1546445317-29f4545e9d53?auto=format&fit=crop&fm=webp&q=60&w=440&h=330"
-              srcSet="https://images.unsplash.com/photo-1546445317-29f4545e9d53?auto=format&fit=crop&fm=webp&q=60&w=360&h=270 360w, https://images.unsplash.com/photo-1546445317-29f4545e9d53?auto=format&fit=crop&fm=webp&q=60&w=440&h=330 440w"
+              src="https://images.unsplash.com/photo-1546445317-29f4545e9d53?auto=format&fit=crop&w=440&h=330&q=50&fm=webp"
+              srcSet="https://images.unsplash.com/photo-1546445317-29f4545e9d53?auto=format&fit=crop&w=360&h=270&q=50&fm=webp 360w, https://images.unsplash.com/photo-1546445317-29f4545e9d53?auto=format&fit=crop&w=440&h=330&q=50&fm=webp 440w"
               sizes="(max-width: 640px) 360px, (max-width: 1024px) 440px, 520px"
               alt="Healthy cattle and livestock pasture"
               loading="eager"
@@ -316,9 +315,7 @@ export const About: React.FC = () => {
         {/* Live GIS Map Section (decreased width from left & right) */}
         <div ref={mapRef} className="mt-12 max-w-5xl mx-auto px-2 sm:px-4">
           {isMapInView ? (
-            <React.Suspense fallback={<div className="h-[320px] sm:h-[380px] rounded-3xl bg-stone-900/10 animate-pulse" />}>
-              <FarmMap />
-            </React.Suspense>
+            <FarmMap />
           ) : (
             <div className="h-[320px] sm:h-[380px] rounded-3xl bg-stone-900/5 border border-stone-800/10" />
           )}
