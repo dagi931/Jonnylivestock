@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 import { LanguageProvider } from './context/LanguageContext';
@@ -8,19 +8,28 @@ import { RealtimeProvider } from './context/RealtimeContext';
 import { UserAuthModal } from './components/modals/UserAuthModal';
 import { Navbar } from './components/common/Navbar';
 import { Footer } from './components/common/Footer';
+// Home is eagerly loaded — it's the first page every visitor sees
 import { Home } from './pages/Home';
-import { Sheep } from './pages/Sheep';
-import { Goats } from './pages/Goats';
-import { Cows } from './pages/Cows';
-import { AnimalDetails } from './pages/AnimalDetails';
-import { Services } from './pages/Services';
-import { PackageBuilder } from './pages/PackageBuilder';
-import { MyPackages } from './pages/MyPackages';
-import { MyReservations } from './pages/MyReservations';
-import { About } from './pages/About';
-import { Contact } from './pages/Contact';
-import { Admin } from './pages/Admin';
-import { NotFound } from './pages/NotFound';
+// All other routes are lazy-loaded — downloaded only when the user navigates to them
+const Sheep          = lazy(() => import('./pages/Sheep').then(m => ({ default: m.Sheep })));
+const Goats          = lazy(() => import('./pages/Goats').then(m => ({ default: m.Goats })));
+const Cows           = lazy(() => import('./pages/Cows').then(m => ({ default: m.Cows })));
+const AnimalDetails  = lazy(() => import('./pages/AnimalDetails').then(m => ({ default: m.AnimalDetails })));
+const Services       = lazy(() => import('./pages/Services').then(m => ({ default: m.Services })));
+const PackageBuilder = lazy(() => import('./pages/PackageBuilder').then(m => ({ default: m.PackageBuilder })));
+const MyPackages     = lazy(() => import('./pages/MyPackages').then(m => ({ default: m.MyPackages })));
+const MyReservations = lazy(() => import('./pages/MyReservations').then(m => ({ default: m.MyReservations })));
+const About          = lazy(() => import('./pages/About').then(m => ({ default: m.About })));
+const Contact        = lazy(() => import('./pages/Contact').then(m => ({ default: m.Contact })));
+const Admin          = lazy(() => import('./pages/Admin').then(m => ({ default: m.Admin })));
+const NotFound       = lazy(() => import('./pages/NotFound').then(m => ({ default: m.NotFound })));
+
+// Minimal loading spinner shown while a lazy route chunk downloads
+const PageLoader: React.FC = () => (
+  <div className="flex items-center justify-center min-h-[40vh]">
+    <div className="w-8 h-8 rounded-full border-2 border-[#C58A3A] border-t-transparent animate-spin" />
+  </div>
+);
 
 // Auto scroll-to-top on route navigation and page refresh
 const ScrollToTop: React.FC = () => {
@@ -94,35 +103,37 @@ const AppContent: React.FC = () => {
       {showCustomerChrome && <Navbar />}
       {showCustomerChrome && <UserAuthModal />}
       <main className="flex-1">
-        {isAdminAuth ? (
-          <Routes>
-            <Route path="/admin" element={<Admin />} />
-            <Route path="*" element={<Navigate to="/admin" replace />} />
-          </Routes>
-        ) : (
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/sheep" element={<Sheep />} />
-            <Route path="/goats" element={<Goats />} />
-            <Route path="/cows" element={<Cows />} />
-            <Route path="/animals/:id" element={<AnimalDetails />} />
+        <Suspense fallback={<PageLoader />}>
+          {isAdminAuth ? (
+            <Routes>
+              <Route path="/admin" element={<Admin />} />
+              <Route path="*" element={<Navigate to="/admin" replace />} />
+            </Routes>
+          ) : (
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/sheep" element={<Sheep />} />
+              <Route path="/goats" element={<Goats />} />
+              <Route path="/cows" element={<Cows />} />
+              <Route path="/animals/:id" element={<AnimalDetails />} />
 
-            {/* Packages & Custom Builder */}
-            <Route path="/packages" element={<PackageBuilder />} />
-            <Route path="/my-packages" element={<MyPackages />} />
-            <Route path="/my-reservations" element={<MyReservations />} />
-            <Route path="/my-orders" element={<MyReservations />} />
+              {/* Packages & Custom Builder */}
+              <Route path="/packages" element={<PackageBuilder />} />
+              <Route path="/my-packages" element={<MyPackages />} />
+              <Route path="/my-reservations" element={<MyReservations />} />
+              <Route path="/my-orders" element={<MyReservations />} />
 
-            {/* Main Services Page (No redundant form pages) */}
-            <Route path="/services" element={<Services />} />
-            <Route path="/services/*" element={<Navigate to="/services" replace />} />
+              {/* Main Services Page (No redundant form pages) */}
+              <Route path="/services" element={<Services />} />
+              <Route path="/services/*" element={<Navigate to="/services" replace />} />
 
-            <Route path="/about" element={<About />} />
-            <Route path="/contact" element={<Contact />} />
-            <Route path="/admin" element={<Admin />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        )}
+              <Route path="/about" element={<About />} />
+              <Route path="/contact" element={<Contact />} />
+              <Route path="/admin" element={<Admin />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          )}
+        </Suspense>
       </main>
       {showCustomerChrome && <Footer />}
     </div>

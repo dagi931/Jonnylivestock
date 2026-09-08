@@ -1,4 +1,4 @@
-import { Animal, AnimalType } from '../types/animal';
+﻿import { Animal, AnimalType } from '../types/animal';
 
 export const mockAnimals: Animal[] = [
   // ==================== SHEEP ====================
@@ -16,9 +16,9 @@ export const mockAnimals: Animal[] = [
     featured: true,
     characteristics: ["Broad chest", "Curved horn structure", "Pasture raised", "Robust build"],
     images: [
-      "https://images.unsplash.com/photo-1484557052118-f32bd25b45b5?auto=format&fit=crop&w=1200&q=80",
-      "https://images.unsplash.com/photo-1516467508483-a7212febe31a?auto=format&fit=crop&w=1200&q=80",
-      "https://images.unsplash.com/photo-1535083783855-76ae62b2914e?auto=format&fit=crop&w=1200&q=80"
+      "https://images.unsplash.com/photo-1484557052118-f32bd25b45b5?auto=format&fit=crop&w=600&q=75",
+      "https://images.unsplash.com/photo-1516467508483-a7212febe31a?auto=format&fit=crop&w=600&q=75",
+      "https://images.unsplash.com/photo-1535083783855-76ae62b2914e?auto=format&fit=crop&w=600&q=75"
     ],
     video: "https://assets.mixkit.co/videos/preview/mixkit-sheep-grazing-in-a-green-field-41978-large.mp4",
     createdAt: "2026-08-20"
@@ -37,8 +37,8 @@ export const mockAnimals: Animal[] = [
     featured: true,
     characteristics: ["Dense dark wool", "Highland breed", "Compact muscular frame"],
     images: [
-      "https://images.unsplash.com/photo-1500595046743-cd271d694d30?auto=format&fit=crop&w=1200&q=80",
-      "https://images.unsplash.com/photo-1484557052118-f32bd25b45b5?auto=format&fit=crop&w=1200&q=80"
+      "https://images.unsplash.com/photo-1500595046743-cd271d694d30?auto=format&fit=crop&w=600&q=75",
+      "https://images.unsplash.com/photo-1484557052118-f32bd25b45b5?auto=format&fit=crop&w=600&q=75"
     ],
     createdAt: "2026-08-22"
   },
@@ -56,8 +56,8 @@ export const mockAnimals: Animal[] = [
     featured: true,
     characteristics: ["Heavyweight class", "Long loin", "Polled (hornless)", "Rapid growth"],
     images: [
-      "https://images.unsplash.com/photo-1516467508483-a7212febe31a?auto=format&fit=crop&w=1200&q=80",
-      "https://images.unsplash.com/photo-1484557052118-f32bd25b45b5?auto=format&fit=crop&w=1200&q=80"
+      "https://images.unsplash.com/photo-1516467508483-a7212febe31a?auto=format&fit=crop&w=600&q=75",
+      "https://images.unsplash.com/photo-1484557052118-f32bd25b45b5?auto=format&fit=crop&w=600&q=75"
     ],
     createdAt: "2026-08-18"
   },
@@ -75,8 +75,8 @@ export const mockAnimals: Animal[] = [
     featured: false,
     characteristics: ["Short coat", "Broad build", "High fertility pedigree", "Lean muscle"],
     images: [
-      "https://images.unsplash.com/photo-1535083783855-76ae62b2914e?auto=format&fit=crop&w=1200&q=80",
-      "https://images.unsplash.com/photo-1500595046743-cd271d694d30?auto=format&fit=crop&w=1200&q=80"
+      "https://images.unsplash.com/photo-1535083783855-76ae62b2914e?auto=format&fit=crop&w=600&q=75",
+      "https://images.unsplash.com/photo-1500595046743-cd271d694d30?auto=format&fit=crop&w=600&q=75"
     ],
     createdAt: "2026-08-15"
   },
@@ -94,8 +94,8 @@ export const mockAnimals: Animal[] = [
     featured: false,
     characteristics: ["Strong build", "Distinctive markings", "Heat tolerant", "Clean coat"],
     images: [
-      "https://images.unsplash.com/photo-1484557052118-f32bd25b45b5?auto=format&fit=crop&w=1200&q=80",
-      "https://images.unsplash.com/photo-1516467508483-a7212febe31a?auto=format&fit=crop&w=1200&q=80"
+      "https://images.unsplash.com/photo-1484557052118-f32bd25b45b5?auto=format&fit=crop&w=600&q=75",
+      "https://images.unsplash.com/photo-1516467508483-a7212febe31a?auto=format&fit=crop&w=600&q=75"
     ],
     createdAt: "2026-08-10"
   },
@@ -113,7 +113,7 @@ export const mockAnimals: Animal[] = [
     featured: false,
     characteristics: ["Strong frame", "Calm handling", "Naturally pastured"],
     images: [
-      "https://images.unsplash.com/photo-1500595046743-cd271d694d30?auto=format&fit=crop&w=1200&q=80"
+      "https://images.unsplash.com/photo-1500595046743-cd271d694d30?auto=format&fit=crop&w=600&q=75"
     ],
     createdAt: "2026-08-05"
   },
@@ -131,7 +131,7 @@ export const mockAnimals: Animal[] = [
     featured: false,
     characteristics: ["Highland wool", "Compact", "Energetic"],
     images: [
-      "https://images.unsplash.com/photo-1484557052118-f32bd25b45b5?auto=format&fit=crop&w=1200&q=80"
+      "https://images.unsplash.com/photo-1484557052118-f32bd25b45b5?auto=format&fit=crop&w=600&q=75"
     ],
     createdAt: "2026-07-28"
   },
@@ -149,8 +149,8 @@ export const mockAnimals: Animal[] = [
     featured: true,
     characteristics: ["Heavy class 40kg+", "Exceptional muscle depth", "Hornless"],
     images: [
-      "https://images.unsplash.com/photo-1516467508483-a7212febe31a?auto=format&fit=crop&w=1200&q=80",
-      "https://images.unsplash.com/photo-1535083783855-76ae62b2914e?auto=format&fit=crop&w=1200&q=80"
+      "https://images.unsplash.com/photo-1516467508483-a7212febe31a?auto=format&fit=crop&w=600&q=75",
+      "https://images.unsplash.com/photo-1535083783855-76ae62b2914e?auto=format&fit=crop&w=600&q=75"
     ],
     video: "https://assets.mixkit.co/videos/preview/mixkit-sheep-grazing-in-a-green-field-41978-large.mp4",
     createdAt: "2026-08-24"
@@ -171,9 +171,9 @@ export const mockAnimals: Animal[] = [
     featured: true,
     characteristics: ["Superior meat yield", "Broad back loin", "Thick neck structure", "Docile"],
     images: [
-      "https://images.unsplash.com/photo-1524024973431-2ad916746881?auto=format&fit=crop&w=1200&q=80",
-      "https://images.unsplash.com/photo-1560807707-8cc77767d783?auto=format&fit=crop&w=1200&q=80",
-      "https://images.unsplash.com/photo-1511117833895-4b473c0b85d6?auto=format&fit=crop&w=1200&q=80"
+      "https://images.unsplash.com/photo-1524024973431-2ad916746881?auto=format&fit=crop&w=600&q=75",
+      "https://images.unsplash.com/photo-1560807707-8cc77767d783?auto=format&fit=crop&w=600&q=75",
+      "https://images.unsplash.com/photo-1511117833895-4b473c0b85d6?auto=format&fit=crop&w=600&q=75"
     ],
     video: "https://assets.mixkit.co/videos/preview/mixkit-family-of-goats-in-a-field-41979-large.mp4",
     createdAt: "2026-08-21"
@@ -192,8 +192,8 @@ export const mockAnimals: Animal[] = [
     featured: true,
     characteristics: ["Athletic build", "Glossy dark coat", "Hardy genetics"],
     images: [
-      "https://images.unsplash.com/photo-1560807707-8cc77767d783?auto=format&fit=crop&w=1200&q=80",
-      "https://images.unsplash.com/photo-1524024973431-2ad916746881?auto=format&fit=crop&w=1200&q=80"
+      "https://images.unsplash.com/photo-1560807707-8cc77767d783?auto=format&fit=crop&w=600&q=75",
+      "https://images.unsplash.com/photo-1524024973431-2ad916746881?auto=format&fit=crop&w=600&q=75"
     ],
     createdAt: "2026-08-19"
   },
@@ -211,8 +211,8 @@ export const mockAnimals: Animal[] = [
     featured: false,
     characteristics: ["Long horns", "Drought resilient", "Lean frame"],
     images: [
-      "https://images.unsplash.com/photo-1511117833895-4b473c0b85d6?auto=format&fit=crop&w=1200&q=80",
-      "https://images.unsplash.com/photo-1524024973431-2ad916746881?auto=format&fit=crop&w=1200&q=80"
+      "https://images.unsplash.com/photo-1511117833895-4b473c0b85d6?auto=format&fit=crop&w=600&q=75",
+      "https://images.unsplash.com/photo-1524024973431-2ad916746881?auto=format&fit=crop&w=600&q=75"
     ],
     createdAt: "2026-08-14"
   },
@@ -230,7 +230,7 @@ export const mockAnimals: Animal[] = [
     featured: false,
     characteristics: ["Spotted pattern", "Docile demeanor", "Healthy conditioning"],
     images: [
-      "https://images.unsplash.com/photo-1524024973431-2ad916746881?auto=format&fit=crop&w=1200&q=80"
+      "https://images.unsplash.com/photo-1524024973431-2ad916746881?auto=format&fit=crop&w=600&q=75"
     ],
     createdAt: "2026-08-11"
   },
@@ -248,8 +248,8 @@ export const mockAnimals: Animal[] = [
     featured: true,
     characteristics: ["Glossy black", "Deep chest", "Pastoralist breed", "Superior weight"],
     images: [
-      "https://images.unsplash.com/photo-1560807707-8cc77767d783?auto=format&fit=crop&w=1200&q=80",
-      "https://images.unsplash.com/photo-1511117833895-4b473c0b85d6?auto=format&fit=crop&w=1200&q=80"
+      "https://images.unsplash.com/photo-1560807707-8cc77767d783?auto=format&fit=crop&w=600&q=75",
+      "https://images.unsplash.com/photo-1511117833895-4b473c0b85d6?auto=format&fit=crop&w=600&q=75"
     ],
     video: "https://assets.mixkit.co/videos/preview/mixkit-family-of-goats-in-a-field-41979-large.mp4",
     createdAt: "2026-08-23"
@@ -268,7 +268,7 @@ export const mockAnimals: Animal[] = [
     featured: false,
     characteristics: ["Balanced frame", "Wide hip structure", "Healthy feeding history"],
     images: [
-      "https://images.unsplash.com/photo-1524024973431-2ad916746881?auto=format&fit=crop&w=1200&q=80"
+      "https://images.unsplash.com/photo-1524024973431-2ad916746881?auto=format&fit=crop&w=600&q=75"
     ],
     createdAt: "2026-08-07"
   },
@@ -286,7 +286,7 @@ export const mockAnimals: Animal[] = [
     featured: false,
     characteristics: ["Red coat", "Active", "Dewormed"],
     images: [
-      "https://images.unsplash.com/photo-1560807707-8cc77767d783?auto=format&fit=crop&w=1200&q=80"
+      "https://images.unsplash.com/photo-1560807707-8cc77767d783?auto=format&fit=crop&w=600&q=75"
     ],
     createdAt: "2026-07-30"
   },
@@ -306,9 +306,9 @@ export const mockAnimals: Animal[] = [
     featured: true,
     characteristics: ["Pronounced build", "Heavy beef conformation", "Dewlap folds", "Docile bull"],
     images: [
-      "https://images.unsplash.com/photo-1546445317-29f4545e9d53?auto=format&fit=crop&w=1200&q=80",
-      "https://images.unsplash.com/photo-1570042225831-d98fa7577f1e?auto=format&fit=crop&w=1200&q=80",
-      "https://images.unsplash.com/photo-1527153857715-3908f2ae5e81?auto=format&fit=crop&w=1200&q=80"
+      "https://images.unsplash.com/photo-1546445317-29f4545e9d53?auto=format&fit=crop&w=600&q=75",
+      "https://images.unsplash.com/photo-1570042225831-d98fa7577f1e?auto=format&fit=crop&w=600&q=75",
+      "https://images.unsplash.com/photo-1527153857715-3908f2ae5e81?auto=format&fit=crop&w=600&q=75"
     ],
     video: "https://assets.mixkit.co/videos/preview/mixkit-cows-grazing-in-a-green-pasture-41977-large.mp4",
     createdAt: "2026-08-22"
@@ -327,8 +327,8 @@ export const mockAnimals: Animal[] = [
     featured: true,
     characteristics: ["Pied color pattern", "Large barrel", "High adaptability", "Vaccinated"],
     images: [
-      "https://images.unsplash.com/photo-1570042225831-d98fa7577f1e?auto=format&fit=crop&w=1200&q=80",
-      "https://images.unsplash.com/photo-1546445317-29f4545e9d53?auto=format&fit=crop&w=1200&q=80"
+      "https://images.unsplash.com/photo-1570042225831-d98fa7577f1e?auto=format&fit=crop&w=600&q=75",
+      "https://images.unsplash.com/photo-1546445317-29f4545e9d53?auto=format&fit=crop&w=600&q=75"
     ],
     createdAt: "2026-08-20"
   },
@@ -346,8 +346,8 @@ export const mockAnimals: Animal[] = [
     featured: true,
     characteristics: ["Broad shoulders", "Muscular legs", "Placid temperament", "Prime meat build"],
     images: [
-      "https://images.unsplash.com/photo-1527153857715-3908f2ae5e81?auto=format&fit=crop&w=1200&q=80",
-      "https://images.unsplash.com/photo-1546445317-29f4545e9d53?auto=format&fit=crop&w=1200&q=80"
+      "https://images.unsplash.com/photo-1527153857715-3908f2ae5e81?auto=format&fit=crop&w=600&q=75",
+      "https://images.unsplash.com/photo-1546445317-29f4545e9d53?auto=format&fit=crop&w=600&q=75"
     ],
     createdAt: "2026-08-16"
   },
@@ -365,8 +365,8 @@ export const mockAnimals: Animal[] = [
     featured: false,
     characteristics: ["Tall frame 400kg+", "Horn structure", "High dress-out percentage"],
     images: [
-      "https://images.unsplash.com/photo-1546445317-29f4545e9d53?auto=format&fit=crop&w=1200&q=80",
-      "https://images.unsplash.com/photo-1570042225831-d98fa7577f1e?auto=format&fit=crop&w=1200&q=80"
+      "https://images.unsplash.com/photo-1546445317-29f4545e9d53?auto=format&fit=crop&w=600&q=75",
+      "https://images.unsplash.com/photo-1570042225831-d98fa7577f1e?auto=format&fit=crop&w=600&q=75"
     ],
     video: "https://assets.mixkit.co/videos/preview/mixkit-cows-grazing-in-a-green-pasture-41977-large.mp4",
     createdAt: "2026-08-25"
@@ -385,7 +385,7 @@ export const mockAnimals: Animal[] = [
     featured: false,
     characteristics: ["Clean bloodline", "Compact frame", "Healthy pedigree"],
     images: [
-      "https://images.unsplash.com/photo-1570042225831-d98fa7577f1e?auto=format&fit=crop&w=1200&q=80"
+      "https://images.unsplash.com/photo-1570042225831-d98fa7577f1e?auto=format&fit=crop&w=600&q=75"
     ],
     createdAt: "2026-08-12"
   },
@@ -403,7 +403,7 @@ export const mockAnimals: Animal[] = [
     featured: false,
     characteristics: ["Brindle coat", "Deep girth", "Vaccinated"],
     images: [
-      "https://images.unsplash.com/photo-1527153857715-3908f2ae5e81?auto=format&fit=crop&w=1200&q=80"
+      "https://images.unsplash.com/photo-1527153857715-3908f2ae5e81?auto=format&fit=crop&w=600&q=75"
     ],
     createdAt: "2026-07-25"
   }
@@ -439,4 +439,5 @@ export const updateMockAnimalStatus = (id: string, status: Animal['status']): vo
     }
   }
 };
+
 

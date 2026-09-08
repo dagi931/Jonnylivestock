@@ -15,6 +15,20 @@ interface AnimalCardProps {
   onToggleExpand?: () => void;
 }
 
+/** Build a responsive srcSet for Unsplash images using their width API.
+ *  Returns undefined for non-Unsplash URLs so the browser falls back to src. */
+function buildUnsplashSrcSet(url: string): string | undefined {
+  if (!url.includes('images.unsplash.com')) return undefined;
+  // Strip any existing w= param and replace with responsive widths
+  const base = url.replace(/[?&]w=\d+/, '');
+  const sep = base.includes('?') ? '&' : '?';
+  return [
+    `${base}${sep}w=400&q=75 400w`,
+    `${base}${sep}w=600&q=75 600w`,
+    `${base}${sep}w=800&q=75 800w`,
+  ].join(', ');
+}
+
 export const AnimalCard: React.FC<AnimalCardProps> = ({
   animal,
   animationIndex = 0,
@@ -86,8 +100,11 @@ export const AnimalCard: React.FC<AnimalCardProps> = ({
       <div className="relative aspect-[16/11] sm:aspect-[16/9] w-full overflow-hidden bg-stone-900">
         <img
           src={animal.images[0]}
+          srcSet={buildUnsplashSrcSet(animal.images[0])}
+          sizes="(max-width: 640px) calc(50vw - 24px), (max-width: 1024px) calc(33vw - 24px), 430px"
           alt={`${animal.breed} ${animal.type} ${animal.id}`}
           loading="lazy"
+          decoding="async"
           className={`w-full h-full object-cover object-center card-zoom-img transition-transform duration-500 ease-out ${
             isTouched ? 'scale-100' : 'scale-110'
           } group-hover:scale-100 group-active:scale-100 active:scale-100`}

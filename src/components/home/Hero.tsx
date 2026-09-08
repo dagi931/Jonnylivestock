@@ -14,12 +14,19 @@ export const Hero: React.FC = () => {
     <section className="relative overflow-hidden min-h-[460px] sm:min-h-[500px] lg:min-h-[530px] flex items-center py-8 sm:py-10 lg:py-12">
       {/* Background Hero Image */}
       <div className="absolute inset-0 z-0">
-        <img
-          src="/hero-livestock.jpg"
-          alt="Jonny Livestock - Sheep, Goats, and Cows at the farm"
-          className="w-full h-full object-cover scale-105 animate-fade-in"
-          style={{ objectPosition: '75% 24%' }}
-        />
+        <picture className="block w-full h-full">
+          <source type="image/avif" srcSet="/hero-livestock.avif" />
+          <source type="image/webp" srcSet="/hero-livestock.webp" />
+          <img
+            src="/hero-livestock.webp"
+            alt="Jonny Livestock - Sheep, Goats, and Cows at the farm"
+            className="w-full h-full object-cover"
+            style={{ objectPosition: '75% 24%' }}
+            loading="eager"
+            fetchPriority="high"
+            decoding="async"
+          />
+        </picture>
         
         {/* Soft Radial/Linear Gradient Backdrop */}
         <div
