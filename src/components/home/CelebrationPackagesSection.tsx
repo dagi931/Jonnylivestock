@@ -14,6 +14,7 @@ const PackageOrderModal = lazy(() =>
   import('../modals/PackageOrderModal').then(m => ({ default: m.PackageOrderModal }))
 );
 import { AnimatedReveal } from '../common/AnimatedReveal';
+import { getOptimizedUnsplashUrl } from '../common/AnimalCard';
 import {
   Gift,
   Sparkles,
@@ -176,8 +177,10 @@ export const CelebrationPackagesSection: React.FC = () => {
                     {/* Compact Image */}
                     <div className="relative h-28 sm:h-44 w-full overflow-hidden bg-black/10">
                       <img
-                        src={pkg.image}
+                        src={getOptimizedUnsplashUrl(pkg.image, 360, 176, 60)}
                         alt={pkg.name}
+                        loading="lazy"
+                        decoding="async"
                         className={`w-full h-full object-cover card-zoom-img transition-transform duration-500 ease-out ${touchedPkgId === pkg.id ? 'scale-100' : 'scale-110'
                           } group-hover:scale-100 group-active:scale-100 active:scale-100`}
                       />

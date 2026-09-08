@@ -13,26 +13,44 @@ interface AnimalCardProps {
   animationIndex?: number;
   isExpanded?: boolean;
   onToggleExpand?: () => void;
+  eager?: boolean;
 }
 
-/** Build a responsive srcSet for Unsplash images using their width API.
- *  Returns undefined for non-Unsplash URLs so the browser falls back to src. */
+/** Build a highly compressed WebP Unsplash URL with custom width/height */
+export function getOptimizedUnsplashUrl(url: string, width = 360, height?: number, quality = 60): string {
+  if (!url || !url.includes('images.unsplash.com')) return url;
+  try {
+    const parsed = new URL(url);
+    parsed.searchParams.set('auto', 'format');
+    parsed.searchParams.set('fit', 'crop');
+    parsed.searchParams.set('fm', 'webp');
+    parsed.searchParams.set('q', String(quality));
+    parsed.searchParams.set('w', String(width));
+    if (height) parsed.searchParams.set('h', String(height));
+    return parsed.toString();
+  } catch {
+    return url;
+  }
+}
+
+/** Build a responsive srcSet for Unsplash images using their width API with WebP format. */
 function buildUnsplashSrcSet(url: string): string | undefined {
   if (!url || !url.includes('images.unsplash.com')) return undefined;
   try {
     const parsed = new URL(url);
     parsed.searchParams.set('auto', 'format');
     parsed.searchParams.set('fit', 'crop');
-    parsed.searchParams.set('q', '75');
+    parsed.searchParams.set('fm', 'webp');
+    parsed.searchParams.set('q', '60');
 
-    parsed.searchParams.set('w', '360');
-    const s360 = `${parsed.toString()} 360w`;
-    parsed.searchParams.set('w', '540');
-    const s540 = `${parsed.toString()} 540w`;
-    parsed.searchParams.set('w', '720');
-    const s720 = `${parsed.toString()} 720w`;
+    parsed.searchParams.set('w', '300');
+    const s300 = `${parsed.toString()} 300w`;
+    parsed.searchParams.set('w', '480');
+    const s480 = `${parsed.toString()} 480w`;
+    parsed.searchParams.set('w', '640');
+    const s640 = `${parsed.toString()} 640w`;
 
-    return `${s360}, ${s540}, ${s720}`;
+    return `${s300}, ${s480}, ${s640}`;
   } catch {
     return undefined;
   }
@@ -42,18 +60,19 @@ export const AnimalCard: React.FC<AnimalCardProps> = ({
   animal,
   animationIndex = 0,
   isExpanded,
-  onToggleExpand
+  onToggleExpand,
+  eager = false
 }) => {
   const [localShowMore, setLocalShowMore] = useState(false);
   const showMore = isExpanded !== undefined ? isExpanded : localShowMore;
   const [isTouched, setIsTouched] = useState(false);
   const touchTimerRef = useRef<any>(null);
-  const { ref: cardRef, isInView } = useInView();
+  const { ref: cardRef, isInView } = useInView({ rootMargin: '200px 0px 100px 0px' });
   const { theme } = useTheme();
   const { t, isAmharic } = useLanguage();
   const isDark = theme === 'design7';
-  // Render top cards immediately so above-the-fold content and LCP aren't delayed by observer transitions
-  const isInitialViewport = animationIndex < 2;
+  // Render top cards immediately only if explicitly marked eager (e.g. above-the-fold catalog pages)
+  const isInitialViewport = Boolean(eager && animationIndex < 2);
   const isCardVisible = isInitialViewport || isInView;
 
   const handleToggleShowMore = (e: React.MouseEvent) => {
@@ -110,18 +129,22 @@ export const AnimalCard: React.FC<AnimalCardProps> = ({
     >
       {/* Compact Image Container */}
       <div className="relative aspect-[16/11] sm:aspect-[16/9] w-full overflow-hidden bg-stone-900">
-        <img
-          src={animal.images[0]}
-          srcSet={buildUnsplashSrcSet(animal.images[0])}
-          sizes="(max-width: 640px) calc(50vw - 20px), (max-width: 1024px) 300px, 380px"
-          alt={`${animal.breed} ${animal.type} ${animal.id}`}
-          loading={animationIndex === 0 ? "eager" : "lazy"}
-          {...(animationIndex === 0 ? ({ fetchPriority: "high" } as any) : {})}
-          decoding="async"
-          className={`w-full h-full object-cover object-center card-zoom-img transition-transform duration-500 ease-out ${
-            isTouched ? 'scale-100' : 'scale-110'
-          } group-hover:scale-100 group-active:scale-100 active:scale-100`}
-        />
+        {isCardVisible ? (
+          <img
+            src={getOptimizedUnsplashUrl(animal.images[0], 360, 240, 60)}
+            srcSet={buildUnsplashSrcSet(animal.images[0])}
+            sizes="(max-width: 640px) calc(50vw - 20px), (max-width: 1024px) 300px, 380px"
+            alt={`${animal.breed} ${animal.type} ${animal.id}`}
+            loading={eager && animationIndex === 0 ? "eager" : "lazy"}
+            {...(eager && animationIndex === 0 ? ({ fetchPriority: "high" } as any) : {})}
+            decoding="async"
+            className={`w-full h-full object-cover object-center card-zoom-img transition-transform duration-500 ease-out ${
+              isTouched ? 'scale-100' : 'scale-110'
+            } group-hover:scale-100 group-active:scale-100 active:scale-100`}
+          />
+        ) : (
+          <div className="w-full h-full bg-stone-900/60" />
+        )}
 
         {/* Subtle Overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 pointer-events-none" />

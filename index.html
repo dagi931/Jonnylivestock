@@ -9,17 +9,20 @@
   <meta name="description"
     content="Browse quality sheep, goats, and cows directly from Jonny Livestock. Transparent pricing, exact weights, and direct delivery and preparation services." />
 
-  <!-- Preload LCP Candidate for static scanner discovery -->
-  <link rel="preload" as="image" href="https://images.unsplash.com/photo-1484557052118-f32bd25b45b5?auto=format&fit=crop&fm=webp&q=65&w=480&h=208" fetchpriority="high" />
+  <!-- Preload LCP Candidate for Home page (Responsive AVIF: mobile 53KB, desktop 64KB) -->
+  <link rel="preload" as="image" href="/hero-livestock-sm.avif" type="image/avif" media="(max-width: 640px)" fetchpriority="high" />
+  <link rel="preload" as="image" href="/hero-livestock.avif" type="image/avif" media="(min-width: 641px)" fetchpriority="high" />
 
   <!-- Preload Critical Variable Font -->
   <link rel="preload" as="font" type="font/woff2" href="/assets/plus-jakarta-sans-latin-wght-normal-eXO_dkmS.woff2" crossorigin />
 
-  <!-- Route-aware LCP Preload Hint -->
+  <!-- Route-aware LCP Preload Hint for inner routes -->
   <script>
     (function () {
       try {
         var p = window.location.pathname || '';
+        if (p === '/' || p === '') return; // handled by responsive static link above
+
         var link = document.createElement('link');
         link.rel = 'preload';
         link.as = 'image';
@@ -37,9 +40,8 @@
         } else if (p.startsWith('/goats')) {
           link.href = 'https://images.unsplash.com/photo-1524024973431-2ad916746881?auto=format&fit=crop&fm=webp&q=75&w=380';
           document.head.appendChild(link);
-        } else if (p === '/' || p === '') {
-          link.href = '/hero-livestock.avif';
-          link.type = 'image/avif';
+        } else if (p.startsWith('/about')) {
+          link.href = 'https://images.unsplash.com/photo-1546445317-29f4545e9d53?auto=format&fit=crop&fm=webp&q=60&w=440&h=330';
           document.head.appendChild(link);
         }
       } catch (e) {}

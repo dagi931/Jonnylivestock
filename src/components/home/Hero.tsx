@@ -15,16 +15,20 @@ export const Hero: React.FC = () => {
       {/* Background Hero Image */}
       <div className="absolute inset-0 z-0">
         <picture className="block w-full h-full">
+          <source media="(max-width: 640px)" type="image/avif" srcSet="/hero-livestock-sm.avif" />
+          <source media="(max-width: 640px)" type="image/webp" srcSet="/hero-livestock-sm.webp" />
           <source type="image/avif" srcSet="/hero-livestock.avif" />
           <source type="image/webp" srcSet="/hero-livestock.webp" />
           <img
-            src="/hero-livestock.webp"
+            src="/hero-livestock-sm.webp"
             alt="Jonny Livestock - Sheep, Goats, and Cows at the farm"
             className="w-full h-full object-cover"
             style={{ objectPosition: '75% 24%' }}
             loading="eager"
             fetchPriority="high"
             decoding="async"
+            width="640"
+            height="460"
           />
         </picture>
         
