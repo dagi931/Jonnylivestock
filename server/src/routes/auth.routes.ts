@@ -41,8 +41,22 @@ router.post('/send-registration-otp', otpLimiter, async (req: AuthRequest, res: 
       res.status(400).json({ success: false, error: 'Full name is required' });
       return;
     }
+    if (name.trim().length > 100) {
+      res.status(400).json({ success: false, error: 'Full name cannot exceed 100 characters' });
+      return;
+    }
     if (!email || !email.trim()) {
       res.status(400).json({ success: false, error: 'Email address is required' });
+      return;
+    }
+    const trimmedEmail = email.trim();
+    if (trimmedEmail.length > 254) {
+      res.status(400).json({ success: false, error: 'Email address cannot exceed 254 characters' });
+      return;
+    }
+    const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$/;
+    if (!emailRegex.test(trimmedEmail)) {
+      res.status(400).json({ success: false, error: 'Valid email address is required' });
       return;
     }
     const normalizedPhone = normalizeEthiopianPhone(phone);
@@ -51,7 +65,7 @@ router.post('/send-registration-otp', otpLimiter, async (req: AuthRequest, res: 
       return;
     }
 
-    const normalizedEmail = email.trim().toLowerCase();
+    const normalizedEmail = trimmedEmail.toLowerCase();
 
     // Check if an account with this email already exists
     const existingUser = await PostgresDB.findUserByEmail(normalizedEmail);
@@ -67,6 +81,26 @@ router.post('/send-registration-otp', otpLimiter, async (req: AuthRequest, res: 
       return;
     }
 
+    // Clean up expired pending OTPs first
+    const now = Date.now();
+    for (const [pendingKey, pendingData] of registrationOtpStore.entries()) {
+      if (now > pendingData.expiresAt) {
+        registrationOtpStore.delete(pendingKey);
+      }
+    }
+
+    // Prevent concurrent pending registrations from claiming the same phone with different emails
+    for (const [pendingEmail, pendingData] of registrationOtpStore.entries()) {
+      const pendingPhoneNormalized = normalizeEthiopianPhone(pendingData.phone);
+      if (pendingPhoneNormalized === normalizedPhone && pendingEmail !== normalizedEmail) {
+        res.status(400).json({
+          success: false,
+          error: 'A verification code has already been requested for this phone number with a different email. Please wait for it to expire or complete that verification.'
+        });
+        return;
+      }
+    }
+
     // Generate 6-digit OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const expiresAt = Date.now() + 10 * 60 * 1000; // 10 minutes
@@ -75,7 +109,7 @@ router.post('/send-registration-otp', otpLimiter, async (req: AuthRequest, res: 
       otp,
       name: name.trim(),
       email: normalizedEmail,
-      phone: phone.trim(),
+      phone: normalizedPhone,
       expiresAt
     });
 

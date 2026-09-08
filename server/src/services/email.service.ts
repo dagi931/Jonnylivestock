@@ -4,6 +4,19 @@
 
 const BREVO_API_URL = 'https://api.brevo.com/v3/smtp/email';
 
+/**
+ * Safely escape user-controlled values to prevent HTML/template injection in emails.
+ */
+function escapeHtml(str: string): string {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 export class EmailService {
   private static getApiKey(): string {
     return process.env.BREVO_API_KEY || '';
@@ -26,6 +39,7 @@ export class EmailService {
       const apiKey = this.getApiKey();
       const senderEmail = this.getSenderEmail();
       const senderName = this.getSenderName();
+      const safeRecipientName = escapeHtml(recipientName?.trim() || 'Valued Customer');
 
       const htmlContent = `
 <!DOCTYPE html>
@@ -56,7 +70,7 @@ export class EmailService {
           <tr>
             <td style="padding: 36px 32px 28px 32px;">
               <p style="font-size: 15px; margin: 0 0 14px 0; color: #3E2B1E; line-height: 1.6;">
-                Hello <strong>${recipientName || 'Valued Customer'}</strong>,
+                Hello <strong>${safeRecipientName}</strong>,
               </p>
               <p style="font-size: 14px; margin: 0 0 24px 0; color: #604C3E; line-height: 1.6;">
                 Thank you for signing up with Jonny Livestock. Please use the 6-digit one-time verification code below to complete your registration:
@@ -165,6 +179,7 @@ export class EmailService {
       const apiKey = this.getApiKey();
       const senderEmail = this.getSenderEmail();
       const senderName = this.getSenderName();
+      const safeRecipientName = escapeHtml(recipientName?.trim() || 'Customer');
 
       const htmlContent = `
 <!DOCTYPE html>
@@ -195,7 +210,7 @@ export class EmailService {
           <tr>
             <td style="padding: 36px 32px 28px 32px;">
               <p style="font-size: 15px; margin: 0 0 14px 0; color: #3E2B1E; line-height: 1.6;">
-                Hello <strong>${recipientName || 'Customer'}</strong>,
+                Hello <strong>${safeRecipientName}</strong>,
               </p>
               <p style="font-size: 14px; margin: 0 0 24px 0; color: #604C3E; line-height: 1.6;">
                 We received a request to reset the password for your Jonny Livestock account. Please use the 6-digit verification code below to set a new password:

@@ -14,10 +14,22 @@ export const options = {
 };
 
 export default function () {
-  const response = http.get('http://localhost:5000/api/animals/cow-001');
+  // 1. Browse all animals
+  const resAnimals = http.get('http://localhost:5000/api/animals');
+  check(resAnimals, {
+    'GET /api/animals status 200': (r) => r.status === 200,
+  });
 
-  check(response, {
-    'status is 200': (r) => r.status === 200,
+  // 2. View specific animal details
+  const resAnimal = http.get('http://localhost:5000/api/animals/cw-001');
+  check(resAnimal, {
+    'GET /api/animals/cw-001 status 200': (r) => r.status === 200,
+  });
+
+  // 3. Browse packages
+  const resPackages = http.get('http://localhost:5000/api/packages');
+  check(resPackages, {
+    'GET /api/packages status 200': (r) => r.status === 200,
   });
 
   sleep(1);
