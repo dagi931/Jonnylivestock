@@ -6,8 +6,8 @@ import { useRealtimeEvent } from '../context/RealtimeContext';
 
 export function useAnimals(type?: AnimalType) {
   const getInitialAnimals = () => {
-    if (type) return mockAnimals.filter(a => a.type === type);
-    return mockAnimals;
+    const list = type ? mockAnimals.filter(a => a.type === type) : mockAnimals;
+    return [...list].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   };
 
   const [animals, setAnimals] = useState<Animal[]>(getInitialAnimals);
@@ -20,7 +20,8 @@ export function useAnimals(type?: AnimalType) {
     api.getAnimals({ type }).then((liveAnimals) => {
       if (isMounted && liveAnimals && liveAnimals.length > 0) {
         liveAnimals.forEach(a => updateMockAnimalStatus(a.id, a.status));
-        setAnimals(liveAnimals);
+        const sorted = [...liveAnimals].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        setAnimals(sorted);
       }
       if (isMounted) setIsLoading(false);
     }).catch(() => {

@@ -29,16 +29,22 @@
         link.fetchPriority = 'high';
 
         if (p.startsWith('/packages')) {
-          link.href = 'https://images.unsplash.com/photo-1484557052118-f32bd25b45b5?auto=format&fit=crop&fm=webp&q=65&w=480&h=208';
-          document.head.appendChild(link);
-        } else if (p.startsWith('/cows')) {
-          link.href = 'https://images.unsplash.com/photo-1546445317-29f4545e9d53?auto=format&fit=crop&fm=webp&q=75&w=380';
+          link.href = 'https://images.unsplash.com/photo-1484557052118-f32bd25b45b5?auto=format&fit=crop&fm=webp&q=60&w=360&h=160';
           document.head.appendChild(link);
         } else if (p.startsWith('/sheep')) {
-          link.href = 'https://images.unsplash.com/photo-1484557052118-f32bd25b45b5?auto=format&fit=crop&fm=webp&q=75&w=380';
+          link.href = 'https://images.unsplash.com/photo-1516467508483-a7212febe31a?auto=format&fit=crop&fm=webp&q=60&w=360';
+          link.setAttribute('imagesrcset', 'https://images.unsplash.com/photo-1516467508483-a7212febe31a?auto=format&fit=crop&fm=webp&q=60&w=300 300w, https://images.unsplash.com/photo-1516467508483-a7212febe31a?auto=format&fit=crop&fm=webp&q=60&w=480 480w, https://images.unsplash.com/photo-1516467508483-a7212febe31a?auto=format&fit=crop&fm=webp&q=60&w=640 640w');
+          link.setAttribute('imagesizes', '(max-width: 640px) calc(50vw - 20px), (max-width: 1024px) 300px, 380px');
           document.head.appendChild(link);
         } else if (p.startsWith('/goats')) {
-          link.href = 'https://images.unsplash.com/photo-1524024973431-2ad916746881?auto=format&fit=crop&fm=webp&q=75&w=380';
+          link.href = 'https://images.unsplash.com/photo-1560807707-8cc77767d783?auto=format&fit=crop&fm=webp&q=60&w=360';
+          link.setAttribute('imagesrcset', 'https://images.unsplash.com/photo-1560807707-8cc77767d783?auto=format&fit=crop&fm=webp&q=60&w=300 300w, https://images.unsplash.com/photo-1560807707-8cc77767d783?auto=format&fit=crop&fm=webp&q=60&w=480 480w, https://images.unsplash.com/photo-1560807707-8cc77767d783?auto=format&fit=crop&fm=webp&q=60&w=640 640w');
+          link.setAttribute('imagesizes', '(max-width: 640px) calc(50vw - 20px), (max-width: 1024px) 300px, 380px');
+          document.head.appendChild(link);
+        } else if (p.startsWith('/cows')) {
+          link.href = 'https://images.unsplash.com/photo-1546445317-29f4545e9d53?auto=format&fit=crop&fm=webp&q=60&w=360';
+          link.setAttribute('imagesrcset', 'https://images.unsplash.com/photo-1546445317-29f4545e9d53?auto=format&fit=crop&fm=webp&q=60&w=300 300w, https://images.unsplash.com/photo-1546445317-29f4545e9d53?auto=format&fit=crop&fm=webp&q=60&w=480 480w, https://images.unsplash.com/photo-1546445317-29f4545e9d53?auto=format&fit=crop&fm=webp&q=60&w=640 640w');
+          link.setAttribute('imagesizes', '(max-width: 640px) calc(50vw - 20px), (max-width: 1024px) 300px, 380px');
           document.head.appendChild(link);
         } else if (p.startsWith('/about')) {
           link.href = 'https://images.unsplash.com/photo-1546445317-29f4545e9d53?auto=format&fit=crop&fm=webp&q=60&w=440&h=330';

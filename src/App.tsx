@@ -8,13 +8,13 @@ import { RealtimeProvider } from './context/RealtimeContext';
 import { UserAuthModal } from './components/modals/UserAuthModal';
 import { Navbar } from './components/common/Navbar';
 import { Footer } from './components/common/Footer';
-// Primary storefront home route is eagerly loaded for instant initial landing
+// Primary storefront catalog routes are eagerly loaded for instant navigation without Suspense flashes or CLS
 import { Home } from './pages/Home';
+import { Sheep } from './pages/Sheep';
+import { Goats } from './pages/Goats';
+import { Cows } from './pages/Cows';
 
-// Storefront catalog and secondary routes are lazy-loaded on-demand for fast initial page load & low 3G main-thread overhead
-const Sheep          = lazy(() => import('./pages/Sheep').then(m => ({ default: m.Sheep })));
-const Goats          = lazy(() => import('./pages/Goats').then(m => ({ default: m.Goats })));
-const Cows           = lazy(() => import('./pages/Cows').then(m => ({ default: m.Cows })));
+// Secondary storefront and dashboard routes are lazy-loaded on-demand for low 3G initial payload
 const PackageBuilder = lazy(() => import('./pages/PackageBuilder').then(m => ({ default: m.PackageBuilder })));
 const Services       = lazy(() => import('./pages/Services').then(m => ({ default: m.Services })));
 const About          = lazy(() => import('./pages/About').then(m => ({ default: m.About })));

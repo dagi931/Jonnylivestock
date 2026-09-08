@@ -72,7 +72,7 @@ export const AnimalCard: React.FC<AnimalCardProps> = ({
   const { t, isAmharic } = useLanguage();
   const isDark = theme === 'design7';
   // Render top cards immediately only if explicitly marked eager (e.g. above-the-fold catalog pages)
-  const isInitialViewport = Boolean(eager && animationIndex < 2);
+  const isInitialViewport = Boolean(eager);
   const isCardVisible = isInitialViewport || isInView;
 
   const handleToggleShowMore = (e: React.MouseEvent) => {
@@ -113,14 +113,16 @@ export const AnimalCard: React.FC<AnimalCardProps> = ({
       onTouchStart={handleTouch}
       onTouchEnd={handleTouch}
       style={{
-        transitionDelay: isInitialViewport ? '0ms' : `${Math.min(animationIndex * 75, 450)}ms`,
-        transitionDuration: isInitialViewport ? '0ms' : '650ms',
+        transitionDelay: isInitialViewport ? '0ms' : `${Math.min(animationIndex * 50, 250)}ms`,
+        transitionDuration: isInitialViewport ? '0ms' : '300ms',
         transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)',
       }}
       className={`group relative rounded-xl sm:rounded-2xl border flex flex-col overflow-hidden hover:-translate-y-1 active:-translate-y-0.5 cursor-pointer select-none transition-all self-start h-fit w-full ${
-        isCardVisible
+        isInitialViewport
           ? 'opacity-100 translate-y-0 scale-100'
-          : 'opacity-0 translate-y-7 scale-[0.98]'
+          : isCardVisible
+            ? 'opacity-100 translate-y-0 scale-100'
+            : 'opacity-0 scale-[0.99]'
       } ${
         isDark
           ? 'bg-[#2A1A0D] border-[#4A2C16] hover:border-[#C58A3A]/70 shadow-sm hover:shadow-lg'
@@ -135,6 +137,8 @@ export const AnimalCard: React.FC<AnimalCardProps> = ({
             srcSet={buildUnsplashSrcSet(animal.images[0])}
             sizes="(max-width: 640px) calc(50vw - 20px), (max-width: 1024px) 300px, 380px"
             alt={`${animal.breed} ${animal.type} ${animal.id}`}
+            width="360"
+            height="247"
             loading={eager && animationIndex === 0 ? "eager" : "lazy"}
             {...(eager && animationIndex === 0 ? ({ fetchPriority: "high" } as any) : {})}
             decoding="async"

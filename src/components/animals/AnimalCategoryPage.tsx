@@ -64,7 +64,7 @@ export const AnimalCategoryPage: React.FC<AnimalCategoryPageProps> = ({
     <div className="min-h-screen py-6 sm:py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Breadcrumbs & Page Title */}
-        <AnimatedReveal direction="up" delay={50}>
+        <AnimatedReveal direction="up" delay={50} immediate={true}>
           <nav className="flex items-center gap-2 text-xs mb-3 opacity-70">
             <Link to="/" className="hover:underline">{t.nav.home}</Link>
             <ChevronRight className="w-3.5 h-3.5" />
@@ -93,7 +93,7 @@ export const AnimalCategoryPage: React.FC<AnimalCategoryPageProps> = ({
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
           {/* Left Column: Filters Sidebar */}
           <div className="lg:col-span-4 xl:col-span-3">
-            <AnimatedReveal direction="up" delay={100}>
+            <AnimatedReveal direction="up" delay={100} immediate={true}>
               <AnimalFilters
                 filters={filters}
                 availableBreeds={availableBreeds}
@@ -110,7 +110,7 @@ export const AnimalCategoryPage: React.FC<AnimalCategoryPageProps> = ({
           {/* Right Column: Animal Grid */}
           <div className="lg:col-span-8 xl:col-span-9">
             {/* Top Bar Summary */}
-            <AnimatedReveal direction="up" delay={120}>
+            <AnimatedReveal direction="up" delay={120} immediate={true}>
               <div className="flex items-center justify-between mb-4 text-xs">
                 <span className="opacity-70">
                   {isAmharic ? 'የሚታዩት' : 'Showing'} <strong className={isDark ? 'text-[#E0B15A]' : 'text-[#B8792F]'}>{filteredCount}</strong> / {totalCount} {isAmharic ? typeLabel.am : typeLabel.en}
