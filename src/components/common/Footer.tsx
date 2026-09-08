@@ -81,6 +81,7 @@ export const Footer: React.FC = () => {
               <li>
                 <a
                   href={getPhoneCallLink(business.phone)}
+                  aria-label={`${isAmharic ? 'የእግርጌ የቀጥታ ስልክ ጥሪ' : 'Footer direct phone call'} ${business.displayPhone}`}
                   className="flex items-start gap-2.5 group hover:text-[#E0B15A] transition-colors"
                 >
                   <Phone className="w-4 h-4 text-[#C58A3A] mt-0.5 shrink-0" />
@@ -95,6 +96,7 @@ export const Footer: React.FC = () => {
                   href={getWhatsAppLink(business.whatsapp, isAmharic ? 'ሰላም፣ ስላላችሁ ከብቶችና አገልግሎቶች ማወቅ ፈልጌ ነበር።' : 'Hello, I am inquiring about available livestock and services.')}
                   target="_blank"
                   rel="noopener noreferrer"
+                  aria-label={`${isAmharic ? 'የእግርጌ የዋትስአፕ መልእክት' : 'Footer WhatsApp inquiry'} ${business.displayWhatsapp}`}
                   className="flex items-start gap-2.5 group hover:text-[#E0B15A] transition-colors"
                 >
                   <MessageCircle className="w-4 h-4 text-[#C58A3A] mt-0.5 shrink-0" />

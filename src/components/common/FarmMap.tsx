@@ -49,14 +49,14 @@ export const FarmMap: React.FC = () => {
       {/* Map Header & Controls */}
       <div className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b" style={{ borderColor: isDark ? '#4A2C16' : '#E4D4BC' }}>
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center shrink-0">
+          <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
             <Compass className="w-5 h-5" />
           </div>
           <div>
-            <h3 className={`font-serif font-bold text-base ${isDark ? 'text-[#F4E8D0]' : 'text-[#2A1A0D]'}`}>
+            <h2 className={`font-serif font-bold text-base ${isDark ? 'text-[#F4E8D0]' : 'text-[#2A1A0D]'}`}>
               {isAmharic ? 'የእርሻው ትክክለኛ መገኛ ካርታ' : 'Live GIS Map & Exact Location'}
-            </h3>
-            <p className="text-xs opacity-75">
+            </h2>
+            <p className={`text-xs ${isDark ? 'text-[#D8C5A8]/80' : 'text-[#54473A]'}`}>
               {isAmharic
                 ? 'በላይ ዘለቀ መንገድ፣ አራት ኪሎ፣ አዲስ አበባ'
                 : 'Belay Zeleke Street, Arat Kilo, Addis Ababa'}
@@ -73,7 +73,7 @@ export const FarmMap: React.FC = () => {
             className={`px-3 py-1.5 rounded-xl text-xs font-semibold border flex items-center gap-1.5 transition-colors ${
               isDark
                 ? 'bg-[#1B1208] border-[#4A2C16] text-[#D8C5A8] hover:text-[#F4E8D0]'
-                : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#746556] hover:text-[#2A1A0D]'
+                : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#54473A] hover:text-[#2A1A0D]'
             }`}
             title="Copy GPS coordinates"
           >
@@ -86,10 +86,11 @@ export const FarmMap: React.FC = () => {
             href={googleMapsDirectionsUrl}
             target="_blank"
             rel="noopener noreferrer"
+            aria-label={isAmharic ? 'የመኪና አቅጣጫ በጉግል ካርታ ይመልከቱ' : 'Get driving directions to Jonny Livestock in Google Maps'}
             className={`px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs transform hover:-translate-y-0.5 ${
               isDark
                 ? 'bg-[#C58A3A] hover:bg-[#E0B15A] text-[#1B1208]'
-                : 'bg-[#B8792F] hover:bg-[#9E6523] text-[#FAF7F0]'
+                : 'bg-[#8A4B08] hover:bg-[#6D3A05] text-[#FAF7F0]'
             }`}
           >
             <Navigation className="w-3.5 h-3.5" />
@@ -99,7 +100,10 @@ export const FarmMap: React.FC = () => {
       </div>
 
       {/* Interactive GIS Map Viewport */}
-      <div className="relative w-full h-[320px] sm:h-[380px] bg-stone-900">
+      <div
+        className="relative w-full h-[320px] sm:h-[380px] bg-stone-900"
+        style={{ minHeight: '320px', contain: 'size layout' }}
+      >
         <iframe
           title="Jonny Livestock Exact Location - Belay Zeleke Street, Arat Kilo, Addis Ababa"
           src={osmEmbedUrl}
@@ -129,6 +133,7 @@ export const FarmMap: React.FC = () => {
             href={googleMapsViewUrl}
             target="_blank"
             rel="noopener noreferrer"
+            aria-label={isAmharic ? 'የእርሻውን መገኛ በሙሉ ጉግል ካርታ ይክፈቱ' : 'Open Jonny Livestock location in full Google Maps view'}
             className="px-3.5 py-1.5 rounded-xl bg-black/85 backdrop-blur-md text-[#FAF7F0] border border-white/20 text-xs font-semibold flex items-center gap-1.5 hover:bg-black transition-colors shadow-md"
           >
             <ExternalLink className="w-3.5 h-3.5 text-[#E0B15A]" />

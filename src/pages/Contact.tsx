@@ -108,7 +108,7 @@ export const Contact: React.FC = () => {
         <div className="max-w-3xl mb-8">
           <span
             className={`text-xs font-semibold uppercase tracking-wider ${
-              isDark ? 'text-[#C58A3A]' : 'text-[#B8792F]'
+              isDark ? 'text-[#C58A3A]' : 'text-[#8A4B08]'
             }`}
           >
             {t.contactPage.badge}
@@ -122,7 +122,7 @@ export const Contact: React.FC = () => {
           </h1>
           <p
             className={`text-xs sm:text-sm md:text-base ${
-              isDark ? 'text-[#D8C5A8]' : 'text-[#746556]'
+              isDark ? 'text-[#D8C5A8]' : 'text-[#4A3B2C]'
             }`}
           >
             {t.contactPage.subtext}
@@ -142,22 +142,23 @@ export const Contact: React.FC = () => {
               }`}
             >
               <div className="flex items-start gap-3.5">
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${isDark ? 'bg-[#1B1208] text-[#C58A3A] border border-[#4A2C16]' : 'bg-[#FAF7F0] text-[#B8792F] border border-[#E4D4BC]'}`}>
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${isDark ? 'bg-[#1B1208] text-[#C58A3A] border border-[#4A2C16]' : 'bg-[#FAF7F0] text-[#8A4B08] border border-[#E4D4BC]'}`}>
                   <Phone className="w-5 h-5" />
                 </div>
                 <div className="flex-1">
-                  <span className="block text-[11px] uppercase tracking-wider font-semibold opacity-70">
+                  <span className={`block text-[11px] uppercase tracking-wider font-semibold ${isDark ? 'text-[#D8C5A8]/75' : 'text-[#54473A]'}`}>
                     {t.contactPage.phoneTitle}
                   </span>
                   <a
                     href={getPhoneCallLink(business.phone)}
+                    aria-label={`${isAmharic ? 'የቀጥታ ስልክ ጥሪ ለ' : 'Direct phone call to'} ${business.name} ${business.displayPhone}`}
                     className={`block font-serif font-bold text-lg mt-0.5 hover:underline ${
-                      isDark ? 'text-[#E0B15A]' : 'text-[#B8792F]'
+                      isDark ? 'text-[#E0B15A]' : 'text-[#8A4B08]'
                     }`}
                   >
                     {business.displayPhone}
                   </a>
-                  <p className="text-xs opacity-80 mt-0.5">
+                  <p className={`text-xs mt-0.5 ${isDark ? 'text-[#D8C5A8]/80' : 'text-[#54473A]'}`}>
                     {t.contactPage.phoneDesc}
                   </p>
                 </div>
@@ -175,20 +176,21 @@ export const Contact: React.FC = () => {
                   <MessageSquare className="w-5 h-5" />
                 </div>
                 <div className="flex-1">
-                  <span className="block text-[11px] uppercase tracking-wider font-semibold opacity-70">
+                  <span className={`block text-[11px] uppercase tracking-wider font-semibold ${isDark ? 'text-[#D8C5A8]/75' : 'text-[#54473A]'}`}>
                     {t.contactPage.whatsappTitle}
                   </span>
                   <a
                     href={getWhatsAppLink(business.whatsapp, isAmharic ? 'ሰላም፣ ስላላችሁ ከብቶችና አገልግሎቶች ማወቅ ፈልጌ ነበር።' : 'Hello, I would like to inquire about your available livestock and services.')}
                     target="_blank"
                     rel="noopener noreferrer"
+                    aria-label={`${isAmharic ? 'የዋትስአፕ መልእክት ለ' : 'Send WhatsApp message to'} ${business.name} ${business.displayWhatsapp}`}
                     className={`block font-serif font-bold text-lg mt-0.5 hover:underline ${
-                      isDark ? 'text-[#E0B15A]' : 'text-[#B8792F]'
+                      isDark ? 'text-[#E0B15A]' : 'text-[#8A4B08]'
                     }`}
                   >
                     {business.displayWhatsapp}
                   </a>
-                  <p className="text-xs opacity-80 mt-0.5">
+                  <p className={`text-xs mt-0.5 ${isDark ? 'text-[#D8C5A8]/80' : 'text-[#54473A]'}`}>
                     {t.contactPage.whatsappDesc}
                   </p>
                 </div>
@@ -205,7 +207,7 @@ export const Contact: React.FC = () => {
                 <MapPin className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
                 <div>
                   <strong className="block text-xs uppercase tracking-wider font-semibold">{t.contactPage.locationTitle}</strong>
-                  <p className="text-xs sm:text-sm opacity-80 mt-0.5 leading-relaxed">
+                  <p className={`text-xs sm:text-sm mt-0.5 leading-relaxed ${isDark ? 'text-[#D8C5A8]/90' : 'text-[#4A3B2C]'}`}>
                     {business.location}
                   </p>
                 </div>
@@ -215,7 +217,7 @@ export const Contact: React.FC = () => {
                 <Clock className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
                 <div>
                   <strong className="block text-xs uppercase tracking-wider font-semibold">{t.contactPage.hoursTitle}</strong>
-                  <p className="text-xs opacity-80 mt-0.5 leading-relaxed">
+                  <p className={`text-xs mt-0.5 leading-relaxed ${isDark ? 'text-[#D8C5A8]/80' : 'text-[#54473A]'}`}>
                     {business.businessHours}
                   </p>
                 </div>
@@ -225,7 +227,7 @@ export const Contact: React.FC = () => {
             {/* Disclaimer pill */}
             <div
               className={`p-3.5 rounded-xl border text-xs leading-relaxed flex items-start gap-2.5 ${
-                isDark ? 'bg-[#1B1208] border-[#4A2C16] text-[#D8C5A8]' : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#746556]'
+                isDark ? 'bg-[#1B1208] border-[#4A2C16] text-[#D8C5A8]' : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#4A3B2C]'
               }`}
             >
               <ShieldAlert className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
@@ -262,7 +264,7 @@ export const Contact: React.FC = () => {
                       className={`px-5 py-2 rounded-xl text-xs sm:text-sm font-semibold border transition-colors ${
                         isDark
                           ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0] hover:border-[#C58A3A]'
-                          : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#241A12] hover:border-[#B8792F]'
+                          : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#241A12] hover:border-[#8A4B08]'
                       }`}
                     >
                       {t.contactPage.sendAnotherBtn}
@@ -279,7 +281,7 @@ export const Contact: React.FC = () => {
                     >
                       {t.contactPage.formTitle}
                     </h2>
-                    <p className="text-xs opacity-70 mt-0.5">
+                    <p className={`text-xs mt-0.5 ${isDark ? 'text-[#D8C5A8]/75' : 'text-[#54473A]'}`}>
                       {t.contactPage.formSubtext}
                     </p>
                   </div>
@@ -288,10 +290,13 @@ export const Contact: React.FC = () => {
                     {/* Name & Phone */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
-                        <label className="block text-xs font-semibold uppercase tracking-wider mb-1 opacity-90">
+                        <label htmlFor="contactName" className="block text-xs font-semibold uppercase tracking-wider mb-1 opacity-90">
                           {t.contactPage.nameLabel} <span className="text-red-500">*</span>
                         </label>
                         <input
+                          id="contactName"
+                          name="name"
+                          autoComplete="name"
                           type="text"
                           placeholder={isAmharic ? 'ለምሳሌ፡ አበበ በቀለ' : 'e.g. Abebe Bekele'}
                           value={formData.name}
@@ -301,7 +306,7 @@ export const Contact: React.FC = () => {
                           } ${
                             isDark
                               ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0] focus:ring-[#C58A3A]'
-                              : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#241A12] focus:ring-[#B8792F]'
+                              : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#241A12] focus:ring-[#8A4B08]'
                           }`}
                         />
                         {errors.name && (
@@ -313,10 +318,13 @@ export const Contact: React.FC = () => {
                       </div>
 
                       <div>
-                        <label className="block text-xs font-semibold uppercase tracking-wider mb-1 opacity-90">
+                        <label htmlFor="contactPhone" className="block text-xs font-semibold uppercase tracking-wider mb-1 opacity-90">
                           {t.contactPage.phoneLabel} <span className="text-red-500">*</span>
                         </label>
                         <input
+                          id="contactPhone"
+                          name="phone"
+                          autoComplete="tel"
                           type="tel"
                           placeholder={isAmharic ? 'ለምሳሌ፡ +251 91 123 4567' : 'e.g. +251 91 123 4567'}
                           value={formData.phone}
@@ -326,7 +334,7 @@ export const Contact: React.FC = () => {
                           } ${
                             isDark
                               ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0] focus:ring-[#C58A3A]'
-                              : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#241A12] focus:ring-[#B8792F]'
+                              : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#241A12] focus:ring-[#8A4B08]'
                           }`}
                         />
                         {errors.phone && (
@@ -341,10 +349,13 @@ export const Contact: React.FC = () => {
                     {/* Email & Animal ID */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
-                        <label className="block text-xs font-semibold uppercase tracking-wider mb-1 opacity-90">
+                        <label htmlFor="contactEmail" className="block text-xs font-semibold uppercase tracking-wider mb-1 opacity-90">
                           {t.contactPage.emailLabel} <span className="text-[10px] opacity-60 font-normal lowercase">({isAmharic ? 'አስገዳጅ ያልሆነ' : 'optional'})</span>
                         </label>
                         <input
+                          id="contactEmail"
+                          name="email"
+                          autoComplete="email"
                           type="email"
                           placeholder={isAmharic ? 'ለምሳሌ፡ abebe@example.com' : 'e.g. abebe@example.com'}
                           value={formData.email}
@@ -354,7 +365,7 @@ export const Contact: React.FC = () => {
                           } ${
                             isDark
                               ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0] focus:ring-[#C58A3A]'
-                              : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#241A12] focus:ring-[#B8792F]'
+                              : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#241A12] focus:ring-[#8A4B08]'
                           }`}
                         />
                         {errors.email && (
@@ -366,10 +377,12 @@ export const Contact: React.FC = () => {
                       </div>
 
                       <div>
-                        <label className="block text-xs font-semibold uppercase tracking-wider mb-1 opacity-90">
+                        <label htmlFor="contactAnimalId" className="block text-xs font-semibold uppercase tracking-wider mb-1 opacity-90">
                           {t.contactPage.animalIdLabel} <span className="text-[10px] opacity-60 font-normal lowercase">({isAmharic ? 'አስገዳጅ ያልሆነ' : 'optional'})</span>
                         </label>
                         <input
+                          id="contactAnimalId"
+                          name="animalId"
                           type="text"
                           placeholder="e.g. SH-001 or CW-001"
                           value={formData.animalId}
@@ -377,7 +390,7 @@ export const Contact: React.FC = () => {
                           className={`w-full px-3.5 py-2 rounded-xl text-sm border focus:outline-none focus:ring-2 transition-all ${
                             isDark
                               ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0] focus:ring-[#C58A3A]'
-                              : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#241A12] focus:ring-[#B8792F]'
+                              : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#241A12] focus:ring-[#8A4B08]'
                           }`}
                         />
                       </div>
@@ -385,17 +398,20 @@ export const Contact: React.FC = () => {
 
                     {/* Service Needed Dropdown */}
                     <div>
-                      <label className="block text-xs font-semibold uppercase tracking-wider mb-1 opacity-90">
+                      <label htmlFor="contactServiceNeeded" className="block text-xs font-semibold uppercase tracking-wider mb-1 opacity-90">
                         {t.contactPage.serviceNeededLabel} <span className="text-[10px] opacity-60 font-normal lowercase">({isAmharic ? 'አስገዳጅ ያልሆነ' : 'optional'})</span>
                       </label>
                       <div className="relative">
                         <select
+                          id="contactServiceNeeded"
+                          name="serviceNeeded"
+                          aria-label={t.contactPage.serviceNeededLabel}
                           value={formData.serviceNeeded}
                           onChange={(e) => setFormData({ ...formData, serviceNeeded: e.target.value })}
                           className={`w-full px-3.5 py-2 rounded-xl text-sm border appearance-none pr-10 focus:outline-none focus:ring-2 transition-all ${
                             isDark
                               ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0] focus:ring-[#C58A3A]'
-                              : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#241A12] focus:ring-[#B8792F]'
+                              : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#241A12] focus:ring-[#8A4B08]'
                           }`}
                         >
                           <option value="No Service">{isAmharic ? 'አገልግሎት አያስፈልግም (እንስሳው ብቻ)' : 'No Service (Animal Only)'}</option>
@@ -412,10 +428,12 @@ export const Contact: React.FC = () => {
 
                     {/* Message */}
                     <div>
-                      <label className="block text-xs font-semibold uppercase tracking-wider mb-1 opacity-90">
+                      <label htmlFor="contactMessage" className="block text-xs font-semibold uppercase tracking-wider mb-1 opacity-90">
                         {t.contactPage.messageLabel} <span className="text-red-500">*</span>
                       </label>
                       <textarea
+                        id="contactMessage"
+                        name="message"
                         rows={3}
                         placeholder={isAmharic ? 'ስለሚፈልጉት እንስሳ፣ ማድረሻ አድራሻ ወይም ልዩ የስጋ ዝግጅት ትዕዛዝ ይጻፉልን...' : 'Tell us about the animal you want, delivery destination, or specific service instructions...'}
                         value={formData.message}
@@ -425,7 +443,7 @@ export const Contact: React.FC = () => {
                         } ${
                           isDark
                             ? 'bg-[#1B1208] border-[#4A2C16] text-[#F4E8D0] focus:ring-[#C58A3A]'
-                            : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#241A12] focus:ring-[#B8792F]'
+                            : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#241A12] focus:ring-[#8A4B08]'
                         }`}
                       />
                       {errors.message && (
@@ -444,7 +462,7 @@ export const Contact: React.FC = () => {
                         className={`w-full sm:w-auto px-6 py-2.5 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all shadow-sm transform hover:-translate-y-0.5 active:scale-[0.99] disabled:opacity-50 ${
                           isDark
                             ? 'bg-[#C58A3A] hover:bg-[#E0B15A] text-[#1B1208]'
-                            : 'bg-[#B8792F] hover:bg-[#9E6523] text-[#FAF7F0]'
+                            : 'bg-[#8A4B08] hover:bg-[#6D3A05] text-[#FAF7F0]'
                         }`}
                       >
                         {isSubmitting ? (

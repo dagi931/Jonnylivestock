@@ -13,6 +13,7 @@ import { Home } from './pages/Home';
 import { Sheep } from './pages/Sheep';
 import { Goats } from './pages/Goats';
 import { Cows } from './pages/Cows';
+import { Contact } from './pages/Contact';
 
 // Secondary storefront and dashboard routes are lazy-loaded on-demand for low 3G initial payload
 const PackageBuilder = lazy(() => import('./pages/PackageBuilder').then(m => ({ default: m.PackageBuilder })));
@@ -23,7 +24,6 @@ const About          = lazy(() => import('./pages/About').then(m => ({ default: 
 const AnimalDetails  = lazy(() => import('./pages/AnimalDetails').then(m => ({ default: m.AnimalDetails })));
 const MyPackages     = lazy(() => import('./pages/MyPackages').then(m => ({ default: m.MyPackages })));
 const MyReservations = lazy(() => import('./pages/MyReservations').then(m => ({ default: m.MyReservations })));
-const Contact        = lazy(() => import('./pages/Contact').then(m => ({ default: m.Contact })));
 const Admin          = lazy(() => import('./pages/Admin').then(m => ({ default: m.Admin })));
 const NotFound       = lazy(() => import('./pages/NotFound').then(m => ({ default: m.NotFound })));
 
