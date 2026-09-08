@@ -44,7 +44,7 @@ export const AnimalFilters: React.FC<AnimalFiltersProps> = ({
             onClick={onResetFilters}
             type="button"
             className={`inline-flex items-center gap-1 text-xs font-semibold hover:underline ${
-              isDark ? 'text-[#E0B15A]' : 'text-[#B8792F]'
+              isDark ? 'text-[#E0B15A]' : 'text-[#8A4B08]'
             }`}
           >
             <RotateCcw className="w-3 h-3" />
@@ -159,10 +159,10 @@ export const AnimalFilters: React.FC<AnimalFiltersProps> = ({
                   isSelected
                     ? isDark
                       ? 'bg-[#C58A3A] text-[#1B1208] border-[#C58A3A]'
-                      : 'bg-[#B8792F] text-[#FAF7F0] border-[#B8792F]'
+                      : 'bg-[#8A4B08] text-[#FAF7F0] border-[#8A4B08]'
                     : isDark
                       ? 'bg-[#1B1208] border-[#4A2C16] text-[#D8C5A8] hover:border-[#C58A3A]/60'
-                      : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#746556] hover:border-[#B8792F]/60'
+                      : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#4A3B2C] hover:border-[#8A4B08]/60'
                 }`}
               >
                 {genderOption.label}
@@ -194,10 +194,10 @@ export const AnimalFilters: React.FC<AnimalFiltersProps> = ({
                   isSelected
                     ? isDark
                       ? 'bg-[#C58A3A] text-[#1B1208] border-[#C58A3A]'
-                      : 'bg-[#B8792F] text-[#FAF7F0] border-[#B8792F]'
+                      : 'bg-[#8A4B08] text-[#FAF7F0] border-[#8A4B08]'
                     : isDark
                       ? 'bg-[#1B1208] border-[#4A2C16] text-[#D8C5A8] hover:border-[#C58A3A]/60'
-                      : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#746556] hover:border-[#B8792F]/60'
+                      : 'bg-[#FAF7F0] border-[#E4D4BC] text-[#4A3B2C] hover:border-[#8A4B08]/60'
                 }`}
               >
                 {statusOpt.label}
@@ -314,9 +314,9 @@ export const AnimalFilters: React.FC<AnimalFiltersProps> = ({
       </div>
 
       {/* Results summary in sidebar */}
-      <div className="pt-3 border-t text-[11px] flex items-center justify-between opacity-80" style={{ borderColor: isDark ? '#4A2C16' : '#E4D4BC' }}>
+      <div className="pt-3 border-t text-[11px] flex items-center justify-between font-medium text-[#54473A] dark:text-[#D8C5A8]/80" style={{ borderColor: isDark ? '#4A2C16' : '#E4D4BC' }}>
         <span>{t.common.matches}:</span>
-        <strong className={isDark ? 'text-[#E0B15A]' : 'text-[#B8792F]'}>
+        <strong className={isDark ? 'text-[#E0B15A]' : 'text-[#8A4B08]'}>
           {filteredCount} / {totalCount}
         </strong>
       </div>
@@ -332,7 +332,7 @@ export const AnimalFilters: React.FC<AnimalFiltersProps> = ({
           type="button"
           className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-xs font-bold border transition-colors ${
             isFiltered
-              ? isDark ? 'bg-[#C58A3A] text-[#1B1208] border-[#C58A3A]' : 'bg-[#B8792F] text-[#FAF7F0] border-[#B8792F]'
+              ? isDark ? 'bg-[#C58A3A] text-[#1B1208] border-[#C58A3A]' : 'bg-[#8A4B08] text-[#FAF7F0] border-[#8A4B08]'
               : isDark ? 'bg-[#2A1A0D] border-[#4A2C16] text-[#F4E8D0]' : 'bg-[#F1E8D8] border-[#E4D4BC] text-[#241A12]'
           }`}
         >
@@ -346,7 +346,7 @@ export const AnimalFilters: React.FC<AnimalFiltersProps> = ({
             onClick={onResetFilters}
             type="button"
             className={`py-2.5 px-3 rounded-xl text-xs font-semibold border ${
-              isDark ? 'bg-[#2A1A0D] border-[#4A2C16] text-[#E0B15A]' : 'bg-[#F1E8D8] border-[#E4D4BC] text-[#B8792F]'
+              isDark ? 'bg-[#2A1A0D] border-[#4A2C16] text-[#E0B15A]' : 'bg-[#F1E8D8] border-[#E4D4BC] text-[#8A4B08]'
             }`}
           >
             {t.common.reset}

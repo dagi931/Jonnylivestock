@@ -16,44 +16,23 @@ interface AnimalCardProps {
   eager?: boolean;
 }
 
-/** Build a highly compressed WebP Unsplash URL with custom width/height */
-export function getOptimizedUnsplashUrl(url: string, width = 360, height?: number, quality = 60): string {
+/** Build a canonical, highly compressed WebP Unsplash URL with consistent param order */
+export function getOptimizedUnsplashUrl(url: string, width = 340, height?: number, quality = 50): string {
   if (!url || !url.includes('images.unsplash.com')) return url;
-  try {
-    const parsed = new URL(url);
-    parsed.searchParams.set('auto', 'format');
-    parsed.searchParams.set('fit', 'crop');
-    parsed.searchParams.set('fm', 'webp');
-    parsed.searchParams.set('q', String(quality));
-    parsed.searchParams.set('w', String(width));
-    if (height) parsed.searchParams.set('h', String(height));
-    return parsed.toString();
-  } catch {
-    return url;
-  }
+  const baseUrl = url.split('?')[0];
+  const hParam = height ? `&h=${height}` : '';
+  return `${baseUrl}?auto=format&fit=crop&w=${width}${hParam}&q=${quality}&fm=webp`;
 }
 
-/** Build a responsive srcSet for Unsplash images using their width API with WebP format. */
-function buildUnsplashSrcSet(url: string): string | undefined {
+/** Build a responsive srcSet for Unsplash images using canonical query param ordering */
+export function buildUnsplashSrcSet(url: string, quality = 50): string | undefined {
   if (!url || !url.includes('images.unsplash.com')) return undefined;
-  try {
-    const parsed = new URL(url);
-    parsed.searchParams.set('auto', 'format');
-    parsed.searchParams.set('fit', 'crop');
-    parsed.searchParams.set('fm', 'webp');
-    parsed.searchParams.set('q', '60');
-
-    parsed.searchParams.set('w', '300');
-    const s300 = `${parsed.toString()} 300w`;
-    parsed.searchParams.set('w', '480');
-    const s480 = `${parsed.toString()} 480w`;
-    parsed.searchParams.set('w', '640');
-    const s640 = `${parsed.toString()} 640w`;
-
-    return `${s300}, ${s480}, ${s640}`;
-  } catch {
-    return undefined;
-  }
+  const baseUrl = url.split('?')[0];
+  const s260 = `${baseUrl}?auto=format&fit=crop&w=260&q=${quality}&fm=webp 260w`;
+  const s340 = `${baseUrl}?auto=format&fit=crop&w=340&q=${quality}&fm=webp 340w`;
+  const s420 = `${baseUrl}?auto=format&fit=crop&w=420&q=${quality}&fm=webp 420w`;
+  const s600 = `${baseUrl}?auto=format&fit=crop&w=600&q=${quality}&fm=webp 600w`;
+  return `${s260}, ${s340}, ${s420}, ${s600}`;
 }
 
 export const AnimalCard: React.FC<AnimalCardProps> = ({
@@ -71,7 +50,7 @@ export const AnimalCard: React.FC<AnimalCardProps> = ({
   const { theme } = useTheme();
   const { t, isAmharic } = useLanguage();
   const isDark = theme === 'design7';
-  // Render top cards immediately only if explicitly marked eager (e.g. above-the-fold catalog pages)
+  // Render top card immediately if explicitly marked eager (above-the-fold catalog LCP)
   const isInitialViewport = Boolean(eager);
   const isCardVisible = isInitialViewport || isInView;
 
@@ -126,19 +105,19 @@ export const AnimalCard: React.FC<AnimalCardProps> = ({
       } ${
         isDark
           ? 'bg-[#2A1A0D] border-[#4A2C16] hover:border-[#C58A3A]/70 shadow-sm hover:shadow-lg'
-          : 'bg-[#F1E8D8] border-[#E4D4BC] hover:border-[#B8792F]/70 shadow-sm hover:shadow-md'
+          : 'bg-[#F1E8D8] border-[#E4D4BC] hover:border-[#8A4B08]/70 shadow-sm hover:shadow-md'
       }`}
     >
       {/* Compact Image Container */}
       <div className="relative aspect-[16/11] sm:aspect-[16/9] w-full overflow-hidden bg-stone-900">
         {isCardVisible ? (
           <img
-            src={getOptimizedUnsplashUrl(animal.images[0], 360, 240, 60)}
-            srcSet={buildUnsplashSrcSet(animal.images[0])}
-            sizes="(max-width: 640px) calc(50vw - 20px), (max-width: 1024px) 300px, 380px"
+            src={getOptimizedUnsplashUrl(animal.images[0], 340, undefined, 50)}
+            srcSet={buildUnsplashSrcSet(animal.images[0], 50)}
+            sizes="(max-width: 640px) calc(50vw - 16px), (max-width: 1024px) 280px, 360px"
             alt={`${animal.breed} ${animal.type} ${animal.id}`}
-            width="360"
-            height="247"
+            width="340"
+            height="234"
             loading={eager && animationIndex === 0 ? "eager" : "lazy"}
             {...(eager && animationIndex === 0 ? ({ fetchPriority: "high" } as any) : {})}
             decoding="async"
@@ -178,20 +157,20 @@ export const AnimalCard: React.FC<AnimalCardProps> = ({
             <div className="min-w-0">
               <span
                 className={`block text-[9px] sm:text-[10px] font-bold uppercase tracking-wider ${
-                  isDark ? 'text-[#C58A3A]' : 'text-[#B8792F]'
+                  isDark ? 'text-[#C58A3A]' : 'text-[#8A4B08]'
                 }`}
               >
                 {getTypeLabel()}
               </span>
-              <h3
+              <h2
                 className={`font-serif font-bold text-xs sm:text-base leading-tight truncate transition-colors ${
                   isDark
                     ? 'text-[#F4E8D0] group-hover:text-[#E0B15A]'
-                    : 'text-[#241A12] group-hover:text-[#B8792F]'
+                    : 'text-[#241A12] group-hover:text-[#8A4B08]'
                 }`}
               >
                 {animal.breed}
-              </h3>
+              </h2>
             </div>
 
             {/* Gender Pill */}
@@ -200,10 +179,10 @@ export const AnimalCard: React.FC<AnimalCardProps> = ({
                 animal.gender === 'Male'
                   ? isDark
                     ? 'bg-[#1B1208] text-[#D8C5A8] border border-[#4A2C16]'
-                    : 'bg-[#FAF7F0] text-[#4A2C16] border border-[#E4D4BC]'
+                    : 'bg-[#FAF7F0] text-[#3D2E20] border border-[#E4D4BC]'
                   : isDark
                     ? 'bg-[#4A2C16]/40 text-[#F4E8D0] border border-[#4A2C16]'
-                    : 'bg-[#FAF7F0] text-[#746556] border border-[#E4D4BC]'
+                    : 'bg-[#FAF7F0] text-[#4A3B2C] border border-[#E4D4BC]'
               }`}
             >
               {getGenderLabel()}
@@ -214,10 +193,10 @@ export const AnimalCard: React.FC<AnimalCardProps> = ({
           <div className="mt-1.5 sm:mt-2 grid grid-cols-2 gap-1 sm:gap-1.5 text-xs">
             <div
               className={`flex items-center gap-1 sm:gap-1.5 px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-md sm:rounded-lg ${
-                isDark ? 'bg-[#1B1208]/70 text-[#D8C5A8]' : 'bg-[#FAF7F0] text-[#746556] border border-[#E4D4BC]/40'
+                isDark ? 'bg-[#1B1208]/70 text-[#D8C5A8]' : 'bg-[#FAF7F0] text-[#3D2E20] border border-[#E4D4BC]/40'
               }`}
             >
-              <Scale className={`w-2.5 h-2.5 sm:w-3 sm:h-3 shrink-0 ${isDark ? 'text-[#C58A3A]' : 'text-[#B8792F]'}`} />
+              <Scale className={`w-2.5 h-2.5 sm:w-3 sm:h-3 shrink-0 ${isDark ? 'text-[#C58A3A]' : 'text-[#8A4B08]'}`} />
               <span className="font-bold text-[10px] sm:text-xs truncate">
                 {formatWeight(animal.weight)}
               </span>
@@ -225,10 +204,10 @@ export const AnimalCard: React.FC<AnimalCardProps> = ({
 
             <div
               className={`flex items-center gap-1 sm:gap-1.5 px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-md sm:rounded-lg truncate ${
-                isDark ? 'bg-[#1B1208]/70 text-[#D8C5A8]' : 'bg-[#FAF7F0] text-[#746556] border border-[#E4D4BC]/40'
+                isDark ? 'bg-[#1B1208]/70 text-[#D8C5A8]' : 'bg-[#FAF7F0] text-[#3D2E20] border border-[#E4D4BC]/40'
               }`}
             >
-              <MapPin className={`w-2.5 h-2.5 sm:w-3 sm:h-3 shrink-0 ${isDark ? 'text-[#C58A3A]' : 'text-[#B8792F]'}`} />
+              <MapPin className={`w-2.5 h-2.5 sm:w-3 sm:h-3 shrink-0 ${isDark ? 'text-[#C58A3A]' : 'text-[#8A4B08]'}`} />
               <span className="truncate text-[9.5px] sm:text-[11px] font-medium">{animal.location}</span>
             </div>
           </div>
@@ -262,7 +241,7 @@ export const AnimalCard: React.FC<AnimalCardProps> = ({
                     {animal.characteristics.slice(0, 2).map((char, i) => (
                       <span
                         key={i}
-                        className="px-1 py-0.2 rounded text-[8.5px] sm:text-[9.5px] bg-amber-500/10 text-amber-500 font-medium"
+                        className="px-1 py-0.2 rounded text-[8.5px] sm:text-[9.5px] bg-amber-500/10 text-amber-600 dark:text-amber-400 font-medium"
                       >
                         {char}
                       </span>
@@ -281,19 +260,19 @@ export const AnimalCard: React.FC<AnimalCardProps> = ({
           }`}
         >
           <div>
-            <span className="block text-[8px] sm:text-[9px] uppercase tracking-wider font-semibold opacity-70 leading-tight">
+            <span className="block text-[8px] sm:text-[9px] uppercase tracking-wider font-semibold text-[#54473A] dark:text-[#D8C5A8]/80 leading-tight">
               {t.common.farmPrice}
             </span>
             <div className="flex items-baseline gap-1.5 flex-wrap">
               <span
                 className={`text-xs sm:text-base font-bold font-serif ${
-                  isDark ? 'text-[#E0B15A]' : 'text-[#B8792F]'
+                  isDark ? 'text-[#E0B15A]' : 'text-[#8A4B08]'
                 }`}
               >
                 {formatPrice(animal.price)}
               </span>
               {displayStatus === 'available' && (
-                <span className="text-[9px] sm:text-[10.5px] font-bold text-emerald-500 font-mono">
+                <span className="text-[9px] sm:text-[10.5px] font-bold text-emerald-600 dark:text-emerald-500 font-mono">
                   (50%: {formatPrice(animal.price * 0.5)})
                 </span>
               )}
@@ -302,14 +281,15 @@ export const AnimalCard: React.FC<AnimalCardProps> = ({
 
           <Link
             to={`/animals/${animal.id}`}
+            aria-label={`${t.common.details} - ${animal.breed} ${animal.id}`}
             className={`inline-flex items-center gap-0.5 sm:gap-1 px-1.5 py-1 sm:px-2.5 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-semibold transition-all ${
               displayStatus === 'sold'
                 ? isDark
                   ? 'bg-[#1B1208] text-[#D8C5A8]/50 border border-[#4A2C16]'
-                  : 'bg-[#E4D4BC] text-[#746556]/60 border border-[#E4D4BC]'
+                  : 'bg-[#E4D4BC] text-[#4A3B2C]/70 border border-[#E4D4BC]'
                 : isDark
                   ? 'bg-[#C58A3A] hover:bg-[#E0B15A] text-[#1B1208]'
-                  : 'bg-[#B8792F] hover:bg-[#9E6523] text-[#FAF7F0]'
+                  : 'bg-[#8A4B08] hover:bg-[#6D3A05] text-[#FAF7F0]'
             }`}
           >
             <span>{t.common.details}</span>

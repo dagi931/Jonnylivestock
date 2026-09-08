@@ -60,13 +60,13 @@ export const AnimalGrid: React.FC<AnimalGridProps> = ({
         >
           <SearchX className="w-7 h-7" />
         </div>
-        <h3
+        <h2
           className={`font-serif font-bold text-lg sm:text-xl mb-1.5 ${
             isDark ? 'text-[#F4E8D0]' : 'text-[#241A12]'
           }`}
         >
           {emptyTitle}
-        </h3>
+        </h2>
         <p className="text-xs sm:text-sm max-w-md mx-auto mb-5 opacity-80">
           {emptySubtitle}
         </p>
@@ -78,7 +78,7 @@ export const AnimalGrid: React.FC<AnimalGridProps> = ({
             className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all shadow-sm ${
               isDark
                 ? 'bg-[#C58A3A] hover:bg-[#E0B15A] text-[#1B1208]'
-                : 'bg-[#B8792F] hover:bg-[#9E6523] text-[#FAF7F0]'
+                : 'bg-[#8A4B08] hover:bg-[#6D3A05] text-[#FAF7F0]'
             }`}
           >
             <RotateCcw className="w-3.5 h-3.5" />
@@ -96,7 +96,7 @@ export const AnimalGrid: React.FC<AnimalGridProps> = ({
           key={animal.id}
           animal={animal}
           animationIndex={idx}
-          eager={idx < 4}
+          eager={idx === 0}
           isExpanded={expandedAnimalId === animal.id}
           onToggleExpand={() => setExpandedAnimalId((prev) => (prev === animal.id ? null : animal.id))}
         />

@@ -65,7 +65,7 @@ export const AnimalCategoryPage: React.FC<AnimalCategoryPageProps> = ({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Breadcrumbs & Page Title */}
         <AnimatedReveal direction="up" delay={50} immediate={true}>
-          <nav className="flex items-center gap-2 text-xs mb-3 opacity-70">
+          <nav className={`flex items-center gap-2 text-xs mb-3 font-medium ${isDark ? 'text-[#D8C5A8]/80' : 'text-[#54473A]'}`}>
             <Link to="/" className="hover:underline">{t.nav.home}</Link>
             <ChevronRight className="w-3.5 h-3.5" />
             <span className="font-semibold">{breadcrumbLabel}</span>
@@ -81,7 +81,7 @@ export const AnimalCategoryPage: React.FC<AnimalCategoryPageProps> = ({
             </h1>
             <p
               className={`mt-1 text-xs sm:text-sm max-w-2xl ${
-                isDark ? 'text-[#D8C5A8]' : 'text-[#746556]'
+                isDark ? 'text-[#D8C5A8]' : 'text-[#4A3B2C]'
               }`}
             >
               {isAmharic ? description.am : description.en}
@@ -112,14 +112,14 @@ export const AnimalCategoryPage: React.FC<AnimalCategoryPageProps> = ({
             {/* Top Bar Summary */}
             <AnimatedReveal direction="up" delay={120} immediate={true}>
               <div className="flex items-center justify-between mb-4 text-xs">
-                <span className="opacity-70">
-                  {isAmharic ? 'የሚታዩት' : 'Showing'} <strong className={isDark ? 'text-[#E0B15A]' : 'text-[#B8792F]'}>{filteredCount}</strong> / {totalCount} {isAmharic ? typeLabel.am : typeLabel.en}
+                <span className={isDark ? 'text-[#D8C5A8]/80' : 'text-[#54473A]'}>
+                  {isAmharic ? 'የሚታዩት' : 'Showing'} <strong className={isDark ? 'text-[#E0B15A]' : 'text-[#8A4B08]'}>{filteredCount}</strong> / {totalCount} {isAmharic ? typeLabel.am : typeLabel.en}
                 </span>
                 {isFiltered && (
                   <button
                     onClick={resetFilters}
                     className={`hover:underline font-semibold ${
-                      isDark ? 'text-[#E0B15A]' : 'text-[#B8792F]'
+                      isDark ? 'text-[#E0B15A]' : 'text-[#8A4B08]'
                     }`}
                   >
                     {t.common.clearFilters}
