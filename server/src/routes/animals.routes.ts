@@ -71,7 +71,21 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
 // ==================== GET SINGLE ANIMAL BY ID ====================
 router.get('/:id', async (req: Request, res: Response): Promise<void> => {
   try {
-    const animal = await PostgresDB.getAnimalById(req.params.id);
+    const rawId = req.params.id;
+    let animal = await PostgresDB.getAnimalById(rawId);
+
+    // Support friendly slug/id formats (e.g. cow-001 -> CW-001, sheep-001 -> SH-001, goat-001 -> GT-001)
+    if (!animal) {
+      const normalized = rawId.toLowerCase();
+      if (normalized.startsWith('cow-')) {
+        animal = await PostgresDB.getAnimalById(rawId.replace(/^cow-/i, 'CW-'));
+      } else if (normalized.startsWith('sheep-')) {
+        animal = await PostgresDB.getAnimalById(rawId.replace(/^sheep-/i, 'SH-'));
+      } else if (normalized.startsWith('goat-')) {
+        animal = await PostgresDB.getAnimalById(rawId.replace(/^goat-/i, 'GT-'));
+      }
+    }
+
     if (!animal) {
       res.status(404).json({ success: false, error: 'Animal not found' });
       return;

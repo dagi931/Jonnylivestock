@@ -7,12 +7,14 @@ export const options = {
     { duration: '1m', target: 10 },
     { duration: '30s', target: 25 },
     { duration: '1m', target: 25 },
+    { duration: '30s', target: 50 },
+    { duration: '1m', target: 50 },
     { duration: '30s', target: 0 },
   ],
 };
 
 export default function () {
-  const response = http.get('http://localhost:5000/api/animals');
+  const response = http.get('http://localhost:5000/api/animals/cow-001');
 
   check(response, {
     'status is 200': (r) => r.status === 200,
