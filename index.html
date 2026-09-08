@@ -9,10 +9,46 @@
   <meta name="description"
     content="Browse quality sheep, goats, and cows directly from Jonny Livestock. Transparent pricing, exact weights, and direct delivery and preparation services." />
 
-  <!-- Preload LCP Hero Image -->
-  <link rel="preload" as="image" href="/hero-livestock.avif" type="image/avif" fetchpriority="high" />
+  <!-- Preload LCP Candidate for static scanner discovery -->
+  <link rel="preload" as="image" href="https://images.unsplash.com/photo-1484557052118-f32bd25b45b5?auto=format&fit=crop&fm=webp&q=65&w=480&h=208" fetchpriority="high" />
 
+  <!-- Preload Critical Variable Font -->
+  <link rel="preload" as="font" type="font/woff2" href="/assets/plus-jakarta-sans-latin-wght-normal-eXO_dkmS.woff2" crossorigin />
 
+  <!-- Route-aware LCP Preload Hint -->
+  <script>
+    (function () {
+      try {
+        var p = window.location.pathname || '';
+        var link = document.createElement('link');
+        link.rel = 'preload';
+        link.as = 'image';
+        link.fetchPriority = 'high';
+
+        if (p.startsWith('/packages')) {
+          link.href = 'https://images.unsplash.com/photo-1484557052118-f32bd25b45b5?auto=format&fit=crop&fm=webp&q=65&w=480&h=208';
+          document.head.appendChild(link);
+        } else if (p.startsWith('/cows')) {
+          link.href = 'https://images.unsplash.com/photo-1546445317-29f4545e9d53?auto=format&fit=crop&fm=webp&q=75&w=380';
+          document.head.appendChild(link);
+        } else if (p.startsWith('/sheep')) {
+          link.href = 'https://images.unsplash.com/photo-1484557052118-f32bd25b45b5?auto=format&fit=crop&fm=webp&q=75&w=380';
+          document.head.appendChild(link);
+        } else if (p.startsWith('/goats')) {
+          link.href = 'https://images.unsplash.com/photo-1524024973431-2ad916746881?auto=format&fit=crop&fm=webp&q=75&w=380';
+          document.head.appendChild(link);
+        } else if (p === '/' || p === '') {
+          link.href = '/hero-livestock.avif';
+          link.type = 'image/avif';
+          document.head.appendChild(link);
+        }
+      } catch (e) {}
+    })();
+  </script>
+
+  <!-- Preconnect to image CDN -->
+  <link rel="preconnect" href="https://images.unsplash.com" crossorigin />
+  <link rel="dns-prefetch" href="https://images.unsplash.com" />
 </head>
 
 <body class="min-h-screen transition-colors duration-300">

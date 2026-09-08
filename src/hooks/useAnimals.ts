@@ -5,11 +5,14 @@ import { api } from '../services/api';
 import { useRealtimeEvent } from '../context/RealtimeContext';
 
 export function useAnimals(type?: AnimalType) {
-  const [animals, setAnimals] = useState<Animal[]>(() => {
+  const getInitialAnimals = () => {
     if (type) return mockAnimals.filter(a => a.type === type);
     return mockAnimals;
-  });
-  const [isLoading, setIsLoading] = useState(true);
+  };
+
+  const [animals, setAnimals] = useState<Animal[]>(getInitialAnimals);
+  // If mock animals exist, render immediately to avoid delaying FCP/LCP with skeletons
+  const [isLoading, setIsLoading] = useState<boolean>(() => getInitialAnimals().length === 0);
 
   // Fetch initial animals from backend API
   useEffect(() => {

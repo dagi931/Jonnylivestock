@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, Suspense, lazy } from 'react';
 import { Link } from 'react-router-dom';
 import { PreMadePackage } from '../../types/package';
 import { api } from '../../services/api';
@@ -10,7 +10,9 @@ import {
   getPackageTitle,
   getPackageDescription
 } from '../../utils/formatters';
-import { PackageOrderModal } from '../modals/PackageOrderModal';
+const PackageOrderModal = lazy(() =>
+  import('../modals/PackageOrderModal').then(m => ({ default: m.PackageOrderModal }))
+);
 import { AnimatedReveal } from '../common/AnimatedReveal';
 import {
   Gift,
@@ -339,14 +341,18 @@ export const CelebrationPackagesSection: React.FC = () => {
       </div>
 
       {/* Package Order Modal */}
-      <PackageOrderModal
-        isOpen={isModalOpen}
-        onClose={() => {
-          setIsModalOpen(false);
-          setSelectedPackage(null);
-        }}
-        packageItem={selectedPackage}
-      />
+      {isModalOpen && (
+        <Suspense fallback={null}>
+          <PackageOrderModal
+            isOpen={isModalOpen}
+            onClose={() => {
+              setIsModalOpen(false);
+              setSelectedPackage(null);
+            }}
+            packageItem={selectedPackage}
+          />
+        </Suspense>
+      )}
     </section>
   );
 };

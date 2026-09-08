@@ -295,13 +295,13 @@ class ApiService {
     }
   }
 
-  async getPackagesData(): Promise<{
+  async getPackagesData(options?: { signal?: AbortSignal }): Promise<{
     catalog: PackageCatalogItem[];
     preMadePackages: PreMadePackage[];
     rules: { minCategoriesForFreeDelivery: number; freeDelivery: boolean; reservationDepositPercent: number };
   }> {
     try {
-      const res = await fetch(`${API_BASE}/packages`);
+      const res = await fetch(`${API_BASE}/packages`, { signal: options?.signal });
       if (!res.ok) throw new Error('Failed to fetch packages');
       const json = await res.json();
       if (json && json.preMadePackages) {

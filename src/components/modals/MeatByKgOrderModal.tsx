@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, Suspense, lazy } from 'react';
 import { useUserAuth } from '../../context/UserAuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { useLanguage } from '../../context/LanguageContext';
@@ -20,8 +20,12 @@ import {
   RefreshCw,
   Sparkles
 } from 'lucide-react';
-import { DeliveryLocationModal } from '../delivery/DeliveryLocationModal';
 import { DeliveryVehicleSelector } from '../delivery/DeliveryVehicleSelector';
+
+// Lazy-load the heavy Leaflet map component only when the location picker opens
+const DeliveryLocationModal = lazy(() =>
+  import('../delivery/DeliveryLocationModal').then((m) => ({ default: m.DeliveryLocationModal }))
+);
 import { SelectedDeliveryLocation, VehicleQuoteResult, VehicleTypeId, DeliveryQuoteResponse } from '../../types/delivery';
 
 interface MeatByKgOrderModalProps {
@@ -873,12 +877,16 @@ export const MeatByKgOrderModal: React.FC<MeatByKgOrderModalProps> = ({
         )}
       </div>
 
-      <DeliveryLocationModal
-        isOpen={isLocationModalOpen}
-        onClose={() => setIsLocationModalOpen(false)}
-        onSelectLocation={(loc) => setSelectedLocation(loc)}
-        selectedLocation={selectedLocation}
-      />
+      {isLocationModalOpen && (
+        <Suspense fallback={null}>
+          <DeliveryLocationModal
+            isOpen={isLocationModalOpen}
+            onClose={() => setIsLocationModalOpen(false)}
+            onSelectLocation={(loc) => setSelectedLocation(loc)}
+            selectedLocation={selectedLocation}
+          />
+        </Suspense>
+      )}
     </div>
   );
 };

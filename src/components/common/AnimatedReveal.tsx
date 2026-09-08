@@ -7,6 +7,7 @@ interface AnimatedRevealProps {
   duration?: number; // in milliseconds
   direction?: 'up' | 'down' | 'left' | 'right' | 'scale' | 'fade';
   className?: string;
+  immediate?: boolean; // If true, render visible immediately (for above-the-fold / LCP elements)
 }
 
 export const AnimatedReveal: React.FC<AnimatedRevealProps> = ({
@@ -15,8 +16,10 @@ export const AnimatedReveal: React.FC<AnimatedRevealProps> = ({
   duration = 650,
   direction = 'up',
   className = '',
+  immediate = false,
 }) => {
   const { ref, isInView } = useInView();
+  const isVisible = immediate || isInView;
 
   const getInitialTransform = () => {
     switch (direction) {
@@ -41,12 +44,12 @@ export const AnimatedReveal: React.FC<AnimatedRevealProps> = ({
     <div
       ref={ref}
       style={{
-        transitionDuration: `${duration}ms`,
-        transitionDelay: `${delay}ms`,
+        transitionDuration: immediate ? '0ms' : `${duration}ms`,
+        transitionDelay: immediate ? '0ms' : `${delay}ms`,
         transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)',
       }}
       className={`transition-all ${
-        isInView
+        isVisible
           ? 'opacity-100 translate-y-0 translate-x-0 scale-100'
           : `opacity-0 ${getInitialTransform()}`
       } ${className}`}

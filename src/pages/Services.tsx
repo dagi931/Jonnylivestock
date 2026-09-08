@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, Suspense, lazy } from 'react';
 import { Link } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -6,7 +6,11 @@ import { useUserAuth } from '../context/UserAuthContext';
 import { business } from '../config/business';
 import { getWhatsAppLink, getPhoneCallLink } from '../utils/formatters';
 import { livestockServices, serviceFlowSteps } from '../data/services';
-import { MeatByKgOrderModal } from '../components/modals/MeatByKgOrderModal';
+
+// Lazy load the heavy order modal with Leaflet map on-demand to keep initial page bundle lightweight
+const MeatByKgOrderModal = lazy(() =>
+  import('../components/modals/MeatByKgOrderModal').then((m) => ({ default: m.MeatByKgOrderModal }))
+);
 import {
   Truck,
   UtensilsCrossed,
@@ -419,11 +423,15 @@ export const Services: React.FC = () => {
           </div>
         </div>
 
-        {/* Meat by KG Order Modal */}
-        <MeatByKgOrderModal
-          isOpen={isMeatModalOpen}
-          onClose={() => setIsMeatModalOpen(false)}
-        />
+        {/* Meat by KG Order Modal — loaded on demand */}
+        {isMeatModalOpen && (
+          <Suspense fallback={null}>
+            <MeatByKgOrderModal
+              isOpen={isMeatModalOpen}
+              onClose={() => setIsMeatModalOpen(false)}
+            />
+          </Suspense>
+        )}
       </div>
     </div>
   );

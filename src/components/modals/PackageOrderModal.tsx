@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo, Suspense, lazy } from 'react';
 import { PackageCatalogItem, PreMadePackage } from '../../types/package';
 import { useUserAuth } from '../../context/UserAuthContext';
 import { useTheme } from '../../context/ThemeContext';
@@ -23,7 +23,9 @@ import {
   FileText,
   BadgeCheck
 } from 'lucide-react';
-import { DeliveryLocationModal } from '../delivery/DeliveryLocationModal';
+const DeliveryLocationModal = lazy(() =>
+  import('../delivery/DeliveryLocationModal').then(m => ({ default: m.DeliveryLocationModal }))
+);
 import { DeliveryVehicleSelector } from '../delivery/DeliveryVehicleSelector';
 import {
   SelectedDeliveryLocation,
@@ -1148,12 +1150,16 @@ export const PackageOrderModal: React.FC<PackageOrderModalProps> = ({
         </main>
       </div>
 
-      <DeliveryLocationModal
-        isOpen={isLocationModalOpen}
-        onClose={() => setIsLocationModalOpen(false)}
-        onSelectLocation={(loc) => setSelectedLocation(loc)}
-        selectedLocation={selectedLocation}
-      />
+      {isLocationModalOpen && (
+        <Suspense fallback={null}>
+          <DeliveryLocationModal
+            isOpen={isLocationModalOpen}
+            onClose={() => setIsLocationModalOpen(false)}
+            onSelectLocation={(loc) => setSelectedLocation(loc)}
+            selectedLocation={selectedLocation}
+          />
+        </Suspense>
+      )}
     </div>
   );
 };

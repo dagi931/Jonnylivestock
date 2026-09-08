@@ -8,15 +8,16 @@ import { RealtimeProvider } from './context/RealtimeContext';
 import { UserAuthModal } from './components/modals/UserAuthModal';
 import { Navbar } from './components/common/Navbar';
 import { Footer } from './components/common/Footer';
-// Home is eagerly loaded — it's the first page every visitor sees
+// Primary storefront catalog routes are eagerly loaded for instant initial navigation without chunk waterfalls
 import { Home } from './pages/Home';
-// All other routes are lazy-loaded — downloaded only when the user navigates to them
-const Sheep          = lazy(() => import('./pages/Sheep').then(m => ({ default: m.Sheep })));
-const Goats          = lazy(() => import('./pages/Goats').then(m => ({ default: m.Goats })));
-const Cows           = lazy(() => import('./pages/Cows').then(m => ({ default: m.Cows })));
+import { Sheep } from './pages/Sheep';
+import { Goats } from './pages/Goats';
+import { Cows } from './pages/Cows';
+import { PackageBuilder } from './pages/PackageBuilder';
+import { Services } from './pages/Services';
+
+// Secondary and dashboard routes are lazy-loaded on-demand
 const AnimalDetails  = lazy(() => import('./pages/AnimalDetails').then(m => ({ default: m.AnimalDetails })));
-const Services       = lazy(() => import('./pages/Services').then(m => ({ default: m.Services })));
-const PackageBuilder = lazy(() => import('./pages/PackageBuilder').then(m => ({ default: m.PackageBuilder })));
 const MyPackages     = lazy(() => import('./pages/MyPackages').then(m => ({ default: m.MyPackages })));
 const MyReservations = lazy(() => import('./pages/MyReservations').then(m => ({ default: m.MyReservations })));
 const About          = lazy(() => import('./pages/About').then(m => ({ default: m.About })));

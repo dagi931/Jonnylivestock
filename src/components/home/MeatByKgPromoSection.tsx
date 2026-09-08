@@ -1,11 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { useTheme } from '../../context/ThemeContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { business } from '../../config/business';
 import { api } from '../../services/api';
 import { getWhatsAppLink, getPhoneCallLink } from '../../utils/formatters';
 import { AnimatedReveal } from '../common/AnimatedReveal';
-import { MeatByKgOrderModal } from '../modals/MeatByKgOrderModal';
+
+// Lazy-load the heavy order modal so Leaflet and payment logic don't bloat the main bundle
+const MeatByKgOrderModal = lazy(() =>
+  import('../modals/MeatByKgOrderModal').then((m) => ({ default: m.MeatByKgOrderModal }))
+);
 import {
   Shield,
   ShieldCheck,
@@ -409,11 +413,15 @@ export const MeatByKgPromoSection: React.FC = () => {
         </AnimatedReveal>
       </div>
 
-      {/* Interactive Beef in KG Ordering & Payment Modal */}
-      <MeatByKgOrderModal
-        isOpen={isMeatModalOpen}
-        onClose={() => setIsMeatModalOpen(false)}
-      />
+      {/* Interactive Beef in KG Ordering & Payment Modal — loaded on demand */}
+      {isMeatModalOpen && (
+        <Suspense fallback={null}>
+          <MeatByKgOrderModal
+            isOpen={isMeatModalOpen}
+            onClose={() => setIsMeatModalOpen(false)}
+          />
+        </Suspense>
+      )}
     </section>
   );
 };

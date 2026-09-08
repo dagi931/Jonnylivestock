@@ -3,9 +3,7 @@ import ReactDOM from 'react-dom/client';
 import App from './App';
 // Self-hosted variable fonts — eliminates render-blocking Google Fonts request
 import '@fontsource-variable/plus-jakarta-sans';
-import '@fontsource-variable/plus-jakarta-sans/wght-italic.css';
 import '@fontsource-variable/lora';
-import '@fontsource-variable/lora/wght-italic.css';
 import './index.css';
 
 if (typeof window !== 'undefined') {

@@ -18,15 +18,24 @@ interface AnimalCardProps {
 /** Build a responsive srcSet for Unsplash images using their width API.
  *  Returns undefined for non-Unsplash URLs so the browser falls back to src. */
 function buildUnsplashSrcSet(url: string): string | undefined {
-  if (!url.includes('images.unsplash.com')) return undefined;
-  // Strip any existing w= param and replace with responsive widths
-  const base = url.replace(/[?&]w=\d+/, '');
-  const sep = base.includes('?') ? '&' : '?';
-  return [
-    `${base}${sep}w=400&q=75 400w`,
-    `${base}${sep}w=600&q=75 600w`,
-    `${base}${sep}w=800&q=75 800w`,
-  ].join(', ');
+  if (!url || !url.includes('images.unsplash.com')) return undefined;
+  try {
+    const parsed = new URL(url);
+    parsed.searchParams.set('auto', 'format');
+    parsed.searchParams.set('fit', 'crop');
+    parsed.searchParams.set('q', '75');
+
+    parsed.searchParams.set('w', '360');
+    const s360 = `${parsed.toString()} 360w`;
+    parsed.searchParams.set('w', '540');
+    const s540 = `${parsed.toString()} 540w`;
+    parsed.searchParams.set('w', '720');
+    const s720 = `${parsed.toString()} 720w`;
+
+    return `${s360}, ${s540}, ${s720}`;
+  } catch {
+    return undefined;
+  }
 }
 
 export const AnimalCard: React.FC<AnimalCardProps> = ({
@@ -43,6 +52,9 @@ export const AnimalCard: React.FC<AnimalCardProps> = ({
   const { theme } = useTheme();
   const { t, isAmharic } = useLanguage();
   const isDark = theme === 'design7';
+  // Render top cards immediately so above-the-fold content and LCP aren't delayed by observer transitions
+  const isInitialViewport = animationIndex < 2;
+  const isCardVisible = isInitialViewport || isInView;
 
   const handleToggleShowMore = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -82,12 +94,12 @@ export const AnimalCard: React.FC<AnimalCardProps> = ({
       onTouchStart={handleTouch}
       onTouchEnd={handleTouch}
       style={{
-        transitionDelay: `${Math.min(animationIndex * 75, 450)}ms`,
-        transitionDuration: '650ms',
+        transitionDelay: isInitialViewport ? '0ms' : `${Math.min(animationIndex * 75, 450)}ms`,
+        transitionDuration: isInitialViewport ? '0ms' : '650ms',
         transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)',
       }}
       className={`group relative rounded-xl sm:rounded-2xl border flex flex-col overflow-hidden hover:-translate-y-1 active:-translate-y-0.5 cursor-pointer select-none transition-all self-start h-fit w-full ${
-        isInView
+        isCardVisible
           ? 'opacity-100 translate-y-0 scale-100'
           : 'opacity-0 translate-y-7 scale-[0.98]'
       } ${
@@ -101,9 +113,10 @@ export const AnimalCard: React.FC<AnimalCardProps> = ({
         <img
           src={animal.images[0]}
           srcSet={buildUnsplashSrcSet(animal.images[0])}
-          sizes="(max-width: 640px) calc(50vw - 24px), (max-width: 1024px) calc(33vw - 24px), 430px"
+          sizes="(max-width: 640px) calc(50vw - 20px), (max-width: 1024px) 300px, 380px"
           alt={`${animal.breed} ${animal.type} ${animal.id}`}
-          loading="lazy"
+          loading={animationIndex === 0 ? "eager" : "lazy"}
+          {...(animationIndex === 0 ? ({ fetchPriority: "high" } as any) : {})}
           decoding="async"
           className={`w-full h-full object-cover object-center card-zoom-img transition-transform duration-500 ease-out ${
             isTouched ? 'scale-100' : 'scale-110'

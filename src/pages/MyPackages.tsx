@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { Link } from 'react-router-dom';
 import { SavedPackage } from '../types/package';
 import { api } from '../services/api';
@@ -6,7 +6,9 @@ import { useTheme } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useUserAuth } from '../context/UserAuthContext';
 import { formatPrice, getItemDisplayName } from '../utils/formatters';
-import { PackageOrderModal } from '../components/modals/PackageOrderModal';
+const PackageOrderModal = lazy(() =>
+  import('../components/modals/PackageOrderModal').then(m => ({ default: m.PackageOrderModal }))
+);
 import {
   Gift,
   Bookmark,
@@ -229,20 +231,22 @@ export const MyPackages: React.FC = () => {
       </div>
 
       {/* Package Order Modal */}
-      {selectedPackageToOrder && (
-        <PackageOrderModal
-          isOpen={isOrderModalOpen}
-          onClose={() => {
-            setIsOrderModalOpen(false);
-            setSelectedPackageToOrder(null);
-          }}
-          customPackage={{
-            name: selectedPackageToOrder.name,
-            items: selectedPackageToOrder.items,
-            totalPrice: selectedPackageToOrder.totalPrice,
-            categoriesCount: new Set(selectedPackageToOrder.items.map(i => i.category)).size
-          }}
-        />
+      {selectedPackageToOrder && isOrderModalOpen && (
+        <Suspense fallback={null}>
+          <PackageOrderModal
+            isOpen={isOrderModalOpen}
+            onClose={() => {
+              setIsOrderModalOpen(false);
+              setSelectedPackageToOrder(null);
+            }}
+            customPackage={{
+              name: selectedPackageToOrder.name,
+              items: selectedPackageToOrder.items,
+              totalPrice: selectedPackageToOrder.totalPrice,
+              categoriesCount: new Set(selectedPackageToOrder.items.map(i => i.category)).size
+            }}
+          />
+        </Suspense>
       )}
     </div>
   );

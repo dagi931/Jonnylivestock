@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, Suspense, lazy } from 'react';
 import { PackageCatalogItem, PreMadePackage, PackageCategory } from '../types/package';
+import { PACKAGE_CATALOG, PRE_MADE_PACKAGES } from '../data/packagesData';
 import { api } from '../services/api';
 import { useTheme } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -12,7 +13,6 @@ import {
   getPackageTitle,
   getPackageDescription
 } from '../utils/formatters';
-import { PackageOrderModal } from '../components/modals/PackageOrderModal';
 import { AnimatedReveal } from '../components/common/AnimatedReveal';
 import {
   Gift,
@@ -33,6 +33,54 @@ import {
   ChevronDown
 } from 'lucide-react';
 
+// Lazy-load modal to eliminate Leaflet and heavy form bundles from initial page load
+const PackageOrderModal = lazy(() =>
+  import('../components/modals/PackageOrderModal').then(m => ({ default: m.PackageOrderModal }))
+);
+
+/**
+ * Optimize an Unsplash URL with exact dimensions, WebP format, and quality.
+ */
+function getOptimizedUnsplashUrl(url: string, width = 480, height = 208): string {
+  if (!url || !url.includes('images.unsplash.com')) return url;
+  try {
+    const parsed = new URL(url);
+    parsed.searchParams.set('auto', 'format');
+    parsed.searchParams.set('fit', 'crop');
+    parsed.searchParams.set('fm', 'webp');
+    parsed.searchParams.set('q', '65');
+    parsed.searchParams.set('w', String(width));
+    parsed.searchParams.set('h', String(height));
+    return parsed.toString();
+  } catch {
+    return url;
+  }
+}
+
+/** Build a responsive srcSet for pre-made package banner cards */
+function buildPackageBannerSrcSet(url: string): string | undefined {
+  if (!url || !url.includes('images.unsplash.com')) return undefined;
+  try {
+    const s360 = `${getOptimizedUnsplashUrl(url, 360, 155)} 360w`;
+    const s480 = `${getOptimizedUnsplashUrl(url, 480, 208)} 480w`;
+    return `${s360}, ${s480}`;
+  } catch {
+    return undefined;
+  }
+}
+
+/** Build a responsive srcSet for builder thumbnail items (64px) */
+function buildThumbnailSrcSet(url: string): string | undefined {
+  if (!url || !url.includes('images.unsplash.com')) return undefined;
+  try {
+    const s96 = `${getOptimizedUnsplashUrl(url, 96, 96)} 96w`;
+    const s160 = `${getOptimizedUnsplashUrl(url, 160, 160)} 160w`;
+    return `${s96}, ${s160}`;
+  } catch {
+    return undefined;
+  }
+}
+
 export const PackageBuilder: React.FC = () => {
   const { theme } = useTheme();
   const { isAmharic } = useLanguage();
@@ -40,9 +88,10 @@ export const PackageBuilder: React.FC = () => {
   const isDark = theme === 'design7';
 
   const [activeTab, setActiveTab] = useState<'premade' | 'builder'>('premade');
-  const [catalog, setCatalog] = useState<PackageCatalogItem[]>([]);
-  const [preMadePackages, setPreMadePackages] = useState<PreMadePackage[]>([]);
-  const [loading, setLoading] = useState(true);
+  // Initialize with in-memory packages data to eliminate FCP/LCP skeleton loading delays
+  const [catalog, setCatalog] = useState<PackageCatalogItem[]>(PACKAGE_CATALOG);
+  const [preMadePackages, setPreMadePackages] = useState<PreMadePackage[]>(PRE_MADE_PACKAGES);
+  const loading = catalog.length === 0 && preMadePackages.length === 0;
   const [expandedPreMadeId, setExpandedPreMadeId] = useState<string | null>(null);
   const [touchedCardId, setTouchedCardId] = useState<string | null>(null);
   const touchCardTimerRef = useRef<any>(null);
@@ -66,19 +115,39 @@ export const PackageBuilder: React.FC = () => {
   const [selectedPreMade, setSelectedPreMade] = useState<PreMadePackage | null>(null);
 
   useEffect(() => {
-    const fetchPackageData = async () => {
-      setLoading(true);
-      try {
-        const data = await api.getPackagesData();
-        setCatalog(data.catalog);
-        setPreMadePackages(data.preMadePackages);
-      } catch (err) {
-        console.error('Failed to load packages data:', err);
-      } finally {
-        setLoading(false);
-      }
+    let isMounted = true;
+    let controller: AbortController | null = null;
+
+    // Defer API sync until after initial page paint and critical path have completed
+    const scheduleSync = () => {
+      controller = new AbortController();
+      api.getPackagesData({ signal: controller.signal })
+        .then(data => {
+          if (!isMounted) return;
+          if (data?.catalog && data.catalog.length > 0) setCatalog(data.catalog);
+          if (data?.preMadePackages && data.preMadePackages.length > 0) setPreMadePackages(data.preMadePackages);
+        })
+        .catch(() => {
+          // Gracefully continue using initial in-memory packages
+        });
     };
-    fetchPackageData();
+
+    let timerId: any;
+    if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+      timerId = (window as any).requestIdleCallback(scheduleSync, { timeout: 2500 });
+    } else {
+      timerId = setTimeout(scheduleSync, 1200);
+    }
+
+    return () => {
+      isMounted = false;
+      if (typeof window !== 'undefined' && 'cancelIdleCallback' in window && typeof timerId === 'number') {
+        (window as any).cancelIdleCallback(timerId);
+      } else {
+        clearTimeout(timerId);
+      }
+      if (controller) controller.abort();
+    };
   }, []);
 
   // Set default package title according to language if empty
@@ -286,7 +355,7 @@ export const PackageBuilder: React.FC = () => {
               {preMadePackages.map((pkg, idx) => {
                 const isExpanded = expandedPreMadeId === pkg.id;
                 return (
-                  <AnimatedReveal key={pkg.id} direction="up" delay={80 + idx * 80} className="self-start h-fit w-full">
+                  <AnimatedReveal key={pkg.id} immediate={idx < 2} direction="up" delay={idx < 2 ? 0 : 80 + idx * 80} className="self-start h-fit w-full">
                     <div
                       onTouchStart={() => handleTouchCard(pkg.id)}
                       onTouchEnd={() => handleTouchCard(pkg.id)}
@@ -298,9 +367,14 @@ export const PackageBuilder: React.FC = () => {
                         {/* Image Banner */}
                         <div className="relative h-36 sm:h-40 w-full overflow-hidden bg-black/10">
                           <img
-                            src={pkg.image}
+                            src={getOptimizedUnsplashUrl(pkg.image, 480, 208)}
+                            srcSet={buildPackageBannerSrcSet(pkg.image)}
+                            sizes="(max-width: 640px) 360px, (max-width: 1024px) 320px, 280px"
                             alt={pkg.name}
-                            className={`w-full h-full object-cover card-zoom-img transition-transform duration-500 ease-out ${
+                            loading={idx === 0 ? "eager" : "lazy"}
+                            {...(idx === 0 ? ({ fetchPriority: "high" } as any) : {})}
+                            decoding="async"
+                            className={`w-full h-full object-cover card-zoom-img will-change-transform transition-transform duration-500 ease-out ${
                               touchedCardId === pkg.id ? 'scale-100' : 'scale-105'
                             } group-hover:scale-100 group-active:scale-100 active:scale-100`}
                           />
@@ -514,8 +588,12 @@ export const PackageBuilder: React.FC = () => {
                         >
                           <div className="w-16 h-16 rounded-xl overflow-hidden shrink-0 bg-black/5">
                             <img
-                              src={item.image}
+                              src={getOptimizedUnsplashUrl(item.image, 96, 96)}
+                              srcSet={buildThumbnailSrcSet(item.image)}
+                              sizes="64px"
                               alt={item.name}
+                              loading="lazy"
+                              decoding="async"
                               className={`w-full h-full object-cover card-zoom-img transition-transform duration-300 ${
                                 touchedCardId === item.id ? 'scale-100' : 'scale-105'
                               } group-hover:scale-100`}
@@ -726,21 +804,25 @@ export const PackageBuilder: React.FC = () => {
       </div>
 
       {/* Package Order Modal */}
-      <PackageOrderModal
-        isOpen={isOrderModalOpen}
-        onClose={() => setIsOrderModalOpen(false)}
-        packageItem={selectedPreMade}
-        customPackage={
-          selectedPreMade
-            ? null
-            : {
-              name: packageName,
-              items: selectedItems,
-              totalPrice,
-              categoriesCount: categoryCount
+      {isOrderModalOpen && (
+        <Suspense fallback={null}>
+          <PackageOrderModal
+            isOpen={isOrderModalOpen}
+            onClose={() => setIsOrderModalOpen(false)}
+            packageItem={selectedPreMade}
+            customPackage={
+              selectedPreMade
+                ? null
+                : {
+                  name: packageName,
+                  items: selectedItems,
+                  totalPrice,
+                  categoriesCount: categoryCount
+                }
             }
-        }
-      />
+          />
+        </Suspense>
+      )}
     </div>
   );
 };
