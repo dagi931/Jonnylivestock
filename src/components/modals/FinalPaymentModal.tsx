@@ -188,7 +188,7 @@ export const FinalPaymentModal: React.FC<FinalPaymentModalProps> = ({
       setSubmitError(
         isAmharic
           ? 'የመረጡት ቦታ ከማድረሻ ክልል (30 ኪ.ሜ) ውጭ ነው'
-          : 'Delivery is out of range (>30 km). Please select an address within Addis Ababa or choose Farm Pickup.'
+          : 'Delivery is out of range (>30 km). Please select an address within Addis Ababa or choose Hub Pickup.'
       );
       return;
     }
@@ -239,7 +239,7 @@ export const FinalPaymentModal: React.FC<FinalPaymentModalProps> = ({
           formData.append('distanceCategory', deliveryQuoteData.distanceCategory);
         }
       } else {
-        formData.append('deliveryLocation', 'Self Pickup from Arat Kilo Farm Facility');
+        formData.append('deliveryLocation', 'Self Pickup from Arat Kilo Livestock Facility');
         formData.append('deliveryFee', '0');
       }
 
@@ -319,10 +319,10 @@ export const FinalPaymentModal: React.FC<FinalPaymentModalProps> = ({
               <p className="text-xs sm:text-sm opacity-80 max-w-md mx-auto leading-relaxed">
                 {isAmharic
                   ? `አስተዳዳሪው የቀሪውን ${formatPrice(totalFinalAmount)} ክፍያዎን ያረጋግጣል። እንደተረጋገጠ ትዕዛዝዎ የተጠናቀቀ ሆኖ ${
-                      isDelivery ? 'በመረጡት አድራሻ ይደርስዎታል' : 'ከእርሻው መረከብ ይችላሉ'
+                      isDelivery ? 'በመረጡት አድራሻ ይደርስዎታል' : 'ከማዕከሉ መረከብ ይችላሉ'
                     }።`
                   : `Our admin team has been notified to verify your final balance of ${formatPrice(totalFinalAmount)}. Once approved, your order is marked Completed and ${
-                      isDelivery ? 'dispatched to your chosen address' : 'ready for pickup at Arat Kilo Farm'
+                      isDelivery ? 'dispatched to your chosen address' : 'ready for pickup at Arat Kilo Livestock Center'
                     }!`}
               </p>
 
@@ -339,7 +339,7 @@ export const FinalPaymentModal: React.FC<FinalPaymentModalProps> = ({
                 <div className="flex justify-between">
                   <span className="opacity-70">{isAmharic ? 'የማስረከቢያ ሁኔታ:' : 'Fulfillment:'}</span>
                   <span className="font-bold text-amber-500">
-                    {isDelivery ? (isAmharic ? 'በአድራሻዬ ይድረስ (Doorstep Delivery)' : 'Doorstep Delivery') : (isAmharic ? 'ከእርሻው መውሰድ (Farm Pickup)' : 'Farm Pickup')}
+                    {isDelivery ? (isAmharic ? 'በአድራሻዬ ይድረስ (Doorstep Delivery)' : 'Doorstep Delivery') : (isAmharic ? 'ከማዕከሉ መውሰድ (Hub Pickup)' : 'Hub Pickup')}
                   </span>
                 </div>
                 {isDelivery && selectedLocation && (
@@ -487,8 +487,8 @@ export const FinalPaymentModal: React.FC<FinalPaymentModalProps> = ({
                   >
                     <MapPin className="w-4 h-4 shrink-0 text-emerald-500" />
                     <div>
-                      <div className="text-xs font-bold">{isAmharic ? 'ከእርሻው መውሰድ' : 'Farm Pickup'}</div>
-                      <div className="text-[10px] opacity-70">{isAmharic ? 'አራት ኪሎ እርሻ (ነፃ)' : 'Arat Kilo Farm (Free)'}</div>
+                      <div className="text-xs font-bold">{isAmharic ? 'ከማዕከሉ መውሰድ' : 'Hub Pickup'}</div>
+                      <div className="text-[10px] opacity-70">{isAmharic ? 'አራት ኪሎ ማዕከል (ነፃ)' : 'Arat Kilo Facility (Free)'}</div>
                     </div>
                   </button>
                 </div>
@@ -514,8 +514,8 @@ export const FinalPaymentModal: React.FC<FinalPaymentModalProps> = ({
                     <CheckCircle2 className="w-4 h-4 shrink-0" />
                     <span>
                       {isAmharic
-                        ? 'ከአራት ኪሎ እርሻ ተቋም ቀጥታ በነፃ ይረከባሉ። ክፍያዎ እንደተረጋገጠ ርክክብ ይፈጸማል።'
-                        : 'Pick up your livestock directly from Arat Kilo Farm HQ in Addis Ababa free of delivery charge.'}
+                        ? 'ከአራት ኪሎ ማዕከል ተቋም ቀጥታ በነፃ ይረከባሉ። ክፍያዎ እንደተረጋገጠ ርክክብ ይፈጸማል።'
+                        : 'Pick up your livestock directly from Arat Kilo Livestock HQ in Addis Ababa free of delivery charge.'}
                     </span>
                   </div>
                 )}

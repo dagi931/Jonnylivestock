@@ -2,7 +2,7 @@ import { Router, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import { v4 as uuidv4 } from 'uuid';
 import { PostgresDB } from '../db/postgresDb.js';
-import { generateToken, generateTokens, verifyRefreshToken, authenticateToken, AuthRequest } from '../middleware/auth.middleware.js';
+import { generateToken, generateTokens, verifyRefreshToken, authenticateToken, setAuthCookie, clearAuthCookie, AuthRequest } from '../middleware/auth.middleware.js';
 import { User } from '../types/index.js';
 import { EmailService } from '../services/email.service.js';
 import { otpLimiter, authLimiter } from '../middleware/rateLimit.middleware.js';
@@ -17,6 +17,8 @@ interface PendingRegistrationOtp {
   email: string;
   phone: string;
   expiresAt: number;
+  attempts: number;
+  isVerifying?: boolean;
 }
 
 const registrationOtpStore = new Map<string, PendingRegistrationOtp>();
@@ -28,6 +30,7 @@ interface PendingForgotPasswordOtp {
   name: string;
   userId: string;
   expiresAt: number;
+  attempts: number;
 }
 
 const forgotPasswordOtpStore = new Map<string, PendingForgotPasswordOtp>();
@@ -110,7 +113,8 @@ router.post('/send-registration-otp', otpLimiter, async (req: AuthRequest, res: 
       name: name.trim(),
       email: normalizedEmail,
       phone: normalizedPhone,
-      expiresAt
+      expiresAt,
+      attempts: 0
     });
 
     console.log(`[Brevo OTP] Sending 6-digit code to ${normalizedEmail}...`);
@@ -140,6 +144,7 @@ router.post('/send-registration-otp', otpLimiter, async (req: AuthRequest, res: 
 
 // ==================== VERIFY OTP & COMPLETE REGISTRATION ====================
 router.post('/verify-registration-otp', authLimiter, async (req: AuthRequest, res: Response): Promise<void> => {
+  let pendingSessionEmail: string | null = null;
   try {
     const { name, email, phone, password, otp } = req.body;
 
@@ -156,28 +161,86 @@ router.post('/verify-registration-otp', authLimiter, async (req: AuthRequest, re
       return;
     }
 
+    pendingSessionEmail = normalizedEmail;
+
     if (Date.now() > pending.expiresAt) {
       registrationOtpStore.delete(normalizedEmail);
       res.status(400).json({ success: false, error: 'Verification code has expired. Please request a new code.' });
       return;
     }
 
-    if (pending.otp !== otp.toString().trim()) {
-      res.status(400).json({ success: false, error: 'Incorrect verification code. Please check your email and try again.' });
+    // Check failed attempts limit before evaluating OTP
+    if ((pending.attempts || 0) >= 5) {
+      registrationOtpStore.delete(normalizedEmail);
+      res.status(400).json({
+        success: false,
+        error: 'Too many failed attempts. This verification code has been invalidated. Please request a new code.'
+      });
       return;
     }
 
-    // Double check email uniqueness
+    // Verify OTP match
+    if (pending.otp !== otp.toString().trim()) {
+      pending.attempts = (pending.attempts || 0) + 1;
+      const remainingAttempts = 5 - pending.attempts;
+      if (pending.attempts >= 5) {
+        registrationOtpStore.delete(normalizedEmail);
+        res.status(400).json({
+          success: false,
+          error: 'Too many failed attempts. This verification code has been invalidated. Please request a new code.'
+        });
+        return;
+      }
+      res.status(400).json({
+        success: false,
+        error: `Incorrect verification code. ${remainingAttempts} attempt${remainingAttempts === 1 ? '' : 's'} remaining.`
+      });
+      return;
+    }
+
+    // Concurrency lock: Prevent simultaneous requests using the same OTP session
+    if (pending.isVerifying) {
+      res.status(409).json({
+        success: false,
+        error: 'Verification is already in progress for this account.'
+      });
+      return;
+    }
+    pending.isVerifying = true;
+
+    // Prevent changing the phone number during OTP verification
+    if (phone) {
+      const normalizedSubmittedPhone = normalizeEthiopianPhone(phone.toString().trim());
+      if (!normalizedSubmittedPhone || normalizedSubmittedPhone !== pending.phone) {
+        pending.isVerifying = false;
+        res.status(400).json({
+          success: false,
+          error: 'Phone number does not match the registration request.'
+        });
+        return;
+      }
+    }
+
+    // Double check email uniqueness in database
     const existingUser = await PostgresDB.findUserByEmail(normalizedEmail);
     if (existingUser) {
-      res.status(400).json({ success: false, error: 'An account with this email already exists' });
+      registrationOtpStore.delete(normalizedEmail);
+      res.status(409).json({ success: false, error: 'An account with this email already exists' });
       return;
     }
 
-    const rawPhone = phone ? phone.trim() : pending.phone;
-    const finalPhone = normalizeEthiopianPhone(rawPhone);
+    // Phone is strictly locked to the verified registration phone
+    const finalPhone = pending.phone;
     if (!finalPhone || !isValidEthiopianPhone(finalPhone)) {
+      pending.isVerifying = false;
       res.status(400).json({ success: false, error: 'Valid Ethiopian phone number is required (e.g. 0911223344 or 0712345678)' });
+      return;
+    }
+
+    const existingPhone = await PostgresDB.findUserByPhone(finalPhone);
+    if (existingPhone) {
+      registrationOtpStore.delete(normalizedEmail);
+      res.status(409).json({ success: false, error: 'An account with this phone number already exists' });
       return;
     }
 
@@ -186,7 +249,7 @@ router.post('/verify-registration-otp', authLimiter, async (req: AuthRequest, re
 
     const newUser: User = {
       id: `USR-${uuidv4().slice(0, 8).toUpperCase()}`,
-      name: (name || pending.name).trim(),
+      name: (name && name.trim()) ? name.trim() : pending.name,
       email: normalizedEmail,
       phone: finalPhone,
       passwordHash,
@@ -208,6 +271,8 @@ router.post('/verify-registration-otp', authLimiter, async (req: AuthRequest, re
       phone: newUser.phone
     });
 
+    setAuthCookie(res, tokens.accessToken);
+
     res.status(201).json({
       success: true,
       message: 'Account verified and created successfully',
@@ -221,81 +286,27 @@ router.post('/verify-registration-otp', authLimiter, async (req: AuthRequest, re
       }
     });
   } catch (error: any) {
+    if (pendingSessionEmail) {
+      const s = registrationOtpStore.get(pendingSessionEmail);
+      if (s) s.isVerifying = false;
+    }
+
+    // Handle Prisma unique constraint failure (e.g. concurrent race condition)
+    if (error?.code === 'P2002' || error?.message?.includes('Unique constraint failed')) {
+      if (pendingSessionEmail) {
+        registrationOtpStore.delete(pendingSessionEmail);
+      }
+      const target = error?.meta?.target;
+      const field = Array.isArray(target) ? target.join(', ') : 'email or phone number';
+      res.status(409).json({
+        success: false,
+        error: `An account with this ${field} already exists.`
+      });
+      return;
+    }
+
     console.error('Verify registration OTP error:', error);
     res.status(500).json({ success: false, error: 'Failed to verify account' });
-  }
-});
-
-// ==================== REGISTER (DIRECT / FALLBACK) ====================
-router.post('/register', authLimiter, async (req: AuthRequest, res: Response): Promise<void> => {
-  try {
-    const { name, email, phone, password } = req.body;
-
-    if (!name || !email || !password || !phone) {
-      res.status(400).json({ success: false, error: 'Name, email, phone number, and password are required' });
-      return;
-    }
-
-    const normalizedEmail = email.trim().toLowerCase();
-    const existingUser = await PostgresDB.findUserByEmail(normalizedEmail);
-    if (existingUser) {
-      res.status(400).json({ success: false, error: 'An account with this email already exists' });
-      return;
-    }
-
-    const finalPhone = normalizeEthiopianPhone(phone.trim());
-    if (!finalPhone || !isValidEthiopianPhone(finalPhone)) {
-      res.status(400).json({ success: false, error: 'Valid Ethiopian phone number is required (e.g. 0911223344 or 0712345678)' });
-      return;
-    }
-
-    const existingPhoneUser = await PostgresDB.findUserByPhone(finalPhone);
-    if (existingPhoneUser) {
-      res.status(400).json({ success: false, error: 'An account with this phone number is already registered. Please sign in instead.' });
-      return;
-    }
-
-    const salt = await bcrypt.genSalt(10);
-    const passwordHash = await bcrypt.hash(password, salt);
-
-    const newUser: User = {
-      id: `USR-${uuidv4().slice(0, 8).toUpperCase()}`,
-      name: name.trim(),
-      email: normalizedEmail,
-      phone: finalPhone,
-      passwordHash,
-      role: 'customer',
-      createdAt: new Date().toISOString()
-    };
-
-    await PostgresDB.createUser(newUser);
-
-    // Auto-claim all prior guest orders placed with this verified phone number
-    await PostgresDB.claimGuestOrdersByPhone(newUser.id, finalPhone);
-
-    const tokens = generateTokens({
-      id: newUser.id,
-      email: newUser.email,
-      role: newUser.role,
-      name: newUser.name,
-      phone: newUser.phone
-    });
-
-    res.status(201).json({
-      success: true,
-      message: 'Account created successfully',
-      ...tokens,
-      user: {
-        id: newUser.id,
-        name: newUser.name,
-        email: newUser.email,
-        phone: newUser.phone,
-        role: newUser.role
-      }
-    });
-  } catch (error: any) {
-    console.error('Registration error:', error);
-    res.status(500).json({ success: false, error: 'Failed to create account' });
   }
 });
 
@@ -313,48 +324,37 @@ router.post('/send-forgot-password-otp', otpLimiter, async (req: AuthRequest, re
 
     // Check if account exists
     const user = await PostgresDB.findUserByEmail(normalizedEmail);
-    if (!user) {
-      res.status(404).json({
-        success: false,
-        error: 'No account registered with this email address. Please check spelling or create an account.'
+    if (user) {
+      // Generate 6-digit OTP
+      const otp = Math.floor(100000 + Math.random() * 900000).toString();
+      const expiresAt = Date.now() + 10 * 60 * 1000; // 10 minutes
+
+      forgotPasswordOtpStore.set(normalizedEmail, {
+        otp,
+        email: normalizedEmail,
+        name: user.name,
+        userId: user.id,
+        expiresAt,
+        attempts: 0
       });
-      return;
+
+      console.log(`[Brevo Password Reset] Sending 6-digit code to ${normalizedEmail}...`);
+      try {
+        await EmailService.sendPasswordResetOtp(normalizedEmail, user.name, otp);
+      } catch (e) {
+        console.error('[Brevo Password Reset] Dispatch error:', e);
+      }
     }
 
-    // Generate 6-digit OTP
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    const expiresAt = Date.now() + 10 * 60 * 1000; // 10 minutes
-
-    forgotPasswordOtpStore.set(normalizedEmail, {
-      otp,
-      email: normalizedEmail,
-      name: user.name,
-      userId: user.id,
-      expiresAt
-    });
-
-    console.log(`[Brevo Password Reset] Sending 6-digit code to ${normalizedEmail}...`);
-    const emailResult = await EmailService.sendPasswordResetOtp(normalizedEmail, user.name, otp);
-
-    if (!emailResult.success) {
-      console.error('[Brevo Password Reset] Email delivery failure:', emailResult.error);
-      res.status(500).json({
-        success: false,
-        error: emailResult.error || 'Failed to dispatch password reset email. Please try again later.'
-      });
-      return;
-    }
-
-    console.log(`[Brevo Password Reset] Code dispatched successfully to ${normalizedEmail} (MessageId: ${emailResult.messageId})`);
-
+    // Always return a uniform response to prevent account enumeration
     res.json({
       success: true,
-      message: `Password reset verification code sent to ${normalizedEmail}`,
+      message: `If an account is associated with ${normalizedEmail}, a password reset verification code has been dispatched.`,
       expiresInMinutes: 10
     });
   } catch (error: any) {
     console.error('Send forgot password OTP error:', error);
-    res.status(500).json({ success: false, error: 'Failed to send password reset code' });
+    res.status(500).json({ success: false, error: 'Failed to process password reset request' });
   }
 });
 
@@ -399,16 +399,37 @@ router.post('/reset-password-with-otp', authLimiter, async (req: AuthRequest, re
       return;
     }
 
-    if (pending.otp !== otp.toString().trim()) {
+    // Check failed attempts limit before evaluating OTP
+    if ((pending.attempts || 0) >= 5) {
+      forgotPasswordOtpStore.delete(normalizedEmail);
       res.status(400).json({
         success: false,
-        error: 'Incorrect verification code. Please check your email and try again.'
+        error: 'Too many failed attempts. This verification code has been invalidated. Please request a new code.'
+      });
+      return;
+    }
+
+    if (pending.otp !== otp.toString().trim()) {
+      pending.attempts = (pending.attempts || 0) + 1;
+      const remainingAttempts = 5 - pending.attempts;
+      if (pending.attempts >= 5) {
+        forgotPasswordOtpStore.delete(normalizedEmail);
+        res.status(400).json({
+          success: false,
+          error: 'Too many failed attempts. This verification code has been invalidated. Please request a new code.'
+        });
+        return;
+      }
+      res.status(400).json({
+        success: false,
+        error: `Incorrect verification code. ${remainingAttempts} attempt${remainingAttempts === 1 ? '' : 's'} remaining.`
       });
       return;
     }
 
     const user = await PostgresDB.findUserByEmail(normalizedEmail);
     if (!user) {
+      forgotPasswordOtpStore.delete(normalizedEmail);
       res.status(404).json({ success: false, error: 'User account not found' });
       return;
     }
@@ -437,6 +458,8 @@ router.post('/reset-password-with-otp', authLimiter, async (req: AuthRequest, re
     });
 
     console.log(`[Password Reset] User ${normalizedEmail} successfully reset password`);
+
+    setAuthCookie(res, tokens.accessToken);
 
     res.json({
       success: true,
@@ -468,56 +491,15 @@ router.post('/login', authLimiter, async (req: AuthRequest, res: Response): Prom
 
     const normalizedEmail = email.trim().toLowerCase();
 
-    // Check special default admin credentials shortcut if database record doesn't exist yet
-    if (normalizedEmail === 'admin@jonnylivestock.com' && password === 'admin123') {
-      let adminUser = await PostgresDB.findUserByEmail(normalizedEmail);
-      if (!adminUser) {
-        adminUser = {
-          id: 'USR-ADMIN-01',
-          name: 'Jonny Owner',
-          email: 'admin@jonnylivestock.com',
-          phone: '+251911234567',
-          passwordHash: '',
-          role: 'admin' as const,
-          createdAt: new Date().toISOString()
-        };
-      }
-
-      const tokens = generateTokens({
-        id: adminUser.id,
-        email: adminUser.email,
-        role: 'admin',
-        name: adminUser.name,
-        phone: adminUser.phone
-      });
-
-      res.json({
-        success: true,
-        ...tokens,
-        user: {
-          id: adminUser.id,
-          name: adminUser.name,
-          email: adminUser.email,
-          phone: adminUser.phone,
-          role: 'admin'
-        }
-      });
-      return;
-    }
-
     const user = await PostgresDB.findUserByEmail(normalizedEmail);
-    if (!user) {
+    if (!user || !user.passwordHash) {
       res.status(401).json({ success: false, error: 'Invalid email or password' });
       return;
     }
 
     // Compare bcrypt password
-    let isMatch = false;
-    if (user.passwordHash) {
-      isMatch = await bcrypt.compare(password, user.passwordHash);
-    }
-
-    if (!isMatch && password !== 'admin123' && password !== 'password123') {
+    const isMatch = await bcrypt.compare(password, user.passwordHash);
+    if (!isMatch) {
       res.status(401).json({ success: false, error: 'Invalid email or password' });
       return;
     }
@@ -534,6 +516,8 @@ router.post('/login', authLimiter, async (req: AuthRequest, res: Response): Prom
       name: user.name,
       phone: user.phone
     });
+
+    setAuthCookie(res, tokens.accessToken);
 
     res.json({
       success: true,
@@ -568,20 +552,8 @@ router.post('/refresh', async (req: AuthRequest, res: Response): Promise<void> =
       return;
     }
 
-    // Verify user exists in database (or fallback admin)
-    let user = await PostgresDB.findUserById(decoded.id);
-    if (!user && decoded.email === 'admin@jonnylivestock.com') {
-      user = {
-        id: decoded.id,
-        name: decoded.name || 'Jonny Owner',
-        email: decoded.email,
-        phone: decoded.phone || '+251911234567',
-        passwordHash: '',
-        role: 'admin',
-        createdAt: new Date().toISOString()
-      };
-    }
-
+    // Verify user exists in database
+    const user = await PostgresDB.findUserById(decoded.id);
     if (!user) {
       res.status(401).json({ success: false, error: 'User account no longer exists' });
       return;
@@ -595,6 +567,8 @@ router.post('/refresh', async (req: AuthRequest, res: Response): Promise<void> =
       name: user.name,
       phone: user.phone
     });
+
+    setAuthCookie(res, newTokens.accessToken);
 
     res.json({
       success: true,
@@ -637,6 +611,12 @@ router.get('/me', authenticateToken, async (req: AuthRequest, res: Response): Pr
       role: user.role
     }
   });
+});
+
+// ==================== LOGOUT (CLEAR COOKIES) ====================
+router.post('/logout', async (_req: AuthRequest, res: Response): Promise<void> => {
+  clearAuthCookie(res);
+  res.json({ success: true, message: 'Logged out successfully' });
 });
 
 export default router;

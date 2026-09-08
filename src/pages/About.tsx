@@ -42,8 +42,8 @@ export const About: React.FC = () => {
             ) : (
               <>
                 <span className="block">Single-Seller Quality Sheep,</span>
-                <span className="block">Goats, Cows &amp;</span>
-                <span className="block">Farm-to-Table Services</span>
+                <span className="block">Direct Supplier &amp;</span>
+                <span className="block">Meat Services</span>
               </>
             )}
           </h1>
@@ -81,7 +81,7 @@ export const About: React.FC = () => {
               }`}
             >
               <Award className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-              <span>{isAmharic ? 'የቀጥታ እርሻ ዋጋ' : 'Single-Seller Direct Price'}</span>
+              <span>{isAmharic ? 'የቀጥታ አቅራቢ ዋጋ' : 'Single-Seller Direct Price'}</span>
             </div>
 
             <div

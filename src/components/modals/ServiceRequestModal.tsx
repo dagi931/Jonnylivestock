@@ -170,8 +170,8 @@ export const ServiceRequestModal: React.FC<ServiceRequestModalProps> = ({
 
             <p className="text-sm leading-relaxed max-w-md mx-auto opacity-90">
               {isAmharic
-                ? `እናመሰግናለን ${customerName}! ለ ${getServiceTitles() || 'የእርሻ አገልግሎቶች'} ያቀረቡት ጥያቄ በ ${business.name} ተቀብለናል።`
-                : `Thank you, ${customerName}! Your request for ${getServiceTitles() || 'Livestock Services'} has been received by ${business.name}.`}
+                ? `እናመሰግናለን ${customerName}! ለ ${getServiceTitles() || 'የቀንድ ከብት አቅራቢ አገልግሎቶች'} ያቀረቡት ጥያቄ በ ${business.name} ተቀብለናል።`
+                : `Thank you, ${customerName}! Your request for ${getServiceTitles() || 'Livestock Supplier Services'} has been received by ${business.name}.`}
             </p>
 
             {isMeatByKgSelected && (
@@ -238,12 +238,12 @@ export const ServiceRequestModal: React.FC<ServiceRequestModalProps> = ({
             <div className="mb-6">
               <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-amber-500 mb-1">
                 <Sparkles className="w-3.5 h-3.5" />
-                <span>{isAmharic ? 'የእርሻና የንግድ አገልግሎቶች ዝግጅት' : 'Farm-to-Table & Commercial Service Arrangement'}</span>
+                <span>{isAmharic ? 'የቀንድ ከብት አቅርቦትና የንግድ አገልግሎቶች' : 'Direct Supplier & Commercial Service Arrangement'}</span>
               </div>
               <h2 className="font-serif font-bold text-2xl">
                 {animal
                   ? (isAmharic ? `ለ ${animal.breed} አገልግሎት ይጠይቁ` : `Request Services for ${animal.breed}`)
-                  : (isAmharic ? 'የእርሻና የስጋ አገልግሎት ጥያቄ' : 'Request Farm & Meat Services')}
+                  : (isAmharic ? 'የቀንድ ከብትና የስጋ አቅርቦት አገልግሎት ጥያቄ' : 'Request Livestock & Meat Services')}
               </h2>
               {animal && (
                 <div className="mt-2 flex items-center gap-2 text-xs opacity-80">

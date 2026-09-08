@@ -211,7 +211,7 @@ export const PACKAGE_CATALOG: PackageCatalogItem[] = [
   {
     id: 'pkg-egg-crate',
     category: 'eggs',
-    name: 'Farm Fresh Brown Eggs (Full Crate)',
+    name: 'Fresh Organic Brown Eggs (Full Crate)',
     amharicName: 'ትኩስ የሀገር እንቁላል (ሙሉ ካርቶን - 30 ፍሬ)',
     description: '30 large, free-range pasture-laid brown eggs with vibrant golden yolks for Doro Wat.',
     amharicDescription: 'ለዶሮ ወጥ ድምቀት የሚሆኑ 30 ትኩስ የሀገር እንቁላሎች።',
@@ -282,7 +282,7 @@ export const PRE_MADE_PACKAGES: PreMadePackage[] = [
     amharicName: 'የበዓል ድግስ ታላቅ ጥቅል',
     tagline: 'Complete 4-in-1 Festive Centerpiece',
     amharicTagline: 'የተሟላ ባለ 4-በ-1 የበዓል ድግስ',
-    description: 'Debrebirhan Prime Sheep + Rift Valley Reserve Wine + 1 Crate Farm Fresh Eggs + Luxury Red Rose Bouquet. Free VIP refrigerated delivery included.',
+    description: 'Debrebirhan Prime Sheep + Rift Valley Reserve Wine + 1 Crate Organic Fresh Eggs + Luxury Red Rose Bouquet. Free VIP refrigerated delivery included.',
     amharicDescription: 'ደንዳና የደብረ ብርሃን በግ + ሪፍት ቫሊ ወይን + 1 ካርቶን ትኩስ እንቁላል + ውብ የቀይ ጽጌረዳ እቅፍ። ነፃ ማድረሻን ጨምሮ።',
     categoryCount: 4,
     items: [
@@ -330,7 +330,7 @@ export const PRE_MADE_PACKAGES: PreMadePackage[] = [
     amharicName: 'የጊንጪ ፍየልና የማር ጠጅ ጥቅል',
     tagline: 'Authentic Heritage Celebration',
     amharicTagline: 'ባህላዊ የደስታና የድግስ ሙሉ ጥቅል',
-    description: 'Prime Ginchi Tender Goat + 2L Traditional Pure Honey Tej + 1 Crate Farm Eggs (30 pcs). Free delivery & optional slaughter preparation.',
+    description: 'Prime Ginchi Tender Goat + 2L Traditional Pure Honey Tej + 1 Crate Fresh Eggs (30 pcs). Free delivery & optional slaughter preparation.',
     amharicDescription: 'የጊንጪ ምርጥ ፍየል + 2 ሊትር ንጹህ የማር ጠጅ + 1 ካርቶን እንቁላል (30 ፍሬ)። ነፃ ማድረሻና የዕርድ ዝግጅትን ጨምሮ።',
     categoryCount: 3,
     items: [

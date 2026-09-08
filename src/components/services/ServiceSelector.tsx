@@ -48,10 +48,10 @@ export const ServiceSelector: React.FC<ServiceSelectorProps> = ({
             desc = 'የበግ፣ የፍየልና የበሬ ስጋ በኪሎ የታረደ አቅርቦት።';
           } else if (service.id === 'fresh-slaughtered-sheep') {
             title = 'የታረደ ትኩስ በግ ማድረስ';
-            desc = 'ከእርሻችን የታረደና የጸዳ በግ እስከ ቤትዎ ድረስ።';
+            desc = 'ከማዕከላችን የታረደና የጸዳ በግ እስከ ቤትዎ ድረስ።';
           } else if (service.id === 'delivery') {
             title = 'የቀጥታ ከብትና በጎች ማጓጓዝ';
-            desc = 'ከአዋሬ እርሻችን አስተማማኝ የቀጥታ እንስሳት ማጓጓዝ።';
+            desc = 'ከአዋሬ ማዕከላችን አስተማማኝ የቀጥታ እንስሳት ማጓጓዝ።';
           } else if (service.id === 'slaughter-prep') {
             title = 'በቦታው ላይ የዕርድና የስጋ ዝግጅት';
             desc = '1 ባለሙያ ተመድቦ ንጽህናው የተጠበቀ የዕርድና የስጋ ዝግጅት።';

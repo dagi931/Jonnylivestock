@@ -104,8 +104,8 @@ export const FreshSheepServicePage: React.FC = () => {
                 </h1>
                 <p className={`text-xs sm:text-sm mt-1 max-w-2xl ${isDark ? 'text-[#D8C5A8]' : 'text-[#746556]'}`}>
                   {isAmharic
-                    ? 'የቀጥታ እንስሳትን የመያዝ ወይም በቤት ውስጥ የማረድ ድካምና ቆሻሻ ሳይኖርብዎት፣ ከመላኩ ጥቂት ቀደም ብሎ በአዋሬ እርሻችን በንጽህና የታረደ ትኩስ የበግ ስጋ በቀጥታ ወደ ደጃፍዎ ይደርሳል።'
-                    : 'Clean, fresh sheep meat delivered straight to your door without the hassle of live animal handling or home slaughter. We slaughter freshly at our Aware farm just before dispatch.'}
+                    ? 'የቀጥታ እንስሳትን የመያዝ ወይም በቤት ውስጥ የማረድ ድካምና ቆሻሻ ሳይኖርብዎት፣ ከመላኩ ጥቂት ቀደም ብሎ በአዋሬ ማዕከላችን በንጽህና የታረደ ትኩስ የበግ ስጋ በቀጥታ ወደ ደጃፍዎ ይደርሳል።'
+                    : 'Clean, fresh sheep meat delivered straight to your door without the hassle of live animal handling or home slaughter. We slaughter freshly at our Aware center just before dispatch.'}
                 </p>
               </div>
             </div>
@@ -362,12 +362,12 @@ export const FreshSheepServicePage: React.FC = () => {
             >
               <div className="flex items-center gap-2 text-xs font-bold text-amber-500 uppercase tracking-wider">
                 <PackageCheck className="w-4 h-4" />
-                <span>{isAmharic ? 'የእርሻ ዕርድና የትኩስነት ዋስትና' : 'Farm Slaughter & Freshness Guarantee'}</span>
+                <span>{isAmharic ? 'የንጹህ ዕርድና የትኩስነት ዋስትና' : 'Sanitary Slaughter & Freshness Guarantee'}</span>
               </div>
 
               <p className="text-xs opacity-85 leading-relaxed">
                 {isAmharic
-                  ? 'እያንዳንዱ በግ ጤንነቱ ተመርምሮ በአዋሬ እርሻችን ንጽህና ባለው ባህላዊ ስርዓት ከመላኩ ጥቂት ቀደም ብሎ ይታረዳል፤ ወዲያውኑ በንጹህ የምግብ መሸፈኛ ተጠቅልሎ ይጓጓዛል።'
+                  ? 'እያንዳንዱ በግ ጤንነቱ ተመርምሮ በአዋሬ ማዕከላችን ንጽህና ባለው ባህላዊ ስርዓት ከመላኩ ጥቂት ቀደም ብሎ ይታረዳል፤ ወዲያውኑ በንጹህ የምግብ መሸፈኛ ተጠቅልሎ ይጓጓዛል።'
                   : 'Every sheep is inspected for health, slaughtered freshly at our Aware facility under sanitary traditional standards, and transported immediately in clean food-grade protective wrap.'}
               </p>
 

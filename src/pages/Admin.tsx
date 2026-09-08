@@ -114,6 +114,14 @@ export const Admin: React.FC = () => {
   const isAuthenticated = isAdminAuth;
   const user = adminUser;
 
+  const getAuthSlipUrl = (url?: string | null): string => {
+    if (!url) return '';
+    const token = adminToken || (typeof window !== 'undefined' ? (localStorage.getItem('jonny_admin_token') || localStorage.getItem('jonny_user_token')) : null);
+    if (!token || url.includes('token=')) return url;
+    const sep = url.includes('?') ? '&' : '?';
+    return `${url}${sep}token=${encodeURIComponent(token)}`;
+  };
+
   // Intercept browser back button so admin stays securely inside the admin portal
   useEffect(() => {
     if (!isAuthenticated) return;
@@ -385,7 +393,7 @@ export const Admin: React.FC = () => {
       const activeToken = adminToken || localStorage.getItem('jonny_admin_token') || localStorage.getItem('jonny_user_token') || undefined;
       const res = await api.updateDeliveryConfig({ settings: deliverySettings }, activeToken);
       if (res.success) {
-        showAlert('success', 'Farm facility location & max delivery radius saved successfully!');
+        showAlert('success', 'Livestock facility location & max delivery radius saved successfully!');
         if (res.settings) setDeliverySettings(res.settings);
       } else {
         showAlert('error', res.error || 'Failed to save delivery settings');
@@ -441,9 +449,9 @@ export const Admin: React.FC = () => {
   const handleUpdatePickupStatus = async (orderId: string, status: 'pickup_ready' | 'completed' = 'pickup_ready') => {
     try {
       const activeToken = adminToken || localStorage.getItem('jonny_admin_token') || localStorage.getItem('jonny_user_token') || undefined;
-      const res = await api.updatePickupStatus(orderId, status, status === 'completed' ? 'Customer picked up livestock from farm' : 'Livestock prepared for farm pickup', activeToken);
+      const res = await api.updatePickupStatus(orderId, status, status === 'completed' ? 'Customer picked up livestock from hub' : 'Livestock prepared for hub pickup', activeToken);
       if (res.success) {
-        showAlert('success', status === 'completed' ? `✓ Order ${orderId} marked as PICKED UP & COMPLETED!` : `✓ Order ${orderId} is now READY FOR FARM PICKUP!`);
+        showAlert('success', status === 'completed' ? `✓ Order ${orderId} marked as PICKED UP & COMPLETED!` : `✓ Order ${orderId} is now READY FOR HUB PICKUP!`);
         loadDashboardData();
       } else {
         showAlert('error', res.error || 'Failed to update pickup status');
@@ -2558,7 +2566,7 @@ export const Admin: React.FC = () => {
                                   title={isAmharic ? 'የቅድመ-ክፍያ ደረሰኝን ለመመርመር ይጫኑ' : 'Click to inspect slip'}
                                 >
                                   <img
-                                    src={order.paymentSlipUrl}
+                                    src={getAuthSlipUrl(order.paymentSlipUrl)}
                                     alt="Slip"
                                     className="w-7 h-7 object-cover rounded"
                                   />
@@ -2579,7 +2587,7 @@ export const Admin: React.FC = () => {
                                   title={isAmharic ? 'የመጨረሻ 50% ደረሰኝን ለመመርመር ይጫኑ' : 'Click to inspect final slip'}
                                 >
                                   <img
-                                    src={order.finalPaymentSlipUrl}
+                                    src={getAuthSlipUrl(order.finalPaymentSlipUrl)}
                                     alt="Final Slip"
                                     className="w-7 h-7 object-cover rounded"
                                   />
@@ -2678,7 +2686,7 @@ export const Admin: React.FC = () => {
                                   </div>
                                 ) : (
                                   <span className="text-[11px] opacity-60 italic">
-                                    {isAmharic ? 'ከእርሻ ርክክብ (Pickup)' : 'Farm Pickup'}
+                                    {isAmharic ? 'ከማዕከል ርክክብ (Pickup)' : 'Hub Pickup'}
                                   </span>
                                 )}
                                 {(order.packageDetails as any)?.isDelivery && (
@@ -2741,7 +2749,7 @@ export const Admin: React.FC = () => {
                                       title={isAmharic ? 'ደረሰኝ መርምር' : 'Inspect slip'}
                                     >
                                       <img
-                                        src={order.paymentSlipUrl}
+                                        src={getAuthSlipUrl(order.paymentSlipUrl)}
                                         alt="Initial Receipt"
                                         className="w-9 h-9 object-cover rounded-lg"
                                       />
@@ -2780,7 +2788,7 @@ export const Admin: React.FC = () => {
                                       title={isAmharic ? 'የመጨረሻ ደረሰኝ መርምር' : 'Inspect final slip'}
                                     >
                                       <img
-                                        src={order.finalPaymentSlipUrl}
+                                        src={getAuthSlipUrl(order.finalPaymentSlipUrl)}
                                         alt="Final Receipt"
                                         className="w-9 h-9 object-cover rounded-lg"
                                       />
@@ -3037,7 +3045,7 @@ export const Admin: React.FC = () => {
                                           title={isAmharic ? 'ደረሰኝ መርምር' : 'Inspect slip'}
                                         >
                                           <img
-                                            src={order.paymentSlipUrl}
+                                            src={getAuthSlipUrl(order.paymentSlipUrl)}
                                             alt="Slip"
                                             className="w-7 h-7 object-cover rounded"
                                           />
@@ -3073,7 +3081,7 @@ export const Admin: React.FC = () => {
                                           title={isAmharic ? 'የመጨረሻ ደረሰኝ መርምር' : 'Inspect final slip'}
                                         >
                                           <img
-                                            src={order.finalPaymentSlipUrl}
+                                            src={getAuthSlipUrl(order.finalPaymentSlipUrl)}
                                             alt="Final Slip"
                                             className="w-7 h-7 object-cover rounded"
                                           />
@@ -3250,7 +3258,7 @@ export const Admin: React.FC = () => {
                                             type="button"
                                             onClick={() => handleUpdatePickupStatus(order.id, 'pickup_ready')}
                                             className="px-2 py-1 rounded-md bg-blue-500 hover:bg-blue-600 text-white font-bold text-[10.5px] shadow transition-all flex items-center gap-1 cursor-pointer"
-                                            title={isAmharic ? 'ለእርሻ ርክክብ ዝግጁ አድርግ' : 'Ready for farm pickup'}
+                                            title={isAmharic ? 'ለርክክብ ዝግጁ አድርግ' : 'Ready for pickup'}
                                           >
                                             <Package className="w-3 h-3" />
                                             <span>{isAmharic ? 'ዝግጁ' : 'Ready'}</span>
@@ -3313,7 +3321,7 @@ export const Admin: React.FC = () => {
                                           </div>
                                         ) : (
                                           <span className="opacity-60 italic text-[11px]">
-                                            {isAmharic ? 'ከእርሻ ርክክብ (Farm Pickup)' : 'Farm Pickup'}
+                                            {isAmharic ? 'ከማዕከል ርክክብ (Hub Pickup)' : 'Hub Pickup'}
                                           </span>
                                         )}
                                         {(order.packageDetails as any)?.isDelivery && (
@@ -4379,7 +4387,7 @@ export const Admin: React.FC = () => {
                                           type="button"
                                           onClick={() => handleUpdatePickupStatus(order.id, 'pickup_ready')}
                                           className="px-2.5 py-1 rounded-lg bg-blue-500 hover:bg-blue-600 text-white font-bold text-[11px] shadow transition-all flex items-center gap-1 cursor-pointer"
-                                          title={isAmharic ? 'ለእርሻ ርክክብ ዝግጁ አድርግ' : 'Ready for Pickup'}
+                                          title={isAmharic ? 'ለርክክብ ዝግጁ አድርግ' : 'Ready for Pickup'}
                                         >
                                           <Package className="w-3 h-3" />
                                           <span>{isAmharic ? 'ለርክክብ ዝግጁ' : 'Ready'}</span>
@@ -4444,8 +4452,8 @@ export const Admin: React.FC = () => {
                           ? 'የደንበኞች የእስከ ደጃፍ ማድረሻ ትዕዛዞች፣ የጉዞ መስመር ክትትል፣ የደረሰኝ ምርመራ እና የተሽከርካሪ መላኪያ።'
                           : 'Live doorstep customer delivery orders queue, route tracking, payment slip reviews, and vehicle dispatching.')
                       : (isAmharic
-                          ? 'የመንገድ ርቀት ስሌት (OSRM ሞተር)፣ የተሽከርካሪ አቅም ማረጋገጫ፣ ተለዋዋጭ ዋጋዎች እና የእርሻ መላኪያ ማዕከል ቅንብሮች።'
-                          : 'Live road distance calculation (OSRM engine), vehicle capacity validation, dynamic rates, and farm origin settings.')}
+                          ? 'የመንገድ ርቀት ስሌት (OSRM ሞተር)፣ የተሽከርካሪ አቅም ማረጋገጫ፣ ተለዋዋጭ ዋጋዎች እና የማዕከል መላኪያ ቅንብሮች።'
+                          : 'Live road distance calculation (OSRM engine), vehicle capacity validation, dynamic rates, and hub origin settings.')}
                   </p>
                 </div>
 
@@ -5037,7 +5045,7 @@ export const Admin: React.FC = () => {
                   </div>
                 </div>
 
-                {/* 2. Farm Origin Facility & Global Logistics Settings */}
+                {/* 2. Dispatch Hub Facility & Global Logistics Settings */}
                 <div
                   className={`p-5 sm:p-6 rounded-3xl border space-y-4 ${
                     isDark ? 'bg-[#1E140A] border-[#3D2513]' : 'bg-white border-[#E8DCCB]'
@@ -5047,7 +5055,7 @@ export const Admin: React.FC = () => {
                     <div>
                       <h3 className="text-base font-serif font-bold flex items-center gap-2">
                         <MapPin className="w-4 h-4 text-[#C18A45]" />
-                        <span>{isAmharic ? 'የአዋሬ እርሻ መላኪያ ማዕከል እና የወሰን ቅንብሮች' : 'Aware Farm Dispatch Hub & Boundary Settings'}</span>
+                        <span>{isAmharic ? 'የአዋሬ መላኪያ ማዕከል እና የወሰን ቅንብሮች' : 'Aware Dispatch Hub & Boundary Settings'}</span>
                       </h3>
                       <p className="text-xs opacity-70 mt-0.5">
                         {isAmharic
@@ -5097,7 +5105,7 @@ export const Admin: React.FC = () => {
 
                     <div>
                       <label className="block text-[11px] font-bold uppercase mb-1 opacity-70">
-                        {isAmharic ? 'የእርሻ ላቲቲዩድ (GPS)' : 'Farm Latitude (GPS)'}
+                        {isAmharic ? 'የማዕከል ላቲቲዩድ (GPS)' : 'Hub Latitude (GPS)'}
                       </label>
                       <input
                         type="number"
@@ -5116,7 +5124,7 @@ export const Admin: React.FC = () => {
 
                     <div>
                       <label className="block text-[11px] font-bold uppercase mb-1 opacity-70">
-                        {isAmharic ? 'የእርሻ ሎንጊቲዩድ (GPS)' : 'Farm Longitude (GPS)'}
+                        {isAmharic ? 'የማዕከል ሎንጊቲዩድ (GPS)' : 'Hub Longitude (GPS)'}
                       </label>
                       <input
                         type="number"
@@ -5212,8 +5220,8 @@ export const Admin: React.FC = () => {
                       />
                       <p className="text-[10.5px] opacity-70 mt-1.5 leading-snug">
                         {isAmharic
-                          ? 'እርሻው ላይ ታርዶ ሲላክ (Send Slaughtered) ወይም ደንበኞች እራሳቸው መጥተው እርሻው ላይ ሲታረድ የሚከፈል መነሻ ተመን።'
-                          : 'Applied when animal is slaughtered at farm before delivery or prepared on-site at farm during pickup.'}
+                          ? 'ማዕከሉ ላይ ታርዶ ሲላክ (Send Slaughtered) ወይም ደንበኞች እራሳቸው መጥተው ማዕከሉ ላይ ሲታረድ የሚከፈል መነሻ ተመን።'
+                          : 'Applied when animal is slaughtered before delivery or prepared on-site at facility during pickup.'}
                       </p>
                     </div>
 
@@ -5253,7 +5261,7 @@ export const Admin: React.FC = () => {
                       </span>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] opacity-90">
                         <div>
-                          • <strong>{isAmharic ? 'የታረደ መላክ / እርሻው ላይ ማረድ' : 'Send Slaughtered / Farm Slaughter'}:</strong>{' '}
+                          • <strong>{isAmharic ? 'የታረደ መላክ / ማዕከሉ ላይ ማረድ' : 'Send Slaughtered / Center Slaughter'}:</strong>{' '}
                           <span className="font-mono font-bold text-amber-500">{formatPrice(slaughterPricing.slaughterFee)}</span>
                         </div>
                         <div>
@@ -5738,7 +5746,7 @@ export const Admin: React.FC = () => {
         <SlipPreviewModal
           isOpen={Boolean(selectedSlipOrder)}
           onClose={() => setSelectedSlipOrder(null)}
-          slipUrl={selectedSlipOrder.paymentSlipUrl || selectedSlipOrder.finalPaymentSlipUrl || ''}
+          slipUrl={getAuthSlipUrl(selectedSlipOrder.paymentSlipUrl || selectedSlipOrder.finalPaymentSlipUrl || '')}
           order={selectedSlipOrder}
           orderId={selectedSlipOrder.id}
           customerName={selectedSlipOrder.customerName}
@@ -6686,7 +6694,7 @@ export const Admin: React.FC = () => {
                     >
                       <option value="meat_livestock" className="text-black">{isAmharic ? 'ስጋ' : 'Meat'}</option>
                       <option value="wine" className="text-black">{isAmharic ? 'ወይን፣ ውስኪ & ጠጅ' : 'Wine, Whiskies & Tej'}</option>
-                      <option value="eggs" className="text-black">{isAmharic ? 'የእርሻ እንቁላል' : 'Farm Eggs'}</option>
+                      <option value="eggs" className="text-black">{isAmharic ? 'ትኩስ እንቁላል' : 'Fresh Eggs'}</option>
                       <option value="flowers" className="text-black">{isAmharic ? 'አበቦች' : 'Flowers'}</option>
                     </select>
                     <button

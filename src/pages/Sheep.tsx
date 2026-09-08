@@ -15,7 +15,7 @@ export const Sheep: React.FC = () => {
       }}
       description={{
         en: 'Browse our current flock of Debrebirhan, Ginchi, Wolayita, and Arsi sheep. All animals are weighed accurately with transparent direct pricing.',
-        am: 'የደብረ ብርሃን፣ የጊንጪ፣ የወላይታና የአርሲ ዝርያ በጎችን ይመልከቱ። ሁሉም እንስሳት በትክክለኛ ሚዛን የተመዘኑና የቀጥታ እርሻ ዋጋ ያላቸው ናቸው።'
+        am: 'የደብረ ብርሃን፣ የጊንጪ፣ የወላይታና የአርሲ ዝርያ በጎችን ይመልከቱ። ሁሉም እንስሳት በትክክለኛ ሚዛን የተመዘኑና የቀጥታ አቅራቢ ዋጋ ያላቸው ናቸው።'
       }}
       typeLabel={{
         en: 'sheep',

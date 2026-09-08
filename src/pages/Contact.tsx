@@ -49,7 +49,9 @@ export const Contact: React.FC = () => {
       newErrors.phone = isAmharic ? 'እባክዎ ትክክለኛ ስልክ ቁጥር ያስገቡ' : 'Please enter a valid phone number';
     }
 
-    if (formData.email && formData.email.trim()) {
+    if (!formData.email || !formData.email.trim()) {
+      newErrors.email = isAmharic ? 'እባክዎ ኢሜይል ያስገቡ' : 'Email address is required';
+    } else {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(formData.email.trim())) {
         newErrors.email = isAmharic ? 'እባክዎ ትክክለኛ ኢሜይል ያስገቡ' : 'Please provide a valid email address';
@@ -350,7 +352,7 @@ export const Contact: React.FC = () => {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
                         <label htmlFor="contactEmail" className="block text-xs font-semibold uppercase tracking-wider mb-1 opacity-90">
-                          {t.contactPage.emailLabel} <span className="text-[10px] opacity-60 font-normal lowercase">({isAmharic ? 'አስገዳጅ ያልሆነ' : 'optional'})</span>
+                          {t.contactPage.emailLabel} <span className="text-red-500">*</span>
                         </label>
                         <input
                           id="contactEmail"

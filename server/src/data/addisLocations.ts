@@ -12,7 +12,7 @@ export interface AddisLocation {
 
 export const AWARE_FARM_LOCATION = {
   name: 'Jonny Livestock Main Facility (Seller Location)',
-  amharicName: 'ጆኒ ከብት እርባታ ዋና ተቋም (የሻጭ መገኛ)',
+  amharicName: 'ጆኒ የቀንድ ከብት አቅራቢ ዋና ተቋም (የሻጭ መገኛ)',
   address: 'Arat Kilo / Belay Zeleke Street, Addis Ababa',
   lat: 9.0314,
   lng: 38.7725
@@ -470,8 +470,8 @@ export const ADDIS_ABABA_LOCATIONS: AddisLocation[] = [
   // ==================== POPULAR SUB-CITIES, SQUARES & NEIGHBORHOODS ====================
   {
     id: 'aware',
-    name: 'Aware (Farm Vicinity / Ministry of Education)',
-    amharicName: 'አዋሬ (የእርሻው አካባቢ / ትምህርት ሚኒስቴር)',
+    name: 'Aware (Livestock Center Vicinity / Ministry of Education)',
+    amharicName: 'አዋሬ (የማዕከሉ አካባቢ / ትምህርት ሚኒስቴር)',
     subCity: 'Yeka',
     amharicSubCity: 'የካ',
     lat: 9.0182,

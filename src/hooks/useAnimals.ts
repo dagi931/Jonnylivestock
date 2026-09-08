@@ -14,22 +14,49 @@ export function useAnimals(type?: AnimalType) {
   // If mock animals exist, render immediately to avoid delaying FCP/LCP with skeletons
   const [isLoading, setIsLoading] = useState<boolean>(() => getInitialAnimals().length === 0);
 
-  // Fetch initial animals from backend API
+  // Fetch initial animals from backend API - defer slightly if initial mock animals exist to protect FCP/LCP
   useEffect(() => {
     let isMounted = true;
-    api.getAnimals({ type }).then((liveAnimals) => {
-      if (isMounted && liveAnimals && liveAnimals.length > 0) {
-        liveAnimals.forEach(a => updateMockAnimalStatus(a.id, a.status));
-        const sorted = [...liveAnimals].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-        setAnimals(sorted);
-      }
-      if (isMounted) setIsLoading(false);
-    }).catch(() => {
-      if (isMounted) setIsLoading(false);
-    });
+    let timerId: any;
+
+    const syncAnimals = () => {
+      api.getAnimals({ type }).then((liveAnimals) => {
+        if (isMounted && liveAnimals && liveAnimals.length > 0) {
+          liveAnimals.forEach(a => updateMockAnimalStatus(a.id, a.status));
+          const sorted = [...liveAnimals].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+          setAnimals(prev => {
+            if (prev.length === sorted.length) {
+              const identical = prev.every((a, i) => {
+                const s = sorted[i];
+                return s && a.id === s.id && a.status === s.status && a.quantity === s.quantity && a.price === s.price;
+              });
+              if (identical) return prev;
+            }
+            return sorted;
+          });
+        }
+        if (isMounted) setIsLoading(false);
+      }).catch(() => {
+        if (isMounted) setIsLoading(false);
+      });
+    };
+
+    const hasInitial = getInitialAnimals().length > 0;
+    if (hasInitial && typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+      timerId = (window as any).requestIdleCallback(syncAnimals, { timeout: 2500 });
+    } else if (hasInitial) {
+      timerId = setTimeout(syncAnimals, 1000);
+    } else {
+      syncAnimals();
+    }
 
     return () => {
       isMounted = false;
+      if (typeof window !== 'undefined' && 'cancelIdleCallback' in window && typeof timerId === 'number') {
+        (window as any).cancelIdleCallback(timerId);
+      } else if (timerId) {
+        clearTimeout(timerId);
+      }
     };
   }, [type]);
 

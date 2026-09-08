@@ -21,12 +21,12 @@ export const Hero: React.FC = () => {
           <source type="image/webp" srcSet="/hero-livestock.webp" />
           <img
             src="/hero-livestock-sm.webp"
-            alt="Jonny Livestock - Sheep, Goats, and Cows at the farm"
+            alt="Jonny Livestock - Sheep, Goats, Cows & Prime Meat Supplier"
             className="w-full h-full object-cover"
             style={{ objectPosition: '75% 24%' }}
             loading="eager"
             fetchPriority="high"
-            decoding="async"
+            decoding="sync"
             width="640"
             height="460"
           />
@@ -76,43 +76,54 @@ export const Hero: React.FC = () => {
             </p>
           </AnimatedReveal>
 
-          {/* Primary Action Buttons: Sheep, Goats, Cows in a row */}
+          {/* Primary Navigation Links: Sheep, Goats, Cows, Meat (clean links without container boxes) */}
           <AnimatedReveal delay={250} direction="up">
-            <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
+            <div className="flex flex-wrap items-center gap-x-5 sm:gap-x-7 gap-y-3 pt-1">
               <Link
                 to="/sheep"
-                className={`inline-flex items-center justify-center gap-1.5 px-4 sm:px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm transition-all duration-150 shadow-sm transform hover:-translate-y-0.5 ${
-                  isDark
-                    ? 'bg-[#C58A3A] hover:bg-[#E0B15A] text-[#1B1208]'
-                    : 'bg-[#B8792F] hover:bg-[#9E6523] text-[#FAF7F0]'
+                className={`inline-flex items-center gap-1.5 font-bold text-sm sm:text-base transition-colors duration-150 group hover:underline ${
+                  isDark ? 'text-[#C58A3A] hover:text-[#E0B15A]' : 'text-[#B8792F] hover:text-[#9E6523]'
                 }`}
               >
                 <span>{t.common.browseSheep}</span>
-                <ArrowRight className="w-3.5 h-3.5" />
+                <ArrowRight className="w-4 h-4 transition-transform duration-150 group-hover:translate-x-1 shrink-0" />
               </Link>
 
               <Link
                 to="/goats"
-                className={`inline-flex items-center justify-center gap-1.5 px-4 sm:px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm transition-all duration-150 border transform hover:-translate-y-0.5 ${
-                  isDark
-                    ? 'bg-[#1B1208]/85 hover:bg-[#2A1A0D] text-[#F4E8D0] border-[#4A2C16]'
-                    : 'bg-[#FAF7F0] hover:bg-[#F1E8D8] text-[#241A12] border-[#E4D4BC]'
+                className={`inline-flex items-center gap-1.5 font-bold text-sm sm:text-base transition-colors duration-150 group hover:underline ${
+                  isDark ? 'text-[#F4E8D0] hover:text-[#C58A3A]' : 'text-[#241A12] hover:text-[#B8792F]'
                 }`}
               >
                 <span>{t.common.browseGoats}</span>
-                <ArrowRight className="w-3.5 h-3.5" />
+                <ArrowRight className="w-4 h-4 transition-transform duration-150 group-hover:translate-x-1 shrink-0" />
               </Link>
 
               <Link
                 to="/cows"
-                className={`inline-flex items-center justify-center gap-1.5 px-4 sm:px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm transition-all duration-150 border transform hover:-translate-y-0.5 ${
-                  isDark
-                    ? 'bg-[#1B1208]/85 hover:bg-[#2A1A0D] text-[#E0B15A] border-[#C58A3A]/40'
-                    : 'bg-[#F1E8D8] hover:bg-[#E4D4BC] text-[#4A2C16] border-[#B8792F]/40'
+                className={`inline-flex items-center gap-1.5 font-bold text-sm sm:text-base transition-colors duration-150 group hover:underline ${
+                  isDark ? 'text-[#F4E8D0] hover:text-[#C58A3A]' : 'text-[#241A12] hover:text-[#B8792F]'
                 }`}
               >
                 <span>{t.common.browseCows}</span>
-                <ArrowRight className="w-3.5 h-3.5" />
+                <ArrowRight className="w-4 h-4 transition-transform duration-150 group-hover:translate-x-1 shrink-0" />
+              </Link>
+
+              <Link
+                to="/#meat-by-kg"
+                onClick={(e) => {
+                  const el = document.getElementById('meat-by-kg');
+                  if (el) {
+                    e.preventDefault();
+                    el.scrollIntoView({ behavior: 'smooth' });
+                  }
+                }}
+                className={`inline-flex items-center gap-1.5 font-bold text-sm sm:text-base transition-colors duration-150 group hover:underline ${
+                  isDark ? 'text-[#F4E8D0] hover:text-[#C58A3A]' : 'text-[#241A12] hover:text-[#B8792F]'
+                }`}
+              >
+                <span>{t.common.browseMeat}</span>
+                <ArrowRight className="w-4 h-4 transition-transform duration-150 group-hover:translate-x-1 shrink-0" />
               </Link>
             </div>
           </AnimatedReveal>

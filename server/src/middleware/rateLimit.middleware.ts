@@ -8,13 +8,20 @@ const createRateLimitResponse = (message: string) => ({
 
 // Helper to identify localhost / loopback traffic
 const isLocalhost = (req: any): boolean => {
+  // In production, rate limiting must ALWAYS be enforced - never skipped
+  if (process.env.NODE_ENV === 'production') {
+    return false;
+  }
+  // In development/testing only, allow forcing rate limits via test header
+  if (req.headers['x-test-rate-limit'] === 'true') {
+    return false;
+  }
   const ip = req.ip || req.connection?.remoteAddress || '';
   return (
     ip === '127.0.0.1' ||
     ip === '::1' ||
     ip === '::ffff:127.0.0.1' ||
-    ip.includes('127.0.0.1') ||
-    process.env.NODE_ENV !== 'production'
+    ip.includes('127.0.0.1')
   );
 };
 
@@ -62,7 +69,7 @@ export const authLimiter = rateLimit({
 });
 
 /**
- * Rate limiter for creating Orders and Contact inquiries
+ * Rate limiter for creating Orders
  * Prevents automated spam submissions.
  */
 export const orderContactLimiter = rateLimit({
@@ -72,4 +79,17 @@ export const orderContactLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   message: createRateLimitResponse('Too many submissions. Please wait a few minutes before submitting again.')
+});
+
+/**
+ * Dedicated rate limiter for Contact inquiries
+ * Limits to 15 inquiries per 15 minutes per IP.
+ */
+export const contactLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 15,
+  skip: (req) => isLocalhost(req),
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: createRateLimitResponse('Too many contact inquiries submitted. Please wait a few minutes before submitting again.')
 });

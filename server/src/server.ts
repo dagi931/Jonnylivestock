@@ -17,6 +17,7 @@ import contactRoutes from './routes/contact.routes.js';
 import deliveryRoutes from './routes/delivery.routes.js';
 import { globalLimiter } from './middleware/rateLimit.middleware.js';
 import { handleUploadError } from './middleware/upload.middleware.js';
+import helmet from 'helmet';
 import { sanitizeErrorMessage } from './utils/errorHandler.js';
 
 dotenv.config();
@@ -33,16 +34,77 @@ if (!fs.existsSync(UPLOADS_DIR)) {
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Middleware
-app.use(cors({
-  origin: true,
-  credentials: true
-}));
-app.use(express.json({ limit: '100mb' }));
-app.use(express.urlencoded({ extended: true, limit: '100mb' }));
+// Trust reverse proxy (e.g. Nginx, Cloudflare, ALB) for accurate client IP resolution
+app.set('trust proxy', 1);
 
-// Serve static uploaded files (payment slips, animal photos)
-app.use('/uploads', express.static(UPLOADS_DIR));
+// Standard HTTP Security Headers via Helmet
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+    contentSecurityPolicy: false // Allow modern frontend assets and inline svg/styles
+  })
+);
+
+// Explicit CORS Origin Whitelist
+const allowedOrigins = new Set([
+  'http://localhost:5173',
+  'http://localhost:4173',
+  'http://localhost:3000',
+  'http://127.0.0.1:5173',
+  'http://127.0.0.1:4173',
+  'http://127.0.0.1:3000'
+]);
+
+if (process.env.FRONTEND_URL) {
+  allowedOrigins.add(process.env.FRONTEND_URL.trim());
+}
+if (process.env.ALLOWED_ORIGINS) {
+  process.env.ALLOWED_ORIGINS.split(',').forEach((o) => {
+    if (o.trim()) allowedOrigins.add(o.trim());
+  });
+}
+
+const corsOptions: cors.CorsOptions = {
+  origin: (origin, callback) => {
+    // Allow non-browser requests without Origin header (e.g. server-to-server, curl, mobile)
+    if (!origin) {
+      return callback(null, true);
+    }
+    if (allowedOrigins.has(origin) || (process.env.NODE_ENV !== 'production' && origin.includes('localhost'))) {
+      return callback(null, true);
+    }
+    return callback(new Error(`CORS policy violation: Origin ${origin} is not permitted`));
+  },
+  credentials: true
+};
+
+app.use(cors(corsOptions));
+app.use(express.json({ limit: '2mb' }));
+app.use(express.urlencoded({ extended: true, limit: '2mb' }));
+
+// Serve static uploaded files (public catalog animal and package photos ONLY)
+// Strictly block direct public access to any payment slip files (returns 403 Forbidden)
+app.use('/uploads', (req, res, next) => {
+  try {
+    const decoded = decodeURIComponent(req.path);
+    const filename = path.basename(decoded).toLowerCase();
+    if (filename.startsWith('slip-') || filename.startsWith('slip_') || filename.includes('slip')) {
+      res.status(403).json({
+        success: false,
+        error: 'Forbidden: Direct public access to payment receipt files is not permitted.'
+      });
+      return;
+    }
+  } catch {
+    res.status(400).json({ success: false, error: 'Invalid file request URL' });
+    return;
+  }
+  next();
+}, express.static(UPLOADS_DIR, {
+  setHeaders: (res) => {
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+  }
+}));
 
 // Root route
 app.get('/', (_req, res) => {
@@ -85,10 +147,10 @@ app.get('/api/health', async (_req, res) => {
       animalCount,
       timestamp: new Date().toISOString()
     });
-  } catch (error: any) {
+  } catch (_error: any) {
     res.status(500).json({
       status: 'database_error',
-      error: error.message
+      error: 'Database connection check failed'
     });
   }
 });

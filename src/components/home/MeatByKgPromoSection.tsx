@@ -38,15 +38,38 @@ export const MeatByKgPromoSection: React.FC = () => {
   });
 
   useEffect(() => {
-    api.getMeatPricing().then((res) => {
-      if (res) {
-        setPrices({
-          kurt: Number(res.kurtPrice) || 2500,
-          kitfo: Number(res.kitfoPrice) || 2200,
-          wot: Number(res.tibsWotPrice) || 1800
-        });
+    let isMounted = true;
+    let timerId: any;
+    const syncMeatPrices = () => {
+      api.getMeatPricing().then((res) => {
+        if (isMounted && res) {
+          const newKurt = Number(res.kurtPrice) || 2500;
+          const newKitfo = Number(res.kitfoPrice) || 2200;
+          const newWot = Number(res.tibsWotPrice) || 1800;
+          setPrices(prev => {
+            if (prev.kurt === newKurt && prev.kitfo === newKitfo && prev.wot === newWot) {
+              return prev;
+            }
+            return { kurt: newKurt, kitfo: newKitfo, wot: newWot };
+          });
+        }
+      }).catch(() => {});
+    };
+
+    if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+      timerId = (window as any).requestIdleCallback(syncMeatPrices, { timeout: 3500 });
+    } else {
+      timerId = setTimeout(syncMeatPrices, 2000);
+    }
+
+    return () => {
+      isMounted = false;
+      if (typeof window !== 'undefined' && 'cancelIdleCallback' in window && typeof timerId === 'number') {
+        (window as any).cancelIdleCallback(timerId);
+      } else if (timerId) {
+        clearTimeout(timerId);
       }
-    });
+    };
   }, []);
 
   const beefDishes = [
@@ -116,8 +139,8 @@ export const MeatByKgPromoSection: React.FC = () => {
       icon: ShieldCheck,
       title: 'Prime Quality Beef',
       amharicTitle: 'ጥራት ያለው የበሬ ሥጋ',
-      desc: 'Inspected prime cuts from healthy cattle raised directly on our farm.',
-      amharicDesc: 'በእርሻችን ከተመረጡ የሰቡ ከብቶች የተዘጋጀ።'
+      desc: 'Inspected prime cuts from healthy cattle supplied directly by Jonny Livestock.',
+      amharicDesc: 'በጥንቃቄ ከተመረጡ የሰቡ የቀንድ ከብቶች የተዘጋጀ።'
     },
     {
       icon: Truck,
@@ -136,11 +159,12 @@ export const MeatByKgPromoSection: React.FC = () => {
   ];
 
   const whatsappInquiryText = isAmharic
-    ? `ሰላም ጆኒ ሌቭስቶክ፣ የበሬ ስጋ በኪሎግራም (KG) ማዘዝ ፈልጌ ነበር። (ቁርጥ: 2,800 ብር፣ ክትፎ: 2,200 ብር፣ ወጥ: 1,800 ብር)። እባክዎን የአቅርቦት ዝርዝር ያሳውቁኝ።`
+    ? `ሰላም ጆኒ የቀንድ ከብት አቅራቢ፣ የበሬ ስጋ በኪሎግራም (KG) ማዘዝ ፈልጌ ነበር። (ቁርጥ: 2,800 ብር፣ ክትፎ: 2,200 ብር፣ ወጥ: 1,800 ብር)። እባክዎን የአቅርቦት ዝርዝር ያሳውቁኝ።`
     : `Hello Jonny Livestock, I would like to order fresh Beef by the KG (Kurt: 2,800 ETB/kg, Kitfo: 2,200 ETB/kg, Wot: 1,800 ETB/kg). Please confirm availability and delivery.`;
 
   return (
     <section
+      id="meat-by-kg"
       className={`py-12 sm:py-20 border-b relative overflow-hidden transition-colors w-full ${
         isDark
           ? 'bg-gradient-to-b from-[#1C1208] via-[#160D05] to-[#120A04] border-[#3D2311]'
@@ -293,7 +317,7 @@ export const MeatByKgPromoSection: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <span className="text-xs font-bold uppercase tracking-wider text-amber-500">
-                  {isAmharic ? 'የእርሻ ቀጥታ ዋጋ' : 'DIRECT FARM PRICING'}
+                  {isAmharic ? 'የቀጥታ አቅራቢ ዋጋ' : 'DIRECT SUPPLIER PRICING'}
                 </span>
                 <h3
                   className={`font-serif font-bold text-xl sm:text-2xl mt-0.5 ${

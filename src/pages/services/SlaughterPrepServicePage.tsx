@@ -43,7 +43,7 @@ export const SlaughterPrepServicePage: React.FC = () => {
     setSubmitted(true);
   };
 
-  const whatsappMessage = `Hello ${business.name}, I would like to book a DEDICATED WORKER for SLAUGHTER & MEAT PREPARATION. Details: [1 ${animalType.toUpperCase()}] at [${address}]. Execution Mode: [${serviceLocation === 'on_site' ? 'At My Compound / On-Site' : 'Slaughter at Aware Farm & Deliver Prepared'}]. Date: ${preferredDate || 'Earliest available'}. Cut Notes: ${cutPreferences || 'Standard butchering'}. Customer: ${customerName} (Phone: ${phone}).`;
+  const whatsappMessage = `Hello ${business.name}, I would like to book a DEDICATED WORKER for SLAUGHTER & MEAT PREPARATION. Details: [1 ${animalType.toUpperCase()}] at [${address}]. Execution Mode: [${serviceLocation === 'on_site' ? 'At My Compound / On-Site' : 'Slaughter at Aware Facility & Deliver Prepared'}]. Date: ${preferredDate || 'Earliest available'}. Cut Notes: ${cutPreferences || 'Standard butchering'}. Customer: ${customerName} (Phone: ${phone}).`;
 
   return (
     <div className="min-h-screen py-6 sm:py-10">
@@ -97,7 +97,7 @@ export const SlaughterPrepServicePage: React.FC = () => {
                 <p className={`text-xs sm:text-sm mt-1 max-w-2xl ${isDark ? 'text-[#D8C5A8]' : 'text-[#746556]'}`}>
                   {isAmharic
                     ? 'አንድ ልምድ ያለው ባለሙያ ተመድቦ ክቡር የሆነውን ባህላዊና ሃይማኖታዊ ስርዓት የጠበቀ ዕርድ፣ ቆዳ መግፈፍ፣ ስጋ ማዘጋጀትና እንደፍላጎትዎ መቆራረጥ ያከናውናል።'
-                    : 'One dedicated, professional farm worker is dispatched to personally perform the respectful sanitary slaughter and complete meat extraction, trimming, and custom butchering.'}
+                    : 'One dedicated, professional slaughter worker is dispatched to personally perform the respectful sanitary slaughter and complete meat extraction, trimming, and custom butchering.'}
                 </p>
               </div>
             </div>
@@ -123,9 +123,9 @@ export const SlaughterPrepServicePage: React.FC = () => {
                 </h2>
                 <p className="text-xs max-w-md mx-auto opacity-80">
                   {isAmharic ? (
-                    <>እናመሰግናለን <strong>{customerName}</strong>። የእርሻችን ስራ አስኪያጅ የተመደበልዎትን ባለሙያና ሰዓት ለማረጋገጥ በ <strong>{phone}</strong> ያነጋግሩዎታል።</>
+                    <>እናመሰግናለን <strong>{customerName}</strong>። የአገልግሎት አስተባባሪችን የተመደበልዎትን ባለሙያና ሰዓት ለማረጋገጥ በ <strong>{phone}</strong> ያነጋግሩዎታል።</>
                   ) : (
-                    <>Thank you <strong>{customerName}</strong>. Our farm manager will confirm your assigned worker and scheduling at <strong>{phone}</strong>.</>
+                    <>Thank you <strong>{customerName}</strong>. Our service manager will confirm your assigned worker and scheduling at <strong>{phone}</strong>.</>
                   )}
                 </p>
 
@@ -200,7 +200,7 @@ export const SlaughterPrepServicePage: React.FC = () => {
                       }`}
                     >
                       <option value="on_site">{isAmharic ? 'ወደ ቤቴ / ግቢዬ ድረስ ባለሙያ እንዲመጣ' : 'Dispatched to My Home / Venue'}</option>
-                      <option value="farm_slaughter">{isAmharic ? 'በአዋሬ እርሻ ታርዶና ተዘጋጅቶ እንዲመጣልኝ' : 'Process at Aware Farm & Deliver'}</option>
+                      <option value="farm_slaughter">{isAmharic ? 'በአዋሬ ማዕከላችን ታርዶና ተዘጋጅቶ እንዲመጣልኝ' : 'Process at Aware Center & Deliver'}</option>
                     </select>
                   </div>
                 </div>
@@ -314,8 +314,8 @@ export const SlaughterPrepServicePage: React.FC = () => {
 
               <p className="text-xs leading-relaxed opacity-85">
                 {isAmharic
-                  ? 'እርሻችን በርካታ የተመሰከረላቸው ባለሙያዎች አሉት። ይህን አገልግሎት ሲይዙ አንድ ባለሙያ ከዕርድ ጀምሮ እስከ ስጋ ዝግጅት፣ ማጽዳትና ማሸግ ሙሉ ኃላፊነት ይወስዳል።'
-                  : 'Our farm maintains multiple certified, experienced workers. When you book this service, one dedicated worker takes full ownership from respectful slaughter to clean extraction, cut trimming, and neat packaging.'}
+                  ? 'ድርጅታችን በርካታ የተመሰከረላቸው ባለሙያዎች አሉት። ይህን አገልግሎት ሲይዙ አንድ ባለሙያ ከዕርድ ጀምሮ እስከ ስጋ ዝግጅት፣ ማጽዳትና ማሸግ ሙሉ ኃላፊነት ይወስዳል።'
+                  : 'Our team maintains multiple certified, experienced workers. When you book this service, one dedicated worker takes full ownership from respectful slaughter to clean extraction, cut trimming, and neat packaging.'}
               </p>
 
               <ul className="space-y-2 text-xs opacity-85 pt-1 border-t" style={{ borderColor: isDark ? '#4A2C16' : '#E4D4BC' }}>

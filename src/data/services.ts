@@ -37,7 +37,7 @@ export const livestockServices: ServiceItem[] = [
     id: 'delivery',
     title: 'Live Livestock Delivery',
     shortDescription: 'Safe, coordinated transportation of your purchased live sheep, goat or cow from Aware, Addis Ababa to your destination.',
-    fullDescription: 'We arrange secure and timely transportation for purchased live animals directly from our Aware farm in Addis Ababa to your residence, event venue, or business. Vehicles are equipped for gentle animal transit with direct arrival coordination.',
+    fullDescription: 'We arrange secure and timely transportation for purchased live animals directly from our Aware facility in Addis Ababa to your residence, event venue, or business. Vehicles are equipped for gentle animal transit with direct arrival coordination.',
     iconName: 'Truck',
     highlights: [
       'Direct delivery from Aware, Addis Ababa',
@@ -51,7 +51,7 @@ export const livestockServices: ServiceItem[] = [
     id: 'slaughter-prep',
     title: 'On-Site Slaughter & Meat Prep (Single Dedicated Worker)',
     shortDescription: 'When requested, a single experienced worker is dispatched to personally handle both the sanitary slaughter and full meat extraction on-site.',
-    fullDescription: 'We assign a dedicated, skilled farm worker who comes directly to your location (or handles it at our facility) to conduct the respectful, sanitary slaughter and complete meat extraction, trimming, and custom butchering all in one seamless service.',
+    fullDescription: 'We assign a dedicated, skilled slaughter worker who comes directly to your location (or handles it at our facility) to conduct the respectful, sanitary slaughter and complete meat extraction, trimming, and custom butchering all in one seamless service.',
     iconName: 'UtensilsCrossed',
     highlights: [
       'One dedicated professional worker assigned to your order',
@@ -96,10 +96,10 @@ export const livestockServices: ServiceItem[] = [
     id: 'fresh-slaughtered-sheep',
     title: 'Freshly Slaughtered Sheep Delivery',
     shortDescription: 'The seller delivers a whole, clean, freshly slaughtered sheep directly to your doorstep ready for cooking.',
-    fullDescription: 'For customers who want pure, fresh sheep meat without handling a live animal or managing slaughter at home, we perform the complete respectful and sanitary slaughter at our Aware farm just prior to delivery and transport the fresh carcass or partitioned cuts directly to your address.',
+    fullDescription: 'For customers who want pure, fresh sheep meat without handling a live animal or managing slaughter at home, we perform the complete respectful and sanitary slaughter at our Aware facility just prior to delivery and transport the fresh carcass or partitioned cuts directly to your address.',
     iconName: 'Sparkles',
     highlights: [
-      'Slaughtered freshly at our Aware farm right before departure',
+      'Slaughtered freshly at our Aware facility right before departure',
       'Sanitary cleaning, skinning, and optional cut portioning',
       'Food-grade clean delivery straight to your doorstep',
       'No hassle of live animal holding or cleaning up at home'
@@ -121,7 +121,7 @@ export const serviceFlowSteps = [
   },
   {
     step: '03',
-    title: 'Preparation at Farm',
+    title: 'Preparation at Center',
     description: 'Animals are weighed accurately on certified scales or slaughtered and portioned freshly under strict hygiene standards at Aware.'
   },
   {

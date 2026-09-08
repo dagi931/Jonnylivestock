@@ -65,7 +65,7 @@ export const TransactionStagesTracker: React.FC<TransactionStagesTrackerProps> =
       id: 'dispatched_or_ready',
       title: order.isDelivery
         ? (status === 'delivery_pending' ? 'Dispatched / In Transit' : 'Preparing for Dispatch')
-        : (status === 'pickup_ready' ? 'Ready for Farm Pickup' : 'Preparing for Pickup'),
+        : (status === 'pickup_ready' ? 'Ready for Hub Pickup' : 'Preparing for Pickup'),
       amharicTitle: order.isDelivery
         ? (status === 'delivery_pending' ? 'በጉዞ ላይ ነው' : 'ለመላክ በመዘጋጀት ላይ')
         : (status === 'pickup_ready' ? 'ለርክክብ ዝግጁ ነው' : 'ለርክክብ በመዘጋጀት ላይ'),
@@ -74,15 +74,15 @@ export const TransactionStagesTracker: React.FC<TransactionStagesTrackerProps> =
             ? `Dispatched via ${order.vehicleName || order.vehicleType || 'vehicle'} to ${order.deliveryAddress || 'your address'}`
             : 'Delivery vehicle is being scheduled and prepared')
         : (status === 'pickup_ready'
-            ? 'Your livestock/order is ready for collection at Jonny Livestock Farm'
-            : 'Livestock is being prepped and tagged for farm collection'),
+            ? 'Your livestock/order is ready for collection at Jonny Livestock Supplier Hub'
+            : 'Livestock is being prepped and tagged for pickup'),
       amharicDescription: order.isDelivery
         ? (status === 'delivery_pending'
             ? `በ${order.vehicleName || order.vehicleType || 'ተሽከርካሪ'} ወደ መድረሻዎ በመጓጓዝ ላይ ነው`
             : 'ተሽከርካሪ በመመደብና በመዘጋጀት ላይ ነው')
         : (status === 'pickup_ready'
-            ? 'ከብቱ/ጥቅሉ በጆኒ እርሻ ለመረከብ ዝግጁ ነው'
-            : 'ከብቱ ለእርሻ ርክክብ እየተዘጋጀ ነው'),
+            ? 'ከብቱ/ጥቅሉ በጆኒ የቀንድ ከብት አቅራቢ ማዕከል ለመረከብ ዝግጁ ነው'
+            : 'ከብቱ ለማዕከል ርክክብ እየተዘጋጀ ነው'),
       icon: order.isDelivery ? Truck : MapPin,
       timestamp: order.deliveryApprovedAt
     },
@@ -93,10 +93,10 @@ export const TransactionStagesTracker: React.FC<TransactionStagesTrackerProps> =
       amharicTitle: order.isDelivery ? 'በስኬት ደርሷል' : 'ተረክበው ተጠናቋል',
       description: order.isDelivery
         ? 'Delivered to your address and transaction completed'
-        : 'Customer picked up from farm and transaction completed',
+        : 'Customer picked up from hub and transaction completed',
       amharicDescription: order.isDelivery
         ? 'በአድራሻዎ ደርሶ ትዕዛዙ በስኬት ተጠናቋል'
-        : 'ከእርሻ ተረክበው ትዕዛዙ በስኬት ተጠናቋል',
+        : 'ከማዕከል ተረክበው ትዕዛዙ በስኬት ተጠናቋል',
       icon: CheckCircle2,
       timestamp: order.deliveredAt
     }
@@ -129,7 +129,7 @@ export const TransactionStagesTracker: React.FC<TransactionStagesTrackerProps> =
       id: 'final_payment_review',
       title: order.isDelivery
         ? (status === 'delivery_pending' ? 'Dispatched / In Transit' : 'Final 50% Payment / Dispatch')
-        : (status === 'pickup_ready' ? 'Ready for Farm Pickup' : 'Final 50% Payment / Pickup'),
+        : (status === 'pickup_ready' ? 'Ready for Hub Pickup' : 'Final 50% Payment / Pickup'),
       amharicTitle: order.isDelivery
         ? (status === 'delivery_pending' ? 'በጉዞ ላይ ነው' : 'የቀሪ ክፍያ / የማድረስ ሂደት')
         : (status === 'pickup_ready' ? 'ለርክክብ ዝግጁ ነው' : 'የቀሪ ክፍያ / የርክክብ ዝግጅት'),
@@ -138,15 +138,15 @@ export const TransactionStagesTracker: React.FC<TransactionStagesTrackerProps> =
             ? `Dispatched via ${order.vehicleName || order.vehicleType || 'vehicle'} to ${order.deliveryAddress || 'destination'}`
             : 'Final payment verified, preparing vehicle delivery dispatch')
         : (status === 'pickup_ready'
-            ? 'Final payment settled, order ready for collection at Jonny Farm'
-            : 'Final payment verified, preparing animal for farm pickup'),
+            ? 'Final payment settled, order ready for collection at Jonny Livestock Hub'
+            : 'Final payment verified, preparing animal for hub pickup'),
       amharicDescription: order.isDelivery
         ? (status === 'delivery_pending'
             ? `በ${order.vehicleName || order.vehicleType || 'ተሽከርካሪ'} በመጓጓዝ ላይ ነው`
             : 'ቀሪ ክፍያ ተረጋግጦ ለመላክ በመዘጋጀት ላይ ነው')
         : (status === 'pickup_ready'
-            ? 'ቀሪ ክፍያ ተረጋግጧል፣ በእርሻ ለመረከብ ዝግጁ ነው'
-            : 'ቀሪ ክፍያ ተረጋግጦ ለእርሻ ርክክብ በመዘጋጀት ላይ ነው'),
+            ? 'ቀሪ ክፍያ ተረጋግጧል፣ በማዕከል ለመረከብ ዝግጁ ነው'
+            : 'ቀሪ ክፍያ ተረጋግጦ ለማዕከል ርክክብ በመዘጋጀት ላይ ነው'),
       icon: order.isDelivery ? Truck : CreditCard,
       timestamp: order.deliveryApprovedAt || order.finalVerifiedAt
     },

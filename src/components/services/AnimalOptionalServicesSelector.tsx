@@ -57,18 +57,18 @@ export const getSlaughterServiceLabel = (
       };
     case 'send_slaughtered':
       return {
-        title: isAmharic ? 'የታረደ መላክ (እርሻው ላይ ታርዶ የሚላክ)' : 'Send Freshly Slaughtered (Prepared at Farm)',
+        title: isAmharic ? 'የታረደ መላክ (ማዕከሉ ላይ ታርዶ የሚላክ)' : 'Send Freshly Slaughtered (Prepared at Center)',
         subtitle: isAmharic
-          ? 'እንስሳው በአዋሬ እርሻችን ንጽህናው ተጠብቆ ታርዶና ተዘጋጅቶ ትኩስ ስጋው በቀጥታ ይደርስዎታል (ተጨማሪ የጉዞ ክፍያ የለውም)'
-          : 'The animal is cleanly slaughtered and partitioned at our Aware farm before dispatch; fresh meat delivered to your door (no travel fee)',
+          ? 'እንስሳው በአዋሬ ማዕከላችን ንጽህናው ተጠብቆ ታርዶና ተዘጋጅቶ ትኩስ ስጋው በቀጥታ ይደርስዎታል (ተጨማሪ የጉዞ ክፍያ የለውም)'
+          : 'The animal is cleanly slaughtered and partitioned at our Aware center before dispatch; fresh meat delivered to your door (no travel fee)',
         feeText: `+${formatPrice(base)}`
       };
     case 'slaughter_at_farm':
       return {
-        title: isAmharic ? 'እርሻው ላይ አርዶ ማዘጋጀት (ሲረከቡ)' : 'Slaughter on Farm (Upon Pickup)',
+        title: isAmharic ? 'ማዕከሉ ላይ አርዶ ማዘጋጀት (ሲረከቡ)' : 'Slaughter at Center (Upon Pickup)',
         subtitle: isAmharic
-          ? 'እንስሳውን ለመረከብ ሲመጡ ባለሙያችን እርሻው ቅጥር ግቢ ውስጥ አርዶና አዘጋጅቶ ያስረክብዎታል (ተጨማሪ የጉዞ ክፍያ የለውም)'
-          : 'When you arrive for pickup, our worker slaughters and cleans the animal on-site at our farm before you take it (no travel fee)',
+          ? 'እንስሳውን ለመረከብ ሲመጡ ባለሙያችን ማዕከሉ ቅጥር ግቢ ውስጥ አርዶና አዘጋጅቶ ያስረክብዎታል (ተጨማሪ የጉዞ ክፍያ የለውም)'
+          : 'When you arrive for pickup, our worker slaughters and cleans the animal on-site at our facility before you take it (no travel fee)',
         feeText: `+${formatPrice(base)}`
       };
     case 'slaughter_take_along':
@@ -154,7 +154,7 @@ export const AnimalOptionalServicesSelector: React.FC<AnimalOptionalServicesSele
             <span className="text-[10px] font-mono opacity-60">
               {isDelivery
                 ? (isAmharic ? 'የበር ማድረስ' : 'Doorstep Delivery')
-                : (isAmharic ? 'ከእርሻው መውሰድ' : 'Farm Pickup')}
+                : (isAmharic ? 'ከማዕከሉ መውሰድ' : 'Hub Pickup')}
             </span>
           </label>
 
@@ -193,7 +193,7 @@ export const AnimalOptionalServicesSelector: React.FC<AnimalOptionalServicesSele
               </div>
             </button>
 
-            {/* Farm Pickup Choice */}
+            {/* Hub Pickup Choice */}
             <button
               type="button"
               onClick={() => handleToggleDelivery(false)}
@@ -219,10 +219,10 @@ export const AnimalOptionalServicesSelector: React.FC<AnimalOptionalServicesSele
               <div className="min-w-0 flex-1">
                 <div className="text-xs font-bold truncate flex items-center gap-1.5">
                   <MapPin className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                  <span>{isAmharic ? 'ከእርሻው መውሰድ (Pickup)' : 'Farm Pickup'}</span>
+                  <span>{isAmharic ? 'ከማዕከሉ መውሰድ (Pickup)' : 'Hub Pickup'}</span>
                 </div>
                 <div className="text-[10px] opacity-70 truncate mt-0.5">
-                  {isAmharic ? 'አዋሬ / አራት ኪሎ እርሻ (ነፃ)' : 'Aware Farm (Free)'}
+                  {isAmharic ? 'አዋሬ / አራት ኪሎ ማዕከል (ነፃ)' : 'Aware Livestock Hub (Free)'}
                 </div>
               </div>
             </button>
@@ -242,7 +242,7 @@ export const AnimalOptionalServicesSelector: React.FC<AnimalOptionalServicesSele
                   : '2. የዕርድና የስጋ ዝግጅት ምርጫ (ከመውሰድ ጋር)'
                 : isDelivery
                 ? '2. Slaughter & Meat Prep (With Delivery)'
-                : '2. Slaughter & Meat Prep (With Farm Pickup)'}
+                : '2. Slaughter & Meat Prep (With Hub Pickup)'}
             </span>
           </span>
           <span className="text-[10px] font-mono text-amber-500 font-bold">

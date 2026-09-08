@@ -66,7 +66,7 @@ export const FreshSheepDashboard: React.FC = () => {
                 Freshly Slaughtered Sheep Delivery Portal
               </h2>
               <p className={`text-xs sm:text-sm mt-1 max-w-xl ${isDark ? 'text-[#D8C5A8]' : 'text-[#746556]'}`}>
-                Enjoy clean, fresh sheep meat delivered straight to your door without the hassle of live animal handling or home slaughter. We slaughter freshly at our Arat Kilo farm facility just before dispatch.
+                Enjoy clean, fresh sheep meat delivered straight to your door without the hassle of live animal handling or home slaughter. We slaughter freshly at our Arat Kilo facility just before dispatch.
               </p>
             </div>
           </div>
@@ -324,7 +324,7 @@ export const FreshSheepDashboard: React.FC = () => {
           >
             <div className="flex items-center gap-2 text-xs font-bold text-amber-500 uppercase tracking-wider">
               <PackageCheck className="w-4 h-4" />
-              <span>Farm Slaughter & Freshness Guarantee</span>
+              <span>Sanitary Slaughter & Freshness Guarantee</span>
             </div>
 
             <p className="text-xs opacity-85 leading-relaxed">

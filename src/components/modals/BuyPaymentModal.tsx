@@ -220,7 +220,7 @@ export const BuyPaymentModal: React.FC<BuyPaymentModalProps> = ({
       return;
     }
     if (paymentMode === 'full' && isDelivery && deliveryQuoteData && !deliveryQuoteData.isWithinRange) {
-      setSubmitError(isAmharic ? 'የመረጡት ቦታ ከማድረሻ ክልል (30 ኪ.ሜ) ውጭ ነው' : 'Delivery is unavailable beyond 30 km. Please select a closer address or Farm Pickup.');
+      setSubmitError(isAmharic ? 'የመረጡት ቦታ ከማድረሻ ክልል (30 ኪ.ሜ) ውጭ ነው' : 'Delivery is unavailable beyond 30 km. Please select a closer address or Hub Pickup.');
       return;
     }
     if (!slipFile) {
@@ -253,7 +253,7 @@ export const BuyPaymentModal: React.FC<BuyPaymentModalProps> = ({
         formData.append('deliveryLocation', isAmharic ? 'የእስከ ደጃፍ ማድረሻ' : 'Doorstep Delivery');
         formData.append('deliveryFee', String(deliveryFee));
       } else {
-        formData.append('deliveryLocation', isAmharic ? 'ከአዋሬ እርሻ መውሰድ (Pickup)' : 'Aware Farm Pickup');
+        formData.append('deliveryLocation', isAmharic ? 'ከአዋሬ ማዕከል መውሰድ (Pickup)' : 'Aware Hub Pickup');
         formData.append('deliveryFee', '0');
       }
 
@@ -266,7 +266,7 @@ export const BuyPaymentModal: React.FC<BuyPaymentModalProps> = ({
       if (isDelivery) {
         serviceItems.push(isAmharic ? 'የእስከ ደጃፍ ማድረሻ' : 'Doorstep Delivery');
       } else {
-        serviceItems.push(isAmharic ? 'ከእርሻው መውሰድ (Pickup)' : 'Farm Pickup');
+        serviceItems.push(isAmharic ? 'ከማዕከሉ መውሰድ (Pickup)' : 'Hub Pickup');
       }
 
       formData.append('animalId', animal.id);
@@ -679,8 +679,8 @@ export const BuyPaymentModal: React.FC<BuyPaymentModalProps> = ({
                     <CheckCircle2 className="w-4 h-4 shrink-0" />
                     <span>
                       {isAmharic
-                        ? 'ከአዋሬ እርሻ ተቋም ቀጥታ በነፃ ይረከባሉ። ክፍያዎ እንደተረጋገጠ ርክክብ ይፈጸማል።'
-                        : 'Pick up your livestock directly from Aware Farm HQ in Addis Ababa free of delivery charge.'}
+                        ? 'ከአዋሬ ማዕከል ተቋም ቀጥታ በነፃ ይረከባሉ። ክፍያዎ እንደተረጋገጠ ርክክብ ይፈጸማል።'
+                        : 'Pick up your livestock directly from Aware Livestock HQ in Addis Ababa free of delivery charge.'}
                     </span>
                   </div>
                 ) : (

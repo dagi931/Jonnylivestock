@@ -182,7 +182,7 @@ router.delete('/:id', authenticateToken, requireAdmin, async (req: AuthRequest, 
 });
 
 // ==================== UPLOAD ANIMAL IMAGE ====================
-router.post('/upload-image', uploadAdminMedia.single('image'), (req: Request, res: Response): void => {
+router.post('/upload-image', authenticateToken, requireAdmin, uploadAdminMedia.single('image'), (req: AuthRequest, res: Response): void => {
   try {
     if (!req.file) {
       res.status(400).json({ success: false, error: 'No image file uploaded' });

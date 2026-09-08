@@ -74,10 +74,20 @@ export const SlipPreviewModal: React.FC<SlipPreviewModalProps> = ({
   const remaining = order ? (order.remainingAmount || order.totalAmount * 0.5) : 0;
 
   // Determine current active slip URL to preview
-  const currentSlip =
+  const rawCurrentSlip =
     activeSlipTab === 'final' && order?.finalPaymentSlipUrl
       ? order.finalPaymentSlipUrl
       : order?.paymentSlipUrl || slipUrl;
+
+  const authToken = typeof window !== 'undefined'
+    ? (localStorage.getItem('jonny_admin_token') || localStorage.getItem('jonny_user_token'))
+    : null;
+
+  const currentSlip = rawCurrentSlip && authToken && !rawCurrentSlip.includes('token=')
+    ? `${rawCurrentSlip}${rawCurrentSlip.includes('?') ? '&' : '?'}token=${encodeURIComponent(authToken)}`
+    : rawCurrentSlip;
+
+  const isPdf = Boolean(rawCurrentSlip && (rawCurrentSlip.toLowerCase().endsWith('.pdf') || rawCurrentSlip.toLowerCase().includes('.pdf?') || rawCurrentSlip.toLowerCase().includes('.pdf&')));
 
   const hasMultipleSlips = Boolean(order?.paymentSlipUrl && order?.finalPaymentSlipUrl);
 
@@ -292,7 +302,7 @@ export const SlipPreviewModal: React.FC<SlipPreviewModalProps> = ({
                         <MapPin className="w-3.5 h-3.5 text-[#C18A45] shrink-0 mt-0.5" />
                         <div>
                           <span className="opacity-70 text-[11px]">{isAmharic ? 'መዳረሻ:' : 'Destination:'} </span>
-                          <span className="font-bold">{order.deliveryAddress || order.deliveryLocation || (isAmharic ? 'የእርሻ መረከቢያ (አራት ኪሎ)' : 'Farm Pickup (Arat Kilo)')}</span>
+                          <span className="font-bold">{order.deliveryAddress || order.deliveryLocation || (isAmharic ? 'የማዕከል መረከቢያ (አራት ኪሎ)' : 'Hub Pickup (Arat Kilo)')}</span>
                         </div>
                       </div>
 
@@ -353,7 +363,7 @@ export const SlipPreviewModal: React.FC<SlipPreviewModalProps> = ({
                       className="group relative w-full h-44 sm:h-52 rounded-xl overflow-hidden cursor-pointer border-2 border-dashed border-[#C18A45]/40 hover:border-[#C18A45] bg-black/40 flex items-center justify-center transition-all hover:shadow-xl"
                       title={isAmharic ? 'ደረሰኙን በሙሉ ስክሪን ለማየት ይጫኑ' : 'Click to expand slip to full screen'}
                     >
-                      {currentSlip.endsWith('.pdf') ? (
+                      {isPdf ? (
                         <div className="flex flex-col items-center gap-2 text-white">
                           <Maximize2 className="w-8 h-8 text-[#C18A45]" />
                           <span className="text-xs font-bold">{isAmharic ? 'የPDF ደረሰኝ ለማየት ይጫኑ' : 'Click to view PDF Slip'}</span>
@@ -602,12 +612,12 @@ export const SlipPreviewModal: React.FC<SlipPreviewModalProps> = ({
               </div>
             )}
 
-            {/* 5. Farm Pickup Actions (No Delivery) */}
+            {/* 5. Hub Pickup Actions (No Delivery) */}
             {order && !order.isDelivery && onUpdatePickupStatus && (order.status === 'verified' || order.status === 'pickup_ready') && (
               <div className="pt-2 border-t border-black/10 dark:border-white/10 flex items-center justify-between gap-2">
                 <span className="text-xs font-bold text-[#C18A45] flex items-center gap-1">
                   <MapPin className="w-4 h-4" />
-                  <span>{isAmharic ? 'የእርሻ ርክክብ እርምጃ:' : 'Farm Pickup Action:'}</span>
+                  <span>{isAmharic ? 'የማዕከል ርክክብ እርምጃ:' : 'Hub Pickup Action:'}</span>
                 </span>
                 <div className="flex items-center gap-2">
                   {order.status === 'verified' && (
@@ -647,7 +657,7 @@ export const SlipPreviewModal: React.FC<SlipPreviewModalProps> = ({
             {order?.status === 'completed' && !order.isDelivery && (
               <div className="p-2.5 rounded-xl bg-emerald-500/15 text-emerald-400 text-xs font-bold text-center flex items-center justify-center gap-2">
                 <CheckCircle2 className="w-4 h-4" />
-                <span>{isAmharic ? 'ደንበኛ በእርሻ ተረክቧል፣ ግብይቱ ተጠናቋል' : 'Customer Picked Up from Farm & Transaction Completed'}</span>
+                <span>{isAmharic ? 'ደንበኛ በማዕከል ተረክቧል፣ ግብይቱ ተጠናቋል' : 'Customer Picked Up from Hub & Transaction Completed'}</span>
               </div>
             )}
 
@@ -750,7 +760,7 @@ export const SlipPreviewModal: React.FC<SlipPreviewModalProps> = ({
             className="flex-1 overflow-auto p-4 sm:p-8 flex items-center justify-center cursor-zoom-out"
             onClick={() => setIsSlipExpanded(false)}
           >
-            {currentSlip.endsWith('.pdf') ? (
+            {isPdf ? (
               <iframe src={currentSlip} className="w-full h-[85vh] rounded-2xl max-w-5xl" title="Payment Slip PDF" />
             ) : (
               <img

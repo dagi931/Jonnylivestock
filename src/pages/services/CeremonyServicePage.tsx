@@ -130,7 +130,7 @@ export const CeremonyServicePage: React.FC = () => {
                 </h1>
                 <p className={`text-xs sm:text-sm mt-1 max-w-2xl ${isDark ? 'text-[#D8C5A8]' : 'text-[#746556]'}`}>
                   {isAmharic
-                    ? 'የተመረጡ በጎች፣ ፍየሎችና ወፍራም ሰንጋዎችን በአዋሬ እርሻችን የማቆየትና የመመገብ ዋስትና፣ በተዘጋጀ ተሽከርካሪ ወደ ዝግጅት ቦታዎ ማድረስና የባለሙያ ዕርድ ድጋፍ ያካትታል።'
+                    ? 'የተመረጡ በጎች፣ ፍየሎችና ወፍራም ሰንጋዎችን በአዋሬ ማዕከላችን የማቆየትና የመመገብ ዋስትና፣ በተዘጋጀ ተሽከርካሪ ወደ ዝግጅት ቦታዎ ማድረስና የባለሙያ ዕርድ ድጋፍ ያካትታል።'
                     : 'Reserve prime sheep, goats, and heavy cattle with holding guarantee at Aware, coordinated vehicle delivery to your venue, and optional on-site butchering worker support.'}
                 </p>
               </div>
@@ -191,7 +191,7 @@ export const CeremonyServicePage: React.FC = () => {
                     {isAmharic ? 'የዝግጅት የእንስሳት ምደባ ቅጽ' : 'Configure Ceremonial Livestock Allocation'}
                   </h2>
                   <span className="text-[11px] opacity-70">
-                    {isAmharic ? 'በእርሻው ላይ ማቆየትና መመገብ' : 'Holding & Feeding at Farm'}
+                    {isAmharic ? 'በማዕከሉ ማቆየትና መመገብ' : 'Holding & Feeding at Facility'}
                   </span>
                 </div>
 
@@ -403,8 +403,8 @@ export const CeremonyServicePage: React.FC = () => {
 
               <p className="text-xs opacity-85 leading-relaxed">
                 {isAmharic
-                  ? 'ያስያዟቸውን እንስሳት በበዓላት ወቅት ከሚከሰተው የገበያ መወደድና እጥረት ነፃ ሆነው እስከ ዝግጅቱ ቀን ድረስ በአዋሬ እርሻችን በመመገብ በክብር እናቆይሎታለን።'
-                  : 'We hold and feed your reserved animals at our farm in Aware until your scheduled date, protecting you from last-minute holiday price spikes and rush shortages.'}
+                  ? 'ያስያዟቸውን እንስሳት በበዓላት ወቅት ከሚከሰተው የገበያ መወደድና እጥረት ነፃ ሆነው እስከ ዝግጅቱ ቀን ድረስ በአዋሬ ማዕከላችን በመመገብ በክብር እናቆይሎታለን።'
+                  : 'We hold and feed your reserved animals at our facility in Aware until your scheduled date, protecting you from last-minute holiday price spikes and rush shortages.'}
               </p>
 
               <ul className="space-y-2 text-xs opacity-85 pt-1 border-t" style={{ borderColor: isDark ? '#4A2C16' : '#E4D4BC' }}>
@@ -418,7 +418,7 @@ export const CeremonyServicePage: React.FC = () => {
                 </li>
                 <li className="flex items-start gap-2">
                   <CheckCircle2 className="w-3.5 h-3.5 text-green-500 shrink-0 mt-0.5" />
-                  <span>{isAmharic ? 'ልምድ ያላቸው ረዳቶች እንስሳትን የማውረድና የማሰር እገዛ ያደርጋሉ።' : 'Experienced farm handlers assist with smooth unloading and tying.'}</span>
+                  <span>{isAmharic ? 'ልምድ ያላቸው ረዳቶች እንስሳትን የማውረድና የማሰር እገዛ ያደርጋሉ።' : 'Experienced livestock handlers assist with smooth unloading and tying.'}</span>
                 </li>
               </ul>
             </div>

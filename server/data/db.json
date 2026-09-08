@@ -5,7 +5,7 @@
       "name": "Jonny Owner",
       "email": "admin@jonnylivestock.com",
       "phone": "+251911234567",
-      "passwordHash": "$2a$10$fiPqVsNS7FshPe4rU.uj7.dGy9Pas45hGVeH4Uk43lQGNBaF1zo8e",
+      "passwordHash": "$2a$10$caAhIV6wWv6xZo7MadOwGeSAP1ng3CoLZScXOn8.sYVJl3Ij6dHVa",
       "role": "admin",
       "createdAt": "2026-08-01T10:00:00.000Z"
     },
@@ -14,7 +14,7 @@
       "name": "Dawit Tadesse",
       "email": "dawit@example.com",
       "phone": "+251911234567",
-      "passwordHash": "$2a$10$jq.9wZLHuszNBNPxUQlI2.aRFvJrppzBBk3xu71Mge4KROH/PsaQK",
+      "passwordHash": "$2a$10$GOdRZreekBYDxzYVdwehHOwSiNfU9MfmHv1CcbrSQjA3n33rLydfm",
       "role": "customer",
       "createdAt": "2026-08-15T12:30:00.000Z"
     }
@@ -651,7 +651,7 @@
     {
       "id": "BANK-TELEBIRR",
       "bankName": "Telebirr",
-      "accountName": "Jonny Livestock Farm",
+      "accountName": "Yohannis Belachew",
       "accountNumber": "0910194903",
       "instructions": "Transfer via Telebirr app or *127# using phone number 0910194903. Save transaction receipt screenshot and upload here.",
       "isTelebirr": true
@@ -659,21 +659,21 @@
     {
       "id": "BANK-CBE",
       "bankName": "Commercial Bank of Ethiopia (CBE)",
-      "accountName": "Jonny Livestock Farm",
+      "accountName": "Yohannis Belachew",
       "accountNumber": "1000003694724",
       "instructions": "Transfer via CBE Birr or CBE Mobile Banking using account number 1000003694724. Upload the confirmation receipt / slip image."
     },
     {
       "id": "BANK-AWASH",
       "bankName": "Awash Bank",
-      "accountName": "Jonny Livestock Farm",
+      "accountName": "Yohannis Belachew",
       "accountNumber": "013490177956300",
       "instructions": "Transfer via Awash Birr / Awash Online Banking using account number 013490177956300. Upload confirmation slip."
     },
     {
       "id": "BANK-ABYSSINIA",
       "bankName": "Bank of Abyssinia (BoA)",
-      "accountName": "Jonny Livestock Farm",
+      "accountName": "Yohannis Belachew",
       "accountNumber": "16845507",
       "instructions": "Transfer via BoA Mobile App or ATM using account number 16845507. Upload receipt."
     }

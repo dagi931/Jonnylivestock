@@ -35,7 +35,7 @@ export const SlaughterPrepDashboard: React.FC = () => {
     setSubmitted(true);
   };
 
-  const whatsappMessage = `Hello ${business.name}, I would like to book a DEDICATED WORKER for SLAUGHTER & MEAT PREPARATION. Details: [1 ${animalType.toUpperCase()}] at [${address}]. Execution Mode: [${serviceLocation === 'on_site' ? 'At My Compound / On-Site' : 'Slaughter at Arat Kilo Farm & Deliver Prepared'}]. Date: ${preferredDate || 'Earliest available'}. Cut Notes: ${cutPreferences || 'Standard butchering'}. Customer: ${customerName} (Phone: ${phone}).`;
+  const whatsappMessage = `Hello ${business.name}, I would like to book a DEDICATED WORKER for SLAUGHTER & MEAT PREPARATION. Details: [1 ${animalType.toUpperCase()}] at [${address}]. Execution Mode: [${serviceLocation === 'on_site' ? 'At My Compound / On-Site' : 'Slaughter at Arat Kilo Facility & Deliver Prepared'}]. Date: ${preferredDate || 'Earliest available'}. Cut Notes: ${cutPreferences || 'Standard butchering'}. Customer: ${customerName} (Phone: ${phone}).`;
 
   return (
     <div className="space-y-8 animate-in fade-in-50 duration-200">
@@ -58,7 +58,7 @@ export const SlaughterPrepDashboard: React.FC = () => {
                 On-Site Slaughter & Meat Preparation
               </h2>
               <p className={`text-xs sm:text-sm mt-1 max-w-xl ${isDark ? 'text-[#D8C5A8]' : 'text-[#746556]'}`}>
-                One dedicated, professional farm worker is dispatched to personally perform the respectful sanitary slaughter and complete meat extraction, trimming, and custom butchering.
+                One dedicated, professional slaughter worker is dispatched to personally perform the respectful sanitary slaughter and complete meat extraction, trimming, and custom butchering.
               </p>
             </div>
           </div>
@@ -93,7 +93,7 @@ export const SlaughterPrepDashboard: React.FC = () => {
               </div>
               <h3 className="font-serif font-bold text-xl">Worker Dispatch Requested!</h3>
               <p className="text-xs max-w-md mx-auto opacity-80">
-                Thank you <strong>{customerName}</strong>. Our farm manager will confirm your assigned worker and scheduling at <strong>{phone}</strong>.
+                Thank you <strong>{customerName}</strong>. Our team will confirm your assigned worker and scheduling at <strong>{phone}</strong>.
               </p>
 
               <div className="pt-3 flex flex-col sm:flex-row justify-center gap-2.5">
@@ -161,7 +161,7 @@ export const SlaughterPrepDashboard: React.FC = () => {
                     }`}
                   >
                     <option value="on_site">Dispatched to My Home / Venue</option>
-                    <option value="farm_slaughter">Process at Arat Kilo Farm & Deliver</option>
+                    <option value="farm_slaughter">Process at Arat Kilo Facility & Deliver</option>
                   </select>
                 </div>
               </div>
@@ -274,7 +274,7 @@ export const SlaughterPrepDashboard: React.FC = () => {
             </div>
 
             <p className="text-xs leading-relaxed opacity-85">
-              Our farm maintains multiple certified, experienced workers. When you book this service, <strong>one dedicated worker takes full ownership</strong> from respectful slaughter to clean extraction, cut trimming, and neat packaging.
+              Our facility maintains multiple certified, experienced workers. When you book this service, <strong>one dedicated worker takes full ownership</strong> from respectful slaughter to clean extraction, cut trimming, and neat packaging.
             </p>
 
             <ul className="space-y-2 text-xs opacity-85 pt-1 border-t" style={{ borderColor: isDark ? '#4A2C16' : '#E4D4BC' }}>

@@ -1,13 +1,13 @@
-# 🐂 Jonny Livestock (ጆኒ ከብት እርባታ)
+# 🐂 Jonny Livestock (ጆኒ የቀንድ ከብት አቅራቢ)
 
-> **Your One-Stop Livestock Shop · የታመነ የቀንድ ከብትና የበግ እርባታ**  
-> Direct farm-to-doorstep livestock sales, fresh meat cuts, celebration packages, and butcher preparation services in Addis Ababa, Ethiopia.
+> **Your One-Stop Livestock Shop · የታመነ የቀንድ ከብትና የበግ አቅራቢ**  
+> Direct livestock supplier, fresh meat cuts, celebration packages, and butcher preparation services in Addis Ababa, Ethiopia.
 
 ---
 
 ## 🌟 Overview
 
-**Jonny Livestock** is a modern, full-stack digital platform for a premier single-owner livestock farm based in Aware, Addis Ababa. The platform empowers customers and hospitality businesses (hotels, restaurants, banquet halls) to browse live animals with certified digital scale weights, order custom butchery cuts by the kilogram, build celebration packages, and manage orders with real-time verification and refrigerated delivery.
+**Jonny Livestock (ጆኒ የቀንድ ከብት አቅራቢ)** is a modern, full-stack digital platform for a premier single-owner livestock supplier based in Aware, Addis Ababa. The platform empowers customers and hospitality businesses (hotels, restaurants, banquet halls) to browse live animals with certified digital scale weights, order custom butchery cuts by the kilogram, build celebration packages, and manage orders with real-time verification and refrigerated delivery.
 
 ---
 

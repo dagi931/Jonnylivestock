@@ -54,7 +54,7 @@ export const FarmMap: React.FC = () => {
           </div>
           <div>
             <h2 className={`font-serif font-bold text-base ${isDark ? 'text-[#F4E8D0]' : 'text-[#2A1A0D]'}`}>
-              {isAmharic ? 'የእርሻው ትክክለኛ መገኛ ካርታ' : 'Live GIS Map & Exact Location'}
+              {isAmharic ? 'የማዕከሉ ትክክለኛ መገኛ ካርታ' : 'Live GIS Map & Exact Location'}
             </h2>
             <p className={`text-xs ${isDark ? 'text-[#D8C5A8]/80' : 'text-[#54473A]'}`}>
               {isAmharic
@@ -133,7 +133,7 @@ export const FarmMap: React.FC = () => {
             href={googleMapsViewUrl}
             target="_blank"
             rel="noopener noreferrer"
-            aria-label={isAmharic ? 'የእርሻውን መገኛ በሙሉ ጉግል ካርታ ይክፈቱ' : 'Open Jonny Livestock location in full Google Maps view'}
+            aria-label={isAmharic ? 'የማዕከሉን መገኛ በሙሉ ጉግል ካርታ ይክፈቱ' : 'Open Jonny Livestock location in full Google Maps view'}
             className="px-3.5 py-1.5 rounded-xl bg-black/85 backdrop-blur-md text-[#FAF7F0] border border-white/20 text-xs font-semibold flex items-center gap-1.5 hover:bg-black transition-colors shadow-md"
           >
             <ExternalLink className="w-3.5 h-3.5 text-[#E0B15A]" />
@@ -175,7 +175,7 @@ export const FarmMap: React.FC = () => {
             <span className="opacity-75">
               {isAmharic
                 ? 'እባክዎ ከመምጣትዎ በፊት በስልክ ያሳውቁን።'
-                : 'Please contact us before arriving so our farm workers can welcome you on-site.'}
+                : 'Please contact us before arriving so our staff can welcome you on-site.'}
             </span>
           </div>
         </div>

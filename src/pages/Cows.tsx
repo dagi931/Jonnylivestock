@@ -15,7 +15,7 @@ export const Cows: React.FC = () => {
       }}
       description={{
         en: 'Browse our Debrebirhan, Ginchi, Wolayita, and Arsi cattle and oxen. Accurate live weights and direct single-seller pricing.',
-        am: 'የደብረ ብርሃን፣ የጊንጪ፣ የወላይታና የአርሲ ሰንጋዎችንና ላሞችን ይመልከቱ። ትክክለኛ የቀጥታ ሚዛን ክብደትና ግልጽ የእርሻ ዋጋ።'
+        am: 'የደብረ ብርሃን፣ የጊንጪ፣ የወላይታና የአርሲ ሰንጋዎችንና ላሞችን ይመልከቱ። ትክክለኛ የቀጥታ ሚዛን ክብደትና ግልጽ የቀጥታ አቅራቢ ዋጋ።'
       }}
       typeLabel={{
         en: 'cows',

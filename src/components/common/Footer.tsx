@@ -35,7 +35,7 @@ export const Footer: React.FC = () => {
 
             <p className="text-xs sm:text-sm leading-relaxed text-[#D8C5A8]/90">
               {isAmharic
-                ? 'በአዋሬ አዲስ አበባ የሚገኝ የቀንድ ከብቶች፣ በጎችና ፍየሎች እርባታ እንዲሁም ለሆቴሎችና ሬስቶራንቶች የስጋ አቅርቦት ድርጅት።'
+                ? 'በአዋሬ አዲስ አበባ የሚገኝ የቀንድ ከብቶች፣ በጎችና ፍየሎች አቅራቢ እንዲሁም ለሆቴሎችና ሬስቶራንቶች የስጋ አቅርቦት ድርጅት።'
                 : business.description}
             </p>
 
@@ -55,8 +55,9 @@ export const Footer: React.FC = () => {
                 { name: t.common.browseSheep, path: '/sheep' },
                 { name: t.common.browseGoats, path: '/goats' },
                 { name: t.common.browseCows, path: '/cows' },
-                { name: isAmharic ? 'የእርሻ አገልግሎቶች' : 'Farm-to-Table Services', path: '/services' },
-                { name: isAmharic ? 'ስለ እርሻችን' : 'About Our Farm', path: '/about' },
+                { name: t.common.browseMeat, path: '/#meat-by-kg' },
+                { name: isAmharic ? 'የስጋና የከብት አገልግሎቶች' : 'Livestock & Meat Services', path: '/services' },
+                { name: isAmharic ? 'ስለ እኛ' : 'About Jonny Livestock', path: '/about' },
                 { name: isAmharic ? 'ያግኙንና አድራሻ' : 'Contact & Location', path: '/contact' },
               ].map((link) => (
                 <li key={link.path}>
@@ -81,7 +82,6 @@ export const Footer: React.FC = () => {
               <li>
                 <a
                   href={getPhoneCallLink(business.phone)}
-                  aria-label={`${isAmharic ? 'የእግርጌ የቀጥታ ስልክ ጥሪ' : 'Footer direct phone call'} ${business.displayPhone}`}
                   className="flex items-start gap-2.5 group hover:text-[#E0B15A] transition-colors"
                 >
                   <Phone className="w-4 h-4 text-[#C58A3A] mt-0.5 shrink-0" />
@@ -96,7 +96,6 @@ export const Footer: React.FC = () => {
                   href={getWhatsAppLink(business.whatsapp, isAmharic ? 'ሰላም፣ ስላላችሁ ከብቶችና አገልግሎቶች ማወቅ ፈልጌ ነበር።' : 'Hello, I am inquiring about available livestock and services.')}
                   target="_blank"
                   rel="noopener noreferrer"
-                  aria-label={`${isAmharic ? 'የእግርጌ የዋትስአፕ መልእክት' : 'Footer WhatsApp inquiry'} ${business.displayWhatsapp}`}
                   className="flex items-start gap-2.5 group hover:text-[#E0B15A] transition-colors"
                 >
                   <MessageCircle className="w-4 h-4 text-[#C58A3A] mt-0.5 shrink-0" />
@@ -109,7 +108,7 @@ export const Footer: React.FC = () => {
               <li className="flex items-start gap-2.5">
                 <MapPin className="w-4 h-4 text-[#C58A3A] mt-0.5 shrink-0" />
                 <div>
-                  <span className="block text-[10px] text-[#D8C5A8]/60 uppercase font-semibold">{isAmharic ? 'የእርሻው አድራሻ' : 'Farm Location'}</span>
+                  <span className="block text-[10px] text-[#D8C5A8]/60 uppercase font-semibold">{isAmharic ? 'የማዕከሉ አድራሻ' : 'Facility Location'}</span>
                   <span>{business.location}</span>
                 </div>
               </li>

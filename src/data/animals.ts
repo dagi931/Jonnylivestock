@@ -1,4 +1,4 @@
-﻿import { Animal, AnimalType } from '../types/animal';
+import { Animal, AnimalType } from '../types/animal';
 
 export const mockAnimals: Animal[] = [
   // ==================== SHEEP ====================
@@ -322,7 +322,7 @@ export const mockAnimals: Animal[] = [
     color: "Black and White Pied",
     price: 88000,
     location: "Arat Kilo, Addis Ababa",
-    description: "Robust Ginchi cow known for high disease resilience and large barrel capacity. Suitable for smallholder farming, milk, or celebration slaughter.",
+    description: "Robust Ginchi cow known for high disease resilience and large barrel capacity. Suitable for dairying, beef, or celebration slaughter.",
     status: "available",
     featured: true,
     characteristics: ["Pied color pattern", "Large barrel", "High adaptability", "Vaccinated"],
@@ -398,7 +398,7 @@ export const mockAnimals: Animal[] = [
     color: "Black & Brown Brindle",
     price: 102000,
     location: "Arat Kilo, Addis Ababa",
-    description: "Solid Ginchi bull with excellent chest depth and healthy hoof structure. Raised in organic pastoral farm facility.",
+    description: "Solid Ginchi bull with excellent chest depth and healthy hoof structure. Raised in organic pastoral livestock facility.",
     status: "sold",
     featured: false,
     characteristics: ["Brindle coat", "Deep girth", "Vaccinated"],

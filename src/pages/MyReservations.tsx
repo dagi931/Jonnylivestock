@@ -54,6 +54,14 @@ export const MyReservations: React.FC = () => {
   const [selectedOrderForFinalPay, setSelectedOrderForFinalPay] = useState<Order | null>(null);
   const [isFinalModalOpen, setIsFinalModalOpen] = useState(false);
 
+  const getAuthSlipUrl = (url?: string | null): string => {
+    if (!url) return '';
+    const token = typeof window !== 'undefined' ? (localStorage.getItem('jonny_user_token') || localStorage.getItem('jonny_admin_token')) : null;
+    if (!token || url.includes('token=')) return url;
+    const sep = url.includes('?') ? '&' : '?';
+    return `${url}${sep}token=${encodeURIComponent(token)}`;
+  };
+
   const fetchOrders = async () => {
     setLoading(true);
     try {
@@ -166,7 +174,7 @@ export const MyReservations: React.FC = () => {
           return (
             <span className="px-3 py-1 rounded-full text-xs font-bold bg-blue-500/15 text-blue-400 border border-blue-500/30 flex items-center gap-1.5">
               <MapPin className="w-3.5 h-3.5" />
-              <span>{isAmharic ? 'ለርክክብ ዝግጁ ነው' : 'Ready for Farm Pickup'}</span>
+              <span>{isAmharic ? 'ለርክክብ ዝግጁ ነው' : 'Ready for Hub Pickup'}</span>
             </span>
           );
         case 'delivered':
@@ -219,7 +227,7 @@ export const MyReservations: React.FC = () => {
           return (
             <span className="px-3 py-1 rounded-full text-xs font-bold bg-blue-500/15 text-blue-400 border border-blue-500/30 flex items-center gap-1.5">
               <MapPin className="w-3.5 h-3.5" />
-              <span>{isAmharic ? 'ለርክክብ ዝግጁ ነው' : 'Ready for Farm Pickup'}</span>
+              <span>{isAmharic ? 'ለርክክብ ዝግጁ ነው' : 'Ready for Hub Pickup'}</span>
             </span>
           );
         case 'completed':
@@ -494,7 +502,7 @@ export const MyReservations: React.FC = () => {
                         ) : (
                           <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-neutral-500/15 text-neutral-400 flex items-center gap-1">
                             <MapPin className="w-3 h-3" />
-                            <span>{isAmharic ? 'ከእርሻ መረከብ' : 'Farm Pickup'}</span>
+                            <span>{isAmharic ? 'ከማዕከሉ መረከብ' : 'Hub Pickup'}</span>
                           </span>
                         )}
                       </div>
@@ -538,9 +546,9 @@ export const MyReservations: React.FC = () => {
 
                       {order.paymentSlipUrl && (
                         <a
-                          href={order.paymentSlipUrl}
+                          href={getAuthSlipUrl(order.paymentSlipUrl)}
                           target="_blank"
-                          rel="noreferrer"
+                          rel="noopener noreferrer"
                           className="px-3.5 py-2 rounded-xl border text-xs font-semibold hover:bg-black/5 dark:hover:bg-white/5 transition-colors flex items-center gap-1.5 opacity-80"
                         >
                           <Eye className="w-3.5 h-3.5" />
@@ -550,9 +558,9 @@ export const MyReservations: React.FC = () => {
 
                       {order.finalPaymentSlipUrl && (
                         <a
-                          href={order.finalPaymentSlipUrl}
+                          href={getAuthSlipUrl(order.finalPaymentSlipUrl)}
                           target="_blank"
-                          rel="noreferrer"
+                          rel="noopener noreferrer"
                           className="px-3.5 py-2 rounded-xl border text-xs font-semibold hover:bg-black/5 dark:hover:bg-white/5 transition-colors flex items-center gap-1.5 text-emerald-500 border-emerald-500/30"
                         >
                           <Eye className="w-3.5 h-3.5" />
@@ -653,7 +661,7 @@ export const MyReservations: React.FC = () => {
                           <div className="font-serif font-bold text-base mt-0.5 text-amber-500">
                             {order.isDelivery
                               ? (order.deliveryFee ? formatPrice(order.deliveryFee) : (isAmharic ? 'ነፃ ማድረስ' : 'Free Delivery'))
-                              : (isAmharic ? 'ከእርሻ መረከብ (0 ETB)' : 'Farm Pickup (0 ETB)')}
+                              : (isAmharic ? 'ከማዕከሉ መረከብ (0 ETB)' : 'Hub Pickup (0 ETB)')}
                           </div>
                         </div>
                       </>

@@ -39,5 +39,9 @@ server/.env
 server/uploads/*
 !server/uploads/.gitkeep
 
+# Private receipts directory contents except .gitkeep
+server/receipts/*
+!server/receipts/.gitkeep
+
 # Temporary scratch and benchmark files
 scratch/

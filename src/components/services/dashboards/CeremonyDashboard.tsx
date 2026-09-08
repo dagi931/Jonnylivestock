@@ -351,7 +351,7 @@ export const CeremonyDashboard: React.FC = () => {
               </li>
               <li className="flex items-start gap-2">
                 <CheckCircle2 className="w-3.5 h-3.5 text-green-500 shrink-0 mt-0.5" />
-                <span>Experienced farm handlers assist with smooth unloading and tying.</span>
+                <span>Experienced livestock handlers assist with smooth unloading and tying.</span>
               </li>
             </ul>
           </div>

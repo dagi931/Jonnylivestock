@@ -9,14 +9,22 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const UPLOADS_DIR = path.resolve(__dirname, '../../uploads');
+const RECEIPTS_DIR = path.resolve(__dirname, '../../receipts');
 
 const tryDeleteSlipFile = (fileUrl?: string | null) => {
   if (!fileUrl) return;
   try {
     const filename = path.basename(fileUrl);
-    const filePath = path.join(UPLOADS_DIR, filename);
-    if (fs.existsSync(filePath)) {
-      fs.unlinkSync(filePath);
+    // Check private receipts directory first
+    const receiptsPath = path.join(RECEIPTS_DIR, filename);
+    if (fs.existsSync(receiptsPath)) {
+      fs.unlinkSync(receiptsPath);
+      return;
+    }
+    // Check legacy uploads directory
+    const uploadsPath = path.join(UPLOADS_DIR, filename);
+    if (fs.existsSync(uploadsPath)) {
+      fs.unlinkSync(uploadsPath);
     }
   } catch (e) {
     console.warn('Could not delete receipt slip file from disk:', e);
@@ -372,13 +380,35 @@ export class PostgresDB {
       }
 
       const packages = await db.package.findMany({
-        orderBy: { createdAt: 'desc' }
+        orderBy: { createdAt: 'asc' }
+      });
+
+      const canonicalOrder = [
+        'pkg-holiday-grand-feast',
+        'pkg-family-festive-hamper',
+        'pkg-traditional-goat-tej',
+        'pkg-gourmet-meat-wine'
+      ];
+      packages.sort((a: any, b: any) => {
+        const idxA = canonicalOrder.indexOf(a.id);
+        const idxB = canonicalOrder.indexOf(b.id);
+        if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+        if (idxA !== -1) return -1;
+        if (idxB !== -1) return 1;
+        if (a.featured !== b.featured) return b.featured ? 1 : -1;
+        return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
       });
 
       return packages.map((p: any) => {
         const totalSlots = p.totalSlots !== undefined && p.totalSlots !== null ? Number(p.totalSlots) : 10;
         const availableSlots = p.availableSlots !== undefined && p.availableSlots !== null ? Number(p.availableSlots) : totalSlots;
         const isOutOfStock = p.isOutOfStock !== undefined && p.isOutOfStock !== null ? Boolean(p.isOutOfStock) : availableSlots <= 0;
+
+        let safeImage = p.image;
+        if (typeof safeImage !== 'string' || (!safeImage.startsWith('https://') && !safeImage.startsWith('/uploads/') && !safeImage.startsWith('http://localhost') && !safeImage.startsWith('http://127.0.0.1'))) {
+          const canonical = PRE_MADE_PACKAGES.find(c => c.id === p.id);
+          safeImage = canonical ? canonical.image : 'https://images.unsplash.com/photo-1484557052118-f32bd25b45b5?auto=format&fit=crop&fm=webp&q=65&w=480&h=208';
+        }
 
         return {
           id: p.id,
@@ -392,7 +422,7 @@ export class PostgresDB {
           packagePrice: p.packagePrice,
           savings: p.savings,
           badge: p.badge,
-          image: p.image,
+          image: safeImage,
           featured: p.featured,
           totalSlots,
           availableSlots,
@@ -604,13 +634,13 @@ export class PostgresDB {
       isReservation: Boolean(o.isReservation),
       depositAmount: o.depositAmount !== null ? Number(o.depositAmount) : undefined,
       remainingAmount: o.remainingAmount !== null ? Number(o.remainingAmount) : undefined,
-      finalPaymentSlipUrl: o.finalPaymentSlipUrl || undefined,
+      finalPaymentSlipUrl: o.finalPaymentSlipUrl ? `/api/orders/${o.id}/receipt-file?type=final` : undefined,
       finalPaymentMethod: o.finalPaymentMethod || undefined,
       finalTransactionRef: o.finalTransactionRef || undefined,
       finalVerifiedAt: o.finalVerifiedAt ? o.finalVerifiedAt.toISOString() : undefined,
       finalVerifiedBy: o.finalVerifiedBy || undefined,
       bankAccountId: o.bankAccountId || undefined,
-      paymentSlipUrl: o.paymentSlipUrl || undefined,
+      paymentSlipUrl: o.paymentSlipUrl ? `/api/orders/${o.id}/receipt-file?type=initial` : undefined,
       transactionReference: o.transactionReference || undefined,
       customerNotes: o.customerNotes || undefined,
       adminNotes: o.adminNotes || undefined,
@@ -700,232 +730,250 @@ export class PostgresDB {
   }
 
   public static async createOrder(orderData: Partial<Order>): Promise<{ order: Order; notification: AdminNotification; animal: Animal | null }> {
-    const isReservation = Boolean(orderData.isReservation);
-    const isDeliveryEffective = !isReservation && Boolean(orderData.isDelivery);
-    const totalAmount = Number(orderData.totalAmount);
-    const depositAmount = isReservation ? totalAmount * 0.5 : null;
-    const remainingAmount = isReservation ? totalAmount * 0.5 : 0;
-    const status = isReservation ? 'reservation_pending' : (orderData.status || 'pending_verification');
+    return await prisma.$transaction(async (tx) => {
+      const isReservation = Boolean(orderData.isReservation);
+      const isDeliveryEffective = !isReservation && Boolean(orderData.isDelivery);
+      const totalAmount = Number(orderData.totalAmount);
+      const depositAmount = isReservation ? totalAmount * 0.5 : null;
+      const remainingAmount = isReservation ? totalAmount * 0.5 : 0;
+      const status = isReservation ? 'reservation_pending' : (orderData.status || 'pending_verification');
 
-    const createdOrder = await prisma.order.create({
-      data: {
-        id: orderData.id || `ORD-${Date.now().toString().slice(-6)}`,
-        userId: orderData.userId || null,
-        customerName: orderData.customerName || 'Valued Customer',
-        customerPhone: normalizeEthiopianPhone(orderData.customerPhone || ''),
-        customerEmail: orderData.customerEmail || null,
-        deliveryLocation: isDeliveryEffective ? (orderData.deliveryLocation || orderData.deliveryAddress || null) : 'Reservation - Delivery arranged on final payment',
-        
-        // Delivery fields: strictly inactive for initial reservations
-        isDelivery: isDeliveryEffective,
-        deliveryAddress: isDeliveryEffective ? (orderData.deliveryAddress || orderData.deliveryLocation || null) : 'Reservation - Delivery arranged on final payment',
-        deliveryLatitude: isDeliveryEffective && orderData.deliveryLatitude !== undefined ? Number(orderData.deliveryLatitude) : null,
-        deliveryLongitude: isDeliveryEffective && orderData.deliveryLongitude !== undefined ? Number(orderData.deliveryLongitude) : null,
-        pickupAddress: orderData.pickupAddress || null,
-        pickupLatitude: isDeliveryEffective && orderData.pickupLatitude !== undefined ? Number(orderData.pickupLatitude) : null,
-        pickupLongitude: isDeliveryEffective && orderData.pickupLongitude !== undefined ? Number(orderData.pickupLongitude) : null,
-        distanceKm: isDeliveryEffective && orderData.distanceKm !== undefined ? Number(orderData.distanceKm) : null,
-        distanceCategory: isDeliveryEffective ? (orderData.distanceCategory || null) : null,
-        vehicleType: isDeliveryEffective ? (orderData.vehicleType || null) : null,
-        vehicleName: isDeliveryEffective ? (orderData.vehicleName || null) : null,
-        deliveryFee: isDeliveryEffective ? Number(orderData.deliveryFee || 0) : 0,
-        estimatedDurationMinutes: isDeliveryEffective && orderData.estimatedDurationMinutes !== undefined ? Number(orderData.estimatedDurationMinutes) : null,
-        
-        animalId: orderData.animalId || null,
-        animalBreed: orderData.animalBreed || null,
-        animalType: orderData.animalType || null,
-        animalPrice: orderData.animalPrice !== undefined ? Number(orderData.animalPrice) : null,
-        
-        isPackage: Boolean(orderData.isPackage),
-        packageName: orderData.packageName || null,
-        packageDetails: orderData.packageDetails || null,
-        
-        isReservation,
-        depositAmount,
-        remainingAmount,
-        finalPaymentSlipUrl: null,
+      // 1. Concurrency-Safe Animal Inventory Check & Atomic Lock/Update
+      let updatedAnimal: Animal | null = null;
+      if (orderData.animalId) {
+        const existingAnimal = await tx.animal.findFirst({
+          where: { id: { equals: orderData.animalId, mode: 'insensitive' } }
+        });
 
-        selectedServices: orderData.selectedServices || [],
-        servicesFee: Number(orderData.servicesFee || 0),
-        totalAmount,
-        paymentMethod: orderData.paymentMethod || 'Telebirr',
-        bankAccountId: orderData.bankAccountId || null,
-        paymentSlipUrl: orderData.paymentSlipUrl || null,
-        transactionReference: orderData.transactionReference || null,
-        customerNotes: orderData.customerNotes || null,
-        status,
-        adminNotes: orderData.adminNotes || null,
-        createdAt: orderData.createdAt ? new Date(orderData.createdAt) : new Date(),
-        updatedAt: orderData.updatedAt ? new Date(orderData.updatedAt) : new Date()
-      }
-    });
+        if (!existingAnimal) {
+          throw new Error(`Animal "${orderData.animalId}" was not found.`);
+        }
 
-    // Create Notification
-    const isMeatByKg = Boolean((orderData as any).isMeatByKg || (orderData as any).packageDetails?.isMeatByKg);
-    let notifType = isReservation ? 'NEW_RESERVATION_DEPOSIT' : 'NEW_ORDER_SLIP';
-    let notifTitle = isReservation ? '🛡️ New 50% Reservation Deposit Slip' : '📦 New Payment Slip Uploaded';
-    if (isMeatByKg) {
-      notifType = 'NEW_MEAT_ORDER';
-      notifTitle = '🥩 New Raw Meat (Ox/Beef) Order';
-    }
-    const customerPhoneStr = orderData.customerPhone ? ` [📞 ${orderData.customerPhone}]` : '';
-    const notifMsg = isMeatByKg
-      ? `${orderData.customerName}${customerPhoneStr} ordered ${orderData.animalBreed || 'Raw Beef by KG'} (${totalAmount.toLocaleString()} ETB). Please inspect the payment slip and approve.`
-      : isReservation
-      ? `${orderData.customerName}${customerPhoneStr} uploaded a 50% reservation deposit (${(depositAmount || totalAmount * 0.5).toLocaleString()} ETB of ${totalAmount.toLocaleString()} ETB) for ${orderData.packageName || orderData.animalBreed || 'Order'}.`
-      : `${orderData.customerName}${customerPhoneStr} uploaded a payment slip for ${orderData.packageName || orderData.animalBreed || 'Order'} - ${totalAmount.toLocaleString()} ETB.`;
-
-    const notif = await prisma.adminNotification.create({
-      data: {
-        id: `NOTIF-${Date.now().toString().slice(-6)}`,
-        type: notifType,
-        title: notifTitle,
-        message: notifMsg,
-        orderId: createdOrder.id,
-        read: false,
-        createdAt: new Date()
-      }
-    });
-
-    // Update Animal status if animalId is specified
-    let updatedAnimal: Animal | null = null;
-    if (orderData.animalId) {
-      const existingAnimal = await prisma.animal.findFirst({
-        where: { id: { equals: orderData.animalId, mode: 'insensitive' } }
-      });
-
-      if (existingAnimal) {
         const currentQty = existingAnimal.quantity ?? 1;
+        if (existingAnimal.status === 'sold' || existingAnimal.status === 'reserved' || currentQty <= 0) {
+          throw new Error(`Animal "${existingAnimal.breed}" (${existingAnimal.id}) is no longer available. It was already reserved or purchased.`);
+        }
 
         if (isReservation) {
-          // 50% reservation deposit: lock item as 'reserved'
-          if (currentQty <= 1) {
-            const res = await prisma.animal.update({
-              where: { id: existingAnimal.id },
-              data: { status: 'reserved' }
-            });
-            updatedAnimal = {
-              ...res,
-              type: res.type as Animal['type'],
-              gender: res.gender as Animal['gender'],
-              status: res.status as Animal['status'],
-              video: res.video || undefined,
-              createdAt: res.createdAt.toISOString()
-            };
-          } else {
-            updatedAnimal = {
-              ...existingAnimal,
-              type: existingAnimal.type as Animal['type'],
-              gender: existingAnimal.gender as Animal['gender'],
-              status: existingAnimal.status as Animal['status'],
-              video: existingAnimal.video || undefined,
-              createdAt: existingAnimal.createdAt.toISOString()
-            };
+          // 50% reservation: atomically lock status to 'reserved' if single-stock (quantity <= 1)
+          const updatedRows: any[] = await (tx as any).$queryRawUnsafe(
+            `UPDATE "Animal"
+             SET "status" = CASE WHEN "quantity" <= 1 THEN 'reserved' ELSE "status" END
+             WHERE "id" = $1 AND "status" = 'available' AND "quantity" > 0
+             RETURNING *`,
+            existingAnimal.id
+          );
+
+          if (!updatedRows || updatedRows.length === 0) {
+            throw new Error(`Animal "${existingAnimal.breed}" (${existingAnimal.id}) is no longer available. It was just reserved or purchased by another customer.`);
           }
+
+          const fresh = updatedRows[0];
+          updatedAnimal = {
+            ...fresh,
+            images: normalizeAnimalImages(fresh.images),
+            type: fresh.type as Animal['type'],
+            gender: fresh.gender as Animal['gender'],
+            status: fresh.status as Animal['status'],
+            video: fresh.video || undefined,
+            createdAt: fresh.createdAt instanceof Date ? fresh.createdAt.toISOString() : fresh.createdAt
+          };
         } else {
-          // Direct 100% full purchase: immediately mark animal as SOLD!
-          const newQty = Math.max(0, currentQty - 1);
-          const newStatus = newQty === 0 ? 'sold' : existingAnimal.status;
+          // Direct 100% purchase: atomically decrement quantity and set status = 'sold' if 0
+          const updatedRows: any[] = await (tx as any).$queryRawUnsafe(
+            `UPDATE "Animal"
+             SET "quantity" = "quantity" - 1,
+                 "status" = CASE WHEN "quantity" - 1 <= 0 THEN 'sold' ELSE "status" END
+             WHERE "id" = $1 AND "status" = 'available' AND "quantity" > 0
+             RETURNING *`,
+            existingAnimal.id
+          );
 
-          const res = await prisma.animal.update({
-            where: { id: existingAnimal.id },
-            data: {
-              quantity: newQty,
-              status: newStatus
-            }
-          });
+          if (!updatedRows || updatedRows.length === 0) {
+            throw new Error(`Animal "${existingAnimal.breed}" (${existingAnimal.id}) is no longer available. It was just purchased by another customer.`);
+          }
 
-          if (newQty === 0) {
+          const fresh = updatedRows[0];
+          updatedAnimal = {
+            ...fresh,
+            images: normalizeAnimalImages(fresh.images),
+            type: fresh.type as Animal['type'],
+            gender: fresh.gender as Animal['gender'],
+            status: fresh.status as Animal['status'],
+            video: fresh.video || undefined,
+            createdAt: fresh.createdAt instanceof Date ? fresh.createdAt.toISOString() : fresh.createdAt
+          };
+
+          if (fresh.quantity === 0) {
             try {
-              await prisma.adminNotification.create({
+              await tx.adminNotification.create({
                 data: {
                   id: `NOTIF-${Date.now().toString().slice(-6)}`,
                   type: 'OUT_OF_STOCK',
                   title: '🏷️ Animal Sold',
                   message: `Animal "${existingAnimal.breed}" (${existingAnimal.id}) was purchased and is now marked as SOLD!`,
-                  orderId: createdOrder.id,
+                  orderId: orderData.id || undefined,
                   read: false,
                   createdAt: new Date()
                 }
               });
-            } catch (notifErr) {
-              console.warn('Could not create admin sold notification:', notifErr);
+            } catch {
+              // Ignore notification creation failure
             }
           }
-
-          updatedAnimal = {
-            ...res,
-            type: res.type as Animal['type'],
-            gender: res.gender as Animal['gender'],
-            status: res.status as Animal['status'],
-            video: res.video || undefined,
-            createdAt: res.createdAt.toISOString()
-          };
         }
       }
-    }
 
-    // Minimize package available slots if package order or reservation
-    if (orderData.isPackage || orderData.packageName) {
-      try {
-        const db = prisma as any;
-        let pkgToUpdate = null;
-        const details = orderData.packageDetails as any;
-        if (details?.preMadeId) {
-          pkgToUpdate = await db.package.findFirst({
-            where: { id: { equals: details.preMadeId, mode: 'insensitive' } }
-          });
-        }
-        if (!pkgToUpdate && orderData.packageName) {
-          pkgToUpdate = await db.package.findFirst({
-            where: { name: { equals: orderData.packageName, mode: 'insensitive' } }
-          });
-        }
-
-        if (pkgToUpdate) {
-          const currentAvail = pkgToUpdate.availableSlots !== undefined && pkgToUpdate.availableSlots !== null
-            ? Number(pkgToUpdate.availableSlots)
-            : 10;
-          const newAvail = Math.max(0, currentAvail - 1);
-          const isOut = newAvail <= 0;
-
-          await db.package.update({
-            where: { id: pkgToUpdate.id },
-            data: {
-              availableSlots: newAvail,
-              isOutOfStock: isOut
-            }
-          });
-
-          // If package reached 0 slots, alert admin immediately!
-          if (isOut) {
-            await prisma.adminNotification.create({
-              data: {
-                id: `NOTIF-${Date.now().toString().slice(-6)}`,
-                type: 'OUT_OF_STOCK',
-                title: '⚠️ Package Out of Stock',
-                message: `Package "${pkgToUpdate.name}" has reached 0 available slots and is now completely SOLD OUT / Out of Stock!`,
-                orderId: createdOrder.id,
-                read: false,
-                createdAt: new Date()
-              }
+      // 2. Concurrency-Safe Package Slots Decrement
+      if (orderData.isPackage || orderData.packageName) {
+        try {
+          const db = tx as any;
+          let pkgToUpdate = null;
+          const details = orderData.packageDetails as any;
+          if (details?.preMadeId) {
+            pkgToUpdate = await db.package.findFirst({
+              where: { id: { equals: details.preMadeId, mode: 'insensitive' } }
             });
           }
+          if (!pkgToUpdate && orderData.packageName) {
+            pkgToUpdate = await db.package.findFirst({
+              where: { name: { equals: orderData.packageName, mode: 'insensitive' } }
+            });
+          }
+
+          if (pkgToUpdate) {
+            const updatePkgRes = await db.package.updateMany({
+              where: {
+                id: pkgToUpdate.id,
+                availableSlots: { gt: 0 }
+              },
+              data: {
+                availableSlots: { decrement: 1 }
+              }
+            });
+
+            if (updatePkgRes.count === 0) {
+              throw new Error(`Celebration package "${pkgToUpdate.name}" is completely sold out.`);
+            }
+
+            const freshPkg = await db.package.findUnique({ where: { id: pkgToUpdate.id } });
+            if (freshPkg && freshPkg.availableSlots <= 0) {
+              await db.package.update({
+                where: { id: freshPkg.id },
+                data: { isOutOfStock: true }
+              });
+
+              await tx.adminNotification.create({
+                data: {
+                  id: `NOTIF-${Date.now().toString().slice(-6)}`,
+                  type: 'OUT_OF_STOCK',
+                  title: '⚠️ Package Out of Stock',
+                  message: `Package "${freshPkg.name}" has reached 0 available slots and is now completely SOLD OUT / Out of Stock!`,
+                  orderId: orderData.id || undefined,
+                  read: false,
+                  createdAt: new Date()
+                }
+              });
+            }
+          }
+        } catch (pkgErr: any) {
+          if (pkgErr.message?.includes('sold out')) {
+            throw pkgErr;
+          }
+          console.error('Package slot update error:', pkgErr);
         }
-      } catch (pkgErr) {
-        console.error('Failed to update package available slots on order creation:', pkgErr);
       }
-    }
 
-    const formattedOrder = this.formatOrder(createdOrder);
-    const formattedNotification: AdminNotification = {
-      ...notif,
-      type: notif.type as AdminNotification['type'],
-      orderId: notif.orderId || undefined,
-      createdAt: notif.createdAt.toISOString()
-    };
+      // 3. Create Order
+      const createdOrder = await tx.order.create({
+        data: {
+          id: orderData.id || `ORD-${Date.now().toString().slice(-6)}`,
+          userId: orderData.userId || null,
+          customerName: orderData.customerName || 'Valued Customer',
+          customerPhone: normalizeEthiopianPhone(orderData.customerPhone || ''),
+          customerEmail: orderData.customerEmail || null,
+          deliveryLocation: isDeliveryEffective ? (orderData.deliveryLocation || orderData.deliveryAddress || null) : 'Reservation - Delivery arranged on final payment',
+          
+          isDelivery: isDeliveryEffective,
+          deliveryAddress: isDeliveryEffective ? (orderData.deliveryAddress || orderData.deliveryLocation || null) : 'Reservation - Delivery arranged on final payment',
+          deliveryLatitude: isDeliveryEffective && orderData.deliveryLatitude !== undefined ? Number(orderData.deliveryLatitude) : null,
+          deliveryLongitude: isDeliveryEffective && orderData.deliveryLongitude !== undefined ? Number(orderData.deliveryLongitude) : null,
+          pickupAddress: orderData.pickupAddress || null,
+          pickupLatitude: isDeliveryEffective && orderData.pickupLatitude !== undefined ? Number(orderData.pickupLatitude) : null,
+          pickupLongitude: isDeliveryEffective && orderData.pickupLongitude !== undefined ? Number(orderData.pickupLongitude) : null,
+          distanceKm: isDeliveryEffective && orderData.distanceKm !== undefined ? Number(orderData.distanceKm) : null,
+          distanceCategory: isDeliveryEffective ? (orderData.distanceCategory || null) : null,
+          vehicleType: isDeliveryEffective ? (orderData.vehicleType || null) : null,
+          vehicleName: isDeliveryEffective ? (orderData.vehicleName || null) : null,
+          deliveryFee: isDeliveryEffective ? Number(orderData.deliveryFee || 0) : 0,
+          estimatedDurationMinutes: isDeliveryEffective && orderData.estimatedDurationMinutes !== undefined ? Number(orderData.estimatedDurationMinutes) : null,
+          
+          animalId: orderData.animalId || null,
+          animalBreed: orderData.animalBreed || null,
+          animalType: orderData.animalType || null,
+          animalPrice: orderData.animalPrice !== undefined ? Number(orderData.animalPrice) : null,
+          
+          isPackage: Boolean(orderData.isPackage),
+          packageName: orderData.packageName || null,
+          packageDetails: orderData.packageDetails || null,
+          
+          isReservation,
+          depositAmount,
+          remainingAmount,
+          finalPaymentSlipUrl: null,
 
-    return { order: formattedOrder, notification: formattedNotification, animal: updatedAnimal };
+          selectedServices: orderData.selectedServices || [],
+          servicesFee: Number(orderData.servicesFee || 0),
+          totalAmount,
+          paymentMethod: orderData.paymentMethod || 'Telebirr',
+          bankAccountId: orderData.bankAccountId || null,
+          paymentSlipUrl: orderData.paymentSlipUrl || null,
+          transactionReference: orderData.transactionReference || null,
+          customerNotes: orderData.customerNotes || null,
+          status,
+          adminNotes: orderData.adminNotes || null,
+          createdAt: orderData.createdAt ? new Date(orderData.createdAt) : new Date(),
+          updatedAt: orderData.updatedAt ? new Date(orderData.updatedAt) : new Date()
+        }
+      });
+
+      // 4. Create Notification
+      const isMeatByKg = Boolean((orderData as any).isMeatByKg || (orderData as any).packageDetails?.isMeatByKg);
+      let notifType = isReservation ? 'NEW_RESERVATION_DEPOSIT' : 'NEW_ORDER_SLIP';
+      let notifTitle = isReservation ? '🛡️ New 50% Reservation Deposit Slip' : '📦 New Payment Slip Uploaded';
+      if (isMeatByKg) {
+        notifType = 'NEW_MEAT_ORDER';
+        notifTitle = '🥩 New Raw Meat (Ox/Beef) Order';
+      }
+      const customerPhoneStr = orderData.customerPhone ? ` [📞 ${orderData.customerPhone}]` : '';
+      const notifMsg = isMeatByKg
+        ? `${orderData.customerName}${customerPhoneStr} ordered ${orderData.animalBreed || 'Raw Beef by KG'} (${totalAmount.toLocaleString()} ETB). Please inspect the payment slip and approve.`
+        : isReservation
+        ? `${orderData.customerName}${customerPhoneStr} uploaded a 50% reservation deposit (${(depositAmount || totalAmount * 0.5).toLocaleString()} ETB of ${totalAmount.toLocaleString()} ETB) for ${orderData.packageName || orderData.animalBreed || 'Order'}.`
+        : `${orderData.customerName}${customerPhoneStr} uploaded a payment slip for ${orderData.packageName || orderData.animalBreed || 'Order'} - ${totalAmount.toLocaleString()} ETB.`;
+
+      const notif = await tx.adminNotification.create({
+        data: {
+          id: `NOTIF-${Date.now().toString().slice(-6)}`,
+          type: notifType,
+          title: notifTitle,
+          message: notifMsg,
+          orderId: createdOrder.id,
+          read: false,
+          createdAt: new Date()
+        }
+      });
+
+      const formattedOrder = PostgresDB.formatOrder(createdOrder);
+      const formattedNotification: AdminNotification = {
+        ...notif,
+        type: notif.type as AdminNotification['type'],
+        orderId: notif.orderId || undefined,
+        createdAt: notif.createdAt.toISOString()
+      };
+
+      return { order: formattedOrder, notification: formattedNotification, animal: updatedAnimal };
+    });
   }
 
   // Customer uploads the 2nd slip (remaining 50% balance + delivery if chosen)
@@ -990,8 +1038,8 @@ export class PostgresDB {
     } else {
       updatePayload.isDelivery = false;
       updatePayload.deliveryFee = 0;
-      updatePayload.deliveryLocation = 'Self Pickup from Arat Kilo Farm Facility';
-      updatePayload.deliveryAddress = 'Self Pickup from Arat Kilo Farm Facility';
+      updatePayload.deliveryLocation = 'Self Pickup from Arat Kilo Livestock Facility';
+      updatePayload.deliveryAddress = 'Self Pickup from Arat Kilo Livestock Facility';
     }
 
     if (deliveryData?.customerNotes) {
@@ -1007,7 +1055,7 @@ export class PostgresDB {
 
     const deliveryNote = updatedOrder.isDelivery
       ? ` with Doorstep Delivery (${updatedOrder.vehicleName || updatedOrder.vehicleType || 'Vehicle'}, Fee: ${(updatedOrder.deliveryFee || 0).toLocaleString()} ETB)`
-      : ` (Farm Pickup)`;
+      : ` (Hub Pickup)`;
 
     const totalPaidNow = (updatedOrder.remainingAmount || 0) + (updatedOrder.deliveryFee || 0);
     const customerPhoneStr = updatedOrder.customerPhone ? ` [📞 ${updatedOrder.customerPhone}]` : '';
@@ -1331,7 +1379,7 @@ export class PostgresDB {
     };
   }
 
-  // Admin updates farm pickup status: 'pickup_ready' or 'completed'
+  // Admin updates hub pickup status: 'pickup_ready' or 'completed'
   public static async updatePickupStatus(
     orderId: string,
     adminName: string,
@@ -1358,8 +1406,8 @@ export class PostgresDB {
       data: {
         id: `NOTIF-${Date.now().toString().slice(-6)}`,
         type: 'GENERAL',
-        title: isCompleted ? '🤝 Livestock Picked Up & Completed' : '📦 Order Ready for Farm Pickup',
-        message: `Order ${updatedOrder.id} (${updatedOrder.packageName || updatedOrder.animalBreed}) was marked as ${isCompleted ? 'PICKED UP & COMPLETED' : 'READY FOR FARM PICKUP'} by ${adminName}.`,
+        title: isCompleted ? '🤝 Livestock Picked Up & Completed' : '📦 Order Ready for Hub Pickup',
+        message: `Order ${updatedOrder.id} (${updatedOrder.packageName || updatedOrder.animalBreed}) was marked as ${isCompleted ? 'PICKED UP & COMPLETED' : 'READY FOR HUB PICKUP'} by ${adminName}.`,
         orderId: updatedOrder.id,
         read: false,
         createdAt: new Date()

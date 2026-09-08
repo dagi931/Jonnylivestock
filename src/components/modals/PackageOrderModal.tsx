@@ -6,6 +6,7 @@ import { useLanguage } from '../../context/LanguageContext';
 import { api, BankAccount } from '../../services/api';
 import { formatPrice, getPackageTitle, cleanEnglishText } from '../../utils/formatters';
 import { sanitizeClientError } from '../../utils/errorSanitizer';
+import { validatePackageLivestock } from '../../utils/packageValidators';
 import {
   X,
   UploadCloud,
@@ -318,8 +319,8 @@ export const PackageOrderModal: React.FC<PackageOrderModalProps> = ({
     if (paymentMode === 'full' && isDelivery && deliveryQuoteData && !deliveryQuoteData.isWithinRange) {
       setSubmitError(
         isAmharic
-          ? 'የተመረጠው አድራሻ ከ30 ኪ.ሜ ማድረሻ ክልል ውጪ ነው። እባክዎ በአዲስ አበባ ውስጥ ቅርብ አድራሻ ይምረጡ ወይም ከእርሻው መውሰድ ይምረጡ።'
-          : 'Delivery is out of range (>30 km). Please select an address within Addis Ababa or choose Farm Pickup.'
+          ? 'የተመረጠው አድራሻ ከ30 ኪ.ሜ ማድረሻ ክልል ውጪ ነው። እባክዎ በአዲስ አበባ ውስጥ ቅርብ አድራሻ ይምረጡ ወይም ከማዕከሉ መውሰድ ይምረጡ።'
+          : 'Delivery is out of range (>30 km). Please select an address within Addis Ababa or choose Hub Pickup.'
       );
       return;
     }
@@ -328,6 +329,14 @@ export const PackageOrderModal: React.FC<PackageOrderModalProps> = ({
         isAmharic
           ? 'እባክዎ ለዚህ ጭነት ተስማሚ ተሽከርካሪ ይምረጡ'
           : 'Please select a suitable delivery vehicle for this package order'
+      );
+      return;
+    }
+    if (customPackage && !validatePackageLivestock(customPackage.items).hasLivestock) {
+      setSubmitError(
+        isAmharic
+          ? 'ጥቅሉ ቢያንስ አንድ ሰንጋ በሬ ወይም በግ/ፍየል ማካተት አለበት።'
+          : 'Custom celebration packages must include at least one Cow/Ox or Sheep/Goat.'
       );
       return;
     }
@@ -360,7 +369,7 @@ export const PackageOrderModal: React.FC<PackageOrderModalProps> = ({
         formData.append('deliveryLocation', 'Reservation - Delivery arranged on final payment');
         formData.append('deliveryFee', '0');
       } else {
-        formData.append('deliveryLocation', 'Self Pickup from Arat Kilo Farm Facility');
+        formData.append('deliveryLocation', 'Self Pickup from Arat Kilo Livestock Facility');
         formData.append('deliveryFee', '0');
       }
 
@@ -548,7 +557,7 @@ export const PackageOrderModal: React.FC<PackageOrderModalProps> = ({
                 {paymentMode === 'full' ? (
                   <div className="flex justify-between items-center text-xs">
                     <span className="opacity-70">{isAmharic ? 'የማድረሻ ሁኔታ:' : 'Delivery Preference:'}</span>
-                    <span className="font-medium">{isDelivery ? (isAmharic ? 'የበር ማድረሻ' : 'Doorstep Delivery') : (isAmharic ? 'ከእርሻው መውሰድ' : 'Farm Pickup')}</span>
+                    <span className="font-medium">{isDelivery ? (isAmharic ? 'የበር ማድረሻ' : 'Doorstep Delivery') : (isAmharic ? 'ከማዕከሉ መውሰድ' : 'Hub Pickup')}</span>
                   </div>
                 ) : (
                   <div className="flex justify-between items-center text-xs text-amber-500">
@@ -808,7 +817,7 @@ export const PackageOrderModal: React.FC<PackageOrderModalProps> = ({
                               <MapPin className="w-5 h-5" />
                             </div>
                             <div className="min-w-0">
-                              <div className={`text-xs sm:text-sm font-bold truncate ${!isDelivery ? 'text-black' : ''}`}>{isAmharic ? 'ከእርሻው መውሰድ (Pickup)' : 'Farm Pickup'}</div>
+                              <div className={`text-xs sm:text-sm font-bold truncate ${!isDelivery ? 'text-black' : ''}`}>{isAmharic ? 'ከማዕከሉ መውሰድ (Pickup)' : 'Hub Pickup'}</div>
                               <div className={`text-[11px] truncate ${!isDelivery ? 'text-black/80 font-medium' : 'opacity-70'}`}>Arat Kilo Facility (Free)</div>
                             </div>
                           </button>
@@ -841,8 +850,8 @@ export const PackageOrderModal: React.FC<PackageOrderModalProps> = ({
                           </div>
                           <p className="text-xs opacity-80 leading-relaxed">
                             {isAmharic
-                              ? 'የበር ማድረሻ ወይም ከእርሻው የመውሰድ አማራጭ የሚመረጠው ቀሪውን 50% ክፍያ ሲጨርሱ ነው። በዚህ ቅድመ-ክፍያ ምንም የማጓጓዣ ክፍያ አይታሰብም።'
-                              : 'Doorstep delivery or farm pickup will be chosen when finishing your reservation (paying the remaining 50% balance). No delivery fee is charged during initial reservation.'}
+                              ? 'የበር ማድረሻ ወይም ከማዕከሉ የመውሰድ አማራጭ የሚመረጠው ቀሪውን 50% ክፍያ ሲጨርሱ ነው። በዚህ ቅድመ-ክፍያ ምንም የማጓጓዣ ክፍያ አይታሰብም።'
+                              : 'Doorstep delivery or hub pickup will be chosen when finishing your reservation (paying the remaining 50% balance). No delivery fee is charged during initial reservation.'}
                           </p>
                         </div>
                       </div>
@@ -940,7 +949,7 @@ export const PackageOrderModal: React.FC<PackageOrderModalProps> = ({
                                 : selectedVehicleQuote
                                   ? formatPrice(selectedVehicleQuote.deliveryFee)
                                   : '0 ETB'
-                              : <span className="text-neutral-400">{isAmharic ? 'ከእርሻው መውሰድ (0 ብር)' : 'Pickup (0 ETB)'}</span>}
+                              : <span className="text-neutral-400">{isAmharic ? 'ከማዕከሉ መውሰድ (0 ብር)' : 'Pickup (0 ETB)'}</span>}
                           </span>
                         </div>
                       ) : (

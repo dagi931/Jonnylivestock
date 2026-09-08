@@ -7,12 +7,19 @@ const JWT_SECRET = process.env.JWT_SECRET || 'jonny_livestock_jwt_secret_key_202
 
 router.get('/', (req: Request, res: Response): void => {
   // Set headers for Server-Sent Events (SSE)
+  const origin = req.headers.origin;
+  const isAllowedOrigin = origin && (
+    origin === 'http://localhost:5173' ||
+    origin === 'http://localhost:4173' ||
+    origin === process.env.FRONTEND_URL
+  );
+
   res.writeHead(200, {
     'Content-Type': 'text/event-stream',
     'Cache-Control': 'no-cache, no-transform',
     'Connection': 'keep-alive',
     'X-Accel-Buffering': 'no',
-    'Access-Control-Allow-Origin': '*'
+    ...(isAllowedOrigin ? { 'Access-Control-Allow-Origin': origin, 'Access-Control-Allow-Credentials': 'true' } : {})
   });
 
   // Flush headers
@@ -26,13 +33,13 @@ router.get('/', (req: Request, res: Response): void => {
 
   if (token) {
     try {
-      const decoded = jwt.verify(token, JWT_SECRET) as any;
+      const decoded = jwt.verify(token, JWT_SECRET, { algorithms: ['HS256'] }) as any;
       clientInfo = {
         userId: decoded.id,
         role: decoded.role
       };
     } catch {
-      // Ignore token decoding error, connect as guest/customer
+      // Ignore invalid token, connect as guest/unauthenticated
     }
   }
 

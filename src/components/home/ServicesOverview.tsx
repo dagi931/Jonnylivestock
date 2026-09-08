@@ -22,7 +22,7 @@ export const ServicesOverview: React.FC = () => {
   const amharicServiceData: Record<string, { title: string; desc: string }> = {
     'delivery': {
       title: 'የቀጥታ ከብትና በጎች ማድረስ',
-      desc: 'ከአዋሬው እርሻችን በቀጥታ ወደ ቤትዎ ወይም ድርጅትዎ በአስተማማኝ ተሽከርካሪና ረዳት እረኞች ማድረስ።'
+      desc: 'ከአዋሬው የከብት ማዕከላችን በቀጥታ ወደ ቤትዎ ወይም ድርጅትዎ በአስተማማኝ ተሽከርካሪና ረዳቶች ማድረስ።'
     },
     'slaughter-prep': {
       title: 'በቦታው ላይ የዕርድና የስጋ ዝግጅት አገልግሎት',

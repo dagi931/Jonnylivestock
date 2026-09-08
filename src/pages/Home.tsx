@@ -70,7 +70,7 @@ export const Home: React.FC = () => {
                 </h4>
                 <p className="text-[11px] sm:text-xs opacity-90 mt-0.5 leading-relaxed truncate sm:whitespace-normal">
                   {isAmharic
-                    ? `እንኳን ወደ ጆኒ ከብት እርባታ በደህና መጡ ${newUserName ? newUserName + ' ' : ''}! አሁን ከብቶችን እና የበዓል ጥቅሎችን በቀላሉ መያዝ እና ማዘዝ ይችላሉ።`
+                    ? `እንኳን ወደ ጆኒ የቀንድ ከብት አቅራቢ በደህና መጡ ${newUserName ? newUserName + ' ' : ''}! አሁን ከብቶችን እና የበዓል ጥቅሎችን በቀላሉ መያዝ እና ማዘዝ ይችላሉ።`
                     : `Welcome to Jonny Livestock${newUserName ? ', ' + newUserName : ''}! Your account is now active. You can now reserve livestock and customize celebration packages.`}
                 </p>
               </div>

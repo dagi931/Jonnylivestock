@@ -17,6 +17,7 @@ export interface Translations {
     browseSheep: string;
     browseGoats: string;
     browseCows: string;
+    browseMeat: string;
     viewAllSheep: string;
     viewAllGoats: string;
     viewAllCows: string;
@@ -230,12 +231,13 @@ export const translations: Record<Language, Translations> = {
       browseSheep: 'Browse Sheep',
       browseGoats: 'Browse Goats',
       browseCows: 'Browse Cows',
+      browseMeat: 'Browse Meat',
       viewAllSheep: 'View All Sheep',
       viewAllGoats: 'View All Goats',
       viewAllCows: 'View All Cows',
       viewAll: 'View All',
       details: 'Details',
-      farmPrice: 'Farm Price',
+      farmPrice: 'Direct Price',
       contactSeller: 'Contact Seller',
       callSeller: 'Call Seller',
       whatsApp: 'WhatsApp',
@@ -275,23 +277,23 @@ export const translations: Record<Language, Translations> = {
     hero: {
       headlineLine1: 'Your One-Stop',
       headlineHighlight: 'Livestock Shop',
-      subtext: 'Browse our sheep, goats and cows, then contact us directly to arrange your purchase and additional services.',
-      valuePoint1: 'Sheep, Goats & Cows',
+      subtext: 'Browse our sheep, goats, cows, and fresh meat, then contact us directly to arrange your order and additional services.',
+      valuePoint1: 'Sheep, Goats, Cows & Prime Meat',
       valuePoint2: 'Exact Scaled Weights',
       valuePoint3: 'Delivery & Slaughter Options'
     },
     trust: {
       badge: 'Why Choose Us',
       title: 'Built on Trust & Simplicity',
-      description: 'We eliminate broker markups and guesswork by connecting you directly with our Aware farm. Every sheep, goat, and cattle is health-verified, accurately weighed, and backed by fast doorstep delivery, skilled butchering, and wholesale kitchen meat supply across Addis Ababa.',
+      description: 'We eliminate broker markups and guesswork by connecting you directly with our Aware livestock hub. Every sheep, goat, and cattle is health-verified, accurately weighed, and backed by fast doorstep delivery, skilled butchering, and wholesale kitchen meat supply across Addis Ababa.',
       card1Title: 'Quality Animals',
       card1Desc: 'Carefully selected sheep, goats, and cows with strong physique and healthy development.',
       card2Title: 'Honest Pricing',
       card2Desc: 'Clear and transparent pricing with no hidden broker markups or surprise fees.',
-      card3Title: 'Direct Seller',
-      card3Desc: 'Deal directly with the single livestock owner from initial inquiry to pickup.',
+      card3Title: 'Direct Supplier',
+      card3Desc: 'Deal directly with the dedicated livestock supplier from initial inquiry to pickup.',
       card4Title: 'Easy Contact',
-      card4Desc: 'Reach the seller quickly by phone or WhatsApp to arrange visits and reservations.'
+      card4Desc: 'Reach the supplier quickly by phone or WhatsApp to arrange visits and reservations.'
     },
     howItWorks: {
       badge: 'Simple Process',
@@ -302,17 +304,17 @@ export const translations: Record<Language, Translations> = {
       step2Title: 'Choose',
       step2Desc: 'View photos, weight, breed, price, location, and optional video preview to find the right animal.',
       step3Title: 'Contact',
-      step3Desc: 'Call or WhatsApp the seller directly to confirm hold, arrange delivery, or request preparation services.'
+      step3Desc: 'Call or WhatsApp the supplier directly to confirm hold, arrange delivery, or request preparation services.'
     },
     servicesOverview: {
-      badge: 'Farm to Kitchen & Table',
-      title: 'Meat Supply & Farm Services',
+      badge: 'Direct Supply to Kitchen & Table',
+      title: 'Meat Supply & Livestock Services',
       subtext: 'Meat by the kg for hotels/restaurants, freshly slaughtered sheep delivery, live transport from Aware, and on-site single-worker butchering.',
       exploreAll: 'Explore All 5 Services',
       viewService: 'View Service'
     },
     cta: {
-      badge: 'Direct Livestock Farm',
+      badge: 'Direct Livestock Supplier',
       title: 'Looking for a Quality Sheep, Goat or Cow?',
       subtext: 'Browse our available animals and contact us today. We are ready to answer your questions, arrange delivery, and schedule viewing.',
       callPhone: 'Call'
@@ -328,13 +330,13 @@ export const translations: Record<Language, Translations> = {
       soldNotice: 'This animal has already been sold. Please check our other available listings.',
       requestAnimalAndServices: 'Request Animal & Services',
       askQuestionConsultation: 'Ask a Question / Custom Consultation',
-      singleOwnerNotice: 'Single livestock owner · Direct phone & in-person pickup',
+      singleOwnerNotice: 'Direct livestock supplier · Direct phone & in-person pickup',
       otherAvailable: 'Other Available',
       animalNotFound: 'Animal Not Found',
       animalNotFoundDesc: 'The animal ID you requested does not exist or has been removed from our listings.'
     },
     servicesPage: {
-      badge: 'Farm Services & Commercial Supply',
+      badge: 'Livestock Services & Commercial Supply',
       title: 'Meat in KG, Fresh Slaughter & Livestock Services',
       subtext: 'From wholesale meat in kilograms for hotels & restaurants to freshly slaughtered sheep home delivery, live animal transit from Aware, and on-site dedicated worker butchering.',
       orderMeatByKg: 'Order Meat in KG',
@@ -346,11 +348,11 @@ export const translations: Record<Language, Translations> = {
       hotelConsultationSubtext: 'We supply sheep, goat & cow meat by the kg for hotels/caterers, and deliver freshly slaughtered animals directly.'
     },
     aboutPage: {
-      badge: 'About Our Livestock Farm',
-      title: 'Single-Seller Quality Sheep, Goats, Cows & Farm-to-Table Services',
-      heroDesc: 'is an independent livestock operation located in Aware, Addis Ababa. We raise, select, and sell prime sheep, goats, and cows directly to customers, backed by full delivery, handler assistance, and sanitary meat preparation services.',
-      differenceTitle: 'The Direct-from-Owner Difference',
-      differenceDesc: 'Unlike confusing multi-vendor marketplaces or middlemen-crowded trading lots, you work directly with the business owner who manages every animal on site.',
+      badge: 'About Our Livestock Supply',
+      title: 'Direct Quality Sheep, Goats, Cows & Meat Supply Services',
+      heroDesc: 'is an independent livestock supplier located in Aware, Addis Ababa. We source, select, and supply prime sheep, goats, and cows directly to customers, backed by full delivery, handler assistance, and sanitary meat preparation services.',
+      differenceTitle: 'The Direct-from-Supplier Difference',
+      differenceDesc: 'Unlike confusing multi-vendor marketplaces or middlemen-crowded trading lots, you work directly with the dedicated supplier who manages every animal on site.',
       point1Title: 'Three Primary Livestock Categories',
       point1Desc: 'Handpicked Debrebirhan, Ginchi, Wolayita & Arsi breeds across sheep, goats, and cattle.',
       point2Title: 'Honest Scaled Weights',
@@ -358,38 +360,38 @@ export const translations: Record<Language, Translations> = {
       point3Title: 'Complete Service Coordination',
       point3Desc: 'Safe delivery vehicles, accompanying handlers, sanitary slaughter, and customized meat portioning.',
       point4Title: 'Personalized Customer Attention',
-      point4Desc: 'Direct phone consultations, WhatsApp photo updates, and guided farm visits.',
+      point4Desc: 'Direct phone consultations, WhatsApp photo updates, and guided visits.',
       sheepCardTitle: 'Sheep Selection',
       sheepCardDesc: 'High-pasture Debrebirhan, Ginchi, Wolayita, and Arsi sheep with sound health and frames.',
       goatCardTitle: 'Goat Selection',
       goatCardDesc: 'Muscular Debrebirhan, Ginchi, Wolayita, and Arsi goats known for excellent meat yield and high feeding efficiency.',
       cowCardTitle: 'Cow & Cattle Selection',
       cowCardDesc: 'Prime Debrebirhan, Ginchi, Wolayita, and Arsi cattle ideal for holiday banquets, breeding, or meat.',
-      whyChooseTitle: 'Built on Trust, Farm Health & Transparency',
+      whyChooseTitle: 'Built on Trust, Livestock Quality & Transparency',
       whyChooseDesc: 'Rooted in animal welfare and straightforward pricing, Jonny Livestock provides a dependable partnership whether you are purchasing a single animal for a holiday feast or securing a high-volume commercial meat supply for hotels and catering kitchens across Addis Ababa.',
-      trust1Title: 'Direct Farm Owner',
-      trust1Desc: 'Deal directly with the single owner with zero middleman fees or conflicting broker claims.',
+      trust1Title: 'Direct Livestock Supplier',
+      trust1Desc: 'Deal directly with the dedicated supplier with zero middleman fees or conflicting broker claims.',
       trust2Title: 'Certified Scale Weight',
       trust2Desc: 'Accurate weight documentation and visible health inspections for every animal in our flock.',
       trust3Title: 'Doorstep Transit & Handlers',
       trust3Desc: 'Dedicated transport fleet and trained yard handlers for smooth, stress-free offloading.',
       trust4Title: 'Custom Meat Preparation',
       trust4Desc: 'Precision cuts for Kitfo, Tre Kurt, and Wot prepared under strict sanitary standards.',
-      ctaLocation: 'Farm Location',
+      ctaLocation: 'Supplier Location',
       ctaTitle: 'Ready to Select Livestock or Arrange Services?',
-      ctaSubtext: 'Contact us directly to discuss your requirements, reserve an animal, or schedule a farm visit.',
+      ctaSubtext: 'Contact us directly to discuss your requirements, reserve an animal, or schedule a visit.',
       getInTouch: 'Get in Touch',
       exploreServices: 'Explore Services'
     },
     contactPage: {
       badge: 'Direct Communication',
       title: 'Contact the Seller',
-      subtext: 'Have a question about sheep, goats, or cows, wish to request livestock delivery or slaughter/meat preparation services, or want to schedule a farm visit? Reach out directly.',
+      subtext: 'Have a question about sheep, goats, or cows, wish to request livestock delivery or slaughter/meat preparation services, or want to schedule a visit? Reach out directly.',
       phoneTitle: 'Direct Phone Line',
       phoneDesc: 'Call directly for immediate inquiries and price confirmation.',
       whatsappTitle: 'WhatsApp Chat',
       whatsappDesc: 'Quick messaging, photos, location pins, and voice notes.',
-      locationTitle: 'Farm Location',
+      locationTitle: 'Supplier Location',
       hoursTitle: 'Business Hours',
       disclaimer: 'No Online Payment Required: Direct seller arrangements. Payment and handover occur upon in-person agreement or verified delivery.',
       formTitle: 'Send a Message',
@@ -403,7 +405,7 @@ export const translations: Record<Language, Translations> = {
       submitBtn: 'Send Inquiry to Seller',
       submittingBtn: 'Sending Message...',
       successTitle: 'Message Received',
-      successDesc: 'Thank you. Your message has been sent to our farm. We will review your inquiry and contact you promptly.',
+      successDesc: 'Thank you. Your message has been sent to our team. We will review your inquiry and contact you promptly.',
       sendAnotherBtn: 'Send Another Message'
     },
     footer: {
@@ -413,7 +415,7 @@ export const translations: Record<Language, Translations> = {
       visitingTitle: 'Visiting & Hours',
       visitingNote: 'In-person inspections are welcome. Please contact us before your arrival so we can assist you promptly.',
       allRightsReserved: 'All rights reserved.',
-      tagline: 'Single Seller Farm'
+      tagline: 'Direct Livestock Supplier'
     }
   },
   am: {
@@ -431,12 +433,13 @@ export const translations: Record<Language, Translations> = {
       browseSheep: 'በጎችን ይመልከቱ',
       browseGoats: 'ፍየሎችን ይመልከቱ',
       browseCows: 'ከብቶችን ይመልከቱ',
+      browseMeat: 'ስጋ ይመልከቱ',
       viewAllSheep: 'ሁሉንም በጎች እይ',
       viewAllGoats: 'ሁሉንም ፍየሎች እይ',
       viewAllCows: 'ሁሉንም ከብቶች እይ',
       viewAll: 'ሁሉንም እይ',
       details: 'ዝርዝር',
-      farmPrice: 'የእርሻ ዋጋ',
+      farmPrice: 'የአቅራቢ ዋጋ',
       contactSeller: 'ሻጩን ያግኙ',
       callSeller: 'ይደውሉ',
       whatsApp: 'ዋትስአፕ',
@@ -474,25 +477,25 @@ export const translations: Record<Language, Translations> = {
       weightRange: 'የክብደት ክልል (ኪሎ)'
     },
     hero: {
-      headlineLine1: 'ጆኒ ከብት እርባታ',
-      headlineHighlight: 'የታመነ የቀንድ ከብትና የበግ እርባታ',
-      subtext: 'ጥራት ያላቸውን በጎች፣ ፍየሎችና ከብቶች ይመልከቱ፤ በቀጥታ ከእርሻችን ባለቤት ጋር በመነጋገር ግዢዎንና ተጨማሪ አገልግሎቶችን ያጠናቁ።',
-      valuePoint1: 'በጎች፣ ፍየሎችና ከብቶች',
+      headlineLine1: 'ጆኒ የቀንድ ከብት አቅራቢ',
+      headlineHighlight: 'የታመነ የቀንድ ከብትና የበግ አቅራቢ',
+      subtext: 'ጥራት ያላቸውን በጎች፣ ፍየሎችና ከብቶች ይመልከቱ፤ በቀጥታ ከጆኒ የቀንድ ከብት አቅራቢ ጋር በመነጋገር ግዢዎንና ተጨማሪ አገልግሎቶችን ያጠናቁ።',
+      valuePoint1: 'በጎች፣ ፍየሎች፣ ከብቶችና ስጋ በኪሎ',
       valuePoint2: 'በትክክለኛ ሚዛን የተለኩ',
       valuePoint3: 'የማድረሻና የዕርድ አገልግሎት'
     },
     trust: {
       badge: 'ለምን እኛን ይመርጣሉ?',
       title: 'በእውነተኛ እምነትና ግልጽነት የተገነባ',
-      description: 'ያለ ደላላ ጣልቃ ገብነት በቀጥታ ከአዋሬው እርሻችን ጋር እናገናኝዎታለን። ሁሉም እንስሳ በጤና የተረጋገጠ፣ በሚዛን የተመዘነና አስተማማኝ የማድረሻ፣ የዕርድ እንዲሁም ለሆቴሎች የስጋ አቅርቦት ያለው ነው።',
+      description: 'ያለ ደላላ ጣልቃ ገብነት በቀጥታ ከአዋሬው የከብት አቅራቢ ማዕከላችን ጋር እናገናኝዎታለን። ሁሉም እንስሳ በጤና የተረጋገጠ፣ በሚዛን የተመዘነና አስተማማኝ የማድረሻ፣ የዕርድ እንዲሁም ለሆቴሎች የስጋ አቅርቦት ያለው ነው።',
       card1Title: 'ጥራት ያላቸው እንስሳት',
       card1Desc: 'በጥንቃቄ የተመረጡ ጤነኛና ጠንካራ አካል ያላቸው በጎች፣ ፍየሎችና ሰንጋዎች።',
       card2Title: 'ቀጥተኛና ግልጽ ዋጋ',
-      card2Desc: 'ያለ ደላላ ጭማሪ ግልጽና ፍትሃዊ የሆነ የቀጥታ እርሻ ዋጋ።',
-      card3Title: 'ቀጥተኛ የድርጅት ባለቤት',
-      card3Desc: 'ከመጀመሪያው ጥያቄ ጀምሮ እስከ ርክክብ ከእርሻው ባለቤት ጋር በቀጥታ ይነጋገራሉ።',
+      card2Desc: 'ያለ ደላላ ጭማሪ ግልጽና ፍትሃዊ የሆነ የቀጥታ አቅራቢ ዋጋ።',
+      card3Title: 'ቀጥተኛ የቀንድ ከብት አቅራቢ',
+      card3Desc: 'ከመጀመሪያው ጥያቄ ጀምሮ እስከ ርክክብ ከከብት አቅራቢው ጋር በቀጥታ ይነጋገራሉ።',
       card4Title: 'ቀላልና ፈጣን ግንኙነት',
-      card4Desc: 'በስልክ ወይም በዋትስአፕ በፍጥነት በማነጋገር ቦታ ማስያዝና እርሻውን መጎብኘት ይችላሉ።'
+      card4Desc: 'በስልክ ወይም በዋትስአፕ በፍጥነት በማነጋገር ቦታ ማስያዝና ማዕከሉን መጎብኘት ይችላሉ።'
     },
     howItWorks: {
       badge: 'ቀላል ሂደት',
@@ -506,14 +509,14 @@ export const translations: Record<Language, Translations> = {
       step3Desc: 'በስልክ ወይም በዋትስአፕ በቀጥታ በመደወል ቦታ ያስይዙ፤ የማድረሻና የዕርድ አገልግሎት ያዝዙ።'
     },
     servicesOverview: {
-      badge: 'ከእርሻ ወደ ማዕድ',
-      title: 'የስጋ አቅርቦትና የእርሻ አገልግሎቶች',
+      badge: 'ከአቅራቢው ወደ ማዕድ',
+      title: 'የስጋ አቅርቦትና ተዛማጅ አገልግሎቶች',
       subtext: 'ስጋ በኪሎ ለሆቴሎችና ሬስቶራንቶች፣ የታረደ ትኩስ በግ ማድረስ፣ የቀጥታ ከብት ትራንስፖርትና በቦታው ላይ የዕርድና የስጋ ማዘጋጀት አገልግሎት።',
       exploreAll: 'ሁሉንም 5 አገልግሎቶች እይ',
       viewService: 'አገልግሎቱን እይ'
     },
     cta: {
-      badge: 'የቀጥታ ከብት እርባታ',
+      badge: 'የቀጥታ የቀንድ ከብት አቅራቢ',
       title: 'ጥራት ያለው በግ፣ ፍየል ወይም ሰንጋ ይፈልጋሉ?',
       subtext: 'ያሉንን እንስሳት ይመልከቱ፤ ዛሬውኑ ያነጋግሩን። ጥያቄዎትን ለመመለስ፣ ማድረሻ ለማመቻቸትና ጉብኝት ለማዘጋጀት ዝግጁ ነን።',
       callPhone: 'ይደውሉ'
@@ -529,13 +532,13 @@ export const translations: Record<Language, Translations> = {
       soldNotice: 'ይህ እንስሳ ተሽጧል። እባክዎ ሌሎች ያሉንን ዝርዝሮች ይመልከቱ።',
       requestAnimalAndServices: 'እንስሳውንና አገልግሎቶችን እዘዝ',
       askQuestionConsultation: 'ጥያቄ ለመጠየቅ / የምክር አገልግሎት',
-      singleOwnerNotice: 'ቀጥተኛ የእርሻ ባለቤት · በስልክና በአካል ርክክብ',
+      singleOwnerNotice: 'ቀጥተኛ የቀንድ ከብት አቅራቢ · በስልክና በአካል ርክክብ',
       otherAvailable: 'ሌሎች የሚገኙ',
       animalNotFound: 'እንስሳው አልተገኘም',
       animalNotFoundDesc: 'የጠየቁት የእንስሳ መለያ ቁጥር አልተገኘም ወይም ከዝርዝር ተሰርዟል።'
     },
     servicesPage: {
-      badge: 'የእርሻ አገልግሎቶችና የንግድ ስጋ አቅርቦት',
+      badge: 'የከብትና የስጋ አቅርቦት አገልግሎቶች',
       title: 'ስጋ በኪሎ፣ ትኩስ ዕርድና የከብት አገልግሎቶች',
       subtext: 'ለሆቴሎችና ሬስቶራንቶች ስጋ በኪሎ ከማቅረብ ጀምሮ የታረደ ትኩስ በግ ማድረስ፣ የቀጥታ ትራንስፖርትና ባለሙያ ቀጣሪ የዕርድ አገልግሎት።',
       orderMeatByKg: 'ስጋ በኪሎ እዘዝ',
@@ -547,11 +550,11 @@ export const translations: Record<Language, Translations> = {
       hotelConsultationSubtext: 'የበግ፣ የፍየልና የከብት ስጋ በኪሎ ለሆቴሎችና ምግብ ቤቶች እናቀርባለን፤ የታረደ በግም ፈጥነን እናደርሳለን።'
     },
     aboutPage: {
-      badge: 'ስለ እርሻችን',
-      title: 'የታመነ የቀንድ ከብቶች፣ በጎች፣ ፍየሎችና የስጋ አቅርቦት እርሻ',
-      heroDesc: 'በአዲስ አበባ አዋሬ የሚገኝ ራሱን የቻለ የቀንድ ከብትና የበግ እርባታ ድርጅት ነው። ምርጥ በጎችን፣ ፍየሎችንና ከብቶችን በቀጥታ ለደንበኞች ያቀርባል፤ ሙሉ የማድረሻና የዕርድ ድጋፍ ይሰጣል።',
-      differenceTitle: 'የቀጥታ ባለቤት ልዩነት',
-      differenceDesc: 'ግራ ከሚያጋቡ የደላላ ገበያዎችና አሻሻጮች በተለየ፣ በእርሻው ላይ እያንዳንዱን እንስሳ ከሚንከባከበው ባለቤት ጋር በቀጥታ ይሰራሉ።',
+      badge: 'ስለ ድርጅታችን',
+      title: 'የታመነ የቀንድ ከብቶች፣ በጎች፣ ፍየሎችና የስጋ አቅራቢ',
+      heroDesc: 'በአዲስ አበባ አዋሬ የሚገኝ ራሱን የቻለ የቀንድ ከብትና የበግ አቅራቢ ድርጅት ነው። ምርጥ በጎችን፣ ፍየሎችንና ከብቶችን በቀጥታ ለደንበኞች ያቀርባል፤ ሙሉ የማድረሻና የዕርድ ድጋፍ ይሰጣል።',
+      differenceTitle: 'የቀጥታ አቅራቢ ልዩነት',
+      differenceDesc: 'ግራ ከሚያጋቡ የደላላ ገበያዎችና አሻሻጮች በተለየ፣ እያንዳንዱን እንስሳ በቀጥታ ከሚያቀርበው አቅራቢ ጋር ይሰራሉ።',
       point1Title: 'ሶስት ዋና ዋና የእንስሳት ዘርፎች',
       point1Desc: 'የደብረ ብርሃን፣ የጊንጪ፣ የወላይታና የአርሲ ዝርያዎች በበግ፣ ፍየልና ሰንጋዎች።',
       point2Title: 'ትክክለኛ የሚዛን ክብደት',
@@ -559,7 +562,7 @@ export const translations: Record<Language, Translations> = {
       point3Title: 'የተሟላ የአገልግሎት ቅንጅት',
       point3Desc: 'አስተማማኝ የማጓጓዣ ተሽከርካሪዎች፣ ረዳት እረኞች፣ ንጹህ ዕርድና የስጋ መቆራረጥ።',
       point4Title: 'ቀጥተኛ የደንበኛ እንክብካቤ',
-      point4Desc: 'የቀጥታ የስልክ ምክክር፣ የዋትስአፕ የፎቶ መረጃዎችና የእርሻ ጉብኝት።',
+      point4Desc: 'የቀጥታ የስልክ ምክክር፣ የዋትስአፕ የፎቶ መረጃዎችና የማዕከሉ ጉብኝት።',
       sheepCardTitle: 'የበጎች ምርጫ',
       sheepCardDesc: 'የደብረ ብርሃን፣ የጊንጪ፣ የወላይታና የአርሲ ምርጥ የበግ ዝርያዎች።',
       goatCardTitle: 'የፍየሎች ምርጫ',
@@ -567,30 +570,30 @@ export const translations: Record<Language, Translations> = {
       cowCardTitle: 'የከብቶችና ሰንጋዎች ምርጫ',
       cowCardDesc: 'ለበዓል ድግስና ለስጋ ንግድ የሚሆኑ የደብረ ብርሃን፣ የጊንጪ፣ የወላይታና የአርሲ ምርጥ ሰንጋዎች።',
       whyChooseTitle: 'በእምነት፣ በእንስሳት ጤናና በግልጽነት የተገነባ',
-      whyChooseDesc: 'ለበዓል ድግስ አንድ እንስሳ ቢገዙ ወይም ለሆቴልና ሬስቶራንት ቀጣይነት ያለው ከፍተኛ የስጋ አቅርቦት ቢፈልጉ፣ ጆኒ ከብት እርባታ አስተማማኝ አጋርዎ ነው።',
-      trust1Title: 'የቀጥታ እርሻ ባለቤት',
-      trust1Desc: 'ያለ ደላላ ኮሚሽንና ጭማሪ በቀጥታ ከባለቤቱ ጋር ይገበያዩ።',
+      whyChooseDesc: 'ለበዓል ድግስ አንድ እንስሳ ቢገዙ ወይም ለሆቴልና ሬስቶራንት ቀጣይነት ያለው ከፍተኛ የስጋ አቅርቦት ቢፈልጉ፣ ጆኒ የቀንድ ከብት አቅራቢ አስተማማኝ አጋርዎ ነው።',
+      trust1Title: 'የቀጥታ ከብት አቅራቢ',
+      trust1Desc: 'ያለ ደላላ ኮሚሽንና ጭማሪ በቀጥታ ከአቅራቢው ጋር ይገበያዩ።',
       trust2Title: 'የተረጋገጠ የሚዛን ክብደት',
       trust2Desc: 'ትክክለኛ የክብደት ሰነድና የጤና ምርመራ የተደረገላቸው እንስሳት።',
       trust3Title: 'እስከ ደጃፍ ማድረሻና አስረካቢዎች',
       trust3Desc: 'የተዘጋጁ ተሽከርካሪዎችና እንስሳቱን በጥንቃቄ የሚያስረክቡ እረኞች።',
       trust4Title: 'ልዩ የስጋ ዝግጅት',
       trust4Desc: 'ለክትፎ፣ ለጥሬ ቁርጥ እና ለወጥ የሚሆን ስጋ በንጽህና ይዘጋጃል።',
-      ctaLocation: 'የእርሻው አድራሻ',
+      ctaLocation: 'የአቅራቢው አድራሻ',
       ctaTitle: 'ከብት ለመምረጥ ወይም አገልግሎት ለማዘዝ ዝግጁ ኖት?',
-      ctaSubtext: 'ፍላጎትዎትን ለመወያየት፣ እንስሳ ለማስያዝ ወይም እርሻችንን ለመጎብኘት በቀጥታ ያነጋግሩን።',
+      ctaSubtext: 'ፍላጎትዎትን ለመወያየት፣ እንስሳ ለማስያዝ ወይም ማዕከላችንን ለመጎብኘት በቀጥታ ያነጋግሩን።',
       getInTouch: 'ያግኙን',
       exploreServices: 'አገልግሎቶችን እይ'
     },
     contactPage: {
       badge: 'የቀጥታ ግንኙነት',
       title: 'ሻጩን ያነጋግሩ',
-      subtext: 'ስለ በጎች፣ ፍየሎች ወይም ከብቶች ጥያቄ ካለዎት፣ የማድረሻና የዕርድ አገልግሎት ለማዘዝ ወይም እርሻውን ለመጎብኘት በቀጥታ ያግኙን።',
+      subtext: 'ስለ በጎች፣ ፍየሎች ወይም ከብቶች ጥያቄ ካለዎት፣ የማድረሻና የዕርድ አገልግሎት ለማዘዝ ወይም ማዕከላችንን ለመጎብኘት በቀጥታ ያግኙን።',
       phoneTitle: 'የቀጥታ ስልክ መስመር',
       phoneDesc: 'ለአስቸኳይ ጥያቄና ዋጋ ማረጋገጫ በቀጥታ ይደውሉ።',
       whatsappTitle: 'የዋትስአፕ መልእክት',
       whatsappDesc: 'ፈጣን መልእክት፣ ፎቶዎች፣ የቦታ አድራሻና የድምፅ መልእክት ለመላክ።',
-      locationTitle: 'የእርሻው ቦታ',
+      locationTitle: 'የአቅራቢው ቦታ',
       hoursTitle: 'የስራ ሰዓት',
       disclaimer: 'የቅድሚያ ክፍያ አያስፈልግም፡ ቀጥተኛ የሻጭና ገዢ ስምምነት። ክፍያ የሚፈጸመው በአካል ሲረከቡ ወይም ማድረሻ ሲደርስ ነው።',
       formTitle: 'መልእክት ይላኩ',
@@ -604,17 +607,17 @@ export const translations: Record<Language, Translations> = {
       submitBtn: 'መልእክት ለሻጩ ላክ',
       submittingBtn: 'በመላክ ላይ...',
       successTitle: 'መልእክትዎ ደርሶናል',
-      successDesc: 'እናመሰግናለን። መልእክትዎ ደርሶናል፤ አጭር ጊዜ ውስጥ በስልክ ቁጥርዎ እንደውላለን።',
+      successDesc: 'እናመሰግናለን። መልእክትዎ ደርሶናል፤ በአጭር ጊዜ ውስጥ በስልክ ቁጥርዎ እንደውላለን።',
       sendAnotherBtn: 'ሌላ መልእክት ላክ'
     },
     footer: {
-      singleOwnerBadge: 'የቀጥታ ባለቤት · ግልጽና ትክክለኛ ዋጋ',
+      singleOwnerBadge: 'የቀጥታ ከብት አቅራቢ · ግልጽና ትክክለኛ ዋጋ',
       quickNavTitle: 'ፈጣን ማውጫ',
       directContactTitle: 'ቀጥተኛ አድራሻ',
       visitingTitle: 'ጉብኝትና የስራ ሰዓት',
       visitingNote: 'በአካል መጥተው መጎብኘት ይችላሉ። በአግባቡ እንድንቀበልዎ እባክዎ ከመምጣትዎ በፊት በስልክ ያሳውቁን።',
       allRightsReserved: 'መብቱ በህግ የተጠበቀ ነው።',
-      tagline: 'የቀጥታ ከብት እርባታ እርሻ'
+      tagline: 'የቀንድ ከብትና የበግ አቅራቢ'
     }
   }
 };

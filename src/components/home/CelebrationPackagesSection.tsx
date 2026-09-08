@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, Suspense, lazy } from 'react';
 import { Link } from 'react-router-dom';
 import { PreMadePackage } from '../../types/package';
+import { PRE_MADE_PACKAGES } from '../../data/packagesData';
 import { api } from '../../services/api';
 import { useTheme } from '../../context/ThemeContext';
 import { useLanguage } from '../../context/LanguageContext';
@@ -30,8 +31,8 @@ export const CelebrationPackagesSection: React.FC = () => {
   const { isAmharic } = useLanguage();
   const isDark = theme === 'design7';
 
-  const [packages, setPackages] = useState<PreMadePackage[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [packages, setPackages] = useState<PreMadePackage[]>(PRE_MADE_PACKAGES);
+  const isLoading = packages.length === 0;
   const [selectedPackage, setSelectedPackage] = useState<PreMadePackage | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [expandedPkgId, setExpandedPkgId] = useState<string | null>(null);
@@ -47,17 +48,48 @@ export const CelebrationPackagesSection: React.FC = () => {
   };
 
   useEffect(() => {
-    const loadPackages = async () => {
-      try {
-        const data = await api.getPackagesData();
-        setPackages(data.preMadePackages || []);
-      } catch (e) {
-        console.error('Failed to load packages in home:', e);
-      } finally {
-        setIsLoading(false);
+    let isMounted = true;
+    const scheduleSync = () => {
+      api.getPackagesData()
+        .then(data => {
+          if (!isMounted) return;
+          if (data?.preMadePackages && data.preMadePackages.length > 0) {
+            setPackages(prev => {
+              if (prev.length === data.preMadePackages.length) {
+                const identical = prev.every((p, i) => {
+                  const incoming = data.preMadePackages[i];
+                  return (
+                    incoming &&
+                    p.id === incoming.id &&
+                    p.packagePrice === incoming.packagePrice &&
+                    p.availableSlots === incoming.availableSlots &&
+                    p.isOutOfStock === incoming.isOutOfStock
+                  );
+                });
+                if (identical) return prev;
+              }
+              return data.preMadePackages;
+            });
+          }
+        })
+        .catch(() => {});
+    };
+
+    let timerId: any;
+    if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+      timerId = (window as any).requestIdleCallback(scheduleSync, { timeout: 3000 });
+    } else {
+      timerId = setTimeout(scheduleSync, 1500);
+    }
+
+    return () => {
+      isMounted = false;
+      if (typeof window !== 'undefined' && 'cancelIdleCallback' in window && typeof timerId === 'number') {
+        (window as any).cancelIdleCallback(timerId);
+      } else {
+        clearTimeout(timerId);
       }
     };
-    loadPackages();
   }, []);
 
   const handleOrder = (pkg: PreMadePackage) => {

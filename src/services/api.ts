@@ -458,26 +458,6 @@ class ApiService {
   }
 
   // ==================== AUTH ====================
-  async register(name: string, email: string, phone: string, password: string): Promise<{
-    success: boolean;
-    token?: string;
-    accessToken?: string;
-    refreshToken?: string;
-    user?: UserProfile;
-    error?: string;
-  }> {
-    try {
-      const res = await fetch(`${API_BASE}/auth/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, phone, password })
-      });
-      return await res.json();
-    } catch (error: any) {
-      return { success: false, error: error.message || 'Network error during registration' };
-    }
-  }
-
   async sendRegistrationOtp(name: string, email: string, phone: string): Promise<{ success: boolean; message?: string; error?: string }> {
     try {
       const res = await fetch(`${API_BASE}/auth/send-registration-otp`, {

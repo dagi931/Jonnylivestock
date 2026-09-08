@@ -506,7 +506,7 @@ Cut Notes: ${cutInstructions || 'Standard portioning'}`;
             >
               <div className="flex items-center gap-1.5 font-bold text-amber-500 text-xs uppercase tracking-wider">
                 <ShieldCheck className="w-4 h-4" />
-                <span>{isAmharic ? 'የእርሻችን የጥራት ዋስትና' : 'Our Quality Guarantee'}</span>
+                <span>{isAmharic ? 'የጥራትና የትኩስነት ዋስትና' : 'Our Quality Guarantee'}</span>
               </div>
               <ul className="space-y-1.5 opacity-80 list-disc list-inside">
                 <li>{isAmharic ? 'የሰቡና ጤናማ ምርጥ ሰንጋዎች' : 'Well-fattened prime healthy cattle'}</li>

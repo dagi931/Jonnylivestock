@@ -74,7 +74,7 @@ export const DeliveryDashboard: React.FC = () => {
                 Live Livestock Delivery Portal
               </h2>
               <p className={`text-xs sm:text-sm mt-1 max-w-xl ${isDark ? 'text-[#D8C5A8]' : 'text-[#746556]'}`}>
-                Safe, direct transit from our farm on <strong>Belay Zeleke Street, Arat Kilo, Addis Ababa</strong> to your destination across Addis Ababa and surrounding towns.
+                Safe, direct transit from our livestock center on <strong>Belay Zeleke Street, Arat Kilo, Addis Ababa</strong> to your destination across Addis Ababa and surrounding towns.
               </p>
             </div>
           </div>
@@ -318,7 +318,7 @@ export const DeliveryDashboard: React.FC = () => {
               </li>
               <li className="flex items-start gap-2">
                 <CheckCircle2 className="w-3.5 h-3.5 text-green-500 shrink-0 mt-0.5" />
-                <span>Experienced farm handlers assist with offloading and yard tethering.</span>
+                <span>Experienced livestock handlers assist with offloading and yard tethering.</span>
               </li>
               <li className="flex items-start gap-2">
                 <CheckCircle2 className="w-3.5 h-3.5 text-green-500 shrink-0 mt-0.5" />

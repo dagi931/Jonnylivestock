@@ -6,7 +6,6 @@ interface UserAuthContextType {
   user: UserProfile | null;
   token: string | null;
   login: (email: string, password: string) => Promise<{ success: boolean; user?: UserProfile; error?: string }>;
-  register: (name: string, email: string, phone: string, password: string) => Promise<{ success: boolean; error?: string }>;
   sendRegistrationOtp: (name: string, email: string, phone: string) => Promise<{ success: boolean; message?: string; error?: string }>;
   verifyAndRegister: (data: { name: string; email: string; phone: string; password: string; otp: string }) => Promise<{ success: boolean; user?: UserProfile; error?: string }>;
   sendForgotPasswordOtp: (email: string) => Promise<{ success: boolean; message?: string; error?: string }>;
@@ -123,25 +122,6 @@ export const UserAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     return { success: false, error: res.error || 'Invalid credentials' };
   };
 
-  const register = async (name: string, email: string, phone: string, password: string) => {
-    const res = await api.register(name, email, phone, password);
-    if (res.success && res.token && res.user) {
-      setToken(res.token);
-      setUser(res.user);
-      localStorage.setItem('jonny_user_token', res.token);
-      if ((res as any).refreshToken) {
-        localStorage.setItem('jonny_user_refresh_token', (res as any).refreshToken);
-      }
-      localStorage.setItem('jonny_user_token_issued_at', String(Date.now()));
-      localStorage.setItem('jonny_user_profile', JSON.stringify(res.user));
-      window.dispatchEvent(new Event('auth_change'));
-      setIsAuthModalOpen(false);
-      setAuthPromptMessage(null);
-      return { success: true };
-    }
-    return { success: false, error: res.error || 'Registration failed' };
-  };
-
   const sendRegistrationOtp = async (name: string, email: string, phone: string) => {
     return await api.sendRegistrationOtp(name, email, phone);
   };
@@ -245,7 +225,6 @@ export const UserAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         user,
         token,
         login,
-        register,
         sendRegistrationOtp,
         verifyAndRegister,
         sendForgotPasswordOtp,

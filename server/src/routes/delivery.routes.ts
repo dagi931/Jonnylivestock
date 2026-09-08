@@ -22,8 +22,8 @@ router.get('/reverse-geocode', async (req: Request, res: Response): Promise<void
     const lat = Number(req.query.lat);
     const lng = Number(req.query.lng);
 
-    if (isNaN(lat) || isNaN(lng)) {
-      res.status(400).json({ success: false, error: 'Valid lat and lng query params are required' });
+    if (isNaN(lat) || isNaN(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+      res.status(400).json({ success: false, error: 'Valid latitude (-90 to 90) and longitude (-180 to 180) are required' });
       return;
     }
 
@@ -41,11 +41,11 @@ router.get('/reverse-geocode', async (req: Request, res: Response): Promise<void
 // ==================== SEARCH PLACES (AUTOCOMPLETE & NOMINATIM) ====================
 router.get('/search-places', async (req: Request, res: Response): Promise<void> => {
   try {
-    const query = String(req.query.q || '');
-    if (!query.trim()) {
-      res.json({ success: true, data: [] });
+    if (req.query.q === undefined || !String(req.query.q).trim()) {
+      res.status(400).json({ success: false, error: 'Search query parameter (q) is required' });
       return;
     }
+    const query = String(req.query.q).trim();
 
     const results = await DeliveryService.searchPlaces(query);
     res.json({
@@ -61,11 +61,11 @@ router.get('/search-places', async (req: Request, res: Response): Promise<void> 
 // ==================== GET DRIVING ROAD ROUTE & EXACT DISTANCE ====================
 router.get('/route', async (req: Request, res: Response): Promise<void> => {
   try {
-    const lat = Number(req.query.lat);
-    const lng = Number(req.query.lng);
+    const lat = Number(req.query.lat ?? req.query.destLat);
+    const lng = Number(req.query.lng ?? req.query.destLng);
 
-    if (isNaN(lat) || isNaN(lng)) {
-      res.status(400).json({ success: false, error: 'Valid lat and lng query params are required' });
+    if (isNaN(lat) || isNaN(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+      res.status(400).json({ success: false, error: 'Valid latitude (-90 to 90) and longitude (-180 to 180) are required' });
       return;
     }
 
@@ -125,9 +125,16 @@ router.get('/config', async (_req: Request, res: Response): Promise<void> => {
 // ==================== POST LIVE DELIVERY QUOTE ====================
 router.post('/quote', async (req: Request, res: Response): Promise<void> => {
   try {
-    const { deliveryAddress, deliveryLat, deliveryLng, items } = req.body;
+    const { deliveryAddress, deliveryLat, deliveryLng, vehicleType, items } = req.body;
 
-    if (deliveryLat === undefined || deliveryLng === undefined) {
+    if (
+      deliveryLat === undefined ||
+      deliveryLat === null ||
+      deliveryLat === '' ||
+      deliveryLng === undefined ||
+      deliveryLng === null ||
+      deliveryLng === ''
+    ) {
       res.status(400).json({
         success: false,
         error: 'Delivery latitude and longitude are required to calculate road distance'
@@ -138,10 +145,35 @@ router.post('/quote', async (req: Request, res: Response): Promise<void> => {
     const lat = Number(deliveryLat);
     const lng = Number(deliveryLng);
 
-    if (isNaN(lat) || isNaN(lng)) {
+    if (isNaN(lat) || isNaN(lng) || !isFinite(lat) || !isFinite(lng)) {
       res.status(400).json({
         success: false,
         error: 'Invalid coordinates provided'
+      });
+      return;
+    }
+
+    if (lat < -90 || lat > 90) {
+      res.status(400).json({
+        success: false,
+        error: 'Delivery latitude must be between -90 and 90'
+      });
+      return;
+    }
+
+    if (lng < -180 || lng > 180) {
+      res.status(400).json({
+        success: false,
+        error: 'Delivery longitude must be between -180 and 180'
+      });
+      return;
+    }
+
+    const validVehicleTypes = ['car', 'pickup', 'large_pickup'];
+    if (vehicleType && !validVehicleTypes.includes(vehicleType)) {
+      res.status(400).json({
+        success: false,
+        error: `Invalid vehicle type "${vehicleType}". Allowed types are: ${validVehicleTypes.join(', ')}`
       });
       return;
     }
@@ -154,7 +186,35 @@ router.post('/quote', async (req: Request, res: Response): Promise<void> => {
       try {
         parsedItems = JSON.parse(items);
       } catch {
-        parsedItems = [];
+        res.status(400).json({
+          success: false,
+          error: 'Malformed items JSON provided'
+        });
+        return;
+      }
+    }
+
+    // Validate load item quantities and weights
+    for (const item of parsedItems) {
+      if (item.quantity !== undefined) {
+        const q = Number(item.quantity);
+        if (isNaN(q) || q <= 0 || !Number.isInteger(q) || q > 10000) {
+          res.status(400).json({
+            success: false,
+            error: 'Item quantity must be a positive integer between 1 and 10,000'
+          });
+          return;
+        }
+      }
+      if (item.weightKg !== undefined) {
+        const w = Number(item.weightKg);
+        if (isNaN(w) || w <= 0 || w > 50000) {
+          res.status(400).json({
+            success: false,
+            error: 'Item weight must be a positive number up to 50,000 kg'
+          });
+          return;
+        }
       }
     }
 

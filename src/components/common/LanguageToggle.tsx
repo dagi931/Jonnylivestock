@@ -18,7 +18,7 @@ export const LanguageToggle: React.FC = () => {
           : 'bg-[#F1E8D8] hover:bg-[#E4D4BC] border-[#E4D4BC] text-[#B8792F]'
       }`}
       title={isAmharic ? 'Switch to English (EN)' : 'ወደ አማርኛ ቀይር (አማ)'}
-      aria-label={isAmharic ? 'Switch to English' : 'ወደ አማርኛ ቀይር'}
+      aria-label={language === 'en' ? 'EN - Switch to Amharic' : 'አማ - ወደ እንግሊዝኛ ቀይር'}
     >
       <Globe className="w-3.5 h-3.5 shrink-0" />
       <span className="font-mono uppercase tracking-wider text-xs font-bold">

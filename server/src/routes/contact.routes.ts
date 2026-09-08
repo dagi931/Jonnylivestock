@@ -1,31 +1,84 @@
 import { Router, Request, Response } from 'express';
 import { PostgresDB } from '../db/postgresDb.js';
 import { authenticateToken, requireAdmin, AuthRequest } from '../middleware/auth.middleware.js';
-import { orderContactLimiter } from '../middleware/rateLimit.middleware.js';
+import { contactLimiter } from '../middleware/rateLimit.middleware.js';
 import { sanitizeErrorMessage } from '../utils/errorHandler.js';
+import { isValidEthiopianPhone, normalizeEthiopianPhone } from '../utils/phone.js';
 
 const router = Router();
 
+function escapeHtml(str: string): string {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 // ==================== PUBLIC: SUBMIT CONTACT US INQUIRY ====================
-router.post('/', orderContactLimiter, async (req: Request, res: Response): Promise<void> => {
+router.post('/', contactLimiter, async (req: Request, res: Response): Promise<void> => {
   try {
     const { name, phone, email, animalId, serviceNeeded, message } = req.body;
 
-    if (!name || !phone || !message) {
+    const trimmedName = typeof name === 'string' ? name.trim() : '';
+    const trimmedPhone = typeof phone === 'string' ? phone.trim() : '';
+    const trimmedEmail = typeof email === 'string' ? email.trim() : '';
+    const trimmedMessage = typeof message === 'string' ? message.trim() : '';
+
+    if (!trimmedName) {
+      res.status(400).json({ success: false, error: 'Full name is required.' });
+      return;
+    }
+    if (trimmedName.length > 100) {
+      res.status(400).json({ success: false, error: 'Name must be 100 characters or fewer.' });
+      return;
+    }
+
+    if (!trimmedPhone) {
+      res.status(400).json({ success: false, error: 'Phone number is required.' });
+      return;
+    }
+    const normalizedPhone = normalizeEthiopianPhone(trimmedPhone);
+    if (!isValidEthiopianPhone(normalizedPhone)) {
       res.status(400).json({
         success: false,
-        error: 'Missing required fields: name, phone, and message are required.'
+        error: 'Please enter a valid Ethiopian phone number (e.g. 0911223344 or 0712345678).'
       });
       return;
     }
 
+    if (!trimmedEmail) {
+      res.status(400).json({ success: false, error: 'Email address is required.' });
+      return;
+    }
+    if (trimmedEmail.length > 254) {
+      res.status(400).json({ success: false, error: 'Email address must be 254 characters or fewer.' });
+      return;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(trimmedEmail)) {
+      res.status(400).json({ success: false, error: 'Please enter a valid email address.' });
+      return;
+    }
+
+    if (!trimmedMessage) {
+      res.status(400).json({ success: false, error: 'Message content is required.' });
+      return;
+    }
+    if (trimmedMessage.length > 5000) {
+      res.status(400).json({ success: false, error: 'Message must be 5000 characters or fewer.' });
+      return;
+    }
+
     const created = await PostgresDB.createContactMessage({
-      name,
-      phone,
-      email,
-      animalId,
-      serviceNeeded,
-      message
+      name: escapeHtml(trimmedName),
+      phone: normalizedPhone,
+      email: trimmedEmail.toLowerCase(),
+      animalId: animalId ? escapeHtml(String(animalId).trim()) : undefined,
+      serviceNeeded: serviceNeeded ? escapeHtml(String(serviceNeeded).trim()) : undefined,
+      message: escapeHtml(trimmedMessage)
     });
 
     res.status(201).json({

@@ -29,7 +29,9 @@
         link.fetchPriority = 'high';
 
         if (p.startsWith('/packages')) {
-          link.href = 'https://images.unsplash.com/photo-1484557052118-f32bd25b45b5?auto=format&fit=crop&w=340&h=160&q=50&fm=webp';
+          link.href = 'https://images.unsplash.com/photo-1484557052118-f32bd25b45b5?auto=format&fit=crop&fm=webp&q=65&w=480&h=208';
+          link.setAttribute('imagesrcset', 'https://images.unsplash.com/photo-1484557052118-f32bd25b45b5?auto=format&fit=crop&fm=webp&q=65&w=360&h=155 360w, https://images.unsplash.com/photo-1484557052118-f32bd25b45b5?auto=format&fit=crop&fm=webp&q=65&w=480&h=208 480w');
+          link.setAttribute('imagesizes', '(max-width: 640px) 360px, (max-width: 1024px) 320px, 280px');
           document.head.appendChild(link);
         } else if (p.startsWith('/sheep')) {
           link.href = 'https://images.unsplash.com/photo-1516467508483-a7212febe31a?auto=format&fit=crop&w=340&q=50&fm=webp';

@@ -112,8 +112,8 @@ export const DeliveryServicePage: React.FC = () => {
                 </h1>
                 <p className={`text-xs sm:text-sm mt-1 max-w-2xl ${isDark ? 'text-[#D8C5A8]' : 'text-[#746556]'}`}>
                   {isAmharic
-                    ? 'በቀጥታ በአዲስ አበባ አዋሬ ከሚገኘው እርሻችን። አስተማማኝና ምቹ በሆነ ተሽከርካሪ በጎችን፣ ፍየሎችንና ከብቶችን ወደ ቤትዎ፣ ግቢዎ ወይም ዝግጅት ቦታዎ እናደርሳለን።'
-                    : 'Originating directly from our Aware farm on Queen Elizabeth Street, Addis Ababa. We coordinate safe, comfortable vehicle transit for sheep, goats, and cattle directly to your home, compound, or venue.'}
+                    ? 'በቀጥታ በአዲስ አበባ አዋሬ ከሚገኘው የከብት ማዕከላችን። አስተማማኝና ምቹ በሆነ ተሽከርካሪ በጎችን፣ ፍየሎችንና ከብቶችን ወደ ቤትዎ፣ ግቢዎ ወይም ዝግጅት ቦታዎ እናደርሳለን።'
+                    : 'Originating directly from our Aware livestock facility on Queen Elizabeth Street, Addis Ababa. We coordinate safe, comfortable vehicle transit for sheep, goats, and cattle directly to your home, compound, or venue.'}
                 </p>
               </div>
             </div>
@@ -139,7 +139,7 @@ export const DeliveryServicePage: React.FC = () => {
                 </h2>
                 <p className="text-xs max-w-md mx-auto opacity-80">
                   {isAmharic ? (
-                    <>እናመሰግናለን <strong>{customerName}</strong>። ከአዋሬ የእርሻ አስተዳዳሪዎቻችን ወደ {subCity} በሚላከው ተሽከርካሪ መርሃግብር ዙሪያ በ <strong>{phone}</strong> ያነጋግሩዎታል።</>
+                    <>እናመሰግናለን <strong>{customerName}</strong>። ከአዋሬ አስተዳዳሪዎቻችን ወደ {subCity} በሚላከው ተሽከርካሪ መርሃግብር ዙሪያ በ <strong>{phone}</strong> ያነጋግሩዎታል።</>
                   ) : (
                     <>Thank you <strong>{customerName}</strong>. Our Aware dispatch team will contact you at <strong>{phone}</strong> to confirm your vehicle schedule to {subCity}.</>
                   )}
@@ -352,11 +352,11 @@ export const DeliveryServicePage: React.FC = () => {
                 </li>
                 <li className="flex items-start gap-2">
                   <CheckCircle2 className="w-3.5 h-3.5 text-green-500 shrink-0 mt-0.5" />
-                  <span>{isAmharic ? 'በቀጥታ በአዲስ አበባ አዋሬ ከሚገኘው እርሻችን ይነሳል።' : 'Originates directly from Queen Elizabeth Street, Aware, Addis Ababa.'}</span>
+                  <span>{isAmharic ? 'በቀጥታ በአዲስ አበባ አዋሬ ከሚገኘው ማዕከላችን ይነሳል።' : 'Originates directly from Queen Elizabeth Street, Aware, Addis Ababa.'}</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <CheckCircle2 className="w-3.5 h-3.5 text-green-500 shrink-0 mt-0.5" />
-                  <span>{isAmharic ? 'ልምድ ያላቸው የእርሻ ረዳቶች እንስሳትን የማውረድና የማሰር እገዛ ያደርጋሉ።' : 'Experienced farm handlers assist with offloading and yard tethering.'}</span>
+                  <span>{isAmharic ? 'ልምድ ያላቸው ረዳቶች እንስሳትን የማውረድና የማሰር እገዛ ያደርጋሉ።' : 'Experienced animal handlers assist with offloading and yard tethering.'}</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <CheckCircle2 className="w-3.5 h-3.5 text-green-500 shrink-0 mt-0.5" />

@@ -212,7 +212,7 @@ export const AnimalDetails: React.FC = () => {
     : '';
   const chosenFulfillmentLabel = isDelivery
     ? (isAmharic ? 'የእስከ ደጃፍ ማድረሻ' : 'Doorstep Delivery')
-    : (isAmharic ? 'ከእርሻው መውሰድ (Pickup)' : 'Farm Pickup');
+    : (isAmharic ? 'ከማዕከሉ መውሰድ (Pickup)' : 'Hub Pickup');
 
   const whatsappInquiryText = isAmharic
     ? `ሰላም ${business.name}፣ ስለ ${animal.breed} (${animal.id}) በዋጋ ${formatPrice(animal.price)} በ${animal.location} ለመጠየቅ ፈልጌ ነበር። የማስረከቢያ ምርጫዬ፡ [${chosenFulfillmentLabel}]${chosenServiceDetails ? `፤ ተጨማሪ አገልግሎት፡ [${chosenServiceDetails}]` : ''}፤ ጠቅላላ ግምት፡ ${formatPrice(totalWithServices)}።`

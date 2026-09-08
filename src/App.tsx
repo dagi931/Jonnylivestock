@@ -15,10 +15,10 @@ import { Goats } from './pages/Goats';
 import { Cows } from './pages/Cows';
 import { Contact } from './pages/Contact';
 import { About } from './pages/About';
+import { PackageBuilder } from './pages/PackageBuilder';
+import { Services } from './pages/Services';
 
-// Secondary storefront and dashboard routes are lazy-loaded on-demand for low 3G initial payload
-const PackageBuilder = lazy(() => import('./pages/PackageBuilder').then(m => ({ default: m.PackageBuilder })));
-const Services       = lazy(() => import('./pages/Services').then(m => ({ default: m.Services })));
+// Secondary and dashboard routes are lazy-loaded on-demand
 
 // Secondary and dashboard routes are lazy-loaded on-demand
 const AnimalDetails  = lazy(() => import('./pages/AnimalDetails').then(m => ({ default: m.AnimalDetails })));

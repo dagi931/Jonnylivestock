@@ -4,6 +4,7 @@ import { PostgresDB } from '../db/postgresDb.js';
 import { authenticateToken, requireAdmin, optionalAuth, AuthRequest } from '../middleware/auth.middleware.js';
 import { uploadAdminMedia } from '../middleware/upload.middleware.js';
 import { sanitizeErrorMessage } from '../utils/errorHandler.js';
+import { validatePackageLivestock } from '../utils/packageValidators.js';
 
 const router = Router();
 
@@ -69,6 +70,28 @@ router.post('/', authenticateToken, requireAdmin, async (req: AuthRequest, res: 
       res.status(400).json({
         success: false,
         error: 'Missing required package fields: name, description, image, originalPrice, packagePrice'
+      });
+      return;
+    }
+
+    // Validate image URL: reject insecure non-localhost HTTP or malformed URLs
+    const isValidImageUrl = (url: any): boolean => {
+      if (typeof url !== 'string' || !url.trim()) return false;
+      const trimmed = url.trim();
+      try {
+        const parsed = new URL(trimmed);
+        if (parsed.protocol === 'https:') return true;
+        if (parsed.protocol === 'http:' && (parsed.hostname === 'localhost' || parsed.hostname === '127.0.0.1')) return true;
+        return false;
+      } catch {
+        return trimmed.startsWith('/uploads/') && /\.(jpe?g|png|webp|avif)$/i.test(trimmed);
+      }
+    };
+
+    if (!isValidImageUrl(image)) {
+      res.status(400).json({
+        success: false,
+        error: 'Invalid package image URL. Insecure HTTP URLs (like http://...) are rejected; images must use HTTPS or valid local upload paths.'
       });
       return;
     }
@@ -148,7 +171,7 @@ router.delete('/:id', authenticateToken, requireAdmin, async (req: AuthRequest, 
 });
 
 // ==================== ADMIN: UPLOAD PACKAGE IMAGE ====================
-router.post('/upload-image', uploadAdminMedia.single('image'), (req: Request, res: Response): void => {
+router.post('/upload-image', authenticateToken, requireAdmin, uploadAdminMedia.single('image'), (req: AuthRequest, res: Response): void => {
   try {
     if (!req.file) {
       res.status(400).json({ success: false, error: 'No image file uploaded' });
@@ -197,6 +220,16 @@ router.post('/saved', authenticateToken, async (req: AuthRequest, res: Response)
       res.status(400).json({
         success: false,
         error: 'Packages must include items from at least 3 categories (Meat/Livestock, Wine, Eggs, Flowers) to qualify for package benefits and free delivery.'
+      });
+      return;
+    }
+
+    // Check mandatory livestock requirement: Must include Cow/Ox or Sheep/Goat
+    const livestockValidation = validatePackageLivestock(items);
+    if (!livestockValidation.hasLivestock) {
+      res.status(400).json({
+        success: false,
+        error: 'Custom celebration packages must include at least one livestock animal (Cow, Ox, Sheep, or Goat).'
       });
       return;
     }

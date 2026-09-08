@@ -224,8 +224,8 @@ export const MeatByKgOrderModal: React.FC<MeatByKgOrderModalProps> = ({
     if (isDelivery && deliveryQuoteData && !deliveryQuoteData.isWithinRange) {
       setSubmitError(
         isAmharic
-          ? 'የተመረጠው አድራሻ ከ30 ኪ.ሜ ማድረሻ ክልል ውጪ ነው። እባክዎ በአዲስ አበባ ውስጥ ቅርብ አድራሻ ይምረጡ ወይም ከእርሻው መውሰድ ይምረጡ።'
-          : 'Delivery is out of range (>30 km). Please select an address within Addis Ababa or choose Farm Pickup.'
+          ? 'የተመረጠው አድራሻ ከ30 ኪ.ሜ ማድረሻ ክልል ውጪ ነው። እባክዎ በአዲስ አበባ ውስጥ ቅርብ አድራሻ ይምረጡ ወይም ከማዕከሉ መውሰድ ይምረጡ።'
+          : 'Delivery is out of range (>30 km). Please select an address within Addis Ababa or choose Hub Pickup.'
       );
       return;
     }
@@ -264,7 +264,7 @@ export const MeatByKgOrderModal: React.FC<MeatByKgOrderModalProps> = ({
         if (selectedVehicleId) formData.append('vehicleType', selectedVehicleId);
         if (selectedVehicleQuote) formData.append('deliveryFee', String(selectedVehicleQuote.deliveryFee));
       } else {
-        formData.append('deliveryLocation', 'Self Pickup from Arat Kilo Farm Facility');
+        formData.append('deliveryLocation', 'Self Pickup from Arat Kilo Livestock Facility');
         formData.append('deliveryFee', '0');
       }
 
@@ -367,7 +367,7 @@ export const MeatByKgOrderModal: React.FC<MeatByKgOrderModalProps> = ({
             >
               <div className="flex justify-between pb-1 border-b border-black/10 dark:border-white/10">
                 <span className="opacity-70">Fulfillment:</span>
-                <span className="font-bold">{isDelivery ? `Doorstep Delivery (${selectedLocation?.address || 'Addis Ababa'})` : 'Farm Pickup'}</span>
+                <span className="font-bold">{isDelivery ? `Doorstep Delivery (${selectedLocation?.address || 'Addis Ababa'})` : 'Hub Pickup'}</span>
               </div>
               <div className="flex justify-between pt-1 text-sm font-extrabold text-[#C18A45]">
                 <span>Total Paid:</span>
@@ -587,10 +587,10 @@ export const MeatByKgOrderModal: React.FC<MeatByKgOrderModalProps> = ({
                     <MapPin className={`w-5 h-5 shrink-0 ${!isDelivery ? 'text-black' : 'text-amber-500'}`} />
                     <div>
                       <div className={`text-xs font-bold ${!isDelivery ? 'text-black font-extrabold' : ''}`}>
-                        {isAmharic ? 'ከእርሻው መውሰድ (Pickup)' : 'Farm Pickup'}
+                        {isAmharic ? 'ከማዕከሉ መውሰድ (Pickup)' : 'Hub Pickup'}
                       </div>
                       <div className={`text-[10px] ${!isDelivery ? 'text-black/80 font-medium' : 'opacity-70'}`}>
-                        Arat Kilo Farm Facility (Free)
+                        Arat Kilo Livestock Facility (Free)
                       </div>
                     </div>
                   </button>
@@ -630,7 +630,7 @@ export const MeatByKgOrderModal: React.FC<MeatByKgOrderModalProps> = ({
                     {isDelivery && selectedVehicleQuote
                       ? ` + Delivery (${selectedVehicleQuote.name}: ${formatPrice(selectedVehicleQuote.deliveryFee)})`
                       : !isDelivery
-                      ? ' • Farm Pickup (Free)'
+                      ? ' • Hub Pickup (Free)'
                       : ''}
                   </div>
                 </div>
