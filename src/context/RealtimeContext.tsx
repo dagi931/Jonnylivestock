@@ -115,9 +115,29 @@ export const RealtimeProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   }, [playNotificationSound]);
 
   useEffect(() => {
-    connect();
+    let timerId: any;
+    const token = typeof window !== 'undefined' ? (localStorage.getItem('jonny_admin_token') || localStorage.getItem('jonny_user_token')) : null;
+
+    if (token) {
+      // Authenticated users and admin need immediate realtime events
+      connect();
+    } else {
+      // Defer SSE connection for public storefront visitors until after initial paint & idle window
+      timerId = setTimeout(() => {
+        if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+          (window as any).requestIdleCallback(() => connect(), { timeout: 2000 });
+        } else {
+          connect();
+        }
+      }, 7000);
+    }
 
     return () => {
+      if (typeof window !== 'undefined' && 'cancelIdleCallback' in window && typeof timerId === 'number') {
+        (window as any).cancelIdleCallback(timerId);
+      } else if (timerId) {
+        clearTimeout(timerId);
+      }
       if (eventSourceRef.current) {
         eventSourceRef.current.close();
       }

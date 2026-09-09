@@ -39,7 +39,6 @@ export const MeatByKgPromoSection: React.FC = () => {
 
   useEffect(() => {
     let isMounted = true;
-    let timerId: any;
     const syncMeatPrices = () => {
       api.getMeatPricing().then((res) => {
         if (isMounted && res) {
@@ -56,11 +55,13 @@ export const MeatByKgPromoSection: React.FC = () => {
       }).catch(() => {});
     };
 
-    if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
-      timerId = (window as any).requestIdleCallback(syncMeatPrices, { timeout: 3500 });
-    } else {
-      timerId = setTimeout(syncMeatPrices, 2000);
-    }
+    let timerId: any = setTimeout(() => {
+      if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+        (window as any).requestIdleCallback(syncMeatPrices, { timeout: 2000 });
+      } else {
+        syncMeatPrices();
+      }
+    }, 5500);
 
     return () => {
       isMounted = false;

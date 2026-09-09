@@ -16,6 +16,7 @@ const PackageOrderModal = lazy(() =>
 );
 import { AnimatedReveal } from '../common/AnimatedReveal';
 import { getOptimizedUnsplashUrl } from '../common/AnimalCard';
+import { useInView } from '../../hooks/useInView';
 import {
   Gift,
   Sparkles,
@@ -38,6 +39,7 @@ export const CelebrationPackagesSection: React.FC = () => {
   const [expandedPkgId, setExpandedPkgId] = useState<string | null>(null);
   const [touchedPkgId, setTouchedPkgId] = useState<string | null>(null);
   const touchTimerRef = useRef<any>(null);
+  const { ref: sectionRef, isInView: isSectionInView } = useInView<HTMLElement>({ rootMargin: '350px 0px 100px 0px', triggerOnce: true });
 
   const handleTouchPkg = (id: string) => {
     setTouchedPkgId(id);
@@ -75,12 +77,13 @@ export const CelebrationPackagesSection: React.FC = () => {
         .catch(() => {});
     };
 
-    let timerId: any;
-    if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
-      timerId = (window as any).requestIdleCallback(scheduleSync, { timeout: 3000 });
-    } else {
-      timerId = setTimeout(scheduleSync, 1500);
-    }
+    let timerId: any = setTimeout(() => {
+      if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+        (window as any).requestIdleCallback(scheduleSync, { timeout: 2000 });
+      } else {
+        scheduleSync();
+      }
+    }, 5500);
 
     return () => {
       isMounted = false;
@@ -99,6 +102,7 @@ export const CelebrationPackagesSection: React.FC = () => {
 
   return (
     <section
+      ref={sectionRef}
       className={`py-12 sm:py-16 border-y ${isDark
           ? 'bg-gradient-to-b from-[#1F150A] via-[#24170D] to-[#1F150A] border-[#4A2C16]'
           : 'bg-gradient-to-b from-[#FAF7F0] via-[#F6EFE2] to-[#FAF7F0] border-[#E4D4BC]'
@@ -208,14 +212,18 @@ export const CelebrationPackagesSection: React.FC = () => {
                   <div>
                     {/* Compact Image */}
                     <div className="relative h-28 sm:h-44 w-full overflow-hidden bg-black/10">
-                      <img
-                        src={getOptimizedUnsplashUrl(pkg.image, 360, 176, 60)}
-                        alt={pkg.name}
-                        loading="lazy"
-                        decoding="async"
-                        className={`w-full h-full object-cover card-zoom-img transition-transform duration-500 ease-out ${touchedPkgId === pkg.id ? 'scale-100' : 'scale-110'
-                          } group-hover:scale-100 group-active:scale-100 active:scale-100`}
-                      />
+                      {isSectionInView && (
+                        <img
+                          src={getOptimizedUnsplashUrl(pkg.image, 200, 120, 38)}
+                          alt={pkg.name}
+                          loading="lazy"
+                          decoding="async"
+                          width={200}
+                          height={120}
+                          className={`w-full h-full object-cover card-zoom-img transition-transform duration-500 ease-out ${touchedPkgId === pkg.id ? 'scale-100' : 'scale-110'
+                            } group-hover:scale-100 group-active:scale-100 active:scale-100`}
+                        />
+                      )}
                       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
 
                       {/* Out of Stock Notice */}

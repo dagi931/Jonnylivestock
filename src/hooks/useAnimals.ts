@@ -42,10 +42,14 @@ export function useAnimals(type?: AnimalType) {
     };
 
     const hasInitial = getInitialAnimals().length > 0;
-    if (hasInitial && typeof window !== 'undefined' && 'requestIdleCallback' in window) {
-      timerId = (window as any).requestIdleCallback(syncAnimals, { timeout: 2500 });
-    } else if (hasInitial) {
-      timerId = setTimeout(syncAnimals, 1000);
+    if (hasInitial) {
+      timerId = setTimeout(() => {
+        if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+          (window as any).requestIdleCallback(syncAnimals, { timeout: 2000 });
+        } else {
+          syncAnimals();
+        }
+      }, 5500);
     } else {
       syncAnimals();
     }

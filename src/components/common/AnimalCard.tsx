@@ -16,12 +16,12 @@ interface AnimalCardProps {
   eager?: boolean;
 }
 
-/** Build a canonical, highly compressed WebP Unsplash URL with consistent param order */
-export function getOptimizedUnsplashUrl(url: string, width = 340, height?: number, quality = 50): string {
+/** Build a canonical, highly compressed modern format Unsplash URL with consistent param order */
+export function getOptimizedUnsplashUrl(url: string, width = 340, height?: number, quality = 48): string {
   if (!url || !url.includes('images.unsplash.com')) return url;
   const baseUrl = url.split('?')[0];
   const hParam = height ? `&h=${height}` : '';
-  return `${baseUrl}?auto=format&fit=crop&w=${width}${hParam}&q=${quality}&fm=webp`;
+  return `${baseUrl}?auto=format&fit=crop&w=${width}${hParam}&q=${quality}`;
 }
 
 /** Build a responsive srcSet for Unsplash images using canonical query param ordering */

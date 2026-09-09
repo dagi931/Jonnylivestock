@@ -27,8 +27,8 @@ export const Hero: React.FC = () => {
             loading="eager"
             fetchPriority="high"
             decoding="sync"
-            width="640"
-            height="460"
+            width="720"
+            height="480"
           />
         </picture>
         

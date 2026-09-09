@@ -1,9 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
-// Self-hosted variable fonts — eliminates render-blocking Google Fonts request
-import '@fontsource-variable/plus-jakarta-sans';
-import '@fontsource-variable/lora';
+// Clean self-hosted Latin variable fonts loaded via index.css
 import './index.css';
 
 if (typeof window !== 'undefined') {

@@ -3,29 +3,45 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'r
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 import { LanguageProvider } from './context/LanguageContext';
 import { AdminAuthProvider, useAdminAuth } from './context/AdminAuthContext';
-import { UserAuthProvider } from './context/UserAuthContext';
+import { UserAuthProvider, useUserAuth } from './context/UserAuthContext';
 import { RealtimeProvider } from './context/RealtimeContext';
-import { UserAuthModal } from './components/modals/UserAuthModal';
 import { Navbar } from './components/common/Navbar';
 import { Footer } from './components/common/Footer';
-// Primary storefront catalog routes are eagerly loaded for instant navigation without Suspense flashes or CLS
+
+// Homepage is eagerly loaded as the primary landing page
 import { Home } from './pages/Home';
-import { Sheep } from './pages/Sheep';
-import { Goats } from './pages/Goats';
-import { Cows } from './pages/Cows';
-import { Contact } from './pages/Contact';
-import { About } from './pages/About';
-import { PackageBuilder } from './pages/PackageBuilder';
-import { Services } from './pages/Services';
 
-// Secondary and dashboard routes are lazy-loaded on-demand
+// Storefront routes and modals are code-split with lazy loading to minimize homepage initial bundle
+const Sheep          = lazy(() => import('./pages/Sheep').then(m => ({ default: m.Sheep })));
+const Goats          = lazy(() => import('./pages/Goats').then(m => ({ default: m.Goats })));
+const Cows           = lazy(() => import('./pages/Cows').then(m => ({ default: m.Cows })));
+const Contact        = lazy(() => import('./pages/Contact').then(m => ({ default: m.Contact })));
+const About          = lazy(() => import('./pages/About').then(m => ({ default: m.About })));
+const PackageBuilder = lazy(() => import('./pages/PackageBuilder').then(m => ({ default: m.PackageBuilder })));
+const Services       = lazy(() => import('./pages/Services').then(m => ({ default: m.Services })));
+const UserAuthModal  = lazy(() => import('./components/modals/UserAuthModal').then(m => ({ default: m.UserAuthModal })));
 
-// Secondary and dashboard routes are lazy-loaded on-demand
+// Secondary and dashboard routes
 const AnimalDetails  = lazy(() => import('./pages/AnimalDetails').then(m => ({ default: m.AnimalDetails })));
 const MyPackages     = lazy(() => import('./pages/MyPackages').then(m => ({ default: m.MyPackages })));
 const MyReservations = lazy(() => import('./pages/MyReservations').then(m => ({ default: m.MyReservations })));
 const Admin          = lazy(() => import('./pages/Admin').then(m => ({ default: m.Admin })));
 const NotFound       = lazy(() => import('./pages/NotFound').then(m => ({ default: m.NotFound })));
+
+// Preload storefront routes during idle time so user navigation is instantaneous
+const preloadStorefrontRoutes = () => {
+  import('./pages/Sheep');
+  import('./pages/Goats');
+  import('./pages/Cows');
+  import('./pages/PackageBuilder');
+  import('./pages/Services');
+};
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('load', () => {
+    setTimeout(preloadStorefrontRoutes, 6000);
+  }, { once: true });
+}
 
 // Minimal loading spinner shown while a lazy route chunk downloads
 const PageLoader: React.FC = () => (
@@ -78,6 +94,7 @@ const AppContent: React.FC = () => {
   const isDark = theme === 'design7';
   const location = useLocation();
   const { isAuthenticated: isAdminAuth } = useAdminAuth();
+  const { isAuthModalOpen } = useUserAuth();
 
   const isAdminPage = location.pathname.startsWith('/admin');
   const showCustomerChrome = !isAdminAuth && !isAdminPage;
@@ -104,7 +121,11 @@ const AppContent: React.FC = () => {
     >
       <ScrollToTop />
       {showCustomerChrome && <Navbar />}
-      {showCustomerChrome && <UserAuthModal />}
+      {showCustomerChrome && isAuthModalOpen && (
+        <Suspense fallback={null}>
+          <UserAuthModal />
+        </Suspense>
+      )}
       <main className="flex-1">
         <Suspense fallback={<PageLoader />}>
           {isAdminAuth ? (
