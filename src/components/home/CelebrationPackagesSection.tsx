@@ -39,7 +39,7 @@ export const CelebrationPackagesSection: React.FC = () => {
   const [expandedPkgId, setExpandedPkgId] = useState<string | null>(null);
   const [touchedPkgId, setTouchedPkgId] = useState<string | null>(null);
   const touchTimerRef = useRef<any>(null);
-  const { ref: sectionRef, isInView: isSectionInView } = useInView<HTMLElement>({ rootMargin: '350px 0px 100px 0px', triggerOnce: true });
+  const { ref: sectionRef } = useInView<HTMLElement>({ rootMargin: '350px 0px 100px 0px', triggerOnce: true });
 
   const handleTouchPkg = (id: string) => {
     setTouchedPkgId(id);

@@ -24,10 +24,14 @@ export const Footer: React.FC = () => {
           
           {/* Col 1: Business Overview */}
           <div className="space-y-3">
-            <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#4A2C16] to-[#2A1A0D] border border-[#C58A3A]/40 flex items-center justify-center font-serif font-bold text-base text-[#E0B15A]">
-                JL
-              </div>
+            <div className="flex items-center gap-3">
+              <img
+                src="/logo.jpg"
+                alt="Jonny Livestock"
+                width="40"
+                height="40"
+                className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl object-cover border border-[#C58A3A]/40 shadow-sm shrink-0"
+              />
               <span className="font-serif font-bold text-lg text-[#F4E8D0]">
                 {business.name}
               </span>

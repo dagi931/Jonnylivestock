@@ -95,17 +95,15 @@ export const Navbar: React.FC = () => {
           {/* Left: Brand Logo */}
           <Link
             to="/"
-            className="flex items-center gap-2.5 group focus:outline-none focus-visible:ring-2 focus-visible:ring-[#C58A3A] rounded-lg shrink-0"
+            className="flex items-center gap-2.5 sm:gap-3 group focus:outline-none focus-visible:ring-2 focus-visible:ring-[#C58A3A] rounded-lg shrink-0"
           >
-            <div
-              className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center font-serif font-bold text-base sm:text-lg transition-transform duration-200 group-hover:scale-105 ${
-                isDark
-                  ? 'bg-gradient-to-br from-[#4A2C16] to-[#2A1A0D] text-[#E0B15A] border border-[#C58A3A]/40 shadow-inner'
-                  : 'bg-gradient-to-br from-[#FAF7F0] to-[#F1E8D8] text-[#B8792F] border border-[#B8792F]/40 shadow-sm'
-              }`}
-            >
-              <span>JL</span>
-            </div>
+            <img
+              src="/logo.jpg"
+              alt="Jonny Livestock"
+              width="40"
+              height="40"
+              className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl object-cover border border-[#C58A3A]/40 shadow-sm transition-transform duration-200 group-hover:scale-105 shrink-0"
+            />
             <span
               className={`font-serif font-bold text-lg sm:text-xl tracking-tight transition-colors ${
                 isDark ? 'text-[#F4E8D0] group-hover:text-[#E0B15A]' : 'text-[#2A1A0D] group-hover:text-[#B8792F]'
