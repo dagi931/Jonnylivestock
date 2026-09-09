@@ -26,10 +26,12 @@ export const Footer: React.FC = () => {
           <div className="space-y-3">
             <div className="flex items-center gap-3">
               <img
-                src="/logo.png"
+                src="/logo.webp"
                 alt="Jonny Livestock"
                 width="48"
                 height="44"
+                loading="lazy"
+                decoding="async"
                 className="h-9 sm:h-11 w-auto object-contain shrink-0"
               />
               <span className="font-serif font-bold text-lg text-[#F4E8D0]">

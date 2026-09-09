@@ -98,10 +98,13 @@ export const Navbar: React.FC = () => {
             className="flex items-center gap-2.5 sm:gap-3 group focus:outline-none focus-visible:ring-2 focus-visible:ring-[#C58A3A] rounded-lg shrink-0"
           >
             <img
-              src="/logo.png"
+              src="/logo.webp"
               alt="Jonny Livestock"
               width="48"
               height="44"
+              loading="eager"
+              fetchPriority="high"
+              decoding="async"
               className="h-9 sm:h-11 w-auto object-contain transition-transform duration-200 group-hover:scale-105 shrink-0"
             />
             <span

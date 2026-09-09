@@ -86,7 +86,7 @@ export const AnimalGrid: React.FC<AnimalGridProps> = ({
           key={animal.id}
           animal={animal}
           animationIndex={idx}
-          eager={idx === 0}
+          eager={idx < 2}
           isExpanded={expandedAnimalId === animal.id}
           onToggleExpand={() => setExpandedAnimalId((prev) => (prev === animal.id ? null : animal.id))}
         />

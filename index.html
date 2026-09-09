@@ -3,56 +3,33 @@
 
 <head>
   <meta charset="UTF-8" />
-  <link rel="icon" type="image/png" href="/logo.png" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Jonny Livestock | Quality Sheep, Goats & Cows</title>
   <meta name="description"
     content="Browse quality sheep, goats, and cows directly from Jonny Livestock. Transparent pricing, exact weights, and direct delivery and preparation services." />
 
-  <!-- Preload Critical Variable Font -->
+  <!-- Preload Critical Variable Font & Brand Logo -->
   <link rel="preload" as="font" type="font/woff2" href="/assets/plus-jakarta-sans-latin-wght-normal-eXO_dkmS.woff2" crossorigin />
+  <link rel="preload" as="image" type="image/webp" href="/logo.webp" fetchpriority="high" />
 
-  <!-- Route-aware LCP Preload Hint -->
+  <!-- Route-aware LCP Preload Hint for Homepage -->
   <script>
     (function () {
       try {
         var p = window.location.pathname || '';
-        var link = document.createElement('link');
-        link.rel = 'preload';
-        link.as = 'image';
-        link.fetchPriority = 'high';
-
         if (p === '/' || p === '') {
-          link.type = 'image/avif';
-          link.href = (window.innerWidth <= 640) ? '/hero-livestock-sm.avif' : '/hero-livestock.avif';
+          var link = document.createElement('link');
+          link.rel = 'preload';
+          link.as = 'image';
+          link.type = 'image/webp';
+          link.fetchPriority = 'high';
+          link.href = (window.innerWidth <= 640) ? '/hero-livestock-sm.webp' : '/hero-livestock.webp';
           document.head.appendChild(link);
-          return;
         }
-
-        if (p.startsWith('/packages')) {
-          link.href = 'https://images.unsplash.com/photo-1484557052118-f32bd25b45b5?auto=format&fit=crop&fm=webp&q=65&w=480&h=208';
-          link.setAttribute('imagesrcset', 'https://images.unsplash.com/photo-1484557052118-f32bd25b45b5?auto=format&fit=crop&fm=webp&q=65&w=360&h=155 360w, https://images.unsplash.com/photo-1484557052118-f32bd25b45b5?auto=format&fit=crop&fm=webp&q=65&w=480&h=208 480w');
-          link.setAttribute('imagesizes', '(max-width: 640px) 360px, (max-width: 1024px) 320px, 280px');
-          document.head.appendChild(link);
-        } else if (p.startsWith('/sheep')) {
-          link.href = 'https://images.unsplash.com/photo-1516467508483-a7212febe31a?auto=format&fit=crop&w=340&q=50&fm=webp';
-          link.setAttribute('imagesrcset', 'https://images.unsplash.com/photo-1516467508483-a7212febe31a?auto=format&fit=crop&w=260&q=50&fm=webp 260w, https://images.unsplash.com/photo-1516467508483-a7212febe31a?auto=format&fit=crop&w=340&q=50&fm=webp 340w, https://images.unsplash.com/photo-1516467508483-a7212febe31a?auto=format&fit=crop&w=420&q=50&fm=webp 420w, https://images.unsplash.com/photo-1516467508483-a7212febe31a?auto=format&fit=crop&w=600&q=50&fm=webp 600w');
-          link.setAttribute('imagesizes', '(max-width: 640px) calc(50vw - 16px), (max-width: 1024px) 280px, 360px');
-          document.head.appendChild(link);
-        } else if (p.startsWith('/goats')) {
-          link.href = 'https://images.unsplash.com/photo-1560807707-8cc77767d783?auto=format&fit=crop&w=340&q=50&fm=webp';
-          link.setAttribute('imagesrcset', 'https://images.unsplash.com/photo-1560807707-8cc77767d783?auto=format&fit=crop&w=260&q=50&fm=webp 260w, https://images.unsplash.com/photo-1560807707-8cc77767d783?auto=format&fit=crop&w=340&q=50&fm=webp 340w, https://images.unsplash.com/photo-1560807707-8cc77767d783?auto=format&fit=crop&w=420&q=50&fm=webp 420w, https://images.unsplash.com/photo-1560807707-8cc77767d783?auto=format&fit=crop&w=600&q=50&fm=webp 600w');
-          link.setAttribute('imagesizes', '(max-width: 640px) calc(50vw - 16px), (max-width: 1024px) 280px, 360px');
-          document.head.appendChild(link);
-        } else if (p.startsWith('/cows')) {
-          link.href = 'https://images.unsplash.com/photo-1546445317-29f4545e9d53?auto=format&fit=crop&w=340&q=50&fm=webp';
-          link.setAttribute('imagesrcset', 'https://images.unsplash.com/photo-1546445317-29f4545e9d53?auto=format&fit=crop&w=260&q=50&fm=webp 260w, https://images.unsplash.com/photo-1546445317-29f4545e9d53?auto=format&fit=crop&w=340&q=50&fm=webp 340w, https://images.unsplash.com/photo-1546445317-29f4545e9d53?auto=format&fit=crop&w=420&q=50&fm=webp 420w, https://images.unsplash.com/photo-1546445317-29f4545e9d53?auto=format&fit=crop&w=600&q=50&fm=webp 600w');
-          link.setAttribute('imagesizes', '(max-width: 640px) calc(50vw - 16px), (max-width: 1024px) 280px, 360px');
-          document.head.appendChild(link);
-        } else if (p.startsWith('/about')) {
-          link.href = 'https://images.unsplash.com/photo-1546445317-29f4545e9d53?auto=format&fit=crop&w=440&h=330&q=50&fm=webp';
-          link.setAttribute('imagesrcset', 'https://images.unsplash.com/photo-1546445317-29f4545e9d53?auto=format&fit=crop&w=360&h=270&q=50&fm=webp 360w, https://images.unsplash.com/photo-1546445317-29f4545e9d53?auto=format&fit=crop&w=440&h=330&q=50&fm=webp 440w');
-          link.setAttribute('imagesizes', '(max-width: 640px) 360px, (max-width: 1024px) 440px, 520px');
+      } catch (e) {}
+    })();
+  </script>
           document.head.appendChild(link);
         }
 

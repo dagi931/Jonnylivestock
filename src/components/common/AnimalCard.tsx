@@ -118,8 +118,7 @@ export const AnimalCard: React.FC<AnimalCardProps> = ({
             sizes="(max-width: 640px) calc(50vw - 16px), (max-width: 1024px) 280px, 360px"
             alt={`${animal.breed} ${animal.type} ${animal.id}`}
             width="340"
-            height="234"
-            loading={eager && animationIndex === 0 ? "eager" : "lazy"}
+            loading={eager ? "eager" : "lazy"}
             {...(eager && animationIndex === 0 ? ({ fetchPriority: "high" } as any) : {})}
             decoding="async"
             className={`w-full h-full object-cover object-center card-zoom-img transition-transform duration-500 ease-out ${
