@@ -132,13 +132,14 @@ export const Home: React.FC = () => {
 
           <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-6 items-start">
             {featuredSheep.slice(0, 3).map((sheep, idx) => (
-              <AnimalCard
-                key={sheep.id}
-                animal={sheep}
-                animationIndex={idx}
-                isExpanded={expandedAnimalId === sheep.id}
-                onToggleExpand={() => setExpandedAnimalId((prev) => (prev === sheep.id ? null : sheep.id))}
-              />
+              <AnimatedReveal key={sheep.id} direction="up" delay={100 + idx * 75} className="self-start h-fit w-full">
+                <AnimalCard
+                  animal={sheep}
+                  animationIndex={idx}
+                  isExpanded={expandedAnimalId === sheep.id}
+                  onToggleExpand={() => setExpandedAnimalId((prev) => (prev === sheep.id ? null : sheep.id))}
+                />
+              </AnimatedReveal>
             ))}
           </div>
         </div>
@@ -184,13 +185,14 @@ export const Home: React.FC = () => {
 
           <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-6 items-start">
             {featuredGoats.slice(0, 3).map((goat, idx) => (
-              <AnimalCard
-                key={goat.id}
-                animal={goat}
-                animationIndex={idx}
-                isExpanded={expandedAnimalId === goat.id}
-                onToggleExpand={() => setExpandedAnimalId((prev) => (prev === goat.id ? null : goat.id))}
-              />
+              <AnimatedReveal key={goat.id} direction="up" delay={100 + idx * 75} className="self-start h-fit w-full">
+                <AnimalCard
+                  animal={goat}
+                  animationIndex={idx}
+                  isExpanded={expandedAnimalId === goat.id}
+                  onToggleExpand={() => setExpandedAnimalId((prev) => (prev === goat.id ? null : goat.id))}
+                />
+              </AnimatedReveal>
             ))}
           </div>
         </div>
@@ -232,13 +234,14 @@ export const Home: React.FC = () => {
 
           <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-6 items-start">
             {featuredCows.slice(0, 3).map((cow, idx) => (
-              <AnimalCard
-                key={cow.id}
-                animal={cow}
-                animationIndex={idx}
-                isExpanded={expandedAnimalId === cow.id}
-                onToggleExpand={() => setExpandedAnimalId((prev) => (prev === cow.id ? null : cow.id))}
-              />
+              <AnimatedReveal key={cow.id} direction="up" delay={100 + idx * 75} className="self-start h-fit w-full">
+                <AnimalCard
+                  animal={cow}
+                  animationIndex={idx}
+                  isExpanded={expandedAnimalId === cow.id}
+                  onToggleExpand={() => setExpandedAnimalId((prev) => (prev === cow.id ? null : cow.id))}
+                />
+              </AnimatedReveal>
             ))}
           </div>
         </div>
