@@ -26,11 +26,11 @@ export const Footer: React.FC = () => {
           <div className="space-y-3">
             <div className="flex items-center gap-3">
               <img
-                src="/logo.jpg"
+                src="/logo.png"
                 alt="Jonny Livestock"
-                width="40"
-                height="40"
-                className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl object-cover border border-[#C58A3A]/40 shadow-sm shrink-0"
+                width="44"
+                height="36"
+                className="h-8 sm:h-9 w-auto object-contain shrink-0 drop-shadow-sm"
               />
               <span className="font-serif font-bold text-lg text-[#F4E8D0]">
                 {business.name}
