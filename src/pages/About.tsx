@@ -11,7 +11,7 @@ export const About: React.FC = () => {
   const { theme } = useTheme();
   const { t, isAmharic } = useLanguage();
   const isDark = theme === 'design7';
-  const { ref: mapRef, isInView: isMapInView } = useInView({ rootMargin: '250px' });
+  const { ref: mapRef, isInView: isMapInView } = useInView({ rootMargin: '0px' });
 
   return (
     <div className="min-h-screen py-8 sm:py-12">

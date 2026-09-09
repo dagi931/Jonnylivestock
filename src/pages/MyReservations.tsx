@@ -27,6 +27,8 @@ import {
   Layers
 } from 'lucide-react';
 
+import { useDelayedLoading } from '../hooks/useDelayedLoading';
+
 export const MyReservations: React.FC = () => {
   const { theme } = useTheme();
   const { isAmharic } = useLanguage();
@@ -49,6 +51,7 @@ export const MyReservations: React.FC = () => {
 
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const showLoading = useDelayedLoading(loading, 3000);
   const [activeTab, setActiveTab] = useState<'all' | 'direct' | 'reservation'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedOrderForFinalPay, setSelectedOrderForFinalPay] = useState<Order | null>(null);
@@ -409,7 +412,7 @@ export const MyReservations: React.FC = () => {
               </button>
             </div>
           </div>
-        ) : loading ? (
+        ) : showLoading ? (
           <div className="text-center py-20 opacity-60">
             <div className="w-8 h-8 rounded-full border-2 border-amber-500 border-t-transparent animate-spin mx-auto mb-3" />
             <p className="text-xs font-semibold text-amber-500">{isAmharic ? 'በመጫን ላይ...' : 'Loading...'}</p>

@@ -2,35 +2,48 @@ import http from 'k6/http';
 import { check, sleep } from 'k6';
 
 export const options = {
+  // Ramp-up to 500 virtual users (VUs)
   stages: [
-    { duration: '30s', target: 10 },
-    { duration: '1m', target: 10 },
-    { duration: '30s', target: 25 },
-    { duration: '1m', target: 25 },
-    { duration: '30s', target: 50 },
-    { duration: '1m', target: 50 },
-    { duration: '30s', target: 0 },
+    { duration: '10s', target: 100 }, // Warm-up to 100 users
+    { duration: '20s', target: 500 }, // Ramp up to 500 users
+    { duration: '1m', target: 500 },  // Sustained load at 500 users
+    { duration: '15s', target: 0 },   // Graceful cooldown
   ],
+  thresholds: {
+    http_req_failed: ['rate<0.01'],    // Less than 1% failure rate
+    http_req_duration: ['p(95)<1000'], // 95% of requests under 1 second
+  },
 };
 
+const BASE_URL = __ENV.TARGET_URL || 'http://localhost:5000';
+
+const GET_ROUTES = [
+  '/api/health',
+  '/api/settings/business',
+  '/api/animals',
+  '/api/animals?type=sheep',
+  '/api/animals?type=goat',
+  '/api/animals?type=cow',
+  '/api/animals/CW-004',
+  '/api/animals/SH-779',
+  '/api/animals/GT-173',
+  '/api/packages',
+  '/api/delivery/locations',
+  '/api/settings/bank-accounts',
+  '/api/settings/meat-pricing',
+];
+
 export default function () {
-  // 1. Browse all animals
-  const resAnimals = http.get('http://localhost:5000/api/animals');
-  check(resAnimals, {
-    'GET /api/animals status 200': (r) => r.status === 200,
+  // Pick random realistic route
+  const path = GET_ROUTES[Math.floor(Math.random() * GET_ROUTES.length)];
+  const res = http.get(`${BASE_URL}${path}`);
+
+  check(res, {
+    'status is 200': (r) => r.status === 200,
+    'response time < 1000ms': (r) => r.timings.duration < 1000,
   });
 
-  // 2. View specific animal details
-  const resAnimal = http.get('http://localhost:5000/api/animals/cw-001');
-  check(resAnimal, {
-    'GET /api/animals/cw-001 status 200': (r) => r.status === 200,
-  });
-
-  // 3. Browse packages
-  const resPackages = http.get('http://localhost:5000/api/packages');
-  check(resPackages, {
-    'GET /api/packages status 200': (r) => r.status === 200,
-  });
-
-  sleep(1);
+  // Realistic human think time between clicks (100ms - 300ms)
+  sleep(0.1 + Math.random() * 0.2);
 }
+

@@ -97,6 +97,8 @@ function buildThumbnailSrcSet(url: string): string | undefined {
   }
 }
 
+import { useDelayedLoading } from '../hooks/useDelayedLoading';
+
 export const PackageBuilder: React.FC = () => {
   const { theme } = useTheme();
   const { isAmharic } = useLanguage();
@@ -109,8 +111,9 @@ export const PackageBuilder: React.FC = () => {
   // would unconditionally call setCatalog during the CLS measurement window).
   const [catalog, setCatalog] = useState<PackageCatalogItem[]>([]);
   const [preMadePackages, setPreMadePackages] = useState<PreMadePackage[]>(PRE_MADE_PACKAGES);
-  // Loading is only gated on preMadePackages — catalog starts empty deliberately
+  // Loading is gated behind a strict 3-second delay threshold to avoid premature loading flashes
   const loading = preMadePackages.length === 0;
+  const showLoading = useDelayedLoading(loading, 3000);
   const [expandedPreMadeId, setExpandedPreMadeId] = useState<string | null>(null);
   const [touchedCardId, setTouchedCardId] = useState<string | null>(null);
   const touchCardTimerRef = useRef<any>(null);
@@ -380,7 +383,7 @@ export const PackageBuilder: React.FC = () => {
 
       {/* Main Content Area */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
-        {loading ? (
+        {showLoading ? (
           <div className="text-center py-20 opacity-80 animate-in fade-in duration-200">
             <div className="w-8 h-8 rounded-full border-2 border-amber-500 border-t-transparent animate-spin mx-auto mb-3" />
             <p className="text-xs font-semibold text-amber-500">
@@ -585,16 +588,7 @@ export const PackageBuilder: React.FC = () => {
           </div>
         ) : (
           /* ==================== CUSTOM PACKAGE BUILDER ==================== */
-          <Suspense
-            fallback={
-              <div className="py-20 text-center opacity-80">
-                <div className="w-8 h-8 rounded-full border-2 border-amber-500 border-t-transparent animate-spin mx-auto mb-3" />
-                <p className="text-xs font-semibold text-amber-500">
-                  {isAmharic ? 'ጥቅል ማዘጋጃ በመጫን ላይ...' : 'Loading Custom Package Builder...'}
-                </p>
-              </div>
-            }
-          >
+          <Suspense fallback={null}>
             <CustomPackageBuilderTab
               catalog={catalog}
               selectedItems={selectedItems}

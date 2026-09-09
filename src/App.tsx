@@ -8,47 +8,35 @@ import { RealtimeProvider } from './context/RealtimeContext';
 import { Navbar } from './components/common/Navbar';
 import { Footer } from './components/common/Footer';
 
-// Homepage is eagerly loaded as the primary landing page
+// Eagerly loaded storefront pages for instant navigation and zero layout shifts
 import { Home } from './pages/Home';
+import { Sheep } from './pages/Sheep';
+import { Goats } from './pages/Goats';
+import { Cows } from './pages/Cows';
+import { Contact } from './pages/Contact';
+import { About } from './pages/About';
+import { PackageBuilder } from './pages/PackageBuilder';
+import { Services } from './pages/Services';
 
-// Storefront routes and modals are code-split with lazy loading to minimize homepage initial bundle
-const Sheep          = lazy(() => import('./pages/Sheep').then(m => ({ default: m.Sheep })));
-const Goats          = lazy(() => import('./pages/Goats').then(m => ({ default: m.Goats })));
-const Cows           = lazy(() => import('./pages/Cows').then(m => ({ default: m.Cows })));
-const Contact        = lazy(() => import('./pages/Contact').then(m => ({ default: m.Contact })));
-const About          = lazy(() => import('./pages/About').then(m => ({ default: m.About })));
-const PackageBuilder = lazy(() => import('./pages/PackageBuilder').then(m => ({ default: m.PackageBuilder })));
-const Services       = lazy(() => import('./pages/Services').then(m => ({ default: m.Services })));
+// Secondary routes and heavy modals are code-split
+import { useDelayedLoading } from './hooks/useDelayedLoading';
 const UserAuthModal  = lazy(() => import('./components/modals/UserAuthModal').then(m => ({ default: m.UserAuthModal })));
-
-// Secondary and dashboard routes
 const AnimalDetails  = lazy(() => import('./pages/AnimalDetails').then(m => ({ default: m.AnimalDetails })));
 const MyPackages     = lazy(() => import('./pages/MyPackages').then(m => ({ default: m.MyPackages })));
 const MyReservations = lazy(() => import('./pages/MyReservations').then(m => ({ default: m.MyReservations })));
 const Admin          = lazy(() => import('./pages/Admin').then(m => ({ default: m.Admin })));
 const NotFound       = lazy(() => import('./pages/NotFound').then(m => ({ default: m.NotFound })));
 
-// Preload storefront routes during idle time so user navigation is instantaneous
-const preloadStorefrontRoutes = () => {
-  import('./pages/Sheep');
-  import('./pages/Goats');
-  import('./pages/Cows');
-  import('./pages/PackageBuilder');
-  import('./pages/Services');
+// Loading indicator shown ONLY if rendering or chunk loading takes strictly longer than 3 seconds
+const DelayedPageLoader: React.FC = () => {
+  const show = useDelayedLoading(true, 3000);
+  if (!show) return null;
+  return (
+    <div className="flex items-center justify-center min-h-[50vh]">
+      <div className="w-8 h-8 rounded-full border-2 border-[#C58A3A] border-t-transparent animate-spin" />
+    </div>
+  );
 };
-
-if (typeof window !== 'undefined') {
-  window.addEventListener('load', () => {
-    setTimeout(preloadStorefrontRoutes, 6000);
-  }, { once: true });
-}
-
-// Minimal loading spinner shown while a lazy route chunk downloads
-const PageLoader: React.FC = () => (
-  <div className="flex items-center justify-center min-h-[40vh]">
-    <div className="w-8 h-8 rounded-full border-2 border-[#C58A3A] border-t-transparent animate-spin" />
-  </div>
-);
 
 // Auto scroll-to-top on route navigation and page refresh
 const ScrollToTop: React.FC = () => {
@@ -127,7 +115,7 @@ const AppContent: React.FC = () => {
         </Suspense>
       )}
       <main className="flex-1">
-        <Suspense fallback={<PageLoader />}>
+        <Suspense fallback={<DelayedPageLoader />}>
           {isAdminAuth ? (
             <Routes>
               <Route path="/admin" element={<Admin />} />

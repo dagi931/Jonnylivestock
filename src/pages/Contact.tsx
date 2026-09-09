@@ -5,6 +5,7 @@ import { useTheme } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
 import { getPhoneCallLink, getWhatsAppLink } from '../utils/formatters';
 import { FarmMap } from '../components/common/FarmMap';
+import { useInView } from '../hooks/useInView';
 import { api } from '../services/api';
 import {
   Phone,
@@ -22,6 +23,7 @@ export const Contact: React.FC = () => {
   const { theme } = useTheme();
   const { t, isAmharic } = useLanguage();
   const isDark = theme === 'design7';
+  const { ref: mapRef, isInView: isMapInView } = useInView({ rootMargin: '0px' });
 
   const [formData, setFormData] = useState<ContactFormData>({
     name: '',
@@ -486,8 +488,12 @@ export const Contact: React.FC = () => {
         </div>
 
         {/* Live GIS Map Section (decreased width from left & right) */}
-        <div className="mt-12 max-w-5xl mx-auto px-2 sm:px-4">
-          <FarmMap />
+        <div ref={mapRef} className="mt-12 max-w-5xl mx-auto px-2 sm:px-4">
+          {isMapInView ? (
+            <FarmMap />
+          ) : (
+            <div className="h-[320px] sm:h-[380px] rounded-3xl bg-stone-900/5 border border-stone-800/10" />
+          )}
         </div>
 
       </div>

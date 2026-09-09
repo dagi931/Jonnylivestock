@@ -9,6 +9,7 @@ import { formatPrice, getItemDisplayName } from '../utils/formatters';
 const PackageOrderModal = lazy(() =>
   import('../components/modals/PackageOrderModal').then(m => ({ default: m.PackageOrderModal }))
 );
+import { useDelayedLoading } from '../hooks/useDelayedLoading';
 import {
   Gift,
   Bookmark,
@@ -25,6 +26,7 @@ export const MyPackages: React.FC = () => {
 
   const [savedPackages, setSavedPackages] = useState<SavedPackage[]>([]);
   const [loading, setLoading] = useState(true);
+  const showLoading = useDelayedLoading(loading, 3000);
   const [selectedPackageToOrder, setSelectedPackageToOrder] = useState<SavedPackage | null>(null);
   const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
 
@@ -122,7 +124,7 @@ export const MyPackages: React.FC = () => {
               {isAmharic ? 'ይግቡ' : 'Sign In'}
             </button>
           </div>
-        ) : loading ? (
+        ) : showLoading ? (
           <div className="text-center py-20 opacity-80 animate-in fade-in duration-200">
             <div className="w-8 h-8 rounded-full border-2 border-amber-500 border-t-transparent animate-spin mx-auto mb-3" />
             <p className="text-xs font-semibold text-amber-500">

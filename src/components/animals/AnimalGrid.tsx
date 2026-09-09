@@ -5,6 +5,7 @@ import { SkeletonCard } from '../common/SkeletonCard';
 import { SearchX, RotateCcw } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 import { useLanguage } from '../../context/LanguageContext';
+import { useDelayedLoading } from '../../hooks/useDelayedLoading';
 
 interface AnimalGridProps {
   animals: Animal[];
@@ -26,7 +27,10 @@ export const AnimalGrid: React.FC<AnimalGridProps> = ({
   const isDark = theme === 'design7';
   const [expandedAnimalId, setExpandedAnimalId] = useState<string | null>(null);
 
-  if (isLoading) {
+  // Only show loading state if data is still completely absent after 3 seconds
+  const showLoading = useDelayedLoading(isLoading && animals.length === 0, 3000);
+
+  if (showLoading) {
     return (
       <div className="space-y-6">
         <div className="flex flex-col items-center justify-center py-8 text-center animate-in fade-in duration-200">

@@ -23,6 +23,7 @@ import { formatPrice, formatWeight, getPhoneCallLink, getWhatsAppLink } from '..
 import { useTheme } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useRealtimeEvent } from '../context/RealtimeContext';
+import { useDelayedLoading } from '../hooks/useDelayedLoading';
 import {
   Phone,
   MessageCircle,
@@ -118,8 +119,10 @@ export const AnimalDetails: React.FC = () => {
 
   const animal = animalData || (id ? getAnimalById(id) : undefined);
 
-  // Loading indicator while animal data is being fetched from database
+  // Only show loading indicator if animal data fetch takes strictly longer than 3 seconds
+  const showLoading = useDelayedLoading(isLoading && !animal, 3000);
   if (isLoading && !animal) {
+    if (!showLoading) return <div className="min-h-[70vh]" />;
     return (
       <div className="min-h-[70vh] flex flex-col items-center justify-center px-4 py-20 text-center animate-in fade-in duration-200">
         <div className="w-8 h-8 rounded-full border-2 border-amber-500 border-t-transparent animate-spin mb-3" />

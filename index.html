@@ -9,24 +9,25 @@
   <meta name="description"
     content="Browse quality sheep, goats, and cows directly from Jonny Livestock. Transparent pricing, exact weights, and direct delivery and preparation services." />
 
-  <!-- Preload LCP Candidate for Home page (Responsive AVIF: mobile 53KB, desktop 64KB) -->
-  <link rel="preload" as="image" href="/hero-livestock-sm.avif" type="image/avif" media="(max-width: 640px)" fetchpriority="high" />
-  <link rel="preload" as="image" href="/hero-livestock.avif" type="image/avif" media="(min-width: 641px)" fetchpriority="high" />
-
   <!-- Preload Critical Variable Font -->
   <link rel="preload" as="font" type="font/woff2" href="/assets/plus-jakarta-sans-latin-wght-normal-eXO_dkmS.woff2" crossorigin />
 
-  <!-- Route-aware LCP Preload Hint for inner routes -->
+  <!-- Route-aware LCP Preload Hint -->
   <script>
     (function () {
       try {
         var p = window.location.pathname || '';
-        if (p === '/' || p === '') return; // handled by responsive static link above
-
         var link = document.createElement('link');
         link.rel = 'preload';
         link.as = 'image';
         link.fetchPriority = 'high';
+
+        if (p === '/' || p === '') {
+          link.type = 'image/avif';
+          link.href = (window.innerWidth <= 640) ? '/hero-livestock-sm.avif' : '/hero-livestock.avif';
+          document.head.appendChild(link);
+          return;
+        }
 
         if (p.startsWith('/packages')) {
           link.href = 'https://images.unsplash.com/photo-1484557052118-f32bd25b45b5?auto=format&fit=crop&fm=webp&q=65&w=480&h=208';
@@ -55,8 +56,8 @@
           document.head.appendChild(link);
         }
 
-        // Connect to Unsplash CDN only for pages that load Unsplash images (avoids "Unused preconnect" audit on /contact)
-        if (!p.startsWith('/contact')) {
+        // Connect to Unsplash CDN only for pages that load Unsplash images
+        if (p.startsWith('/sheep') || p.startsWith('/goats') || p.startsWith('/cows') || p.startsWith('/packages') || p.startsWith('/about')) {
           var pre = document.createElement('link');
           pre.rel = 'preconnect';
           pre.href = 'https://images.unsplash.com';

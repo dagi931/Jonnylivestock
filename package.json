@@ -14,7 +14,9 @@
     "prisma:push": "npm run prisma:push --workspace=server",
     "setup": "npm install && npm run prisma:generate",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "loadtest": "node scripts/loadtest-500-users.mjs",
+    "loadtest:benchmark": "node scripts/test-multi-route.mjs"
   },
   "dependencies": {
     "@fontsource-variable/lora": "^5.3.0",
@@ -32,6 +34,7 @@
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",
     "@vitejs/plugin-react": "^4.3.4",
+    "autocannon": "^8.0.0",
     "autoprefixer": "^10.4.20",
     "concurrently": "^10.0.5",
     "postcss": "^8.5.2",
