@@ -12,7 +12,6 @@ import {
   getPackageDescription
 } from '../utils/formatters';
 import { validatePackageLivestock } from '../utils/packageValidators';
-import { AnimatedReveal } from '../components/common/AnimatedReveal';
 import {
   Gift,
   Sparkles,
@@ -54,7 +53,7 @@ function getSafeImageUrl(url?: string | null): string {
 /**
  * Optimize an Unsplash URL with exact dimensions, WebP format, and quality.
  */
-function getOptimizedUnsplashUrl(url: string, width = 480, height = 208): string {
+function getOptimizedUnsplashUrl(url: string, width = 360, height = 156, quality = 50): string {
   const safe = getSafeImageUrl(url);
   if (!safe.includes('images.unsplash.com')) return safe;
   try {
@@ -62,7 +61,7 @@ function getOptimizedUnsplashUrl(url: string, width = 480, height = 208): string
     parsed.searchParams.set('auto', 'format');
     parsed.searchParams.set('fit', 'crop');
     parsed.searchParams.set('fm', 'webp');
-    parsed.searchParams.set('q', '65');
+    parsed.searchParams.set('q', String(quality));
     parsed.searchParams.set('w', String(width));
     parsed.searchParams.set('h', String(height));
     return parsed.toString();
@@ -76,8 +75,8 @@ function buildPackageBannerSrcSet(url: string): string | undefined {
   const safe = getSafeImageUrl(url);
   if (!safe.includes('images.unsplash.com')) return undefined;
   try {
-    const s360 = `${getOptimizedUnsplashUrl(safe, 360, 155)} 360w`;
-    const s480 = `${getOptimizedUnsplashUrl(safe, 480, 208)} 480w`;
+    const s360 = `${getOptimizedUnsplashUrl(safe, 360, 156, 50)} 360w`;
+    const s480 = `${getOptimizedUnsplashUrl(safe, 480, 208, 50)} 480w`;
     return `${s360}, ${s480}`;
   } catch {
     return undefined;
@@ -419,169 +418,167 @@ export const PackageBuilder: React.FC = () => {
                 const isFirstVisible = idx === 0;
 
                 return (
-                  <AnimatedReveal key={pkg.id} immediate={true} direction="up" delay={0} className="self-start h-fit w-full">
-                    <div
-                      onTouchStart={() => handleTouchCard(pkg.id)}
-                      onTouchEnd={() => handleTouchCard(pkg.id)}
-                      className={`self-start h-fit w-full group rounded-2xl border overflow-hidden transition-all duration-300 hover:shadow-lg flex flex-col justify-between select-none ${
-                        isDark ? 'bg-[#24170D] border-[#4A2C16]' : 'bg-white border-[#E4D4BC]'
-                      }`}
-                    >
-                      <div>
-                        {/* Image Banner - aspect-ratio is the sole height authority, no conflicting h-* classes */}
-                        <div className="relative aspect-[480/208] w-full overflow-hidden bg-black/10 shrink-0">
-                          <img
-                            src={getOptimizedUnsplashUrl(pkg.image, 480, 208)}
-                            srcSet={buildPackageBannerSrcSet(pkg.image)}
-                            sizes="(max-width: 640px) 360px, (max-width: 1024px) 320px, 280px"
-                            alt={pkg.name}
-                            width={480}
-                            height={208}
-                            loading={isFirstVisible ? "eager" : "lazy"}
-                            {...(isFirstVisible ? ({ fetchPriority: "high" } as any) : {})}
-                            decoding={isFirstVisible ? "sync" : "async"}
-                            style={{ aspectRatio: '480 / 208' }}
-                            className={`w-full h-full object-cover card-zoom-img will-change-transform transition-transform duration-500 ease-out ${
-                              touchedCardId === pkg.id ? 'scale-100' : 'scale-105'
-                            } group-hover:scale-100 group-active:scale-100 active:scale-100`}
-                          />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-transparent" />
+                  <div
+                    key={pkg.id}
+                    onTouchStart={() => handleTouchCard(pkg.id)}
+                    onTouchEnd={() => handleTouchCard(pkg.id)}
+                    className={`self-start h-fit w-full group rounded-2xl border overflow-hidden transition-shadow duration-300 hover:shadow-lg flex flex-col justify-between select-none ${
+                      isDark ? 'bg-[#24170D] border-[#4A2C16]' : 'bg-white border-[#E4D4BC]'
+                    }`}
+                  >
+                    <div>
+                      {/* Image Banner - Absolute positioning inside aspect-ratio container guarantees 0.00 CLS */}
+                      <div className="relative aspect-[480/208] w-full overflow-hidden bg-stone-900 shrink-0">
+                        <img
+                          src={getOptimizedUnsplashUrl(pkg.image, 360, 156, 50)}
+                          srcSet={buildPackageBannerSrcSet(pkg.image)}
+                          sizes="(max-width: 640px) calc(100vw - 32px), (max-width: 1024px) 50vw, 300px"
+                          alt={pkg.name}
+                          width={480}
+                          height={208}
+                          loading={isFirstVisible ? "eager" : "lazy"}
+                          {...(isFirstVisible ? ({ fetchPriority: "high" } as any) : {})}
+                          decoding="async"
+                          className={`absolute inset-0 w-full h-full object-cover card-zoom-img transition-transform duration-500 ease-out ${
+                            touchedCardId === pkg.id ? 'scale-100' : 'scale-105'
+                          } group-hover:scale-100 group-active:scale-100 active:scale-100`}
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-transparent pointer-events-none" />
 
-                          <div className="absolute top-2.5 left-2.5 flex flex-wrap gap-1">
-                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-600 text-white flex items-center gap-1 shadow-xs">
-                              <Truck size={10} className="w-2.5 h-2.5" /> {isAmharic ? 'ነፃ ማድረሻ' : 'Free Delivery'}
-                            </span>
-                          </div>
-
-                          {/* Out of Stock Notice */}
-                          {(() => {
-                            const avail = pkg.availableSlots !== undefined ? pkg.availableSlots : 10;
-                            const isSoldOut = Boolean(pkg.isOutOfStock || avail <= 0);
-                            if (isSoldOut) {
-                              return (
-                                <div className="absolute top-2.5 right-2.5">
-                                  <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-red-600 text-white shadow-xs">
-                                    {isAmharic ? 'አልቋል' : 'Sold Out'}
-                                  </span>
-                                </div>
-                              );
-                            }
-                            return null;
-                          })()}
-
-                          <div className="absolute bottom-2.5 left-3 right-3 text-white">
-                            <div className="text-[9.5px] font-mono opacity-80 uppercase tracking-wider truncate">
-                              {isAmharic && pkg.amharicTagline ? pkg.amharicTagline : pkg.tagline}
-                            </div>
-                            <h3 className="font-serif font-bold text-sm sm:text-base line-clamp-1">
-                              {getPackageTitle(pkg, isAmharic)}
-                            </h3>
-                          </div>
+                        <div className="absolute top-2.5 left-2.5 flex flex-wrap gap-1 z-10">
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-600 text-white flex items-center gap-1 shadow-xs">
+                            <Truck size={10} className="w-2.5 h-2.5" /> {isAmharic ? 'ነፃ ማድረሻ' : 'Free Delivery'}
+                          </span>
                         </div>
 
-                        {/* Description & Included Items */}
-                        <div className="p-3.5 space-y-2.5">
-                          <p className="text-xs opacity-75 leading-relaxed line-clamp-2">
-                            {getPackageDescription(pkg, isAmharic)}
-                          </p>
-
-                          {/* Interactive "Show details" Toggle */}
-                          <button
-                            type="button"
-                            onClick={() => setExpandedPreMadeId(isExpanded ? null : pkg.id)}
-                            className="w-full text-xs font-semibold flex items-center justify-between py-1 text-amber-500 hover:text-amber-400 opacity-90 hover:opacity-100 transition-colors cursor-pointer"
-                          >
-                            <span>{isExpanded ? (isAmharic ? 'ዝርዝር አሳንስ' : 'Hide details') : (isAmharic ? 'የጥቅሉ ዝርዝር' : 'Show details')}</span>
-                            <ChevronDown size={14} className={`w-3.5 h-3.5 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
-                          </button>
-
-                          {/* Included Items Minimalist List */}
-                          {isExpanded && (
-                            <div className="pt-1.5 space-y-1.5 animate-in fade-in duration-150">
-                              <div className="text-[10px] font-bold uppercase tracking-wider opacity-60">
-                                {isAmharic ? `የተካተቱ ምድቦች (${pkg.categoryCount}):` : `Included Items (${pkg.categoryCount} Categories):`}
+                        {/* Out of Stock Notice */}
+                        {(() => {
+                          const avail = pkg.availableSlots !== undefined ? pkg.availableSlots : 10;
+                          const isSoldOut = Boolean(pkg.isOutOfStock || avail <= 0);
+                          if (isSoldOut) {
+                            return (
+                              <div className="absolute top-2.5 right-2.5 z-10">
+                                <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-red-600 text-white shadow-xs">
+                                  {isAmharic ? 'አልቋል' : 'Sold Out'}
+                                </span>
                               </div>
-                              <div className={`divide-y text-xs ${
-                                isDark ? 'divide-[#4A2C16]/50' : 'divide-[#E4D4BC]/60'
-                              }`}>
-                                {pkg.items.map((item, itemIdx) => (
-                                  <div
-                                    key={itemIdx}
-                                    className="py-1.5 flex items-center justify-between gap-2"
-                                  >
-                                    <div className="flex items-center gap-2 truncate">
-                                      <Check size={12} className="w-3 h-3 text-emerald-500 shrink-0" />
-                                      <span className="font-medium truncate opacity-90">{getItemDisplayName(item, isAmharic)}</span>
-                                    </div>
-                                    <span className="text-[10px] font-mono opacity-60 shrink-0">{formatPrice(item.price)}</span>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          )}
+                            );
+                          }
+                          return null;
+                        })()}
+
+                        <div className="absolute bottom-2.5 left-3 right-3 text-white z-10">
+                          <div className="text-[9.5px] font-mono opacity-80 uppercase tracking-wider truncate">
+                            {isAmharic && pkg.amharicTagline ? pkg.amharicTagline : pkg.tagline}
+                          </div>
+                          <h3 className="font-serif font-bold text-sm sm:text-base line-clamp-1">
+                            {getPackageTitle(pkg, isAmharic)}
+                          </h3>
                         </div>
                       </div>
 
-                      {/* Pricing & Order Action */}
-                      <div className={`p-3.5 border-t space-y-2.5 ${
-                        isDark ? 'border-[#4A2C16]' : 'border-[#E4D4BC]'
-                      }`}>
-                        <div className="flex items-end justify-between gap-2">
-                          <div>
-                            <div className="flex items-center gap-1.5">
-                              <span className="text-[10px] line-through opacity-50 font-mono">
-                                {formatPrice(pkg.originalPrice)}
-                              </span>
-                              <span className="text-[10px] font-bold text-emerald-500">
-                                {isAmharic ? 'ቁጠባ ' : 'Save '}{formatPrice(pkg.savings)}
-                              </span>
+                      {/* Description & Included Items */}
+                      <div className="p-3.5 space-y-2.5">
+                        <p className="text-xs opacity-75 leading-relaxed line-clamp-2">
+                          {getPackageDescription(pkg, isAmharic)}
+                        </p>
+
+                        {/* Interactive "Show details" Toggle */}
+                        <button
+                          type="button"
+                          onClick={() => setExpandedPreMadeId(isExpanded ? null : pkg.id)}
+                          className="w-full text-xs font-semibold flex items-center justify-between py-1 text-amber-500 hover:text-amber-400 opacity-90 hover:opacity-100 transition-colors cursor-pointer"
+                        >
+                          <span>{isExpanded ? (isAmharic ? 'ዝርዝር አሳንስ' : 'Hide details') : (isAmharic ? 'የጥቅሉ ዝርዝር' : 'Show details')}</span>
+                          <ChevronDown size={14} className={`w-3.5 h-3.5 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
+                        </button>
+
+                        {/* Included Items Minimalist List */}
+                        {isExpanded && (
+                          <div className="pt-1.5 space-y-1.5 animate-in fade-in duration-150">
+                            <div className="text-[10px] font-bold uppercase tracking-wider opacity-60">
+                              {isAmharic ? `የተካተቱ ምድቦች (${pkg.categoryCount}):` : `Included Items (${pkg.categoryCount} Categories):`}
                             </div>
-                            <div className="font-serif font-bold text-base text-amber-500">
-                              {formatPrice(pkg.packagePrice)}
+                            <div className={`divide-y text-xs ${
+                              isDark ? 'divide-[#4A2C16]/50' : 'divide-[#E4D4BC]/60'
+                            }`}>
+                              {pkg.items.map((item, itemIdx) => (
+                                <div
+                                  key={itemIdx}
+                                  className="py-1.5 flex items-center justify-between gap-2"
+                                >
+                                  <div className="flex items-center gap-2 truncate">
+                                    <Check size={12} className="w-3 h-3 text-emerald-500 shrink-0" />
+                                    <span className="font-medium truncate opacity-90">{getItemDisplayName(item, isAmharic)}</span>
+                                  </div>
+                                  <span className="text-[10px] font-mono opacity-60 shrink-0">{formatPrice(item.price)}</span>
+                                </div>
+                              ))}
                             </div>
                           </div>
+                        )}
+                      </div>
+                    </div>
 
-                          <div className="text-right">
-                            <div className="text-[9.5px] text-emerald-500 font-bold">
-                              {isAmharic ? '50% ቅድመ-ክፍያ' : '50% deposit'}
-                            </div>
-                            <div className="text-[11px] font-mono font-bold text-emerald-500">
-                              {formatPrice(pkg.packagePrice * 0.5)}
-                            </div>
+                    {/* Pricing & Order Action */}
+                    <div className={`p-3.5 border-t space-y-2.5 ${
+                      isDark ? 'border-[#4A2C16]' : 'border-[#E4D4BC]'
+                    }`}>
+                      <div className="flex items-end justify-between gap-2">
+                        <div>
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-[10px] line-through opacity-50 font-mono">
+                              {formatPrice(pkg.originalPrice)}
+                            </span>
+                            <span className="text-[10px] font-bold text-emerald-500">
+                              {isAmharic ? 'ቁጠባ ' : 'Save '}{formatPrice(pkg.savings)}
+                            </span>
+                          </div>
+                          <div className="font-serif font-bold text-base text-amber-500">
+                            {formatPrice(pkg.packagePrice)}
                           </div>
                         </div>
 
-                        {/* CTA: min-h stabilises card height whether sold-out or orderable, preventing CLS */}
-                        <div className="min-h-[40px] flex flex-col justify-end">
-                          {(() => {
-                            const avail = pkg.availableSlots !== undefined ? pkg.availableSlots : 10;
-                            const isSoldOut = Boolean(pkg.isOutOfStock || avail <= 0);
-                            if (isSoldOut) {
-                              return (
-                                <button
-                                  type="button"
-                                  disabled
-                                  className="w-full py-2 rounded-xl bg-stone-700/60 text-stone-300 font-bold text-xs cursor-not-allowed opacity-80 flex items-center justify-center gap-1"
-                                >
-                                  <span>{isAmharic ? 'አልቋል (Out of Stock)' : 'Sold Out'}</span>
-                                </button>
-                              );
-                            }
+                        <div className="text-right">
+                          <div className="text-[9.5px] text-emerald-500 font-bold">
+                            {isAmharic ? '50% ቅድመ-ክፍያ' : '50% deposit'}
+                          </div>
+                          <div className="text-[11px] font-mono font-bold text-emerald-500">
+                            {formatPrice(pkg.packagePrice * 0.5)}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* CTA: min-h stabilises card height whether sold-out or orderable, preventing CLS */}
+                      <div className="min-h-[40px] flex flex-col justify-end">
+                        {(() => {
+                          const avail = pkg.availableSlots !== undefined ? pkg.availableSlots : 10;
+                          const isSoldOut = Boolean(pkg.isOutOfStock || avail <= 0);
+                          if (isSoldOut) {
                             return (
                               <button
                                 type="button"
-                                onClick={() => handleOrderPreMade(pkg)}
-                                className="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-black font-bold text-xs transition-all shadow-sm flex items-center justify-center gap-1.5 cursor-pointer active:scale-[0.99]"
+                                disabled
+                                className="w-full py-2 rounded-xl bg-stone-700/60 text-stone-300 font-bold text-xs cursor-not-allowed opacity-80 flex items-center justify-center gap-1"
                               >
-                                <Gift size={14} className="w-3.5 h-3.5 shrink-0" />
-                                <span>{isAmharic ? 'ይዘዙ / በ50% ይያዙ' : 'Order / 50% Reserve'}</span>
+                                <span>{isAmharic ? 'አልቋል (Out of Stock)' : 'Sold Out'}</span>
                               </button>
                             );
-                          })()}
-                        </div>
+                          }
+                          return (
+                            <button
+                              type="button"
+                              onClick={() => handleOrderPreMade(pkg)}
+                              className="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-black font-bold text-xs transition-all shadow-sm flex items-center justify-center gap-1.5 cursor-pointer active:scale-[0.99]"
+                            >
+                              <Gift size={14} className="w-3.5 h-3.5 shrink-0" />
+                              <span>{isAmharic ? 'ይዘዙ / በ50% ይያዙ' : 'Order / 50% Reserve'}</span>
+                            </button>
+                          );
+                        })()}
                       </div>
                     </div>
-                  </AnimatedReveal>
+                  </div>
                 );
               })}
             </div>

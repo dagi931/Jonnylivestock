@@ -13,7 +13,7 @@
   <link rel="preload" as="font" type="font/woff2" href="/assets/plus-jakarta-sans-latin-wght-normal-eXO_dkmS.woff2" crossorigin />
   <link rel="preload" as="image" type="image/webp" href="/logo-sm.webp" fetchpriority="high" />
 
-  <!-- Route-aware LCP Preload Hint for Homepage -->
+  <!-- Route-aware LCP Preload Hint for Homepage & Packages -->
   <script>
     (function () {
       try {
@@ -25,6 +25,16 @@
           link.type = 'image/webp';
           link.fetchPriority = 'high';
           link.href = (window.innerWidth <= 640) ? '/hero-livestock-sm.webp' : '/hero-livestock.webp';
+          document.head.appendChild(link);
+        } else if (p.startsWith('/packages')) {
+          var link = document.createElement('link');
+          link.rel = 'preload';
+          link.as = 'image';
+          link.type = 'image/webp';
+          link.fetchPriority = 'high';
+          link.href = (window.innerWidth <= 640)
+            ? 'https://images.unsplash.com/photo-1484557052118-f32bd25b45b5?auto=format&fit=crop&fm=webp&q=50&w=360&h=156'
+            : 'https://images.unsplash.com/photo-1484557052118-f32bd25b45b5?auto=format&fit=crop&fm=webp&q=50&w=480&h=208';
           document.head.appendChild(link);
         }
       } catch (e) {}
