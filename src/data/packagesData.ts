@@ -368,7 +368,7 @@ export const PRE_MADE_PACKAGES: PreMadePackage[] = [
     image: 'https://images.unsplash.com/photo-1607623814075-e51df1bdc82f?auto=format&fit=crop&fm=webp&q=60&w=360&h=160',
     featured: true,
     totalSlots: 10,
-    availableSlots: 0,
-    isOutOfStock: true
+    availableSlots: 10,
+    isOutOfStock: false
   }
 ];

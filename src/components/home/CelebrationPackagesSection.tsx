@@ -51,47 +51,32 @@ export const CelebrationPackagesSection: React.FC = () => {
 
   useEffect(() => {
     let isMounted = true;
-    const scheduleSync = () => {
-      api.getPackagesData()
-        .then(data => {
-          if (!isMounted) return;
-          if (data?.preMadePackages && data.preMadePackages.length > 0) {
-            setPackages(prev => {
-              if (prev.length === data.preMadePackages.length) {
-                const identical = prev.every((p, i) => {
-                  const incoming = data.preMadePackages[i];
-                  return (
-                    incoming &&
-                    p.id === incoming.id &&
-                    p.packagePrice === incoming.packagePrice &&
-                    p.availableSlots === incoming.availableSlots &&
-                    p.isOutOfStock === incoming.isOutOfStock
-                  );
-                });
-                if (identical) return prev;
-              }
-              return data.preMadePackages;
-            });
-          }
-        })
-        .catch(() => {});
-    };
-
-    let timerId: any = setTimeout(() => {
-      if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
-        (window as any).requestIdleCallback(scheduleSync, { timeout: 2000 });
-      } else {
-        scheduleSync();
-      }
-    }, 5500);
+    api.getPackagesData()
+      .then(data => {
+        if (!isMounted) return;
+        if (data?.preMadePackages && data.preMadePackages.length > 0) {
+          setPackages(prev => {
+            if (prev.length === data.preMadePackages.length) {
+              const identical = prev.every((p, i) => {
+                const incoming = data.preMadePackages[i];
+                return (
+                  incoming &&
+                  p.id === incoming.id &&
+                  p.packagePrice === incoming.packagePrice &&
+                  p.availableSlots === incoming.availableSlots &&
+                  p.isOutOfStock === incoming.isOutOfStock
+                );
+              });
+              if (identical) return prev;
+            }
+            return data.preMadePackages;
+          });
+        }
+      })
+      .catch(() => {});
 
     return () => {
       isMounted = false;
-      if (typeof window !== 'undefined' && 'cancelIdleCallback' in window && typeof timerId === 'number') {
-        (window as any).cancelIdleCallback(timerId);
-      } else {
-        clearTimeout(timerId);
-      }
     };
   }, []);
 
