@@ -192,6 +192,23 @@
   will-change: transform, opacity;
 }
 
+/* GPU-composited high-performance card entrance animation (0 CLS layout shift) */
+@keyframes cardEntrance {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 14px, 0);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.animate-card-entrance {
+  animation: cardEntrance 380ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  will-change: transform, opacity;
+}
+
 /* Hide scrollbar for Chrome, Safari and Opera */
 .no-scrollbar::-webkit-scrollbar {
   display: none;

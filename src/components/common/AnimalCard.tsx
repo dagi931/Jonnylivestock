@@ -6,7 +6,6 @@ import { formatPrice, formatWeight } from '../../utils/formatters';
 import { MapPin, Scale, ArrowRight, Video, ChevronDown } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 import { useLanguage } from '../../context/LanguageContext';
-import { useInView } from '../../hooks/useInView';
 
 interface AnimalCardProps {
   animal: Animal;
@@ -55,13 +54,9 @@ export const AnimalCard: React.FC<AnimalCardProps> = ({
   const showMore = isExpanded !== undefined ? isExpanded : localShowMore;
   const [isTouched, setIsTouched] = useState(false);
   const touchTimerRef = useRef<any>(null);
-  const { ref: cardRef, isInView } = useInView({ rootMargin: '200px 0px 100px 0px' });
   const { theme } = useTheme();
   const { t, isAmharic } = useLanguage();
   const isDark = theme === 'design7';
-  // Render top card immediately if explicitly marked eager (above-the-fold catalog LCP)
-  const isInitialViewport = Boolean(eager);
-  const isCardVisible = isInitialViewport || isInView;
 
   const handleToggleShowMore = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -97,22 +92,12 @@ export const AnimalCard: React.FC<AnimalCardProps> = ({
 
   return (
     <div
-      ref={cardRef}
       onTouchStart={handleTouch}
       onTouchEnd={handleTouch}
       style={{
-        transitionProperty: isInitialViewport ? 'none' : 'transform, opacity, border-color, box-shadow',
-        transitionDelay: isInitialViewport ? '0ms' : `${Math.min(animationIndex * 50, 250)}ms`,
-        transitionDuration: isInitialViewport ? '0ms' : '300ms',
-        transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)',
+        animationDelay: `${Math.min(animationIndex * 50, 250)}ms`,
       }}
-      className={`group relative rounded-xl sm:rounded-2xl border flex flex-col overflow-hidden hover:-translate-y-1 active:-translate-y-0.5 cursor-pointer select-none transition-[transform,opacity,border-color,box-shadow] self-start h-fit w-full ${
-        isInitialViewport
-          ? 'opacity-100 translate-y-0 scale-100'
-          : isCardVisible
-            ? 'opacity-100 translate-y-0 scale-100'
-            : 'opacity-0 scale-[0.99]'
-      } ${
+      className={`animate-card-entrance group relative rounded-xl sm:rounded-2xl border flex flex-col overflow-hidden hover:-translate-y-1 active:-translate-y-0.5 cursor-pointer select-none transition-[transform,border-color,box-shadow] duration-200 self-start h-fit w-full ${
         isDark
           ? 'bg-[#2A1A0D] border-[#4A2C16] hover:border-[#C58A3A]/70 shadow-sm hover:shadow-lg'
           : 'bg-[#F1E8D8] border-[#E4D4BC] hover:border-[#8A4B08]/70 shadow-sm hover:shadow-md'
