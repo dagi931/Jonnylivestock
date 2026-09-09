@@ -223,25 +223,24 @@ export const Navbar: React.FC = () => {
             <ThemeToggle />
           </div>
 
-          {/* Mobile View */}
-          <div className="flex sm:hidden items-center gap-1.5">
+          {/* Mobile View - Clean header with auth & burger trigger */}
+          <div className="flex sm:hidden items-center gap-2">
             {!isAuthenticated && (
               <button
                 type="button"
                 onClick={() => openAuthModal('login')}
-                className="p-1.5 rounded-lg bg-[#C18A45]/15 text-[#C18A45] text-xs font-bold"
+                className="flex items-center gap-1.5 px-3 h-10 rounded-xl bg-[#C18A45]/15 text-[#C18A45] text-xs font-bold border border-[#C18A45]/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#C58A3A]"
                 aria-label="Sign In"
               >
                 <LogIn className="w-4 h-4" />
+                <span>{isAmharic ? 'ይግቡ' : 'Sign In'}</span>
               </button>
             )}
-            <LanguageToggle />
-            <ThemeToggle />
 
             <button
               onClick={() => setIsOpen(!isOpen)}
               type="button"
-              className={`p-2 rounded-xl transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#C58A3A] ${
+              className={`p-2.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#C58A3A] ${
                 isDark
                   ? 'text-[#F4E8D0] hover:bg-[#2A1A0D] border border-[#4A2C16]'
                   : 'text-[#2A1A0D] hover:bg-[#F1E8D8] border border-[#E4D4BC]'
@@ -382,6 +381,12 @@ export const Navbar: React.FC = () => {
               />
             </NavLink>
           ))}
+
+          {/* Theme & Language Switchers inside Mobile Burger Menu */}
+          <div className={`pt-3.5 mt-2 border-t grid grid-cols-2 gap-2.5 ${isDark ? 'border-[#4A2C16]' : 'border-[#E4D4BC]'}`}>
+            <LanguageToggle fullWidth showLabel />
+            <ThemeToggle fullWidth showLabel />
+          </div>
         </div>
       </div>
     </header>
