@@ -16,28 +16,18 @@ interface AnimalCardProps {
   eager?: boolean;
 }
 
-/** Build an optimized responsive image URL supporting both Unsplash and local /uploads/ variants */
+/** Build an optimized responsive image URL supporting Unsplash CDN */
 export function getOptimizedImageUrl(url: string, width = 340, height?: number, quality = 50): string {
   if (!url) return '';
   if (url.includes('images.unsplash.com')) {
     const baseUrl = url.split('?')[0];
     const hParam = height ? `&h=${height}` : '';
-    return `${baseUrl}?auto=format&fit=crop&w=${width}${hParam}&q=${quality}`;
-  }
-  if (url.startsWith('/uploads/')) {
-    if (url.includes('-sm.') || url.includes('-md.')) return url;
-    const dotIdx = url.lastIndexOf('.');
-    if (dotIdx === -1) return url;
-    const base = url.substring(0, dotIdx);
-    const ext = url.substring(dotIdx);
-    if (width <= 360) return `${base}-sm${ext}`;
-    if (width <= 640) return `${base}-md${ext}`;
-    return url;
+    return `${baseUrl}?auto=format&fit=crop&w=${width}${hParam}&q=${quality}&fm=webp`;
   }
   return url;
 }
 
-/** Build a responsive srcSet for both Unsplash and local /uploads/ images */
+/** Build a responsive srcSet for Unsplash CDN images */
 export function buildImageSrcSet(url: string, quality = 50): string | undefined {
   if (!url) return undefined;
   if (url.includes('images.unsplash.com')) {
@@ -47,14 +37,6 @@ export function buildImageSrcSet(url: string, quality = 50): string | undefined 
     const s420 = `${baseUrl}?auto=format&fit=crop&w=420&q=${quality}&fm=webp 420w`;
     const s600 = `${baseUrl}?auto=format&fit=crop&w=600&q=${quality}&fm=webp 600w`;
     return `${s260}, ${s340}, ${s420}, ${s600}`;
-  }
-  if (url.startsWith('/uploads/')) {
-    const dotIdx = url.lastIndexOf('.');
-    if (dotIdx === -1) return undefined;
-    let base = url.substring(0, dotIdx);
-    base = base.replace(/-sm$/, '').replace(/-md$/, '');
-    const ext = url.substring(dotIdx);
-    return `${base}-sm${ext} 360w, ${base}-md${ext} 640w, ${base}${ext} 1200w`;
   }
   return undefined;
 }
@@ -148,6 +130,15 @@ export const AnimalCard: React.FC<AnimalCardProps> = ({
             loading={eager && animationIndex === 0 ? "eager" : "lazy"}
             {...(eager && animationIndex === 0 ? ({ fetchPriority: "high" } as any) : {})}
             decoding="async"
+            onError={(e) => {
+              const target = e.currentTarget;
+              const currentSrc = target.src || '';
+              if (currentSrc.includes('.webp')) {
+                target.src = currentSrc.replace(/\.webp/gi, '.jpg');
+              } else if (currentSrc.includes('.jpg') || currentSrc.includes('.jpeg')) {
+                target.src = currentSrc.replace(/\.(jpg|jpeg)/gi, '.png');
+              }
+            }}
             className={`w-full h-full object-cover object-center card-zoom-img transition-transform duration-500 ease-out ${
               isTouched ? 'scale-100' : 'scale-110'
             } group-hover:scale-100 group-active:scale-100 active:scale-100`}

@@ -27,6 +27,15 @@ export const ImageGallery: React.FC<ImageGalleryProps> = ({ images, alt }) => {
         <img
           src={images[selectedIndex]}
           alt={`${alt} - View ${selectedIndex + 1}`}
+          onError={(e) => {
+            const target = e.currentTarget;
+            const currentSrc = target.src || '';
+            if (currentSrc.includes('.webp')) {
+              target.src = currentSrc.replace(/\.webp/gi, '.jpg');
+            } else if (currentSrc.includes('.jpg') || currentSrc.includes('.jpeg')) {
+              target.src = currentSrc.replace(/\.(jpg|jpeg)/gi, '.png');
+            }
+          }}
           className="w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-102"
         />
 
@@ -70,6 +79,15 @@ export const ImageGallery: React.FC<ImageGalleryProps> = ({ images, alt }) => {
               <img
                 src={img}
                 alt={`${alt} thumbnail ${idx + 1}`}
+                onError={(e) => {
+                  const target = e.currentTarget;
+                  const currentSrc = target.src || '';
+                  if (currentSrc.includes('.webp')) {
+                    target.src = currentSrc.replace(/\.webp/gi, '.jpg');
+                  } else if (currentSrc.includes('.jpg') || currentSrc.includes('.jpeg')) {
+                    target.src = currentSrc.replace(/\.(jpg|jpeg)/gi, '.png');
+                  }
+                }}
                 className="w-full h-full object-cover"
               />
             </button>
