@@ -83,7 +83,7 @@ export const MeatByKgPromoSection: React.FC = () => {
       desc: 'Prime tender raw beef cuts',
       amharicDesc: 'ለጥሬ የሚሆን ለስላሳ የበሬ ሥጋ',
       badge: isAmharic ? 'ለጥሬ ቁርጥ' : 'Prime Raw Cut',
-      image: 'https://images.unsplash.com/photo-1603048588665-791ca8aea617?auto=format&fit=crop&fm=webp&w=360&h=270&q=60'
+      image: '/meat-kurt.jpg'
     },
     {
       id: 'kitfo',
@@ -94,7 +94,7 @@ export const MeatByKgPromoSection: React.FC = () => {
       desc: 'Extra-lean red beef trimmed completely free of sinew',
       amharicDesc: 'ያለ ጅማትና ስብ በልዩ ሁኔታ የተዘጋጀ ለስላሳ ቀይ ስጋ',
       badge: isAmharic ? 'ለክትፎ' : 'Extra Lean Beef',
-      image: 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&fm=webp&w=360&h=270&q=60'
+      image: '/meat-kitfo.jpg'
     },
     {
       id: 'wot',
@@ -105,7 +105,7 @@ export const MeatByKgPromoSection: React.FC = () => {
       desc: 'Rich stew-sized beef chunks perfect for family wot pots and sizzling tibs',
       amharicDesc: 'ለጥብስና ለቤተሰብ ወጥ ድስ የሚሆን በንጽህና የተቆራረጠ ጣፋጭ ስጋ',
       badge: isAmharic ? 'ለጥብስና ወጥ' : 'Tibs & Stew',
-      image: 'https://images.unsplash.com/photo-1547928576-a4a33237cbc3?auto=format&fit=crop&fm=webp&w=360&h=270&q=60'
+      image: '/meat-wot.jpg'
     }
   ];
 
