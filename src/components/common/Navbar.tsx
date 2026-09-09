@@ -220,9 +220,8 @@ export const Navbar: React.FC = () => {
               <button
                 type="button"
                 onClick={() => openAuthModal('login')}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#C18A45]/15 hover:bg-[#C18A45]/25 text-[#C18A45] text-xs font-bold transition-colors border border-[#C18A45]/30"
+                className="flex items-center justify-center px-3.5 py-1.5 rounded-xl bg-[#C18A45]/15 hover:bg-[#C18A45]/25 text-[#C18A45] text-xs font-bold transition-colors border border-[#C18A45]/30 cursor-pointer"
               >
-                <LogIn className="w-3.5 h-3.5" />
                 <span>{isAmharic ? 'ይግቡ' : 'Sign In'}</span>
               </button>
             )}
@@ -237,10 +236,9 @@ export const Navbar: React.FC = () => {
               <button
                 type="button"
                 onClick={() => openAuthModal('login')}
-                className="flex items-center gap-1.5 px-3 h-10 rounded-xl bg-[#C18A45]/15 text-[#C18A45] text-xs font-bold border border-[#C18A45]/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#C58A3A]"
+                className="flex items-center justify-center px-3 h-10 rounded-xl bg-[#C18A45]/15 text-[#C18A45] text-xs font-bold border border-[#C18A45]/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#C58A3A] cursor-pointer"
                 aria-label="Sign In"
               >
-                <LogIn className="w-4 h-4" />
                 <span>{isAmharic ? 'ይግቡ' : 'Sign In'}</span>
               </button>
             )}
