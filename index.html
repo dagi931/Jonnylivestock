@@ -30,24 +30,6 @@
       } catch (e) {}
     })();
   </script>
-          document.head.appendChild(link);
-        }
-
-        // Connect to Unsplash CDN only for pages that load Unsplash images
-        if (p.startsWith('/sheep') || p.startsWith('/goats') || p.startsWith('/cows') || p.startsWith('/packages') || p.startsWith('/about')) {
-          var pre = document.createElement('link');
-          pre.rel = 'preconnect';
-          pre.href = 'https://images.unsplash.com';
-          document.head.appendChild(pre);
-
-          var dns = document.createElement('link');
-          dns.rel = 'dns-prefetch';
-          dns.href = 'https://images.unsplash.com';
-          document.head.appendChild(dns);
-        }
-      } catch (e) {}
-    })();
-  </script>
 </head>
 
 <body class="min-h-screen transition-colors duration-300">
