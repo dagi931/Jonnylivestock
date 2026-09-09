@@ -13,28 +13,35 @@
   <link rel="preload" as="font" type="font/woff2" href="/assets/plus-jakarta-sans-latin-wght-normal-eXO_dkmS.woff2" crossorigin />
   <link rel="preload" as="image" type="image/webp" href="/logo-sm.webp" fetchpriority="high" />
 
-  <!-- Route-aware LCP Preload Hint for Homepage & Packages -->
+  <!-- Route-aware LCP Preload Hint for All Pages -->
   <script>
     (function () {
       try {
         var p = window.location.pathname || '';
+        var isMobile = (window.innerWidth <= 640);
+        var href = null;
+
         if (p === '/' || p === '') {
-          var link = document.createElement('link');
-          link.rel = 'preload';
-          link.as = 'image';
-          link.type = 'image/webp';
-          link.fetchPriority = 'high';
-          link.href = (window.innerWidth <= 640) ? '/hero-livestock-sm.webp' : '/hero-livestock.webp';
-          document.head.appendChild(link);
+          href = isMobile ? '/hero-livestock-sm.webp' : '/hero-livestock.webp';
+        } else if (p.startsWith('/sheep')) {
+          href = isMobile ? '/uploads/animal-1788968486752-389037093-sm.webp' : '/uploads/animal-1788968486752-389037093-md.webp';
+        } else if (p.startsWith('/goats')) {
+          href = isMobile ? '/uploads/animal-1788967818897-191211413-sm.webp' : '/uploads/animal-1788967818897-191211413-md.webp';
+        } else if (p.startsWith('/cows')) {
+          href = isMobile ? '/uploads/animal-1788968827368-960236987-sm.webp' : '/uploads/animal-1788968827368-960236987-md.webp';
         } else if (p.startsWith('/packages')) {
-          var link = document.createElement('link');
-          link.rel = 'preload';
-          link.as = 'image';
-          link.type = 'image/webp';
-          link.fetchPriority = 'high';
-          link.href = (window.innerWidth <= 640)
+          href = isMobile
             ? 'https://images.unsplash.com/photo-1484557052118-f32bd25b45b5?auto=format&fit=crop&fm=webp&q=50&w=360&h=156'
             : 'https://images.unsplash.com/photo-1484557052118-f32bd25b45b5?auto=format&fit=crop&fm=webp&q=50&w=480&h=208';
+        }
+
+        if (href) {
+          var link = document.createElement('link');
+          link.rel = 'preload';
+          link.as = 'image';
+          link.type = 'image/webp';
+          link.fetchPriority = 'high';
+          link.href = href;
           document.head.appendChild(link);
         }
       } catch (e) {}
