@@ -119,33 +119,33 @@ export const AnimalCard: React.FC<AnimalCardProps> = ({
       }`}
     >
       {/* Compact Image Container */}
-      <div className="relative aspect-[16/11] sm:aspect-[16/9] w-full overflow-hidden bg-stone-900">
-        {isCardVisible ? (
-          <img
-            src={getOptimizedUnsplashUrl(animal.images[0], 340, undefined, 50)}
-            srcSet={buildUnsplashSrcSet(animal.images[0], 50)}
-            sizes="(max-width: 640px) calc(50vw - 16px), (max-width: 1024px) 280px, 360px"
-            alt={`${animal.breed} ${animal.type} ${animal.id}`}
-            width="340"
-            loading={eager && animationIndex === 0 ? "eager" : "lazy"}
-            {...(eager && animationIndex === 0 ? ({ fetchPriority: "high" } as any) : {})}
-            decoding="async"
-            onError={(e) => {
-              const target = e.currentTarget;
-              const currentSrc = target.src || '';
-              if (currentSrc.includes('.webp')) {
-                target.src = currentSrc.replace(/\.webp/gi, '.jpg');
-              } else if (currentSrc.includes('.jpg') || currentSrc.includes('.jpeg')) {
-                target.src = currentSrc.replace(/\.(jpg|jpeg)/gi, '.png');
-              }
-            }}
-            className={`w-full h-full object-cover object-center card-zoom-img transition-transform duration-500 ease-out ${
-              isTouched ? 'scale-100' : 'scale-110'
-            } group-hover:scale-100 group-active:scale-100 active:scale-100`}
-          />
-        ) : (
-          <div className="w-full h-full bg-stone-900/60" />
-        )}
+      <div className="relative aspect-[16/11] sm:aspect-[16/9] w-full overflow-hidden bg-stone-800/20 dark:bg-stone-900/40">
+        <img
+          src={getOptimizedUnsplashUrl(animal.images[0], 340, undefined, 50)}
+          srcSet={buildUnsplashSrcSet(animal.images[0], 50)}
+          sizes="(max-width: 640px) calc(50vw - 16px), (max-width: 1024px) 280px, 360px"
+          alt={`${animal.breed} ${animal.type} ${animal.id}`}
+          width="340"
+          loading={eager && animationIndex === 0 ? "eager" : "lazy"}
+          {...(eager && animationIndex === 0 ? ({ fetchPriority: "high" } as any) : {})}
+          decoding="async"
+          onError={(e) => {
+            const target = e.currentTarget;
+            target.removeAttribute('srcset');
+            target.srcset = '';
+            const currentSrc = target.src || '';
+            if (currentSrc.includes('.webp')) {
+              target.src = currentSrc.replace(/\.webp/gi, '.jpg');
+            } else if (currentSrc.includes('.jpg') || currentSrc.includes('.jpeg')) {
+              target.src = currentSrc.replace(/\.(jpg|jpeg)/gi, '.png');
+            } else if (currentSrc.includes('.png')) {
+              target.src = currentSrc.replace(/\.png/gi, '.jpeg');
+            }
+          }}
+          className={`w-full h-full object-cover object-center card-zoom-img transition-transform duration-500 ease-out ${
+            isTouched ? 'scale-100' : 'scale-110'
+          } group-hover:scale-100 group-active:scale-100 active:scale-100`}
+        />
 
         {/* Subtle Overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 pointer-events-none" />
