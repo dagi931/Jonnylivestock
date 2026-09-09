@@ -100,9 +100,9 @@ export const Navbar: React.FC = () => {
             <img
               src="/logo.png"
               alt="Jonny Livestock"
-              width="44"
-              height="36"
-              className="h-8 sm:h-9 w-auto object-contain transition-transform duration-200 group-hover:scale-105 shrink-0 drop-shadow-sm"
+              width="48"
+              height="44"
+              className="h-9 sm:h-11 w-auto object-contain transition-transform duration-200 group-hover:scale-105 shrink-0"
             />
             <span
               className={`font-serif font-bold text-lg sm:text-xl tracking-tight transition-colors ${

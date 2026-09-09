@@ -28,9 +28,9 @@ export const Footer: React.FC = () => {
               <img
                 src="/logo.png"
                 alt="Jonny Livestock"
-                width="44"
-                height="36"
-                className="h-8 sm:h-9 w-auto object-contain shrink-0 drop-shadow-sm"
+                width="48"
+                height="44"
+                className="h-9 sm:h-11 w-auto object-contain shrink-0"
               />
               <span className="font-serif font-bold text-lg text-[#F4E8D0]">
                 {business.name}
