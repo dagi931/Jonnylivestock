@@ -99,15 +99,31 @@ export const About: React.FC = () => {
 
         {/* 2-Column Story Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-10 items-center mb-12">
-          <div className="relative rounded-3xl overflow-hidden border shadow-lg" style={{ borderColor: isDark ? '#4A2C16' : '#E4D4BC' }}>
-            <img
-              src="/about-farm.jpg"
-              alt="Jonny Livestock - Authentic livestock pastoral herder and healthy cattle"
-              loading="eager"
-              fetchPriority="high"
-              decoding="sync"
-              className="w-full h-auto object-contain block will-change-transform"
-            />
+          <div className="relative rounded-3xl overflow-hidden border shadow-lg aspect-[871/795] w-full" style={{ borderColor: isDark ? '#4A2C16' : '#E4D4BC' }}>
+            <picture>
+              <source
+                type="image/avif"
+                srcSet="/about-farm-sm.avif 400w, /about-farm-md.avif 640w, /about-farm.avif 871w"
+                sizes="(max-width: 640px) 400px, (max-width: 1024px) 640px, 568px"
+              />
+              <source
+                type="image/webp"
+                srcSet="/about-farm-sm.webp 400w, /about-farm-md.webp 640w, /about-farm.webp 871w"
+                sizes="(max-width: 640px) 400px, (max-width: 1024px) 640px, 568px"
+              />
+              <img
+                src="/about-farm.webp"
+                srcSet="/about-farm-sm.webp 400w, /about-farm-md.webp 640w, /about-farm.webp 871w"
+                sizes="(max-width: 640px) 400px, (max-width: 1024px) 640px, 568px"
+                alt="Jonny Livestock pastoral herder with cattle"
+                width="871"
+                height="795"
+                loading="eager"
+                fetchPriority="high"
+                decoding="async"
+                className="w-full h-full object-cover block"
+              />
+            </picture>
           </div>
 
           <div className="space-y-4">
