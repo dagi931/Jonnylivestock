@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import { useTheme } from '../../context/ThemeContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { ArrowRight, CheckCircle, Scale, Truck } from 'lucide-react';
-import { AnimatedReveal } from '../common/AnimatedReveal';
 
 export const Hero: React.FC = () => {
   const { theme } = useTheme();
@@ -40,7 +39,7 @@ export const Hero: React.FC = () => {
         <div className="max-w-xl lg:max-w-2xl">
           
           {/* Headline */}
-          <AnimatedReveal immediate direction="fade">
+          <div className="animate-hero-1">
             <h1
               className={`font-serif font-extrabold text-3xl sm:text-4xl lg:text-5xl tracking-tight leading-[1.15] mb-3 ${
                 isDark ? 'text-[#F4E8D0]' : 'text-[#241A12]'
@@ -57,10 +56,10 @@ export const Hero: React.FC = () => {
                 {t.hero.headlineHighlight}
               </span>
             </h1>
-          </AnimatedReveal>
+          </div>
 
           {/* Supporting Text */}
-          <AnimatedReveal immediate direction="fade">
+          <div className="animate-hero-2">
             <p
               className={`text-xs sm:text-sm md:text-base font-normal leading-relaxed mb-5 max-w-lg ${
                 isDark ? 'text-[#D8C5A8]' : 'text-[#746556]'
@@ -68,10 +67,10 @@ export const Hero: React.FC = () => {
             >
               {t.hero.subtext}
             </p>
-          </AnimatedReveal>
+          </div>
 
-          {/* Primary Navigation Links: Sheep, Goats, Cows, Meat (clean links without container boxes) */}
-          <AnimatedReveal immediate direction="fade">
+          {/* Primary Navigation Links: Sheep, Goats, Cows, Meat */}
+          <div className="animate-hero-3">
             <div className="flex flex-wrap items-center gap-x-5 sm:gap-x-7 gap-y-3 pt-1">
               <Link
                 to="/sheep"
@@ -120,10 +119,10 @@ export const Hero: React.FC = () => {
                 <ArrowRight className="w-4 h-4 transition-transform duration-150 group-hover:translate-x-1 shrink-0" />
               </Link>
             </div>
-          </AnimatedReveal>
+          </div>
 
           {/* Key Value Points Row */}
-          <AnimatedReveal immediate direction="fade">
+          <div className="animate-hero-4">
             <div
               className={`mt-6 pt-4 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs font-semibold ${
                 isDark ? 'text-[#D8C5A8]' : 'text-[#746556]'
@@ -142,7 +141,7 @@ export const Hero: React.FC = () => {
                 <span>{t.hero.valuePoint3}</span>
               </div>
             </div>
-          </AnimatedReveal>
+          </div>
         </div>
       </div>
     </section>
