@@ -99,15 +99,14 @@ export const About: React.FC = () => {
 
         {/* 2-Column Story Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-10 items-center mb-12">
-          <div className="relative rounded-3xl overflow-hidden aspect-[4/3] border shadow-lg" style={{ borderColor: isDark ? '#4A2C16' : '#E4D4BC' }}>
+          <div className="relative rounded-3xl overflow-hidden border shadow-lg" style={{ borderColor: isDark ? '#4A2C16' : '#E4D4BC' }}>
             <img
               src="/about-farm.jpg"
               alt="Jonny Livestock - Authentic livestock pastoral herder and healthy cattle"
               loading="eager"
               fetchPriority="high"
               decoding="sync"
-              className="w-full h-full object-cover will-change-transform"
-              style={{ objectPosition: 'center 35%' }}
+              className="w-full h-auto object-contain block will-change-transform"
             />
           </div>
 
