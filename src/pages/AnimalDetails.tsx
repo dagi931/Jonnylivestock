@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { getAnimalById, mockAnimals } from '../data/animals';
+import { useAnimals } from '../hooks/useAnimals';
 import { api } from '../services/api';
 import { Animal } from '../types/animal';
 import { StatusBadge } from '../components/common/StatusBadge';
@@ -52,8 +52,9 @@ export const AnimalDetails: React.FC = () => {
   const [isReservationOpen, setIsReservationOpen] = useState(false);
   const [isServiceModalOpen, setIsServiceModalOpen] = useState(false);
   const [isInquiryOpen, setIsInquiryOpen] = useState(false);
-  const [animalData, setAnimalData] = useState<Animal | undefined>(id ? getAnimalById(id) : undefined);
-  const [isLoading, setIsLoading] = useState<boolean>(!id || !getAnimalById(id));
+  const [animalData, setAnimalData] = useState<Animal | undefined>(undefined);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const { animals: categoryAnimals } = useAnimals(animalData?.type);
 
   // Optional Services & Fulfillment State
   const [isDelivery, setIsDelivery] = useState<boolean>(true);
@@ -117,7 +118,7 @@ export const AnimalDetails: React.FC = () => {
     }
   });
 
-  const animal = animalData || (id ? getAnimalById(id) : undefined);
+  const animal = animalData;
 
   // Only show loading indicator if animal data fetch takes strictly longer than 3 seconds
   const showLoading = useDelayedLoading(isLoading && !animal, 3000);
@@ -186,9 +187,9 @@ export const AnimalDetails: React.FC = () => {
     );
   }
 
-  // Related animals (same type, excluding current)
-  const relatedAnimals = mockAnimals
-    .filter((a) => a.type === animal.type && a.id !== animal.id)
+  // Related animals (same type from live database/cache, excluding current)
+  const relatedAnimals = categoryAnimals
+    .filter((a) => a.id.toLowerCase() !== (animal.id || '').toLowerCase())
     .slice(0, 3);
 
   const isSold = animal.status === 'sold' || (animal.quantity !== undefined && animal.quantity <= 0);
