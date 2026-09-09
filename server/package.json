@@ -10,6 +10,7 @@
     "start": "tsx src/server.ts",
     "prisma:generate": "prisma generate",
     "prisma:push": "prisma db push",
+    "generate:variants": "tsx src/scripts/generateVariants.ts",
     "seed": "tsx src/db/seed.ts"
   },
   "dependencies": {

@@ -26,7 +26,8 @@ export const Footer: React.FC = () => {
           <div className="space-y-3">
             <div className="flex items-center gap-3">
               <img
-                src="/logo.webp"
+                src="/logo-sm.webp"
+                srcSet="/logo-sm.webp 1x, /logo.webp 2x"
                 alt="Jonny Livestock"
                 width="48"
                 height="44"

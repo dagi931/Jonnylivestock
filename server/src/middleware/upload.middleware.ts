@@ -18,20 +18,29 @@ if (!fs.existsSync(RECEIPTS_DIR)) {
 }
 
 /**
- * Automatically resizes and compresses an uploaded image on disk to modern WebP format.
- * Reduces 5MB-15MB smartphone photos down to ~60KB-120KB with zero visible quality loss.
+ * Automatically resizes and compresses an uploaded image on disk to responsive modern WebP formats.
+ * Generates:
+ * - {name}-sm.webp: 360px max width for mobile devices (~15KB)
+ * - {name}-md.webp: 640px max width for tablet & high-DPI cards (~35KB)
+ * - {name}.webp: 1200px max width for full desktop zoom (~80KB)
  */
 export async function optimizeUploadedImage(filePath: string, maxWidth = 1200, quality = 82): Promise<string> {
   const ext = path.extname(filePath).toLowerCase();
   if (ext === '.pdf') return filePath;
 
   const parsed = path.parse(filePath);
-  const optimizedFilename = `${parsed.name}.webp`;
+  const cleanName = parsed.name.replace(/-sm$/, '').replace(/-md$/, '');
+  const optimizedFilename = `${cleanName}.webp`;
   const optimizedPath = path.join(parsed.dir, optimizedFilename);
+  const smPath = path.join(parsed.dir, `${cleanName}-sm.webp`);
+  const mdPath = path.join(parsed.dir, `${cleanName}-md.webp`);
 
   try {
-    await sharp(filePath)
-      .rotate() // Auto-rotates based on EXIF orientation from phone cameras
+    const pipeline = sharp(filePath).rotate();
+
+    // 1. Generate full desktop version (1200px)
+    await pipeline
+      .clone()
       .resize({
         width: maxWidth,
         height: maxWidth,
@@ -41,7 +50,31 @@ export async function optimizeUploadedImage(filePath: string, maxWidth = 1200, q
       .webp({ quality, effort: 4 })
       .toFile(optimizedPath);
 
-    // Remove the heavy original raw file if different
+    // 2. Generate medium variant (640px)
+    await pipeline
+      .clone()
+      .resize({
+        width: 640,
+        height: 640,
+        fit: 'inside',
+        withoutEnlargement: true
+      })
+      .webp({ quality: 80, effort: 4 })
+      .toFile(mdPath);
+
+    // 3. Generate small mobile variant (360px)
+    await pipeline
+      .clone()
+      .resize({
+        width: 360,
+        height: 360,
+        fit: 'inside',
+        withoutEnlargement: true
+      })
+      .webp({ quality: 78, effort: 4 })
+      .toFile(smPath);
+
+    // Remove the heavy original raw file if different from the target webp
     if (filePath !== optimizedPath && fs.existsSync(filePath)) {
       try {
         fs.unlinkSync(filePath);

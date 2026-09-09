@@ -16,24 +16,51 @@ interface AnimalCardProps {
   eager?: boolean;
 }
 
-/** Build a canonical, highly compressed modern format Unsplash URL with consistent param order */
-export function getOptimizedUnsplashUrl(url: string, width = 340, height?: number, quality = 48): string {
-  if (!url || !url.includes('images.unsplash.com')) return url;
-  const baseUrl = url.split('?')[0];
-  const hParam = height ? `&h=${height}` : '';
-  return `${baseUrl}?auto=format&fit=crop&w=${width}${hParam}&q=${quality}`;
+/** Build an optimized responsive image URL supporting both Unsplash and local /uploads/ variants */
+export function getOptimizedImageUrl(url: string, width = 340, height?: number, quality = 50): string {
+  if (!url) return '';
+  if (url.includes('images.unsplash.com')) {
+    const baseUrl = url.split('?')[0];
+    const hParam = height ? `&h=${height}` : '';
+    return `${baseUrl}?auto=format&fit=crop&w=${width}${hParam}&q=${quality}`;
+  }
+  if (url.startsWith('/uploads/')) {
+    if (url.includes('-sm.') || url.includes('-md.')) return url;
+    const dotIdx = url.lastIndexOf('.');
+    if (dotIdx === -1) return url;
+    const base = url.substring(0, dotIdx);
+    const ext = url.substring(dotIdx);
+    if (width <= 360) return `${base}-sm${ext}`;
+    if (width <= 640) return `${base}-md${ext}`;
+    return url;
+  }
+  return url;
 }
 
-/** Build a responsive srcSet for Unsplash images using canonical query param ordering */
-export function buildUnsplashSrcSet(url: string, quality = 50): string | undefined {
-  if (!url || !url.includes('images.unsplash.com')) return undefined;
-  const baseUrl = url.split('?')[0];
-  const s260 = `${baseUrl}?auto=format&fit=crop&w=260&q=${quality}&fm=webp 260w`;
-  const s340 = `${baseUrl}?auto=format&fit=crop&w=340&q=${quality}&fm=webp 340w`;
-  const s420 = `${baseUrl}?auto=format&fit=crop&w=420&q=${quality}&fm=webp 420w`;
-  const s600 = `${baseUrl}?auto=format&fit=crop&w=600&q=${quality}&fm=webp 600w`;
-  return `${s260}, ${s340}, ${s420}, ${s600}`;
+/** Build a responsive srcSet for both Unsplash and local /uploads/ images */
+export function buildImageSrcSet(url: string, quality = 50): string | undefined {
+  if (!url) return undefined;
+  if (url.includes('images.unsplash.com')) {
+    const baseUrl = url.split('?')[0];
+    const s260 = `${baseUrl}?auto=format&fit=crop&w=260&q=${quality}&fm=webp 260w`;
+    const s340 = `${baseUrl}?auto=format&fit=crop&w=340&q=${quality}&fm=webp 340w`;
+    const s420 = `${baseUrl}?auto=format&fit=crop&w=420&q=${quality}&fm=webp 420w`;
+    const s600 = `${baseUrl}?auto=format&fit=crop&w=600&q=${quality}&fm=webp 600w`;
+    return `${s260}, ${s340}, ${s420}, ${s600}`;
+  }
+  if (url.startsWith('/uploads/')) {
+    const dotIdx = url.lastIndexOf('.');
+    if (dotIdx === -1) return undefined;
+    let base = url.substring(0, dotIdx);
+    base = base.replace(/-sm$/, '').replace(/-md$/, '');
+    const ext = url.substring(dotIdx);
+    return `${base}-sm${ext} 360w, ${base}-md${ext} 640w, ${base}${ext} 1200w`;
+  }
+  return undefined;
 }
+
+export const getOptimizedUnsplashUrl = getOptimizedImageUrl;
+export const buildUnsplashSrcSet = buildImageSrcSet;
 
 export const AnimalCard: React.FC<AnimalCardProps> = ({
   animal,
@@ -118,7 +145,7 @@ export const AnimalCard: React.FC<AnimalCardProps> = ({
             sizes="(max-width: 640px) calc(50vw - 16px), (max-width: 1024px) 280px, 360px"
             alt={`${animal.breed} ${animal.type} ${animal.id}`}
             width="340"
-            loading={eager ? "eager" : "lazy"}
+            loading={eager && animationIndex === 0 ? "eager" : "lazy"}
             {...(eager && animationIndex === 0 ? ({ fetchPriority: "high" } as any) : {})}
             decoding="async"
             className={`w-full h-full object-cover object-center card-zoom-img transition-transform duration-500 ease-out ${
