@@ -2,7 +2,8 @@ import { Router, Request, Response } from 'express';
 import { PACKAGE_CATALOG } from '../data/packagesData.js';
 import { PostgresDB } from '../db/postgresDb.js';
 import { authenticateToken, requireAdmin, optionalAuth, AuthRequest } from '../middleware/auth.middleware.js';
-import { uploadAdminMedia } from '../middleware/upload.middleware.js';
+import { uploadAdminMedia, optimizeUploadedImage } from '../middleware/upload.middleware.js';
+import path from 'path';
 import { sanitizeErrorMessage } from '../utils/errorHandler.js';
 import { validatePackageLivestock } from '../utils/packageValidators.js';
 
@@ -171,13 +172,15 @@ router.delete('/:id', authenticateToken, requireAdmin, async (req: AuthRequest, 
 });
 
 // ==================== ADMIN: UPLOAD PACKAGE IMAGE ====================
-router.post('/upload-image', authenticateToken, requireAdmin, uploadAdminMedia.single('image'), (req: AuthRequest, res: Response): void => {
+router.post('/upload-image', authenticateToken, requireAdmin, uploadAdminMedia.single('image'), async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     if (!req.file) {
       res.status(400).json({ success: false, error: 'No image file uploaded' });
       return;
     }
-    const imageUrl = `/uploads/${req.file.filename}`;
+    const optimizedPath = await optimizeUploadedImage(req.file.path, 1200, 82);
+    const finalFilename = path.basename(optimizedPath);
+    const imageUrl = `/uploads/${finalFilename}`;
     res.json({ success: true, url: imageUrl });
   } catch (error: any) {
     console.error('Error uploading package image:', error);
