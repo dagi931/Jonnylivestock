@@ -101,12 +101,12 @@ export const Navbar: React.FC = () => {
               src="/logo-sm.webp"
               srcSet="/logo-sm.webp 1x, /logo.webp 2x"
               alt="Jonny Livestock"
-              width="48"
-              height="44"
+              width="64"
+              height="56"
               loading="eager"
               fetchPriority="high"
               decoding="async"
-              className="h-9 sm:h-11 w-auto object-contain transition-transform duration-200 group-hover:scale-105 shrink-0"
+              className="w-[41px] h-[36px] sm:w-[50px] sm:h-[44px] object-contain transition-transform duration-200 group-hover:scale-105 shrink-0"
             />
             <span
               className={`font-serif font-bold text-lg sm:text-xl tracking-tight transition-colors ${

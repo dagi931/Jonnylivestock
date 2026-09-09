@@ -13,12 +13,12 @@ import { Home } from './pages/Home';
 import { Sheep } from './pages/Sheep';
 import { Goats } from './pages/Goats';
 import { Cows } from './pages/Cows';
+import { Services } from './pages/Services';
+import { PackageBuilder } from './pages/PackageBuilder';
+import { About } from './pages/About';
+import { Contact } from './pages/Contact';
 
-// Secondary routes and heavy modals are code-split
-const Contact        = lazy(() => import('./pages/Contact').then(m => ({ default: m.Contact })));
-const About          = lazy(() => import('./pages/About').then(m => ({ default: m.About })));
-const PackageBuilder = lazy(() => import('./pages/PackageBuilder').then(m => ({ default: m.PackageBuilder })));
-const Services       = lazy(() => import('./pages/Services').then(m => ({ default: m.Services })));
+// Heavy secondary routes, modals, and admin portal remain code-split
 import { useDelayedLoading } from './hooks/useDelayedLoading';
 const UserAuthModal  = lazy(() => import('./components/modals/UserAuthModal').then(m => ({ default: m.UserAuthModal })));
 const AnimalDetails  = lazy(() => import('./pages/AnimalDetails').then(m => ({ default: m.AnimalDetails })));
