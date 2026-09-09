@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
-import { business } from '../../config/business';
 import { ThemeToggle } from './ThemeToggle';
 import { LanguageToggle } from './LanguageToggle';
 import { useUserAuth } from '../../context/UserAuthContext';
@@ -95,7 +94,7 @@ export const Navbar: React.FC = () => {
           {/* Left: Brand Logo */}
           <Link
             to="/"
-            className="flex items-center gap-2.5 sm:gap-3 group focus:outline-none focus-visible:ring-2 focus-visible:ring-[#C58A3A] rounded-lg shrink-0"
+            className="flex items-center gap-2 sm:gap-2.5 group focus:outline-none focus-visible:ring-2 focus-visible:ring-[#C58A3A] rounded-lg shrink-0"
           >
             <img
               src="/logo-sm.webp"
@@ -108,13 +107,22 @@ export const Navbar: React.FC = () => {
               decoding="async"
               className="w-[41px] h-[36px] sm:w-[50px] sm:h-[44px] object-contain transition-transform duration-200 group-hover:scale-105 shrink-0"
             />
-            <span
-              className={`font-serif font-bold text-lg sm:text-xl tracking-tight transition-colors ${
-                isDark ? 'text-[#F4E8D0] group-hover:text-[#E0B15A]' : 'text-[#2A1A0D] group-hover:text-[#B8792F]'
-              }`}
-            >
-              {business.name}
-            </span>
+            <div className="flex flex-col justify-center">
+              <span
+                className={`font-serif font-bold text-sm sm:text-base tracking-tight leading-none transition-colors ${
+                  isDark ? 'text-[#F4E8D0] group-hover:text-[#E0B15A]' : 'text-[#2A1A0D] group-hover:text-[#B8792F]'
+                }`}
+              >
+                Jonny
+              </span>
+              <span
+                className={`font-serif font-bold text-xs sm:text-sm tracking-tight leading-none mt-0.5 transition-colors ${
+                  isDark ? 'text-[#E0B15A] group-hover:text-[#F4E8D0]' : 'text-[#B8792F] group-hover:text-[#2A1A0D]'
+                }`}
+              >
+                Livestock
+              </span>
+            </div>
           </Link>
 
           {/* Center: Desktop Navigation Links */}
