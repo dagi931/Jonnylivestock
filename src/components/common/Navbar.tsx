@@ -109,14 +109,14 @@ export const Navbar: React.FC = () => {
             />
             <div className="flex flex-col justify-center">
               <span
-                className={`font-serif font-bold text-sm sm:text-base tracking-tight leading-none transition-colors ${
+                className={`font-serif font-bold text-base sm:text-lg tracking-tight leading-tight transition-colors ${
                   isDark ? 'text-[#F4E8D0] group-hover:text-[#E0B15A]' : 'text-[#2A1A0D] group-hover:text-[#B8792F]'
                 }`}
               >
                 Jonny
               </span>
               <span
-                className={`font-serif font-bold text-xs sm:text-sm tracking-tight leading-none mt-0.5 transition-colors ${
+                className={`font-serif font-bold text-xs sm:text-sm tracking-normal leading-tight transition-colors ${
                   isDark ? 'text-[#E0B15A] group-hover:text-[#F4E8D0]' : 'text-[#B8792F] group-hover:text-[#2A1A0D]'
                 }`}
               >
