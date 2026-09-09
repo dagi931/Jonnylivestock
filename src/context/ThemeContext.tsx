@@ -13,7 +13,7 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [theme, setThemeState] = useState<ThemeMode>(() => {
     const saved = localStorage.getItem('jonny_livestock_theme') as ThemeMode;
-    return saved === 'design11' ? 'design11' : 'design7'; // Default to Design 7
+    return saved === 'design7' ? 'design7' : 'design11'; // Default to Design 11 (Light)
   });
 
   useEffect(() => {

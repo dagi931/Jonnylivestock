@@ -70,7 +70,7 @@ export const TrustSection: React.FC = () => {
             return (
               <AnimatedReveal key={idx} direction="up" delay={80 + idx * 80} className="h-full">
                 <div
-                  className={`h-full p-2 sm:p-6 rounded-xl sm:rounded-2xl border transition-all duration-200 flex flex-col items-center sm:items-start text-center sm:text-left justify-start hover:-translate-y-1 ${
+                  className={`h-full p-2 sm:p-6 rounded-xl sm:rounded-2xl border transition-[transform,border-color,box-shadow] duration-200 flex flex-col items-center sm:items-start text-center sm:text-left justify-start hover:-translate-y-1 ${
                     isDark
                       ? 'bg-[#2A1A0D] border-[#4A2C16] shadow-rustic hover:border-[#C58A3A]/50'
                       : 'bg-[#F1E8D8] border-[#E4D4BC] shadow-premium hover:border-[#B8792F]/50'

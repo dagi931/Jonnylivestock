@@ -340,7 +340,7 @@ export const MeatByKgPromoSection: React.FC = () => {
               {beefDishes.map((dish) => (
                 <div
                   key={dish.id}
-                  className={`rounded-2xl border overflow-hidden transition-all duration-200 hover:border-amber-500/50 flex flex-col ${
+                  className={`rounded-2xl border overflow-hidden transition-[transform,box-shadow,border-color] duration-200 hover:border-amber-500/50 flex flex-col ${
                     isDark
                       ? 'bg-[#180F07]/90 border-[#3D2311]'
                       : 'bg-white border-[#E8DAC6]'
@@ -351,6 +351,8 @@ export const MeatByKgPromoSection: React.FC = () => {
                     <img
                       src={dish.image}
                       alt={dish.name}
+                      width="360"
+                      height="270"
                       className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
                       loading="lazy"
                       decoding="async"

@@ -44,11 +44,12 @@ export const AnimatedReveal: React.FC<AnimatedRevealProps> = ({
     <div
       ref={ref}
       style={{
+        transitionProperty: immediate ? 'none' : 'transform, opacity',
         transitionDuration: immediate ? '0ms' : `${duration}ms`,
         transitionDelay: immediate ? '0ms' : `${delay}ms`,
         transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)',
       }}
-      className={`transition-all ${
+      className={`transition-[transform,opacity] ${
         isVisible
           ? 'opacity-100 translate-y-0 translate-x-0 scale-100'
           : `opacity-0 ${getInitialTransform()}`

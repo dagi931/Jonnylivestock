@@ -206,24 +206,22 @@ export const CelebrationPackagesSection: React.FC = () => {
                 <div
                   onTouchStart={() => handleTouchPkg(pkg.id)}
                   onTouchEnd={() => handleTouchPkg(pkg.id)}
-                  className={`self-start h-fit w-full rounded-2xl sm:rounded-3xl border overflow-hidden flex flex-col justify-between transition-all duration-300 ease-out hover:shadow-xl group cursor-pointer select-none ${isDark ? 'bg-[#1D130A] border-[#4A2C16]' : 'bg-white border-[#E4D4BC]'
+                  className={`self-start h-fit w-full rounded-2xl sm:rounded-3xl border overflow-hidden flex flex-col justify-between transition-[transform,box-shadow,border-color] duration-300 ease-out hover:shadow-xl group cursor-pointer select-none ${isDark ? 'bg-[#1D130A] border-[#4A2C16]' : 'bg-white border-[#E4D4BC]'
                     } ${isExpanded ? 'ring-1 ring-amber-500/40 shadow-lg' : ''}`}
                 >
                   <div>
                     {/* Compact Image */}
                     <div className="relative h-28 sm:h-44 w-full overflow-hidden bg-black/10">
-                      {isSectionInView && (
-                        <img
-                          src={getOptimizedUnsplashUrl(pkg.image, 200, 120, 38)}
-                          alt={pkg.name}
-                          loading="lazy"
-                          decoding="async"
-                          width={200}
-                          height={120}
-                          className={`w-full h-full object-cover card-zoom-img transition-transform duration-500 ease-out ${touchedPkgId === pkg.id ? 'scale-100' : 'scale-110'
-                            } group-hover:scale-100 group-active:scale-100 active:scale-100`}
-                        />
-                      )}
+                      <img
+                        src={getOptimizedUnsplashUrl(pkg.image, 200, 120, 38)}
+                        alt={pkg.name}
+                        loading="lazy"
+                        decoding="async"
+                        width={200}
+                        height={120}
+                        className={`w-full h-full object-cover card-zoom-img transition-transform duration-500 ease-out ${touchedPkgId === pkg.id ? 'scale-100' : 'scale-110'
+                          } group-hover:scale-100 group-active:scale-100 active:scale-100`}
+                      />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
 
                       {/* Out of Stock Notice */}

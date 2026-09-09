@@ -74,7 +74,7 @@ export const HowItWorks: React.FC = () => {
             return (
               <AnimatedReveal key={idx} direction="up" delay={80 + idx * 90} className="h-full">
                 <div
-                  className={`h-full relative p-6 rounded-2xl border flex flex-col items-start transition-all hover:-translate-y-1 ${
+                  className={`h-full relative p-6 rounded-2xl border flex flex-col items-start transition-[transform] duration-200 hover:-translate-y-1 ${
                     isDark
                       ? 'bg-[#2A1A0D] border-[#4A2C16] shadow-rustic'
                       : 'bg-[#FAF7F0] border-[#E4D4BC] shadow-premium'

@@ -99,7 +99,7 @@ export const ServicesOverview: React.FC = () => {
             return (
               <AnimatedReveal key={service.id} direction="up" delay={80 + index * 75} className="h-full">
                 <div
-                  className={`h-full p-5 rounded-2xl border flex flex-col justify-between space-y-3 transition-all hover:-translate-y-1 ${
+                  className={`h-full p-5 rounded-2xl border flex flex-col justify-between space-y-3 transition-[transform,border-color] duration-200 hover:-translate-y-1 ${
                     isDark
                       ? 'bg-[#2A1A0D] border-[#4A2C16] hover:border-[#C58A3A]/60'
                       : 'bg-[#F1E8D8] border-[#E4D4BC] hover:border-[#B8792F]/60'

@@ -46,7 +46,7 @@ export const Hero: React.FC = () => {
         <div className="max-w-xl lg:max-w-2xl">
           
           {/* Headline */}
-          <AnimatedReveal delay={50} direction="up">
+          <AnimatedReveal immediate direction="fade">
             <h1
               className={`font-serif font-extrabold text-3xl sm:text-4xl lg:text-5xl tracking-tight leading-[1.15] mb-3 ${
                 isDark ? 'text-[#F4E8D0]' : 'text-[#241A12]'
@@ -66,7 +66,7 @@ export const Hero: React.FC = () => {
           </AnimatedReveal>
 
           {/* Supporting Text */}
-          <AnimatedReveal delay={150} direction="up">
+          <AnimatedReveal immediate direction="fade">
             <p
               className={`text-xs sm:text-sm md:text-base font-normal leading-relaxed mb-5 max-w-lg ${
                 isDark ? 'text-[#D8C5A8]' : 'text-[#746556]'
@@ -77,7 +77,7 @@ export const Hero: React.FC = () => {
           </AnimatedReveal>
 
           {/* Primary Navigation Links: Sheep, Goats, Cows, Meat (clean links without container boxes) */}
-          <AnimatedReveal delay={250} direction="up">
+          <AnimatedReveal immediate direction="fade">
             <div className="flex flex-wrap items-center gap-x-5 sm:gap-x-7 gap-y-3 pt-1">
               <Link
                 to="/sheep"
@@ -129,7 +129,7 @@ export const Hero: React.FC = () => {
           </AnimatedReveal>
 
           {/* Key Value Points Row */}
-          <AnimatedReveal delay={350} direction="up">
+          <AnimatedReveal immediate direction="fade">
             <div
               className={`mt-6 pt-4 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs font-semibold ${
                 isDark ? 'text-[#D8C5A8]' : 'text-[#746556]'

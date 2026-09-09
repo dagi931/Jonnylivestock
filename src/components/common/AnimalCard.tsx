@@ -92,11 +92,12 @@ export const AnimalCard: React.FC<AnimalCardProps> = ({
       onTouchStart={handleTouch}
       onTouchEnd={handleTouch}
       style={{
+        transitionProperty: isInitialViewport ? 'none' : 'transform, opacity, border-color, box-shadow',
         transitionDelay: isInitialViewport ? '0ms' : `${Math.min(animationIndex * 50, 250)}ms`,
         transitionDuration: isInitialViewport ? '0ms' : '300ms',
         transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)',
       }}
-      className={`group relative rounded-xl sm:rounded-2xl border flex flex-col overflow-hidden hover:-translate-y-1 active:-translate-y-0.5 cursor-pointer select-none transition-all self-start h-fit w-full ${
+      className={`group relative rounded-xl sm:rounded-2xl border flex flex-col overflow-hidden hover:-translate-y-1 active:-translate-y-0.5 cursor-pointer select-none transition-[transform,opacity,border-color,box-shadow] self-start h-fit w-full ${
         isInitialViewport
           ? 'opacity-100 translate-y-0 scale-100'
           : isCardVisible
