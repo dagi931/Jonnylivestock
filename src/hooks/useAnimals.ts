@@ -1,78 +1,59 @@
 import { useState, useEffect } from 'react';
 import { Animal, AnimalType } from '../types/animal';
-import { mockAnimals, updateMockAnimalStatus } from '../data/animals';
 import { api } from '../services/api';
 import { useRealtimeEvent } from '../context/RealtimeContext';
 
+// Fast in-memory cache to guarantee 0ms instant page loads and zero layout shift on subsequent navigation
+const animalCache = new Map<string, { data: Animal[]; timestamp: number }>();
+
 export function useAnimals(type?: AnimalType) {
-  const getInitialAnimals = () => {
-    const list = type ? mockAnimals.filter(a => a.type === type) : mockAnimals;
-    return [...list].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  const cacheKey = type || 'all';
+
+  const getCachedAnimals = (): Animal[] => {
+    const cached = animalCache.get(cacheKey);
+    if (cached) return cached.data;
+    return [];
   };
 
-  const [animals, setAnimals] = useState<Animal[]>(getInitialAnimals);
-  // If mock animals exist, render immediately to avoid delaying FCP/LCP with skeletons
-  const [isLoading, setIsLoading] = useState<boolean>(() => getInitialAnimals().length === 0);
+  const [animals, setAnimals] = useState<Animal[]>(getCachedAnimals);
+  const [isLoading, setIsLoading] = useState<boolean>(() => getCachedAnimals().length === 0);
 
-  // Fetch initial animals from backend API - defer slightly if initial mock animals exist to protect FCP/LCP
   useEffect(() => {
     let isMounted = true;
-    let timerId: any;
 
-    const syncAnimals = () => {
-      api.getAnimals({ type }).then((liveAnimals) => {
-        if (isMounted && liveAnimals && liveAnimals.length > 0) {
-          liveAnimals.forEach(a => updateMockAnimalStatus(a.id, a.status));
-          const sorted = [...liveAnimals].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-          setAnimals(prev => {
-            if (prev.length === sorted.length) {
-              const identical = prev.every((a, i) => {
-                const s = sorted[i];
-                return s && a.id === s.id && a.status === s.status && a.quantity === s.quantity && a.price === s.price;
-              });
-              if (identical) return prev;
-            }
-            return sorted;
-          });
+    const fetchLive = async () => {
+      try {
+        const liveAnimals = await api.getAnimals({ type });
+        if (isMounted && liveAnimals && Array.isArray(liveAnimals)) {
+          const sorted = [...liveAnimals].sort(
+            (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          );
+          animalCache.set(cacheKey, { data: sorted, timestamp: Date.now() });
+          setAnimals(sorted);
         }
+      } catch (err) {
+        console.warn('Could not fetch live animals:', err);
+      } finally {
         if (isMounted) setIsLoading(false);
-      }).catch(() => {
-        if (isMounted) setIsLoading(false);
-      });
+      }
     };
 
-    const hasInitial = getInitialAnimals().length > 0;
-    if (hasInitial) {
-      timerId = setTimeout(() => {
-        if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
-          (window as any).requestIdleCallback(syncAnimals, { timeout: 2000 });
-        } else {
-          syncAnimals();
-        }
-      }, 5500);
-    } else {
-      syncAnimals();
-    }
+    fetchLive();
 
     return () => {
       isMounted = false;
-      if (typeof window !== 'undefined' && 'cancelIdleCallback' in window && typeof timerId === 'number') {
-        (window as any).cancelIdleCallback(timerId);
-      } else if (timerId) {
-        clearTimeout(timerId);
-      }
     };
-  }, [type]);
+  }, [type, cacheKey]);
 
   // 🚀 Realtime listener for animal updates (e.g. status becomes sold, reserved, quantity reduced)
   useRealtimeEvent<Animal>('ANIMAL_UPDATED', (updatedAnimal) => {
     if (!updatedAnimal || !updatedAnimal.id) return;
-    updateMockAnimalStatus(updatedAnimal.id, updatedAnimal.status);
     setAnimals(prev => {
       const index = prev.findIndex(a => a.id.toLowerCase() === updatedAnimal.id.toLowerCase());
       if (index === -1) return prev;
       const copy = [...prev];
       copy[index] = { ...copy[index], ...updatedAnimal };
+      animalCache.set(cacheKey, { data: copy, timestamp: Date.now() });
       return copy;
     });
   });
@@ -84,14 +65,20 @@ export function useAnimals(type?: AnimalType) {
     setAnimals(prev => {
       const exists = prev.some(a => a.id.toLowerCase() === newAnimal.id.toLowerCase());
       if (exists) return prev;
-      return [newAnimal, ...prev];
+      const updated = [newAnimal, ...prev];
+      animalCache.set(cacheKey, { data: updated, timestamp: Date.now() });
+      return updated;
     });
   });
 
   // 🚀 Realtime listener for deleted animals
   useRealtimeEvent<{ id: string }>('ANIMAL_DELETED', ({ id }) => {
     if (!id) return;
-    setAnimals(prev => prev.filter(a => a.id.toLowerCase() !== id.toLowerCase()));
+    setAnimals(prev => {
+      const filtered = prev.filter(a => a.id.toLowerCase() !== id.toLowerCase());
+      animalCache.set(cacheKey, { data: filtered, timestamp: Date.now() });
+      return filtered;
+    });
   });
 
   // 🚀 Realtime listener for verified orders (mark animal sold / reduce stock)
@@ -102,6 +89,7 @@ export function useAnimals(type?: AnimalType) {
         if (index === -1) return prev;
         const copy = [...prev];
         copy[index] = { ...copy[index], ...data.animal };
+        animalCache.set(cacheKey, { data: copy, timestamp: Date.now() });
         return copy;
       });
     }
