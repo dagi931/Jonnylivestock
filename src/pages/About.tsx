@@ -102,11 +102,12 @@ export const About: React.FC = () => {
           <div className="relative rounded-3xl overflow-hidden aspect-[4/3] border shadow-lg" style={{ borderColor: isDark ? '#4A2C16' : '#E4D4BC' }}>
             <img
               src="/about-farm.jpg"
-              alt="Jonny Livestock - Hand-selected healthy livestock"
+              alt="Jonny Livestock - Authentic livestock pastoral herder and healthy cattle"
               loading="eager"
               fetchPriority="high"
               decoding="sync"
               className="w-full h-full object-cover will-change-transform"
+              style={{ objectPosition: 'center 35%' }}
             />
           </div>
 
