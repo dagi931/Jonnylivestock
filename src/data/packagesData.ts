@@ -317,19 +317,7 @@ export const PACKAGE_CATALOG: PackageCatalogItem[] = [
     image: 'https://images.unsplash.com/photo-1560512823-829485b8bf24?auto=format&fit=crop&fm=webp&q=70&w=400&h=300',
     popular: true
   },
-  {
-    id: 'pkg-wine-tej',
-    category: 'wine',
-    name: 'Pure Highland Honey Tej (2L Flagon)',
-    amharicName: 'የማር ጠጅ በብርሌ (2 ሊትር)',
-    description: 'Traditional royal Ethiopian honey wine fermented with wild gesho and aged amber honey.',
-    amharicDescription: 'ከንጹህ የተፈጥሮ ማርና ከጌሾ የተጠመቀ እውነተኛ ባህላዊ ማር ጠጅ።',
-    price: 1600,
-    unit: '2 Litre Flagon',
-    amharicUnit: '2 ሊትር ማሰሮ',
-    image: 'https://images.unsplash.com/photo-1569529465841-dfecdab7503b?auto=format&fit=crop&fm=webp&q=70&w=400&h=300',
-    popular: true
-  },
+
   {
     id: 'pkg-wine-awash',
     category: 'wine',
@@ -474,22 +462,22 @@ export const PRE_MADE_PACKAGES: PreMadePackage[] = [
     isOutOfStock: false
   },
   {
-    id: 'pkg-traditional-goat-tej',
-    name: 'Traditional Ginchi Goat & Pure Tej Set',
-    amharicName: 'የጊንጪ ፍየልና የማር ጠጅ ጥቅል',
+    id: 'pkg-traditional-goat-wine',
+    name: 'Traditional Ginchi Goat & Acacia Wine Set',
+    amharicName: 'የጊንጪ ፍየልና የአካሲያ ወይን ጥቅል',
     tagline: 'Authentic Heritage Celebration',
     amharicTagline: 'ባህላዊ የደስታና የድግስ ሙሉ ጥቅል',
-    description: 'Prime Ginchi Tender Goat + 2L Traditional Pure Honey Tej + 1 Crate Fresh Eggs (30 pcs). Free delivery & optional slaughter preparation.',
-    amharicDescription: 'የጊንጪ ምርጥ ፍየል + 2 ሊትር ንጹህ የማር ጠጅ + 1 ካርቶን እንቁላል (30 ፍሬ)። ነፃ ማድረሻና የዕርድ ዝግጅትን ጨምሮ።',
+    description: 'Prime Ginchi Tender Goat + Acacia Select Wine + 1 Crate Fresh Eggs (30 pcs). Free delivery & optional slaughter preparation.',
+    amharicDescription: 'የጊንጪ ምርጥ ፍየል + አካሲያ ወይን + 1 ካርቶን እንቁላል (30 ፍሬ)። ነፃ ማድረሻና የዕርድ ዝግጅትን ጨምሮ።',
     categoryCount: 3,
     items: [
       PACKAGE_CATALOG.find(i => i.id === 'pkg-goat-01')!,
-      PACKAGE_CATALOG.find(i => i.id === 'pkg-wine-tej')!,
+      PACKAGE_CATALOG.find(i => i.id === 'pkg-wine-acacia')!,
       PACKAGE_CATALOG.find(i => i.id === 'pkg-egg-crate')!
     ],
-    originalPrice: 15500,
-    packagePrice: 14400,
-    savings: 1100,
+    originalPrice: 15800,
+    packagePrice: 14600,
+    savings: 1200,
     image: 'https://images.unsplash.com/photo-1524024973431-2ad916746881?auto=format&fit=crop&fm=webp&q=50&w=360&h=156',
     featured: true,
     totalSlots: 10,
