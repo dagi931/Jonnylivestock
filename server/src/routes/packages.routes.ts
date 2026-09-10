@@ -85,7 +85,7 @@ router.post('/', authenticateToken, requireAdmin, async (req: AuthRequest, res: 
         if (parsed.protocol === 'http:' && (parsed.hostname === 'localhost' || parsed.hostname === '127.0.0.1')) return true;
         return false;
       } catch {
-        return trimmed.startsWith('/uploads/') && /\.(jpe?g|png|webp|avif)$/i.test(trimmed);
+        return (trimmed.startsWith('/') || trimmed.startsWith('./')) && /\.(jpe?g|png|webp|avif|gif|svg)$/i.test(trimmed.split('?')[0]);
       }
     };
 
