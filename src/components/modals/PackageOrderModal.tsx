@@ -465,9 +465,6 @@ export const PackageOrderModal: React.FC<PackageOrderModalProps> = ({
                 <h1 className="font-serif font-bold text-base sm:text-xl leading-tight truncate">
                   {packageName}
                 </h1>
-                <span className="hidden md:inline-flex text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-500 border border-amber-500/30 shrink-0">
-                  {isAmharic ? 'የበዓል ማዘዣ ገጽ' : 'Full Screen Checkout'}
-                </span>
               </div>
               <div className="flex items-center gap-2 text-xs opacity-75 truncate">
                 <span className="flex items-center gap-1 text-amber-500 font-semibold truncate">
