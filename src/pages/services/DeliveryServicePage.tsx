@@ -199,7 +199,7 @@ export const DeliveryServicePage: React.FC = () => {
                     >
                       <option value="sheep">{isAmharic ? 'በግ' : 'Sheep (በግ)'}</option>
                       <option value="goat">{isAmharic ? 'ፍየል' : 'Goat (ፍየል)'}</option>
-                      <option value="cow">{isAmharic ? 'በሬ / ላም / ሰንጋ' : 'Cow / Cattle (በሬ / ላም)'}</option>
+                      <option value="cow">{isAmharic ? 'በሬ / ላም / ሰንጋ' : 'Cattle (በሬ / ላም)'}</option>
                       <option value="multiple">{isAmharic ? 'የተደባለቁ እንስሳት' : 'Combined Flock / Herd'}</option>
                     </select>
                   </div>

@@ -10,7 +10,7 @@ export const Cows: React.FC = () => {
       type="cow"
       breadcrumbLabel={t.nav.cows}
       title={{
-        en: 'Available Cows & Cattle',
+        en: 'Available Cattles',
         am: 'የሚገኙ ከብቶችና ሰንጋዎች'
       }}
       description={{
@@ -18,11 +18,11 @@ export const Cows: React.FC = () => {
         am: 'የደብረ ብርሃን፣ የጊንጪ፣ የወላይታና የአርሲ ሰንጋዎችንና ላሞችን ይመልከቱ። ትክክለኛ የቀጥታ ሚዛን ክብደትና ግልጽ የቀጥታ አቅራቢ ዋጋ።'
       }}
       typeLabel={{
-        en: 'cows',
+        en: 'cattles',
         am: 'ከብቶች'
       }}
       emptyTitle={{
-        en: 'No cows match your criteria',
+        en: 'No cattles match your criteria',
         am: 'ምንም አይነት የተገኘ ከብት የለም'
       }}
       emptySubtitle={{

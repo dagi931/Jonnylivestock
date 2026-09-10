@@ -27,5 +27,5 @@ export const business: BusinessConfig = {
   country: "Ethiopia",
   businessHours: "Monday – Saturday: 7:00 AM – 6:30 PM (Sunday: 8:00 AM – 2:00 PM)",
   currency: "ETB",
-  description: "Direct livestock supplier offering healthy, carefully selected sheep, goats, and cows with transparent weights, honest pricing, and complete direct delivery and preparation services."
+  description: "Direct livestock supplier offering healthy, carefully selected sheep, goats, and cattles with transparent weights, honest pricing, and complete direct delivery and preparation services."
 };

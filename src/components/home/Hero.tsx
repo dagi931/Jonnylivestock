@@ -18,7 +18,7 @@ export const Hero: React.FC = () => {
           <source type="image/webp" srcSet="/hero-livestock.webp" />
           <img
             src="/hero-livestock.webp"
-            alt="Jonny Livestock - Sheep, Goats, Cows & Prime Meat Supplier"
+            alt="Jonny Livestock - Sheep, Goats, Cattles & Prime Meat Supplier"
             className="w-full h-full object-cover"
             style={{ objectPosition: '75% 24%' }}
             loading="eager"

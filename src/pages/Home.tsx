@@ -216,7 +216,7 @@ export const Home: React.FC = () => {
                     isDark ? 'text-[#F4E8D0]' : 'text-[#241A12]'
                   }`}
                 >
-                  {isAmharic ? 'የተመረጡ ከብቶችና ሰንጋዎች' : 'Featured Cows & Cattle'}
+                  {isAmharic ? 'የተመረጡ ከብቶችና ሰንጋዎች' : 'Featured Cattles'}
                 </h2>
               </div>
 

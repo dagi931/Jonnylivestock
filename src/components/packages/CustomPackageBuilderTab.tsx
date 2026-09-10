@@ -237,7 +237,7 @@ export const CustomPackageBuilderTab: React.FC<CustomPackageBuilderTabProps> = (
                 ) : (
                   <AlertTriangle size={14} width={14} height={14} className="w-3.5 h-3.5 text-amber-500 shrink-0" aria-hidden="true" />
                 )}
-                <span>{isAmharic ? 'የቀንድ ከብት / በግ ወይም ፍየል' : 'Livestock: Cow/Ox or Sheep/Goat'}</span>
+                <span>{isAmharic ? 'የቀንድ ከብት / በግ ወይም ፍየል' : 'Livestock: Cattle/Ox or Sheep/Goat'}</span>
               </div>
               <span className={`text-[10px] font-bold ${hasLivestock ? 'text-emerald-500' : 'text-amber-500 font-semibold'}`}>
                 {hasLivestock ? (isAmharic ? '✓ ተካትቷል' : '✓ Included') : (isAmharic ? 'የግዴታ ያስፈልጋል' : 'Required')}
@@ -247,7 +247,7 @@ export const CustomPackageBuilderTab: React.FC<CustomPackageBuilderTabProps> = (
               <p className="text-[10.5px] text-amber-600 dark:text-amber-400/90 leading-tight">
                 {isAmharic
                   ? 'ጥቅሉን ለማጠናቀቅ ቢያንስ አንድ ሰንጋ በሬ፣ በግ ወይም ፍየል መምረጥ አለብዎት።'
-                  : 'Your custom package must include at least one Cow/Ox or Sheep/Goat.'}
+                  : 'Your custom package must include at least one Cattle/Ox or Sheep/Goat.'}
               </p>
             )}
           </div>
@@ -376,7 +376,7 @@ export const CustomPackageBuilderTab: React.FC<CustomPackageBuilderTabProps> = (
             {!isEligible && (
               <p className="text-[10.5px] text-center text-stone-500 dark:text-stone-400">
                 {!hasLivestock
-                  ? (isAmharic ? '⚠️ የበሬ/ሰንጋ ወይም የበግ/ፍየል መምረጥ ያስፈልጋል' : '⚠️ Must include Cow/Ox or Sheep/Goat')
+                  ? (isAmharic ? '⚠️ የበሬ/ሰንጋ ወይም የበግ/ፍየል መምረጥ ያስፈልጋል' : '⚠️ Must include Cattle/Ox or Sheep/Goat')
                   : (isAmharic ? `⚠️ ተጨማሪ ${3 - categoryCount} ምድብ ይምረጡ` : `⚠️ Select ${3 - categoryCount} more categories`)}
               </p>
             )}

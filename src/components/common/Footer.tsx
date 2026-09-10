@@ -147,7 +147,7 @@ export const Footer: React.FC = () => {
         <div className="mt-5 pt-3 border-t border-[#4A2C16]/60 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-[#D8C5A8]/75">
           <p>© {new Date().getFullYear()} {business.name}. {t.footer.allRightsReserved}</p>
           <p className="flex items-center gap-2">
-            <span>{isAmharic ? 'በጎች · ፍየሎች · ከብቶች' : 'Sheep · Goats · Cows'}</span>
+            <span>{isAmharic ? 'በጎች · ፍየሎች · ከብቶች' : 'Sheep · Goats · Cattles'}</span>
             <span>•</span>
             <span>{t.footer.tagline}</span>
           </p>

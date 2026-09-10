@@ -336,7 +336,7 @@ export const PackageOrderModal: React.FC<PackageOrderModalProps> = ({
       setSubmitError(
         isAmharic
           ? 'ጥቅሉ ቢያንስ አንድ ሰንጋ በሬ ወይም በግ/ፍየል ማካተት አለበት።'
-          : 'Custom celebration packages must include at least one Cow/Ox or Sheep/Goat.'
+          : 'Custom celebration packages must include at least one Cattle/Ox or Sheep/Goat.'
       );
       return;
     }

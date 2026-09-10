@@ -184,7 +184,7 @@ export const SlaughterPrepServicePage: React.FC = () => {
                     >
                       <option value="sheep">{isAmharic ? 'በግ' : 'Sheep (በግ)'}</option>
                       <option value="goat">{isAmharic ? 'ፍየል' : 'Goat (ፍየል)'}</option>
-                      <option value="cow">{isAmharic ? 'በሬ / ከብት / ሰንጋ' : 'Cow / Ox (በሬ / ከብት)'}</option>
+                      <option value="cow">{isAmharic ? 'በሬ / ከብት / ሰንጋ' : 'Cattle / Ox (በሬ / ከብት)'}</option>
                     </select>
                   </div>
 

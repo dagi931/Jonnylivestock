@@ -60,7 +60,7 @@ export const ServiceRequestModal: React.FC<ServiceRequestModalProps> = ({
 
   const getMeatOrderSummary = () => {
     if (meatAnimal === 'mixed') {
-      return `Mixed Order: ${totalMixedKg} KG (Sheep: ${sheepKg || 0}kg, Goat: ${goatKg || 0}kg, Cow: ${cowKg || 0}kg)`;
+      return `Mixed Order: ${totalMixedKg} KG (Sheep: ${sheepKg || 0}kg, Goat: ${goatKg || 0}kg, Cattle: ${cowKg || 0}kg)`;
     }
     return `${meatKg} KG of ${meatAnimal.toUpperCase()} meat`;
   };
@@ -294,7 +294,7 @@ export const ServiceRequestModal: React.FC<ServiceRequestModalProps> = ({
                       {[
                         { id: 'sheep', label: isAmharic ? 'በግ' : 'Sheep (በግ)' },
                         { id: 'goat', label: isAmharic ? 'ፍየል' : 'Goat (ፍየል)' },
-                        { id: 'cow', label: isAmharic ? 'በሬ / ላም' : 'Cow (በሬ)' },
+                        { id: 'cow', label: isAmharic ? 'በሬ / ላም' : 'Cattle (በሬ)' },
                         { id: 'mixed', label: isAmharic ? 'የተደባለቀ' : 'Mixed (የተደባለቀ)' }
                       ].map((item) => (
                         <button
@@ -384,7 +384,7 @@ export const ServiceRequestModal: React.FC<ServiceRequestModalProps> = ({
                           />
                         </div>
                         <div>
-                          <label className="block text-[10px] font-semibold mb-0.5">{isAmharic ? 'በሬ' : 'Cow (በሬ)'}</label>
+                          <label className="block text-[10px] font-semibold mb-0.5">{isAmharic ? 'በሬ' : 'Cattle (በሬ)'}</label>
                           <input
                             type="number"
                             min="0"

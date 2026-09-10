@@ -242,7 +242,7 @@ export const PackageBuilder: React.FC = () => {
       alert(
         isAmharic
           ? 'ጥቅሉን ለማስቀመጥ ቢያንስ አንድ ሰንጋ በሬ ወይም በግ/ፍየል ማካተት አለብዎት።'
-          : 'Your custom package must include at least one Cow/Ox or Sheep/Goat to be saved.'
+          : 'Your custom package must include at least one Cattle/Ox or Sheep/Goat to be saved.'
       );
       return;
     }
@@ -277,7 +277,7 @@ export const PackageBuilder: React.FC = () => {
       alert(
         isAmharic
           ? 'ጥቅሉን ለማዘዝ ቢያንስ አንድ ሰንጋ በሬ ወይም በግ/ፍየል ማካተት አለብዎት።'
-          : 'Your custom package must include at least one Cow/Ox or Sheep/Goat to proceed.'
+          : 'Your custom package must include at least one Cattle/Ox or Sheep/Goat to proceed.'
       );
       return;
     }

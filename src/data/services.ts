@@ -36,7 +36,7 @@ export const livestockServices: ServiceItem[] = [
   {
     id: 'delivery',
     title: 'Live Livestock Delivery',
-    shortDescription: 'Safe, coordinated transportation of your purchased live sheep, goat or cow from Aware, Addis Ababa to your destination.',
+    shortDescription: 'Safe, coordinated transportation of your purchased live sheep, goat or cattle from Aware, Addis Ababa to your destination.',
     fullDescription: 'We arrange secure and timely transportation for purchased live animals directly from our Aware facility in Addis Ababa to your residence, event venue, or business. Vehicles are equipped for gentle animal transit with direct arrival coordination.',
     iconName: 'Truck',
     highlights: [

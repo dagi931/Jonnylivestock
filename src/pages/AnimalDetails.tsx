@@ -199,13 +199,13 @@ export const AnimalDetails: React.FC = () => {
     ? (isAmharic ? 'በጎች' : 'Sheep')
     : animal.type === 'goat'
     ? (isAmharic ? 'ፍየሎች' : 'Goats')
-    : (isAmharic ? 'ከብቶች' : 'Cows');
+    : (isAmharic ? 'ከብቶች' : 'Cattles');
 
   const typeName = animal.type === 'sheep'
     ? (isAmharic ? 'በግ' : 'Sheep')
     : animal.type === 'goat'
     ? (isAmharic ? 'ፍየል' : 'Goat')
-    : (isAmharic ? 'ከብት / ላም' : 'Cow');
+    : (isAmharic ? 'ከብት / ላም' : 'Cattle');
 
   const currentSlaughterFee = getSlaughterFee(slaughterOption, slaughterPricing);
   const totalWithServices = (animal?.price || 0) + currentSlaughterFee;

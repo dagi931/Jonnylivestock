@@ -79,7 +79,7 @@ export const AnimalCard: React.FC<AnimalCardProps> = ({
   const getTypeLabel = () => {
     if (animal.type === 'sheep') return isAmharic ? 'በግ' : 'Sheep';
     if (animal.type === 'goat') return isAmharic ? 'ፍየል' : 'Goat';
-    return isAmharic ? 'ከብት / ላም' : 'Cow';
+    return isAmharic ? 'ከብት / ላም' : 'Cattle';
   };
 
   const getGenderLabel = () => {

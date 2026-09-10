@@ -145,7 +145,7 @@ export const SlaughterPrepDashboard: React.FC = () => {
                   >
                     <option value="sheep">Sheep (በግ)</option>
                     <option value="goat">Goat (ፍየል)</option>
-                    <option value="cow">Cow / Ox (በሬ / ከብት)</option>
+                    <option value="cow">Cattle / Ox (በሬ / ከብት)</option>
                   </select>
                 </div>
 

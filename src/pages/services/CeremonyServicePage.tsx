@@ -77,7 +77,7 @@ export const CeremonyServicePage: React.FC = () => {
     setSubmitted(true);
   };
 
-  const whatsappMessage = `Hello ${business.name}, I would like to arrange CEREMONIAL LIVESTOCK SUPPLY. Event: [${eventType.toUpperCase()}]. Animals: [Sheep: ${sheepCount}, Goats: ${goatCount}, Cows: ${cowCount}]. Date: ${eventDate || 'Upcoming date'}. Venue: [${venueLocation}]. Need On-Site Worker Assistance: [${needWorker ? 'Yes' : 'No'}]. Customer: ${customerName} (Phone: ${phone}). Special Note: ${specialRequests || 'Please allocate and hold prime animals.'}`;
+  const whatsappMessage = `Hello ${business.name}, I would like to arrange CEREMONIAL LIVESTOCK SUPPLY. Event: [${eventType.toUpperCase()}]. Animals: [Sheep: ${sheepCount}, Goats: ${goatCount}, Cattle: ${cowCount}]. Date: ${eventDate || 'Upcoming date'}. Venue: [${venueLocation}]. Need On-Site Worker Assistance: [${needWorker ? 'Yes' : 'No'}]. Customer: ${customerName} (Phone: ${phone}). Special Note: ${specialRequests || 'Please allocate and hold prime animals.'}`;
 
   return (
     <div className="min-h-screen py-6 sm:py-10">
@@ -256,7 +256,7 @@ export const CeremonyServicePage: React.FC = () => {
 
                   <div>
                     <label className="block text-[11px] font-semibold mb-1 opacity-90">
-                      {isAmharic ? 'ከብት / ሰንጋ' : 'Cows/Oxen (ከብት)'}
+                      {isAmharic ? 'ከብት / ሰንጋ' : 'Cattles/Oxen (ከብት)'}
                     </label>
                     <input
                       type="number"

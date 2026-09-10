@@ -322,7 +322,7 @@ export const mockAnimals: Animal[] = [
     color: "Black and White Pied",
     price: 88000,
     location: "Arat Kilo, Addis Ababa",
-    description: "Robust Ginchi cow known for high disease resilience and large barrel capacity. Suitable for dairying, beef, or celebration slaughter.",
+    description: "Robust Ginchi cattle known for high disease resilience and large barrel capacity. Suitable for dairying, beef, or celebration slaughter.",
     status: "available",
     featured: true,
     characteristics: ["Pied color pattern", "Large barrel", "High adaptability", "Vaccinated"],

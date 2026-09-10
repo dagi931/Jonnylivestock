@@ -161,7 +161,7 @@ export const DeliveryDashboard: React.FC = () => {
                   >
                     <option value="sheep">Sheep (በግ)</option>
                     <option value="goat">Goat (ፍየል)</option>
-                    <option value="cow">Cow / Cattle (በሬ / ላም)</option>
+                    <option value="cow">Cattle (በሬ / ላም)</option>
                     <option value="multiple">Combined Flock / Herd</option>
                   </select>
                 </div>
