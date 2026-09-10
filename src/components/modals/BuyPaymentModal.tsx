@@ -545,35 +545,35 @@ export const BuyPaymentModal: React.FC<BuyPaymentModalProps> = ({
 
               {/* Scrollable Form Body */}
               <div className="overflow-y-auto p-5 sm:p-7 space-y-6 flex-1">
-                {/* Account Required Alert Banner */}
+                {/* Account Recommendation Alert Banner */}
                 {!isAuthenticated && (
                   <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-sm">
                     <div className="flex items-start sm:items-center gap-2.5">
                       <div className="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-500 flex items-center justify-center shrink-0 mt-0.5 sm:mt-0">
-                        <AlertCircle className="w-4 h-4" />
+                        <Sparkles className="w-4 h-4" />
                       </div>
                       <div>
                         <div className="text-xs sm:text-sm font-bold text-amber-500">
-                          {isAmharic ? 'ትዕዛዝ ለማስገባት መለያ ያስፈልጋል' : 'Account Required to Order'}
+                          {isAmharic ? 'መለያ መፍጠር ይመከራል (አማራጭ)' : 'Account Recommended (Optional)'}
                         </div>
                         <div className="text-[11px] sm:text-xs opacity-80">
                           {isAmharic
-                            ? 'ትዕዛዝዎን ለመከታተልና ደረሰኝ ለማያያዝ እባክዎ መለያ ይፍጠሩ ወይም ይግቡ።'
-                            : 'To track your orders, receipts, and livestock status, please create an account or sign in.'}
+                            ? 'ትዕዛዝዎን፣ ደረሰኝዎንና የከብቶችዎን ሁኔታ በቀላሉ ለመከታተል መለያ እንዲፈጥሩ ወይም እንዲገቡ እንመክራለን (ያለመለያም ማዘዝ ይችላሉ)።'
+                            : 'To easily track your orders, receipts, and livestock status in real time, creating an account or signing in is recommended.'}
                         </div>
                       </div>
                     </div>
                     <div className="flex items-center gap-2 w-full sm:w-auto shrink-0">
                       <button
                         type="button"
-                        onClick={() => openAuthModal('register', isAmharic ? `ስለ ${animal.breed} (${animal.id}) ትዕዛዝዎን ለማጠናቀቅ እባክዎ ይመዝገቡ።` : `Please create an account to complete your order for ${animal.breed} (${animal.id}).`)}
+                        onClick={() => openAuthModal('register', isAmharic ? `ስለ ${animal.breed} (${animal.id}) ትዕዛዝዎን በቀላሉ ለመከታተል መለያ እንዲፈጥሩ እንመክራለን።` : `Creating an account is recommended to track your order for ${animal.breed} (${animal.id}).`)}
                         className="flex-1 sm:flex-initial px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-black text-xs font-bold transition-all shadow-sm cursor-pointer whitespace-nowrap"
                       >
                         {isAmharic ? 'መለያ ፍጠር (Register)' : 'Create Account'}
                       </button>
                       <button
                         type="button"
-                        onClick={() => openAuthModal('login', isAmharic ? `ስለ ${animal.breed} (${animal.id}) ትዕዛዝዎን ለማጠናቀቅ እባክዎ ይግቡ።` : `Please sign in to complete your order for ${animal.breed} (${animal.id}).`)}
+                        onClick={() => openAuthModal('login', isAmharic ? `ስለ ${animal.breed} (${animal.id}) ትዕዛዝዎን በቀላሉ ለመከታተል እባክዎ ይግቡ።` : `Sign in to easily track your order for ${animal.breed} (${animal.id}).`)}
                         className="flex-1 sm:flex-initial px-3 py-2 rounded-xl border border-amber-500/40 text-amber-500 hover:bg-amber-500/10 text-xs font-bold transition-all cursor-pointer whitespace-nowrap"
                       >
                         {isAmharic ? 'ግባ (Sign In)' : 'Sign In'}
